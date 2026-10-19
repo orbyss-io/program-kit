@@ -91,7 +91,8 @@ def build():
     history = json.loads((ROOT / 'releases/history.json').read_text(encoding='utf-8'))
     current = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
     references = ['v' + entry['version'] for entry in history['entries'] if entry['version'] != current]
-    references.append('711293b2dda187616891df11fe760a3d5d0cf5f5')
+    references.extend(('711293b2dda187616891df11fe760a3d5d0cf5f5',
+                       '4b90dc7ea6458fc2fbd6a5ae7e35c552426ad9e8'))
     components = []
     for reference in references:
         components.extend(capture(ROOT, reference))

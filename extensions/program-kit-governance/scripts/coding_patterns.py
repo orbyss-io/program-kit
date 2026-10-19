@@ -69,8 +69,15 @@ def reference(value):
 def referenced(ref, root, extensions):
     reference(ref)
     path = confined(root if ref['root'] == 'repository' else extensions, ref['path'])
-    require(path.is_file(), 'missing declared input')
-    raw = path.read_bytes()
+    if ref['root'] == 'extensions':
+        from asset_sources import read as source_bytes
+        try:
+            raw = source_bytes(path)
+        except FileNotFoundError:
+            fail('missing declared input')
+    else:
+        require(path.is_file(), 'missing declared input')
+        raw = path.read_bytes()
     if ref.get('selector'):
         raw = select(raw.decode('utf-8-sig').replace('\r\n', '\n'), ref['selector']).encode()
     require(bool(raw.strip()), 'empty declared input')
@@ -273,7 +280,7 @@ def binding(unit, rules, root, extensions, observed):
              'rules': {r['id']: r['fingerprint'] for r in rules},
              'inputs': [referenced(r, root, extensions) for r in refs], 'context': observed,
              'adapters': {name: sha(Path(__file__).with_name(name).read_bytes())
-                          for name in ('coding_patterns.py', 'coding_context.py', 'knowledge_sources.py', 'feature_context.py')}}
+                          for name in ('coding_patterns.py', 'coding_context.py', 'knowledge_sources.py', 'feature_context.py', 'asset_sources.py')}}
     return fingerprint(state)
 
 

@@ -1,3 +1,28 @@
+**F8 approval update, 19 October 2026:** F1–F8 are human approved within the
+recorded acceptance scopes. The human completed the separate Spec Kit session,
+reviewed the snapshot-pattern explanation and said “Super. I approve. Commit and
+close this.” Read the [F8 approval/closeout](coding-system-f8-checkpoint-2026-10-18.md)
+and [final matrix](coding-system-final-handoff-2026-10-18.md). The 126.204s/120s
+fresh overrun remains over-budget; approval preserves every failure, cost and
+proof limit. Commit the scoped F8 work locally and close its task. Retain review
+material and the stopped consumer; no push, publication or cleanup is authorized.
+The development skill was separately created on codex/program-kit-development-skill;
+its other chat owns that work and commit. This supersedes older pending/deferral
+wording below and does not authorize merging the separate branch.
+
+**F8 review update, 18 October 2026:** F1–F7 remain human approved. The human
+agreed the F8 recommendations and extended Q2 to an actual human-operated agent
+journey. F8 implementation and scoped installed proof are retained for review;
+read the [F8 checkpoint](coding-system-f8-checkpoint-2026-10-18.md) and
+[final F1–F8 matrix/handoff](coding-system-final-handoff-2026-10-18.md), starting at
+its guided actual-output index. Final fresh execution completed functionally but
+exceeded 120s at 126.204s; retain that finding. The separate untouched consumer is
+prepared for the human to perform Specify/Clarify/Plan/Tasks/Analyze/Implement with
+an agent and return its exact session for analysis. No agent session has started.
+This update supersedes older continuation wording below. Stop at F8 human review;
+complete acceptance and F8 approval remain pending. Do not commit, push, clean,
+publish or create the deferred development skill without further authority.
+
 Implement the approved Program Kit coding-system feature in an isolated feature branch/worktree.
 
 **F7 approval update, 18 October 2026:** F1–F7 are human approved. The human approved

@@ -142,22 +142,10 @@ def inventory(root, feature, stage='delivery'):
 
 
 def catalog():
-    directory = Path(__file__).resolve().parents[1] / 'references'
-    value = read(directory / 'phase-obligations.json')
-    require(value.get('schemaVersion') == 1, 'Unsupported obligation catalog')
-    ids = [item['id'] for item in value['requirements']]
-    require(len(set(ids)) == len(ids), 'Duplicate knowledge requirement')
-    for item in value['requirements']:
-        for relative in item['sources']:
-            require(inside(directory.parents[1], relative).is_file(), f'Missing knowledge source: {relative}')
-        sections = item.get('sections', {})
-        require(set(sections) <= set(item['sources']), 'Section source must be declared')
-        for relative, headings in sections.items():
-            require(isinstance(headings, list) and headings and len(headings) == len(set(headings)),
-                    'Knowledge sections must be unique and nonempty')
-            for heading in headings:
-                knowledge_section(inside(directory.parents[1], relative), heading)
-    return value
+    raise ValueError('Historical projection/renewal is retired. Inspect existing records with '
+                     'historical_phase_evidence.py inspect; use phase_obligations.py prepare/reconcile '
+                     'and current task/delivery evaluation for new work. Historical fixture helpers '
+                     'require their exact original catalog explicitly; they cannot mint current evidence.')
 
 
 def knowledge_section(path, heading):

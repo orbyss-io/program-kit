@@ -28,6 +28,12 @@ class ObligationTests(unittest.TestCase):
             obligations.inventory(self.root, self.feature)
 
     def setUp(self):
+        # Legacy projection helpers test an exact historical catalog, never the
+        # current canonical registry or renewed real-consumer evidence.
+        snapshot = json.loads((ROOT / 'tests/fixtures/coding-system/f7-historical-requirements.json').read_text(encoding='utf-8'))
+        historical_catalog = patch.object(obligations, 'catalog', return_value=snapshot)
+        historical_catalog.start()
+        self.addCleanup(historical_catalog.stop)
         # Unit scope: intake's native integration is exercised by validate_specification_intake.
         authority = patch.object(obligations, 'require_confirmed_intake')
         authority.start()
@@ -123,7 +129,7 @@ raise SystemExit(not result.wasSuccessful())
         with self.assertRaisesRegex(ValueError, 'Missing/ambiguous'):
             obligations.knowledge_section(path, 'Async')
 
-    def test_historical_delivery_audit_remains_explicit(self):
+    def test_historical_audit_does_not_renew_current_delivery(self):
         import os
         import governance_state as governance
         from validate_governance_state import roadmap
@@ -139,11 +145,19 @@ raise SystemExit(not result.wasSuccessful())
                 governance.validate_roadmap(False, verify_delivery=True)
             obligations.execute(self.root, self.feature)
             self.review('delivery')
-            governance.validate_roadmap(False, verify_delivery=True)
+            obligations.check(self.root, self.feature, 'delivery')
+            # Exact historical evidence remains readable, but cannot satisfy the
+            # current story/evaluation contract or silently become new authority.
+            original = {p.name: p.read_bytes() for p in self.feature.iterdir() if p.is_file()}
+            with self.assertRaisesRegex(ValueError, 'Initialize fresh story delivery state'):
+                governance.validate_roadmap(False, verify_delivery=True)
+            self.assertEqual(original, {p.name: p.read_bytes() for p in self.feature.iterdir() if p.is_file()})
             # The active pointer is navigation; changing it cannot revoke another
             # feature's proof or force unrelated feature revalidation.
             self.write('.specify/feature.json', {'feature_directory': 'specs/002-other'})
-            governance.validate_roadmap(False, verify_delivery=True)
+            with patch('phase_obligations.check') as current_audit:
+                governance.validate_roadmap(False, verify_delivery=True)
+                current_audit.assert_called_once_with(self.root, self.feature, 'delivery')
             (self.root / 'run_tests.py').write_text('raise Exception("changed behavior")', encoding='utf-8')
             with self.assertRaisesRegex(ValueError, 'lacks current required evidence'):
                 governance.validate_roadmap(False, verify_delivery=True)

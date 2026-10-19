@@ -27,10 +27,11 @@ def write(path, value):
         write_value(path, value)
 
 
-def scenario(directory):
+def scenario(directory, *, installed_consumer=None):
     review = Path(filesystem_path(Path(directory).resolve()))
     review.mkdir(parents=True, exist_ok=True)
-    consumer = review / 'consumer'; consumer.mkdir()
+    consumer = Path(filesystem_path(installed_consumer)) if installed_consumer is not None else review / 'consumer'
+    consumer.mkdir(parents=True, exist_ok=installed_consumer is not None)
     sys.path.insert(0, str(ROOT / 'scripts'))
     from run_validation import input_snapshot
     result = {'status': 'running', 'startedAtUtc': datetime.now(timezone.utc).isoformat(),
@@ -60,9 +61,10 @@ def scenario(directory):
             if path.is_file(): write(review / 'snapshots' / name / p, path.read_bytes())
 
     try:
-        for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
-            shutil.copytree(filesystem_path(ROOT / 'extensions' / name), consumer / '.specify/extensions' / name,
-                            ignore=shutil.ignore_patterns('__pycache__'))
+        if installed_consumer is None:
+            for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
+                shutil.copytree(filesystem_path(ROOT / 'extensions' / name), consumer / '.specify/extensions' / name,
+                                ignore=shutil.ignore_patterns('__pycache__'))
         feature = seed(consumer)
         extensions = consumer / '.specify/extensions'; scripts = extensions / 'program-kit-governance/scripts'
         phase, pattern, scaffold = (scripts / n for n in ('phase_obligations.py', 'coding_patterns.py', 'coding_scaffold.py'))
@@ -136,10 +138,14 @@ def scenario(directory):
             checks=[{'kind': 'toolkit', 'id': 'label-source'}], review=ref('docs/architecture/label-pattern-review.md'),
             limits='Source-realization mechanics and the independent .NET label application oracle only. Native HTTP/provider/generated-client execution requires its separate maintained qualifier.')
         write(consumer / 'docs/architecture/coding-patterns.json', {'schemaVersion': 1, 'sources': [], 'rules': {}, 'codingUnits': [unit]})
+        from asset_sources import PACK
+        check_inputs = ['.specify/extensions/' + r['path'] for r in qualified_inputs] + [
+            '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py',
+            '.specify/extensions/program-kit-governance/scripts/asset_sources.py']
+        check_inputs += [p.relative_to(consumer).as_posix() for p in extensions.glob('*/' + PACK)]
         write(consumer / 'eng/verification.json', {'schemaVersion': 1, 'testGroups': [], 'toolkitChecks': [
             {'id': name, 'script': 'tests/coding_label_check.py', 'arguments': args,
-             'inputs': ['.specify/extensions/' + r['path'] for r in qualified_inputs] +
-                       ['.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'], 'timeoutSeconds': 90}
+             'inputs': check_inputs, 'timeoutSeconds': 90}
             for name, args in [('label-source', []), ('label-source-invalid', ['--invalid'])]] + [
             {'id': 'label-application', 'script': 'tests/application_check.py', 'arguments': [],
              'inputs': [owners[k] for k in ('core','runtime','test')] +
@@ -152,7 +158,20 @@ def scenario(directory):
             return [scaffold, action, '--repository', consumer, '--feature-dir', 'specs/001-notes', '--operation', 'list', '--unit', selected,
                     '--owners', 'specs/001-notes/label-owners.json', *(['--plan-digest', digest] if digest else [])]
         def checks(name, check, expected=0):
-            return run(name, [native, '--repository', consumer, '--scope', 'Focused', '--check', check], expected)
+            reports = consumer / 'artifacts/tests/toolkit-runs'
+            before_reports = set(reports.glob('*/result.json'))
+            value = run(name, [native, '--repository', consumer, '--scope', 'Focused', '--check', check], expected)
+            if expected:
+                created = set(reports.glob('*/result.json')) - before_reports
+                assert len(created) == 1, 'Independent negative needs its own actual execution'
+                report = json.loads(created.pop().read_bytes())
+                outcomes = [row for row in report['outcomes'] if row['check'] == check]
+                assert len(outcomes) == 1 and outcomes[0]['status'] == 'failed' and outcomes[0]['exitCode'] != 0
+                output = '\n'.join((consumer / p).read_text(encoding='utf-8') for p in outcomes[0]['evidence'])
+                assert 'committed label representation' in output, 'Setup/compiler failure is not the intended behavioral red'
+                result['commands'][-1]['independentBehaviorMarker'] = 'committed label representation'
+                write(review / 'results.json', result)
+            return value
         run('01-unqualified-realization', realization(), 2)
         checks('02-independent-pattern-positive', 'label-source')
         checks('03-independent-invalid-pattern', 'label-source-invalid', 2)
@@ -168,8 +187,21 @@ def scenario(directory):
         original_model = model_path.read_bytes(); changed = copy.deepcopy(model); changed['strategic_model']['bounded_contexts'] = []; write(model_path, changed)
         run('07-missing-model-owner-preserves-source', realization('apply', preview['planDigest']), 2); model_path.write_bytes(original_model)
         template = extensions / 'program-kit-dotnet/references/examples/typed-operation/LabelOperations.cs'
-        original_template = template.read_bytes(); template.write_bytes(original_template + b'\n// Changed qualified input\n')
-        run('08-stale-selected-proof', realization(), 2); template.write_bytes(original_template)
+        from asset_sources import read as source_bytes, owner as asset_owner, packed, encoded, PACK
+        component = asset_owner(template)
+        original_template = source_bytes(template)
+        original_pack = (component / PACK).read_bytes() if component else None
+        if component:
+            values = packed(component)
+            values[template.relative_to(component).as_posix()] = original_template + b'\n// Changed qualified input\n'
+            (component / PACK).write_bytes(encoded(values))
+        else:
+            template.write_bytes(original_template + b'\n// Changed qualified input\n')
+        run('08-stale-selected-proof', realization(), 2)
+        if component:
+            (component / PACK).write_bytes(original_pack)
+        else:
+            template.write_bytes(original_template)
         destination = consumer / 'src/Notes.Runtime/LabelOperations.cs'
         write(destination, '// Consumer-authored collision; preserve this file.\n')
         run('09-destination-invalidates-preview', realization('apply', preview['planDigest']), 2)

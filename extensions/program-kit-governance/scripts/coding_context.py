@@ -126,7 +126,12 @@ def compose(catalog, requirements, tags, facts, extensions, repository=None):
             for recipe in recipes:
                 relative = recipe.removeprefix('extensions/')
                 location = (extensions / relative).resolve()
-                if not location.is_relative_to(extensions.resolve()) or not location.is_file():
+                try:
+                    if not location.is_relative_to(extensions.resolve()):
+                        raise ValueError('Recipe escapes extensions')
+                    from asset_sources import read as source_bytes
+                    source_bytes(location)
+                except (OSError, ValueError):
                     unit_blockers.append({'code': 'PKC004', 'unit': unit['id'], 'owner': 'recipe/adapter maintainer',
                                      'repair': 'Restore the selected maintained recipe dependency: ' + recipe})
         unresolved = [key for key in unit.get('requiredContext', []) if not facts.get(key)]

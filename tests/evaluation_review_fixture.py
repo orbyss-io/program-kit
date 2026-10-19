@@ -24,10 +24,10 @@ from learning_review_fixture import seed, declaration, EXAMPLE, ref
 from owned_fixture import filesystem_path, native_path
 
 
-def scenario(review):
+def scenario(review, *, installed_consumer=None, qualification_only=False):
     review = Path(filesystem_path(review.resolve()))
-    consumer = Path(filesystem_path(ROOT / 'artifacts/t' / ('f7-' + uuid.uuid4().hex[:8])))
-    consumer.mkdir(parents=True)
+    consumer = Path(filesystem_path(installed_consumer or ROOT / 'artifacts/t' / ('f7-' + uuid.uuid4().hex[:8])))
+    consumer.mkdir(parents=True, exist_ok=installed_consumer is not None)
     started = time.monotonic()
     sys.path.insert(0, str(ROOT / 'scripts'))
     from run_validation import input_snapshot
@@ -58,7 +58,7 @@ def scenario(review):
             return child.stdout
 
     try:
-        seed(consumer)
+        seed(consumer, installed=installed_consumer is not None)
         baseline = subprocess.check_output(['git', '-c', 'safe.directory=' + native_path(consumer), '-c', 'core.excludesFile=',
                                             'rev-parse', 'HEAD'], cwd=native_path(consumer), text=True).strip()
         result['consumerBaseline'] = baseline
@@ -115,7 +115,9 @@ def scenario(review):
         before = applied.replace('SnapshotQuery', 'SnapshotScan')
         write(app, before)
         write(review / 'snapshots/application-before.cs', before)
-        write(consumer / 'docs/patterns/lesson.md', (EXAMPLE / 'README.md').read_text())
+        from asset_sources import read as source_bytes
+        example = consumer / '.specify/extensions/program-kit-dotnet/references/examples/snapshot-query'
+        write(consumer / 'docs/patterns/lesson.md', source_bytes(example / 'README.md').decode('utf-8'))
         write(consumer / 'docs/patterns/invalid-query.cs.txt', 'Independent invalid owner-identity control; actual source is retained in this review.\n')
         write(consumer / 'docs/patterns/review.md', '''# Fictional scoped F7 source review
 
@@ -296,6 +298,13 @@ print(json.dumps(value))
         assert qualified['coding']['patterns'][0]['qualification']['status'] == 'qualified'
         run('04b-native-linked-positive', [sys.executable, engine / 'repository_architecture.py', '--repository', consumer,
                                           '--manifest', 'eng/architecture.json', '--planned'])
+        if installed_consumer is not None:
+            run('04c-actual-installed-implementation-prehook', [sys.executable, governance / 'implementation_preflight.py',
+                '--feature-dir', feature.relative_to(consumer), '--configuration', 'Release'])
+        if qualification_only:
+            result.update(status='passed', scope='Actual installed old pattern qualification; completion and human acceptance remain due.')
+            write(review / 'index.md', '# Qualified old fictional consumer\n\nInspect results.json and output/01–04b. Actual compiled/native checks and local qualification ran; no completion or human decision was supplied.\n')
+            return result
         tasks = feature / 'tasks.md'
         write(tasks, tasks.read_text().replace('- [ ]', '- [X]'))
         checked_bytes = tasks.read_bytes()

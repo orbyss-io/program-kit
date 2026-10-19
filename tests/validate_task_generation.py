@@ -56,7 +56,7 @@ def validate_analyzer_instructions(analyze):
             raise AssertionError('Installed analyze lost scoped ordering: ' + marker)
 
 
-def validate_installed_workflow(project, fresh_reset=False):
+def validate_installed_workflow(project, fresh_reset=False, *, execute=True):
     """Called by the real archive-install validator, using its disposable consumer."""
     import yaml
     hooks = yaml.safe_load((project / '.specify/extensions.yml').read_text(encoding='utf-8'))['hooks']
@@ -96,6 +96,8 @@ def validate_installed_workflow(project, fresh_reset=False):
             raise AssertionError('Installed implement lost focused execution/handoff semantics: ' + marker)
     if 'Common Patterns by Technology' in implement or 'Read research.md for technical decisions' in implement:
         raise AssertionError('The installed command appended to the broad core body instead of replacing it')
+    if not execute:
+        return  # The connected installed coding fixture owns actual execution.
     spec_root = project / 'specs'
     spec_root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='999-task-resume-', dir=spec_root) as directory:

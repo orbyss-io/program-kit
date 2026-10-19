@@ -30,7 +30,9 @@
         "scripts/invoke_specify.py",
         "scripts/initialize_device.py",
         "tests/release_workflow_contracts.py",
-        ".github/scripts/update_published_readme.py"
+        ".github/scripts/update_published_readme.py",
+        "extensions/program-kit-governance/scripts/asset_sources.py",
+        "extensions/program-kit-governance/scripts/release_guidance.py"
       ],
       "dependsOn": []
     },
@@ -109,7 +111,8 @@
         "tests/coding_review_fixture.py",
         "extensions/program-kit-governance/scripts/coding_patterns.py",
         "tests/pattern_review_fixture.py",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-patterns.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-patterns.md",
+        "extensions/program-kit-governance/scripts/historical_phase_evidence.py"
       ],
       "dependsOn": [
         "profiles"
@@ -386,6 +389,19 @@
         "knowledge",
         "phases",
         "test-generation"
+      ]
+    },
+    "coding-installation": {
+      "inputs": [
+        "tests/coding_install_review_fixture.py",
+        "tests/validate_coding_installation.py",
+        "tests/fixtures/coding-system/*"
+      ],
+      "dependsOn": [
+        "release",
+        "upgrade",
+        "coding-realization",
+        "coding-evaluation"
       ]
     }
   },
@@ -1423,7 +1439,8 @@
         "release"
       ],
       "inputs": [
-        "tests/validate_release_guidance.py"
+        "tests/validate_release_guidance.py",
+        "extensions/program-kit-governance/scripts/release_guidance.py"
       ],
       "needs": [],
       "prerequisites": [],
@@ -4767,7 +4784,8 @@
         "release"
       ],
       "inputs": [
-        "tests/validate_asset_sources.py"
+        "tests/validate_asset_sources.py",
+        "extensions/program-kit-governance/scripts/asset_sources.py"
       ],
       "needs": [
         "build-release"
@@ -5797,6 +5815,232 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_installed_fresh",
+      "purpose": "F8 actual packaged fresh coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "fresh"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installed_old",
+      "purpose": "F8 actual packaged old coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "old"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installed_update",
+      "purpose": "F8 actual packaged update coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "update"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installed_scaffold",
+      "purpose": "F8 actual packaged scaffold coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "scaffold"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installation_contracts",
+      "purpose": "F8 active canonical retirement, immutable source-baseline preservation and independent packed-guide corruption controls.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_installation.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/validate_coding_installation.py",
+        "tests/fixtures/coding-system/*"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_coding_installed_adoption",
+      "purpose": "Actual installed qualified-profile retention, explicit reviewed adoption boundary and managed transaction rollback/retry/conflict; no runtime migration acceptance.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "adoption"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "prepare_coding_human_review",
+      "purpose": "Prepare a separate actual installed consumer at the human-operated Spec Kit starting boundary; no agent, feature execution or human decision.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "human"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
     }
   ]
 }

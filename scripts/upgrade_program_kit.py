@@ -1588,7 +1588,7 @@ def migration_origin(target: Path, installed: str, fallback: str | None = None, 
 def migration_plan(release: Path, installed: str, version: str):
     module = load_release_module(release / 'extensions/program-kit-governance/scripts/release_guidance.py', 'upgrade_release_guidance')
     directory = release / 'extensions/program-kit-governance/references/release-guidance'
-    if directory.is_dir():
+    if directory.is_dir() or (directory.parents[1] / '.program-kit-sources.json').is_file():
         return module, module.plan(directory, installed, version)
     builder = load_release_module(release / 'scripts/build_release_guidance.py', 'upgrade_guidance_builder')
     with tempfile.TemporaryDirectory(prefix='program-kit-migration-plan-') as name:

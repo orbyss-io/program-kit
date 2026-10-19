@@ -73,10 +73,10 @@ Active phase briefs now resolve rule bindings instead of rendering the registry'
 retained policy summaries. Existing requirement IDs, phase commands, `--only` and
 bootstrap marker resolution remain compatible. The default brief links complete
 canonical sections and uses labeled excerpts; `--only` resolves the full applicable
-text. Legacy summary fields remain for historical readers and later F8 retirement.
+text. Redundant summary/example fields are retired from the active registry. Historical inspection reads original retained feature records; fixture-only historical projections use their exact original catalog.
 
 The registry's migration rows distinguish replaced active rendering from remaining
 policy carriers in version adapters, source-style guidance, commands and presets.
-Those owners are established; replacement is explicitly pending F3/F8 proof. Do not
+The existing migration mapping records replacement consumers and scoped installed proof. Do not
 interpret registration, a source match or a passing fixture as removal of every
 policy duplicate, semantic qualification of every package, or completion of F2–F8.

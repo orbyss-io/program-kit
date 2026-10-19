@@ -30,10 +30,14 @@ def ref(path, root='repository'):
     return {'root': root, 'path': path}
 
 
-def seed(root):
-    for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
-        shutil.copytree(filesystem_path(ROOT / 'extensions' / name), root / '.specify/extensions' / name,
-                        ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj'))
+def seed(root, *, installed=False, features=True):
+    if not installed:
+        for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
+            shutil.copytree(filesystem_path(ROOT / 'extensions' / name), root / '.specify/extensions' / name,
+                            ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj'))
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
+    from asset_sources import read as source_bytes
+    example = root / '.specify/extensions/program-kit-dotnet/references/examples/snapshot-query'
     write(root / '.gitignore', '.specify/\nartifacts/\n**/bin/\n**/obj/\n')
     for name in ('Directory.Build.props', 'Directory.Build.targets'):
         write(root / name, '<Project/>\n')
@@ -43,10 +47,11 @@ def seed(root):
     write(root / 'runtime.txt', subprocess.check_output(['dotnet', '--list-runtimes'], text=True))
     write(root / 'src/Lookup/Lookup.csproj', '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup></Project>\n')
     for name in ('Note.cs', 'SnapshotQuery.cs', 'SnapshotScan.cs', 'OwnerReport.cs'):
-        shutil.copyfile(EXAMPLE / name, root / 'src/Lookup' / name)
+        destination = root / 'src/Lookup' / name
+        destination.write_bytes(source_bytes(example / name))
     for name in ('Program.cs', 'check.py'):
-        write(root / 'tests/Proof' / name, (EXAMPLE / name).read_text(encoding='utf-8'))
-    project = (EXAMPLE / 'SnapshotProof.csproj').read_text(encoding='utf-8').replace('</Project>', '<ItemGroup><ProjectReference Include="../../src/Lookup/Lookup.csproj" /></ItemGroup></Project>')
+        write(root / 'tests/Proof' / name, source_bytes(example / name).decode('utf-8'))
+    project = source_bytes(example / 'SnapshotProof.csproj').decode('utf-8').replace('</Project>', '<ItemGroup><ProjectReference Include="../../src/Lookup/Lookup.csproj" /></ItemGroup></Project>')
     write(root / 'tests/Proof/SnapshotProof.csproj', project)
     write(root / 'docs/architecture/bootstrap-decisions.json', {'selected_profiles': ['dotnet']})
     write(root / 'docs/architecture/architecture-map.json', {
@@ -62,6 +67,8 @@ def seed(root):
         'id': 'lookup', 'kind': 'dotnet-project', 'path': 'src/Lookup/Lookup.csproj',
         'placement': {'owner': 'lookup', 'decisionIds': ['snapshot-owner']}}], 'instances': []})
     write(root / 'eng/Invoke-RepositoryVerification.ps1', '# Named checks use the native verification owner.\n')
+    if not features:
+        return sdk  # Human-operated flow must author its own feature/intake/state.
     for number, description in [('001-learn', 'immutable snapshot query'), ('002-apply', 'immutable snapshot query'), ('003-live', 'live mutable query')]:
         feature = root / 'specs' / number
         entry = 'RM-' + number[:3]

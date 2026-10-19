@@ -97,9 +97,9 @@ Within an existing fresh story-delivery feature, identify precise prerequisites 
 dependencies against its approved plan before adopting them. Follow
 `.specify/extensions/program-kit-governance/references/vertical-slicing.md` for story boundaries.
 An installed toolkit update alone grants no new consumer design or implementation authority.
-Adoption of story-delivery-v1 abandons the affected unfinished feature: archive it, amend/ratify the
-constitution, review its owned reset inventory and rerun all Spec Kit phases from fresh specification.
-Old partial code/tasks/checkmarks cannot become progress under this policy.
+For an affected unfinished feature adopting story-delivery-v1, use the current fresh-story adoption
+procedure in `consumer-upgrade.md` and `phase-evidence.md`. Installation does not perform its reset.
+Preserve the procedure's intake, authority, unrelated-source and historical-evidence boundaries.
 
 ## Completion
 

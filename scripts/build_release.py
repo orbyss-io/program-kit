@@ -314,6 +314,23 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
                 if assets.packed(component)!=payloads:raise ValueError('Compacted source asset bytes changed')
         build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
                        (root / 'VERSION').read_text().strip(), aggregates=False)
+        # Generated migration guides use the same bounded logical asset reader.
+        # Keep the native bundle limit and every original guide/checksum intact.
+        component = staging / 'extensions/program-kit-governance'
+        payloads = assets.packed(component)
+        guides = component / 'references/release-guidance'
+        for file in guides.rglob('*'):
+            if file.is_file():
+                payloads[file.relative_to(component).as_posix()] = file.read_bytes()
+        for relative, raw in payloads.items():
+            file = component / relative
+            if file.is_file():
+                if not file.resolve().is_relative_to(staging.resolve()) or file.read_bytes() != raw:
+                    raise ValueError('Disposable guide bytes changed before compaction')
+                file.unlink()
+        (component / assets.PACK).write_bytes(assets.encoded(payloads))
+        if assets.packed(component) != payloads:
+            raise ValueError('Compacted migration guide bytes changed')
         witness_spec = importlib.util.spec_from_file_location('bundle_source_witness',
             root / 'extensions/program-kit-governance/scripts/tooling_witness.py')
         witness = importlib.util.module_from_spec(witness_spec); witness_spec.loader.exec_module(witness)

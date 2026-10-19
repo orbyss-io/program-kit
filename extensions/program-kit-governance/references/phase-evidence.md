@@ -49,7 +49,7 @@ implementation preflight prints implementation guidance while validating planned
 The single upstream registry is `phase-obligations.json`. Its source routes identify every
 canonical rule group, producer and enforcement scope, including explicit manual and maintainer
 routes. The default brief includes essential constraints directly from marked canonical prose;
-`--only <id>` adds examples and focused sections. Generated context is disposable.
+`--only <id>` resolves complete canonical rules and focused sections; maintained recipes own examples. Generated context is disposable.
 Accepted targets, compositions and scoped technology inform the brief before source projects exist.
 Treat proposed inputs as proposed, resolve scope conflicts, and avoid inheriting neighboring owners.
 

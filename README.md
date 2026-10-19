@@ -244,10 +244,10 @@ and as immutable release assets. Forms and Localization activation and consumer
 Delivery acceptance remain outside that native qualification.
 
 New projects use
-`foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2`: Foundation
-runtime/analyzer and host 0.2.4, Exporter 0.2.4, Forms 0.2.1, and Localization
-0.1.2. Generic qualification covers canonical publisher metadata, all 47 registered
-activation closures at the exporter boundary, and public Forms browser integration.
+`foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2`: Foundation
+runtime/analyzer and host 0.3.6, Build 0.3.2, Exporter 0.2.7, Forms 0.2.1, and Localization
+0.1.2. Native qualification covers the selected activation closures. Unchanged Forms/Localization
+browser evidence retains its explicit historical disposition; no fresh browser qualification is inferred.
 Publisher features excluded from OpenAPI composition are checked as metadata;
 consumer compatibility and Delivery acceptance remain separate. Installing a
 Program Kit upgrade preserves existing accepted and scaffold-captured profiles.

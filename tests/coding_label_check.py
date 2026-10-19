@@ -85,18 +85,23 @@ internal static class Program
 
 
 def check(root, invalid=False):
+    governance = root / '.specify/extensions/program-kit-governance/scripts'
+    if not governance.is_dir():
+        governance = root / 'extensions/program-kit-governance/scripts'
+    sys.path.insert(0, str(governance))
+    from asset_sources import read as source_bytes, tree as source_tree
     engineering = root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng'
     if not engineering.is_dir():
         engineering = root / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
     sys.path.insert(0, str(engineering))
     from owned_scratch import native_path
     source = root / '.specify/extensions/program-kit-dotnet/references/examples/typed-operation'
-    if not source.is_dir():
+    if not source_tree(source):
         source = root / 'extensions/program-kit-dotnet/references/examples/typed-operation'
     directory = root / 'artifacts/label-check' / uuid.uuid4().hex[:8]
     directory.mkdir(parents=True)
     for name in ('ILabelStore.cs', 'ILabelOperations.cs', 'LabelOperations.cs', 'LabelServices.cs'):
-        text = (source / name).read_text(encoding='utf-8')
+        text = source_bytes(source / name).decode('utf-8')
         if invalid and name == 'LabelOperations.cs':
             text = text.replace('await store.WriteAsync(value, cancellationToken);', '// Deliberately omit the effect.')
         (directory / name).write_text(text, encoding='utf-8')

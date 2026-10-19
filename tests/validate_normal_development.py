@@ -255,7 +255,8 @@ class DevelopmentTests(unittest.TestCase):
         (self.feature/'plan.md').write_text('C# immutable value semantics for a small identifier.')
         rules={r['id']:r for r in knowledge.project(self.root,self.feature,'planning')['requirements']}
         self.assertIn('dotnet-source-quality',rules)
-        self.assertIn('not a blanket replacement',rules['dotnet-source-quality']['example'])
+        self.assertNotIn('example', rules['dotnet-source-quality'])
+        self.assertIn('guidance.dotnet-engineering.source-files-and-documentation', rules['dotnet-source-quality']['ruleIds'])
 
     def test_excluded_capabilities_do_not_activate_guidance(self):
         (self.feature/'plan.md').write_text('C# policy only. No database. API and browser are future out of scope.')

@@ -14,7 +14,6 @@
           "Story delivery and human review"
         ]
       },
-      "requirement": "Deliver small runnable actor stories, verify by risk, and retain explicit assigned human decisions. Required reviews pause product progression; scoped deferrals remain due at feature acceptance. Active effort thresholds warn without blocking solely by time. Existing unfinished features require archived abandonment, constitution amendment/ratification and all phases from fresh specification.",
       "phases": [
         "planning",
         "after-plan",
@@ -32,15 +31,6 @@
         ],
         "coverageScope": "Deterministic workflow/state and installed disposable reset contracts; simulated humans establish no real acceptance or delivery-speed claim."
       },
-      "example": "Generate a known scaffold, run maintained checks, add missing owner-specific behavior tests, exercise the integrated journey, then present US1 for explicit review before starting US2.",
-      "guidance": {
-        "planning": "Confirm useful actor outcome/non-goals, independent walkthrough, connected effects and effort to review. Split oversized stories or disclose larger-story rationale; plan human review per story and early gates only by agreement.",
-        "after-plan": "Review risk-selected verification/scaffold checks, real prerequisites and coherent story sizing. Preserve owner/reviewer authority and explicit checkpoint scope.",
-        "tasks": "Populate Story delivery map and risk-selected operation batches. Required human review belongs to runnable stories; ordinary operations need no repeated human pause.",
-        "after-tasks": "Check finalized story ownership/outcome/walkthrough/effort and exact prerequisites. Fresh policy adoption cannot continue old partial code/checkmarks.",
-        "implementation": "Use task_draft.py delivery for start/present/decision/status/wait/resume. Required review pauses product work except active repair/diagnosis or named deferral. Preserve all decisions, freshness and cumulative effort in the compact checkpoint.",
-        "delivery": "Finish and formal handoff consume the same human state, including absent hooks. Required deferred reviews remain due; engineering success alone establishes no human acceptance."
-      },
       "decisionRules": [],
       "ruleIds": [
         "guidance.phase-evidence.story-delivery-and-human-review"
@@ -56,7 +46,6 @@
         "program-kit-governance/references/software-language.md",
         "program-kit-governance/references/vertical-slicing.md"
       ],
-      "requirement": "Define the slice's subjects, policies, legal transitions, effects, required admissions and outcomes. Test applicable denial, transition, acknowledgement, retry and cancellation behavior; review proportional nonapplicability.",
       "phases": [
         "planning",
         "after-plan",
@@ -72,7 +61,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "For slot reservation, test duplicate admission, denial and cancellation using the actual domain API; no semantic-contract JSON is needed.",
       "sections": {
         "program-kit-governance/references/software-language.md": [
           "Policies and decisions",
@@ -81,14 +69,6 @@
         "program-kit-governance/references/vertical-slicing.md": [
           "Slice contract"
         ]
-      },
-      "guidance": {
-        "planning": "Define owned policies, transitions, effects, admission and failure outcomes.",
-        "after-plan": "Define owned policies, transitions, effects, admission and failure outcomes.",
-        "tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
-        "after-tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
-        "implementation": "Verify changed domain behavior through its owned public capability with sequencing selected by risk.",
-        "delivery": "Verify all required outcomes and meaningful denials through actual behavior."
       },
       "decisionRules": [],
       "ruleIds": [
@@ -110,7 +90,6 @@
         "program-kit-governance/references/programming-guardrails.md",
         "program-kit-governance/references/vertical-slicing.md"
       ],
-      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review relevant result invariants, purposeful production abstractions, fresh effect-boundary time, outer deadline propagation, configured operational limits and public production test seams with independent durable-effect evidence. Separate browser protocol checks from accessible recovery and actual session state. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions. Maintain affected application-owned guides, public/configuration contracts and runtime/data requirements with delivered behavior; downstream infrastructure and documentation workflows remain receiver-owned.",
       "phases": [
         "planning",
         "after-plan",
@@ -126,7 +105,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Prefer a cohesive typed operation boundary. Use dynamic JSON only at an explicitly bounded external boundary; introduce an interface when substitution or dependency inversion actually needs one.",
       "sections": {
         "program-kit-governance/references/programming-guardrails.md": [
           "Typed boundaries and design evidence",
@@ -137,14 +115,6 @@
           "Cohesion and coupling",
           "Proportional exceptions"
         ]
-      },
-      "guidance": {
-        "planning": "Choose cohesive typed boundaries and existing extension points; identify affected delivery documentation.",
-        "after-plan": "Choose cohesive typed boundaries and existing extension points; identify affected delivery documentation.",
-        "tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
-        "after-tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
-        "implementation": "Review changed responsibilities, result invariants, final time reads, outer deadlines and actual configured limits; exercise public registration and independent effects, avoiding test-only production abstractions.",
-        "delivery": "Review relevant SOLID/effect conclusions with source and behavior; distinguish complete browser recovery from protocol checks, resolve semantic findings and maintain delivered guides/contracts."
       },
       "decisionRules": [
         "typed-admission"
@@ -168,7 +138,6 @@
         "program-kit-governance/references/modularity-and-contracts.md",
         "program-kit-governance/references/architecture-method.md"
       ],
-      "requirement": "Preserve accepted ownership and exact dependency decisions. Link each exception to explicit accepted authority and current verification.",
       "phases": [
         "planning",
         "after-plan",
@@ -184,7 +153,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Reuse an accepted ownership decision. A new cross-owner dependency needs design/code review; reformatting an ADR does not need another approval.",
       "sections": {
         "program-kit-governance/references/modularity-and-contracts.md": [
           "Dependency and ownership rules"
@@ -193,14 +161,6 @@
           "Artifact hierarchy",
           "Status discipline"
         ]
-      },
-      "guidance": {
-        "planning": "Preserve accepted ownership, exact pins and scoped exceptions.",
-        "after-plan": "Preserve accepted ownership, exact pins and scoped exceptions.",
-        "tasks": "Carry accepted decisions and required exception tests into affected tasks.",
-        "after-tasks": "Carry accepted decisions and required exception tests into affected tasks.",
-        "implementation": "Keep accepted boundaries; resolve substantive exceptions in normal design/code review.",
-        "delivery": "Check changed ownership and exceptions in normal review; no renewed approval for unchanged decisions."
       },
       "decisionRules": [
         "authority-conflicts"
@@ -224,7 +184,6 @@
         "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
         "program-kit-dotnet/references/technology-profiles/dotnet.md"
       ],
-      "requirement": "Enforce separate Core, implementation, API and provider compilation projects when present; one package, activation bundle or deployment does not waive those roles. Validate planned roles/edges/Core-owned bindings in eng/architecture.json after-plan, after-tasks and before affected implementation without building. Reject namespace waivers, role relabeling and omitted active capabilities. Verify evaluated/compiled dependencies, actual feature activation/resolution/lifetimes and compatibility. Review serializers and provider settings hidden behind BCL types; dependency prefixes cannot prove semantic ownership. When the published Foundation host is selected, verify the application release bundle on its unchanged digest-pinned host, including activation/restart as applicable. A substantively accepted alternative host uses its documented adapter.",
       "phases": [
         "planning",
         "after-plan",
@@ -244,7 +203,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "A Notes.Core capability is implemented in Notes or Notes.PostgreSql, never its own Core/composition project. Validate that graph before building; MSBuild and compiled assemblies then prove structural reality and real shell tests prove registration behavior.",
       "sections": {
         "program-kit-governance/references/modularity-and-contracts.md": [
           "Core, helper, and implementation packages"
@@ -261,14 +219,6 @@
           "Modular DDD topology",
           "ASP.NET Core Minimal API slices"
         ]
-      },
-      "guidance": {
-        "planning": "Map actual responsibility names, kinds, effects and provided capabilities in eng/architecture.json; reconcile plan/ADRs before claiming boundary compliance.",
-        "after-plan": "Map actual responsibility names, kinds, effects and provided capabilities in eng/architecture.json; reconcile plan/ADRs before claiming boundary compliance.",
-        "tasks": "Schedule planned/compiled graph checks and actual activation/resolution tests at their required boundaries.",
-        "after-tasks": "Schedule planned/compiled graph checks and actual activation/resolution tests at their required boundaries.",
-        "implementation": "Validate planned roles before affected coding; change-aware tests complement compilation.",
-        "delivery": "Verify current evaluated/compiled boundaries, actual activation/lifetimes and applicable host/bundle compatibility."
       },
       "decisionRules": [
         "compilation-responsibilities"
@@ -307,7 +257,6 @@
         "program-kit-dotnet/references/secure-web-profiles.md",
         "program-kit-dotnet/references/web-security-threat-model.md"
       ],
-      "requirement": "Bind explicit wire/JSON admission semantics to DTOs and registered OpenAPI production; preserve versioned behavior with compatibility tests, not structural diff alone.",
       "phases": [
         "planning",
         "after-plan",
@@ -326,7 +275,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Generate the contract from the real implementation; compare its baseline and test actual operation behavior. An attestation cannot replace either check.",
       "sections": {
         "program-kit-governance/references/modularity-and-contracts.md": [
           "Runtime and HTTP ownership"
@@ -342,14 +290,6 @@
           "Assumptions and out-of-scope risks",
           "Project adoption"
         ]
-      },
-      "guidance": {
-        "planning": "Choose typed wire admission, version compatibility and real OpenAPI production.",
-        "after-plan": "Choose typed wire admission, version compatibility and real OpenAPI production.",
-        "tasks": "Schedule parser/schema parity and operation/client compatibility cases.",
-        "after-tasks": "Schedule parser/schema parity and operation/client compatibility cases.",
-        "implementation": "Run affected HTTP/contract tests when operation admission or wire behavior changes.",
-        "delivery": "Verify real generated contracts and behavior compatibility; structural diff alone is insufficient."
       },
       "decisionRules": [
         "authorization-ownership"
@@ -376,7 +316,6 @@
         "program-kit-governance/references/ui-feedback-and-recovery.md",
         "program-kit-governance/references/ui-design-model.md"
       ],
-      "requirement": "Materialize the selected UI profile and exercise the actual browser journey, accessibility and declared security boundary. Generated examples are not product acceptance.",
       "phases": [
         "planning",
         "after-plan",
@@ -394,7 +333,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Exercise the selected authentication boundary and a real user journey; do not create browser records for a command-line-only feature.",
       "sections": {
         "program-kit-governance/references/tool-selection.md": [
           "Retained ordinary-development selections"
@@ -411,14 +349,6 @@
           "State and ownership",
           "Complete fields and forms"
         ]
-      },
-      "guidance": {
-        "planning": "Select real compositions, complete field guidance, relevant loading/error/recovery and login/logout states, accessibility and the declared security boundary.",
-        "after-plan": "Select real compositions, complete field guidance, relevant loading/error/recovery and login/logout states, accessibility and the declared security boundary.",
-        "tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
-        "after-tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
-        "implementation": "Run focused affected state/journey tests, including changed field hints/errors, normal/reduced motion and authentication presentation; no full gallery per task.",
-        "delivery": "Verify actual browser journeys, recovery, identity flow/theme and accessibility; review visual quality at the existing handoff. Generated examples are not acceptance."
       },
       "decisionRules": [
         "ui-outcome-ownership"
@@ -447,7 +377,6 @@
         "program-kit-governance/references/component-adoption.md",
         "program-kit-building-blocks/references/orbyss-building-blocks.md"
       ],
-      "requirement": "For each selected capability prove materialization, configured activation and actual supported public mechanism use; distinguish build-time producers from deployed runtime services.",
       "phases": [
         "planning",
         "after-plan",
@@ -465,7 +394,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Test that the chosen feature activates and resolves through its real registration. Reuse qualified composition tests; add application-specific tests for custom behavior.",
       "sections": {
         "program-kit-governance/references/tool-selection.md": [
           "Retained ordinary-development selections"
@@ -481,14 +409,6 @@
         "program-kit-building-blocks/references/orbyss-building-blocks.md": [
           "Ordinary feature use"
         ]
-      },
-      "guidance": {
-        "planning": "Use the selected qualified public mechanisms and concrete composition boundaries.",
-        "after-plan": "Use the selected qualified public mechanisms and concrete composition boundaries.",
-        "tasks": "Schedule materialization, configured activation and public mechanism-use tests.",
-        "after-tasks": "Schedule materialization, configured activation and public mechanism-use tests.",
-        "implementation": "Use accepted mechanisms; test changed registrations and application-specific integration.",
-        "delivery": "Verify actual activation/resolution and supported public use; package presence alone is insufficient."
       },
       "decisionRules": [
         "capability-evidence"
@@ -517,7 +437,6 @@
           "Async and shell-owned work"
         ]
       },
-      "requirement": "Prove owned async completion, fault observation and cancellation; review Task/ValueTask consumption, direct-return lifetime and bounded CPU/fan-out decisions against affected source. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -538,15 +457,6 @@
           "tests/validate_normal_development.py"
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
-      },
-      "example": "Await a ValueTask once. Forward cancellation to operations that accept it; a deliberately independent lifetime needs a narrowly scoped documented suppression.",
-      "guidance": {
-        "planning": "Define async work ownership, fault observation and cancellation boundaries.",
-        "after-plan": "Define async work ownership, fault observation and cancellation boundaries.",
-        "tasks": "Schedule cancellation, async completion and fault tests for affected operations.",
-        "after-tasks": "Schedule cancellation, async completion and fault tests for affected operations.",
-        "implementation": "Observe async work and forward cancellation; compiler CA2012/CA2016 checks accompany affected builds.",
-        "delivery": "Verify owned completion, cancellation and relevant Task/ValueTask lifetimes."
       },
       "mechanism": "dotnet-async",
       "decisionRules": [
@@ -575,7 +485,6 @@
           "Synchronization and collections"
         ]
       },
-      "requirement": "For shared state or producers, prove invariant coordination, successful-acquire release, cancellation and bounded completion under controlled scheduling. Review factories, lock ordering and singleton safety. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -592,15 +501,6 @@
           "tests/validate_normal_development.py"
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
-      },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
-      "guidance": {
-        "planning": "Define shared invariants, coordination, bounded producers and terminal completion.",
-        "after-plan": "Define shared invariants, coordination, bounded producers and terminal completion.",
-        "tasks": "Schedule controlled contention, acquire/release, cancellation and bounded-completion tests.",
-        "after-tasks": "Schedule controlled contention, acquire/release, cancellation and bounded-completion tests.",
-        "implementation": "Test changed shared-state coordination; avoid unbounded queues or fan-out.",
-        "delivery": "Verify affected invariants under contention, cancellation and controlled scheduling."
       },
       "mechanism": "dotnet-concurrency",
       "decisionRules": [],
@@ -622,7 +522,6 @@
           "Resource and memory ownership"
         ]
       },
-      "requirement": "Prove actual shell/DI scope ownership, partial startup and disposal paths. Disposition buffer leases, registrations and retention; require unload proof only when live reload is selected. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -639,15 +538,6 @@
           "tests/validate_normal_development.py"
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
-      },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
-      "guidance": {
-        "planning": "Choose real shell/DI scopes and explicit resource/disposal owners.",
-        "after-plan": "Choose real shell/DI scopes and explicit resource/disposal owners.",
-        "tasks": "Schedule activation, partial-startup and disposal tests for changed lifetime boundaries.",
-        "after-tasks": "Schedule activation, partial-startup and disposal tests for changed lifetime boundaries.",
-        "implementation": "Keep scope/resource ownership explicit; test changed registration and teardown behavior.",
-        "delivery": "Verify actual scopes, partial-startup cleanup and disposal; unload checks apply only to selected live reload."
       },
       "mechanism": "dotnet-lifetime",
       "decisionRules": [
@@ -674,7 +564,6 @@
           "Deferred initialization"
         ]
       },
-      "requirement": "Review typed value/default/equality/immutability and constructor invariants. When deferred initialization is used, prove factory, exception, cancellation and disposable-value ownership; do not defer required startup checks. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -691,15 +580,6 @@
           "tests/validate_normal_development.py"
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
-      },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
-      "guidance": {
-        "planning": "Choose identity/value/default/equality semantics and constructor invariants; do not hide I/O in construction.",
-        "after-plan": "Choose identity/value/default/equality semantics and constructor invariants; do not hide I/O in construction.",
-        "tasks": "Schedule meaningful value and construction invariants; deferred initialization tests only when used.",
-        "after-tasks": "Schedule meaningful value and construction invariants; deferred initialization tests only when used.",
-        "implementation": "Preserve admitted immutable values and clear factories; private pure helpers need no extra DI ceremony.",
-        "delivery": "Review value invariants, equality and constructor behavior; prove initialization ownership where applicable."
       },
       "decisionRules": [],
       "ruleIds": [
@@ -721,7 +601,6 @@
           "LINQ and query boundaries"
         ]
       },
-      "requirement": "When queries are used, prove cardinality, ordering, materialization and selected-provider translation; review pagination and N+1. Do not require a data store for a pure slice. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -738,15 +617,6 @@
           "tests/validate_normal_development.py"
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
-      },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
-      "guidance": {
-        "planning": "Define ordering, cardinality, pagination and deliberate provider materialization.",
-        "after-plan": "Define ordering, cardinality, pagination and deliberate provider materialization.",
-        "tasks": "Schedule real-provider tests for translation, ordering, bounded pages and applicable N+1 risks.",
-        "after-tasks": "Schedule real-provider tests for translation, ordering, bounded pages and applicable N+1 risks.",
-        "implementation": "Run affected query/provider tests; do not replace real provider semantics with InMemory.",
-        "delivery": "Verify actual provider translation, bounds and ordering for delivered queries."
       },
       "mechanism": "dotnet-queries",
       "decisionRules": [],
@@ -768,7 +638,6 @@
           "Time, configuration and I/O"
         ]
       },
-      "requirement": "Prove controlled-time deadlines, actual shell options validation and HTTP/file lifetime/admission where used; test cancellation and unsafe retry boundaries. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -785,15 +654,6 @@
           "tests/validate_normal_development.py"
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
-      },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
-      "guidance": {
-        "planning": "Define monotonic deadlines, configuration admission, resource ownership and safe retry boundaries.",
-        "after-plan": "Define monotonic deadlines, configuration admission, resource ownership and safe retry boundaries.",
-        "tasks": "Schedule applicable deadline, invalid-configuration, cancellation and uncertain-effect tests.",
-        "after-tasks": "Schedule applicable deadline, invalid-configuration, cancellation and uncertain-effect tests.",
-        "implementation": "Test changed I/O/deadline mechanisms and preserve ambiguity after uncertain commit.",
-        "delivery": "Verify real configuration activation, resource lifetimes, deadlines and safe retry behavior."
       },
       "mechanism": "dotnet-io",
       "decisionRules": [],
@@ -819,7 +679,6 @@
           "Runtime and HTTP ownership"
         ]
       },
-      "requirement": "Apply existing WEB/JSON/assets controls; prove applicable malformed/oversized/denied input and redacted fault paths. Review protocol identity, process/path/URL boundaries and scoped advanced-runtime research. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -836,15 +695,6 @@
           "tests/validate_normal_development.py"
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
-      },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
-      "guidance": {
-        "planning": "Reuse selected WEB/JSON/assets controls and identify actual trust boundaries.",
-        "after-plan": "Reuse selected WEB/JSON/assets controls and identify actual trust boundaries.",
-        "tasks": "Schedule denied, malformed, oversized and redacted fault cases at the affected boundary.",
-        "after-tasks": "Schedule denied, malformed, oversized and redacted fault cases at the affected boundary.",
-        "implementation": "Run affected security tests when identity, admission, common envelopes or trust boundaries change.",
-        "delivery": "Verify applicable denied/fault/oversized paths and safe diagnostics, including shared operation consumers."
       },
       "mechanism": "dotnet-security",
       "decisionRules": [
@@ -873,7 +723,6 @@
           "Enforcement classification"
         ]
       },
-      "requirement": "Bind actual compiler/analyzer versions, severities, scoped suppressions and generated-code handling. Review responsibility and documentation meaning; an analyzer pass does not certify SOLID or method cohesion. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
       "phases": [
         "planning",
         "after-plan",
@@ -903,15 +752,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "A readonly struct is appropriate for a small immutable value with value semantics. It is not a blanket replacement for entities or polymorphic reference objects.",
-      "guidance": {
-        "planning": "Select actual analyzer rules and deliberate source/documentation conventions.",
-        "after-plan": "Select actual analyzer rules and deliberate source/documentation conventions.",
-        "tasks": "Use existing analyzer enforcement; schedule semantic review of changed responsibilities.",
-        "after-tasks": "Use existing analyzer enforcement; schedule semantic review of changed responsibilities.",
-        "implementation": "Build affected targets with their analyzers; document contract meaning rather than repeated design history.",
-        "delivery": "Review scoped suppressions, responsibility and meaningful documentation; green analyzers cannot certify SOLID."
-      },
       "decisionRules": [],
       "ruleIds": [
         "guidance.dotnet-engineering.method-bodies-and-extraction",
@@ -931,7 +771,6 @@
       "sources": [
         "program-kit-dotnet/references/persistence-profiles.md"
       ],
-      "requirement": "Bind each scoped data owner to admitted profile, actual provider/project/central pins, activated semantic capability and real-provider tests. Prove transaction rollback/contention, replay/conflicting identity, retry/ambiguous commit and controlled migrations/recovery where required by the admission. No-store and read-only exceptions need reviewed evidence; package presence is not behavior.",
       "phases": [
         "planning",
         "after-plan",
@@ -949,20 +788,11 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Keep migrations and provider configuration under their data owner. Verify real round trips and transaction/concurrency behavior for the selected provider.",
       "sections": {
         "program-kit-dotnet/references/persistence-profiles.md": [
           "Ordinary development decisions",
           "Architecture and implementation contract"
         ]
-      },
-      "guidance": {
-        "planning": "Choose admitted provider ownership, consistency, migration and replay semantics.",
-        "after-plan": "Choose admitted provider ownership, consistency, migration and replay semantics.",
-        "tasks": "Schedule real-provider tests for rollback/contention, replay and uncertain commits where required.",
-        "after-tasks": "Schedule real-provider tests for rollback/contention, replay and uncertain commits where required.",
-        "implementation": "Run affected real-provider tests when queries, mapping, mutation or replay behavior changes.",
-        "delivery": "Verify actual provider integration, atomicity, replay, uncertainty and applicable migration/recovery behavior."
       },
       "decisionRules": [
         "persistence-admission"
@@ -987,7 +817,6 @@
         "program-kit-governance/references/modularity-and-contracts.md",
         "program-kit-dotnet/references/technology-profiles/dotnet.md"
       ],
-      "requirement": "Bind HTTP operations to Operations/<Operation>/Endpoint.cs and their real Request.cs/Response.cs where needed; instance endpoints resolve explicit constructor dependencies per request and own route/metadata. IWebShellFeature composes registrations. Use typed public Foundation identity/problem/JSON contracts when the selected qualified version supplies them; preserve named exact-version adapters otherwise. Prove DTO/parser/schema parity, common managed/application failure envelopes, bounded independently paged results, old-client/snapshot behavior and explicit version decisions through tests. Review proportional small/bodyless operations; never invent empty models or abstractions.",
       "phases": [
         "planning",
         "after-plan",
@@ -1005,7 +834,6 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "For retryable creation, test the same idempotency key twice and verify one effect. Apply this requirement only when the operation promises that contract.",
       "sections": {
         "program-kit-governance/references/modularity-and-contracts.md": [
           "Runtime and HTTP ownership"
@@ -1013,14 +841,6 @@
         "program-kit-dotnet/references/technology-profiles/dotnet.md": [
           "ASP.NET Core Minimal API slices"
         ]
-      },
-      "guidance": {
-        "planning": "Choose operation-owned endpoints/DTOs, constructor dependencies and qualified typed Foundation identity/problem/JSON contracts.",
-        "after-plan": "Choose operation-owned endpoints/DTOs, constructor dependencies and qualified typed Foundation identity/problem/JSON contracts.",
-        "tasks": "Schedule operation, managed failure-envelope, bounded-output and client compatibility cases.",
-        "after-tasks": "Schedule operation, managed failure-envelope, bounded-output and client compatibility cases.",
-        "implementation": "Use per-request instance endpoints and typed admission/results; run affected operation/contract tests.",
-        "delivery": "Verify parser/schema/runtime parity, common managed/application envelopes, bounded pages and old-client behavior."
       },
       "decisionRules": [
         "authorization-ownership"
@@ -1040,7 +860,6 @@
       "sources": [
         "program-kit-governance/references/technology-profiles/typescript.md"
       ],
-      "requirement": "Preserve strict compiler and runtime admission at selected TypeScript boundaries.",
       "phases": [
         "planning",
         "after-plan",
@@ -1048,14 +867,6 @@
         "implementation",
         "delivery"
       ],
-      "guidance": {
-        "planning": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
-        "after-plan": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
-        "after-tasks": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
-        "implementation": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
-        "delivery": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
-        "tasks": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks."
-      },
       "decisionRules": [
         "typescript-admission"
       ],
@@ -1070,7 +881,6 @@
         ],
         "coverageScope": "Toolkit routing/selected-mechanism fixtures; consumer source review and real boundary/lifecycle behavior remain required."
       },
-      "example": "Selected mechanisms receive their actual compiler/boundary tests; unrelated features inherit no obligation.",
       "sections": {
         "program-kit-governance/references/technology-profiles/typescript.md": [
           "Admission and verification"
@@ -1098,7 +908,6 @@
       "sources": [
         "program-kit-dotnet/references/keycloak-admin-api.md"
       ],
-      "requirement": "Use selected portable administration contracts and least privilege; explicit provider facilities retain their exact boundary.",
       "phases": [
         "planning",
         "after-plan",
@@ -1106,14 +915,6 @@
         "implementation",
         "delivery"
       ],
-      "guidance": {
-        "planning": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
-        "after-plan": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
-        "after-tasks": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
-        "implementation": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
-        "delivery": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
-        "tasks": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase."
-      },
       "decisionRules": [
         "identity-administration"
       ],
@@ -1127,7 +928,6 @@
         ],
         "coverageScope": "Toolkit routing/selected-mechanism fixtures; consumer source review and real boundary/lifecycle behavior remain required."
       },
-      "example": "Selected mechanisms receive their actual compiler/boundary tests; unrelated features inherit no obligation.",
       "sections": {
         "program-kit-dotnet/references/keycloak-admin-api.md": [
           "Recommended application-facing baseline",
@@ -1200,7 +1000,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Scoped applicability review and actual consumer tests; installation/graph passes do not prove semantic acceptance."
     },
     {
       "path": "program-kit-building-blocks/references/foundation-contracts-development.md",
@@ -1237,7 +1038,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Explicit private development qualification; not public/default or publication authority."
     },
     {
       "path": "program-kit-building-blocks/references/orbyss-building-blocks.md",
@@ -1284,7 +1086,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Selected public mechanism and consumer-owned semantic boundaries."
     },
     {
       "path": "program-kit-dotnet/references/implementation-boundaries.md",
@@ -1343,7 +1146,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Concrete .NET source and behavior review patterns; no automatic application semantic acceptance."
     },
     {
       "path": "program-kit-dotnet/references/label-validation.md",
@@ -1393,7 +1197,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Supported source-backed owner export, client generation and executable parity; server authority and consumer effects remain separate."
     },
     {
       "path": "program-kit-dotnet/references/dotnet-engineering.md",
@@ -1502,7 +1307,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Compiler plus affected source/behavior review; real shell lifetime where selected."
     },
     {
       "path": "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
@@ -1558,7 +1364,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Actual consumer activation/restart on selected host; bundle shape is not runtime acceptance."
     },
     {
       "path": "program-kit-dotnet/references/engineering-adapter.md",
@@ -1601,7 +1408,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Preserve consumer conflicts and accepted tools; sync is not network/build acceptance."
     },
     {
       "path": "program-kit-dotnet/references/examples/typed-operation/README.md",
@@ -1639,7 +1447,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Optional owned example, selected explicitly; real generated types, native settings provenance and provider effects require actual execution. No automatic business acceptance."
     },
     {
       "path": "program-kit-dotnet/references/keycloak-admin-api.md",
@@ -1695,7 +1504,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Selected administration only; least privilege and actual lifecycle tests."
     },
     {
       "path": "program-kit-dotnet/references/foundation-compositions.md",
@@ -1739,7 +1549,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "One typed resource graph linked to Accepted architecture, exact selected metadata, managed projections and prepared native readiness; product schema and outcomes remain application-owned."
     },
     {
       "path": "program-kit-dotnet/references/persistence-profiles.md",
@@ -1795,7 +1606,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Actual admitted provider, consistency/replay/migration cases and consumer policy."
     },
     {
       "path": "program-kit-dotnet/references/secure-web-profiles.md",
@@ -1886,7 +1698,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Selected deployed authentication/control behavior; templates do not prove provider outcomes."
     },
     {
       "path": "program-kit-dotnet/references/technology-profiles/dotnet.md",
@@ -1969,7 +1782,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Actual responsibilities plus graph/compiler/consumer behavior, not role labels."
     },
     {
       "path": "program-kit-dotnet/references/web-security-threat-model.md",
@@ -2045,7 +1859,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Selected boundary assumptions, project overrides and negative cases; no security certification."
     },
     {
       "path": "program-kit-governance/references/architecture-method.md",
@@ -2106,7 +1921,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Governing authority conflicts and substantive architecture review."
     },
     {
       "path": "program-kit-governance/references/bootstrap-lifecycle.md",
@@ -2159,7 +1975,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Native prerequisite/compatibility evidence; preserve original approved history."
     },
     {
       "path": "program-kit-governance/references/c4-viewing.md",
@@ -2201,7 +2018,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Optional exact viewer and projection freshness; not consumer architecture proof."
     },
     {
       "path": "program-kit-governance/references/codex-desktop-windows.md",
@@ -2248,7 +2066,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Human-owned launch, exact interpreter and narrowly owned platform repair."
     },
     {
       "path": "program-kit-governance/references/device-toolchain-policy.md",
@@ -2308,7 +2127,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Read-only device preflight pauses dependent execution; user-terminal installation and agent verification preserve exact authority."
     },
     {
       "path": "program-kit-governance/references/default-adoption.md",
@@ -2381,7 +2201,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Explicit intent/default/override precedence; defaults do not authorize spending."
     },
     {
       "path": "program-kit-governance/references/intake-artifacts.md",
@@ -2434,7 +2255,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Truthful intent and coherent ownership/journey evidence; schema is structural."
     },
     {
       "path": "program-kit-governance/references/functional-discovery.md",
@@ -2498,7 +2320,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Human actors/journeys/policies/preferences; routing tests do not certify interview quality."
     },
     {
       "path": "program-kit-governance/references/ui-design-model.md",
@@ -2556,7 +2379,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Selected compositions and real consumer/device/assistive/provider outcomes; templates are inert."
     },
     {
       "path": "program-kit-governance/references/ui-feedback-and-recovery.md",
@@ -2613,7 +2437,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Actual affected field/operation outcomes, privacy and safe reconciliation; no inferred backend guarantee."
     },
     {
       "path": "program-kit-governance/references/intake-method.md",
@@ -2675,7 +2500,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Human interview and exact shared synthesis; tests cannot certify interview quality."
     },
     {
       "path": "program-kit-governance/references/json-schema-tools.md",
@@ -2717,7 +2543,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Offline structural/schema operation; no semantic or remote-reference acceptance."
     },
     {
       "path": "program-kit-governance/references/modularity-and-contracts.md",
@@ -2808,7 +2635,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Source responsibility, authorization, event/contract semantics plus consumer behavior."
     },
     {
       "path": "program-kit-governance/references/orbyss-building-blocks.md",
@@ -2850,7 +2678,8 @@
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
       "canonicalTarget": "program-kit-building-blocks/references/orbyss-building-blocks.md",
-      "limits": "Keep routing purpose; do not claim duplicate framework ownership or delete before F8 route parity proof."
+      "limits": "Keep routing purpose; do not claim duplicate framework ownership or delete before F8 route parity proof.",
+      "purpose": "Thin routing reference; executable sibling catalogue remains authoritative."
     },
     {
       "path": "program-kit-governance/references/phase-evidence.md",
@@ -2906,7 +2735,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Scoped engineering execution plus normal semantic review; historical evidence is read-only."
     },
     {
       "path": "program-kit-governance/references/programming-guardrails.md",
@@ -2957,7 +2787,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Typed boundary parity, relevant SOLID/source review and actual delivered behavior."
     },
     {
       "path": "program-kit-governance/references/software-language.md",
@@ -3020,7 +2851,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Owned policies/transitions/admissions tested through consumer behavior."
     },
     {
       "path": "program-kit-governance/references/specification-intake.md",
@@ -3058,7 +2890,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Confirmed product intent and affected decision resolution; preserve unchanged human choices."
     },
     {
       "path": "program-kit-governance/references/technology-profiles/typescript.md",
@@ -3099,7 +2932,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Selected strict compiler/runtime admission and safe client boundaries."
     },
     {
       "path": "program-kit-governance/references/tool-selection.md",
@@ -3148,7 +2982,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Capability fit and source quality; retain existing pins during feature work."
     },
     {
       "path": "program-kit-governance/references/ui-evaluation-v1.md",
@@ -3185,7 +3020,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Optional explicit lexical experiment; no model ranking/semantic accuracy or paid-run authority."
     },
     {
       "path": "program-kit-governance/references/ui-experience-v1.md",
@@ -3236,7 +3072,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Actual selected browser/device/assistive/provider/deployment review; conditional analytics/discovery."
     },
     {
       "path": "program-kit-governance/references/vertical-slicing.md",
@@ -3309,7 +3146,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Consumer end-to-end success/failure outcome with proportionate enabling work."
     },
     {
       "path": "program-kit-governance/references/workflow-resumption.md",
@@ -3346,7 +3184,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Explicit human-owned continuation and actual native outcomes; not ordinary implementation orchestration."
     },
     {
       "path": "program-kit-governance/references/component-adoption.md",
@@ -3398,7 +3237,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Actual selected public mechanism use/activation and consumer contract behavior."
     },
     {
       "path": "program-kit-building-blocks/references/native-restore-graph.md",
@@ -3437,7 +3277,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Explicit native adapter configuration and normal restore planning; metadata ownership alone does not establish restore success."
     },
     {
       "path": "program-kit-dotnet/references/retained-inputs.md",
@@ -3478,7 +3319,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Configured original reset-bound inputs are projected and protected by task preparation, save and delivery. No new product acceptance is created."
     },
     {
       "path": "program-kit-dotnet/references/pdf-stream-decoding.md",
@@ -3518,7 +3360,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Optional PDF point-of-use lookup and maintained public-package example. No global PDF requirement or general document validity claim."
     },
     {
       "path": "program-kit-dotnet/references/cross-resource-fencing.md",
@@ -3558,7 +3401,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Persistence admission links the optional bounded physical-effect example; application storage and distributed deployment need their own qualification."
     },
     {
       "path": "program-kit-governance/references/ocr-only-operations.md",
@@ -3598,7 +3442,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Optional exact provider-operation lookup; no global OCR or paid acceptance requirement."
     },
     {
       "path": "program-kit-governance/references/repair-feedback/operating.md",
@@ -3653,7 +3498,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Optional reporter/guardian data contracts and explicit human publication review; no ordinary implementation hook or consumer acceptance authority."
     },
     {
       "id": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
@@ -3929,7 +3775,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Scoped manual source recipe/review, with actual native/browser and independent negative evidence. Routing and authored attribution do not establish human acceptance or agent obedience."
     },
     {
       "path": "program-kit-dotnet/references/examples/evidence-submission/ownership-review.md",
@@ -3968,7 +3815,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Scoped manual source recipe/review, with actual native/browser and independent negative evidence. Routing and authored attribution do not establish human acceptance or agent obedience."
     },
     {
       "path": "program-kit-dotnet/references/examples/snapshot-query/README.md",
@@ -4007,7 +3855,8 @@
         "selectedRouted": true,
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      }
+      },
+      "purpose": "Manual finite .NET learning recipe, installed positive/negative application and bounded performance observations; no automatic adoption, human acceptance or universal optimization."
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
@@ -7009,12 +6858,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/domain-semantics/requirement,guidance,example",
@@ -7029,12 +6879,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/implementation-quality/requirement,guidance,example",
@@ -7049,12 +6900,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/architecture-authority/requirement,guidance,example",
@@ -7067,12 +6919,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-boundaries/requirement,guidance,example",
@@ -7099,12 +6952,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/api-contracts/requirement,guidance,example",
@@ -7120,12 +6974,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/browser-experience/requirement,guidance,example",
@@ -7143,12 +6998,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/capability-adoption/requirement,guidance,example",
@@ -7164,12 +7020,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-async/requirement,guidance,example",
@@ -7184,12 +7041,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-concurrency/requirement,guidance,example",
@@ -7199,12 +7057,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-lifetime/requirement,guidance,example",
@@ -7216,12 +7075,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-construction/requirement,guidance,example",
@@ -7232,12 +7092,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-queries/requirement,guidance,example",
@@ -7247,12 +7108,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-runtime-io/requirement,guidance,example",
@@ -7262,12 +7124,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-runtime-security/requirement,guidance,example",
@@ -7279,12 +7142,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-source-quality/requirement,guidance,example",
@@ -7299,12 +7163,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/persistence-adoption/requirement,guidance,example",
@@ -7320,12 +7185,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/http-operation-contracts/requirement,guidance,example",
@@ -7337,12 +7203,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/typescript-boundaries/requirement,guidance,example",
@@ -7361,12 +7228,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/identity-administration/requirement,guidance,example",
@@ -7379,12 +7247,13 @@
       "replacementConsumers": [
         "phase_obligations.py:render"
       ],
-      "status": "active-rendering-replaced; historical-fields-retained",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_knowledge_application.py"
+        "tests/validate_knowledge_application.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 after replacement and installed parity proof; historical reader remains historical."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase_obligations.py:foundation_applicability",
@@ -7424,12 +7293,13 @@
         "phase_obligations.py",
         "bootstrap_context.py"
       ],
-      "status": "canonical-producer-replacement; scoped F3 installed-layout proof",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_coding_patterns.py"
+        "tests/validate_coding_patterns.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F3 resolves canonical policy; capture/native observation algorithms retained. F8 packaged adoption proof remains due."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "phase_obligations.py:render phase actions/provider binding strings",
@@ -7465,12 +7335,13 @@
         "phase_obligations.py",
         "bootstrap_context.py"
       ],
-      "status": "canonical-producer-replacement; scoped F3 installed-layout proof",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_coding_patterns.py"
+        "tests/validate_coding_patterns.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F3 resolves canonical policy; capture/native observation algorithms retained. F8 packaged adoption proof remains due."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "eng/source_quality.py:guidance",
@@ -7487,12 +7358,13 @@
         "phase_obligations.py",
         "bootstrap_context.py"
       ],
-      "status": "canonical-producer-replacement; scoped F3 installed-layout proof",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
         "tests/validate_knowledge_sources.py",
-        "tests/validate_coding_patterns.py"
+        "tests/validate_coding_patterns.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F3 resolves canonical policy; capture/native observation algorithms retained. F8 packaged adoption proof remains due."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     },
     {
       "oldLocation": "commands and presets: phase/task guidance",
@@ -7509,11 +7381,12 @@
         "phase_obligations.py",
         "bootstrap_context.py"
       ],
-      "status": "owner-established; producer-replacement-pending",
+      "status": "replacement-proved; F8 human approved 2026-10-19",
       "replacementProof": [
-        "tests/validate_knowledge_sources.py"
+        "tests/validate_knowledge_sources.py",
+        "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F3/F8 reconcile command carriers after installed replacement proof."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
     }
   ],
   "discoveryScopes": [
@@ -7555,10 +7428,10 @@
         "workflows/*",
         "presets/*"
       ],
-      "disposition": "policy-carrier-review",
+      "disposition": "workflow-adapter-review",
       "owner": "Existing command/workflow owner",
-      "purpose": "Find embedded guidance and map replacement consumers before F8 retirement",
-      "limits": "A prompt mention is not demonstrated consultation or application; migration gaps remain explicit."
+      "purpose": "Invocation, hook dispatch and workflow-specific mechanics; engineering duties resolve canonical owners.",
+      "limits": "Static references prove discoverability only. Installed commands and independent controls establish their scoped execution; authored agent consultation remains separately observable."
     },
     {
       "id": "native-declarations",

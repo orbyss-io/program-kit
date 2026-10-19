@@ -16,6 +16,26 @@ Use the exact extracted release outside the consumer. The conversation owns sema
 inspection and consequential questions; deterministic helpers inventory, persist and
 verify bounded contracts. No helper accepts an ADR or confirms product intent.
 
+Coding-system changes use this same installation/migration route. Inspect the
+installed `phase_obligations.py prepare --feature-dir <feature> --format json`,
+then `reconcile` for actual changes. Resolve reported owners/context before source
+work. A legacy feature without its original task baseline needs explicit scope
+reconciliation through `task_draft.py`; do not invent an earlier baseline or copy
+old checkmarks/evidence into new completion. Unsupported pattern applicability
+belongs to its maintained adapter owner; inspect `coding_patterns.py inspect` and
+use `teach` for a reviewed contribution. Stale selected proof needs current affected
+checks/review and `bind-evidence`, preserving earlier records. At handoff, use the
+evaluation fields in ordinary task/delivery state and every duty returned by
+preparation. Installation cannot supply those claims or waive missing duties.
+
+The existing `migrations` in `phase-obligations.json` maps retired summary/example
+fields and command policy to canonical owners and replacement proof. Historical
+records remain inspectable with `historical_phase_evidence.py inspect`; its old
+projection/renewal route is retired. No consumer history is rewritten. A new
+qualified default remains an offered candidate until the exact profile transition
+below is reviewed and accepted. Source/catalog retention, installation convergence,
+native materialization, executed compatibility and human acceptance stay separate.
+
 `scripts/consumer_upgrade_workspace.py prepare --source <consumer> --target <fresh sibling>
 --release-root <release> --branch <upgrade-branch>` selects a committed clean baseline.
 Commit intended authored untracked work first. Owned ignored setup is archived by an

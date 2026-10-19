@@ -41,5 +41,6 @@ The `evidence-submission` recipe is deliberately a fictional manual example. Its
 F3 declaration in the retained consumer demonstrates scoped current qualification,
 selection, unrelated exclusion and stale-input rejection. Routing output retains
 `applicationObserved: false`; actual application execution is separate evidence,
-and agent consultation/obedience is not inferred. F6 teaching/adoption, F7 general
-completion evaluation and F8 packaged adoption remain their later items.
+and agent consultation/obedience is not inferred. Teaching/adoption and completion use [coding learning](coding-learning.md) and
+[coding evaluation](coding-evaluation.md). Packaged adoption and final review are
+recorded in the F8 checkpoint; routing alone establishes none of them.

@@ -268,8 +268,6 @@ def render(value, phase, detailed=False):
         lines += [f"## {rule['id']}",
                   'Enforcement: ' + rule['enforcement']['kind']]
         lines += canonical[rule['id']]
-        if detailed:
-            lines.append('Retained illustrative example (canonical rules above remain authoritative): ' + rule['example'])
         if detailed and rule['enforcement'].get('diagnostics'):
             lines.append('Compiler diagnostics: ' + ', '.join(rule['enforcement']['diagnostics']))
         for source, sections in rule.get('sections', {}).items() if detailed else ():

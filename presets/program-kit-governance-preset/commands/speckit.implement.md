@@ -98,10 +98,9 @@ small assertion. A newly exposed shared-contract failure can justify expanding t
   original implementation baseline for coverage; do not advance it to hide earlier work. Unknown
   dynamic inputs need a supported adapter or a deliberate broader boundary. Complete acceptance
   and Release always execute their full current gate.
-- Apply rules to changed responsibilities: dependency direction, typed boundaries, actual production
-  callers, cancellation, lifetimes, faults, constants and selected Foundation mechanisms. A pure
-  helper needs neither an unused interface nor another SOLID report. Keep decisions in plan/ADRs,
-  tests and normal review; add no proof/approval dossier.
+- Apply the prehook's selected canonical units across actual changed responsibilities. Use focused
+  preparation for the current unit's rules, recipe and evaluation duties; keep decisions in their
+  existing plan/ADR and review owners.
 - Mark a task `[X]` only after its behavior and relevant checks are satisfied. Preserve failures
   and dependencies, save progress, and state remaining work when stopping early.
   Preserve the current fresh-feature graph and leave each task open until all its obligations pass.
@@ -110,30 +109,19 @@ small assertion. A newly exposed shared-contract failure can justify expanding t
 
 ## Human story checkpoint
 
-Before each operation use the maintained `task_draft.py delivery` start transition. Internal operations
-within a story need no human pause. At the completed story or explicitly agreed early checkpoint,
-exercise its integrated journey, pass relevant checks and present the actual runnable entry point,
-prepared account/data, short walkthrough, expected results and material limitations. Disclose simulated
-externals; a mockup cannot establish implemented acceptance. Use the present transition to bind its
-implementation/configuration basis and keep separate engineering/human dispositions.
-Pause before another product operation/story. Repair/diagnosis of that outcome remains allowed.
-Explicit acceptance permits progression; deferral lists only authorized operations or a bounded batch
-and leaves review due before feature acceptance. Silence, time, screenshots and tests grant no authority.
-Corrections to agreed requirements stay in the story; new scope needs the owner's decision and affected
-artifact updates. Required technical failures cannot be waived. Backlog optional improvements explicitly.
-Use actual reviewer assignments and decision sources. Optional GitHub roles need verified account identity
-and human confirmation; retrieve only explicitly supplied references and verify exact author/checkpoint/
-basis. Generic PR approval cannot accept every story. On outage/ambiguity leave the new decision pending,
-preserve prior decisions and use only explicit owner reassignment to the conversation reviewer.
-No automatic posting, polling or monitoring is authorized. Reopen affected acceptance on material outcome/
-workflow/authorization/persistence changes; unrelated commits/tests preserve accepted behavior.
+Before each operation invoke the maintained `task_draft.py delivery` start transition.
+At the story boundary follow the canonical **Story delivery and human review** protocol
+in `.specify/extensions/program-kit-governance/references/phase-evidence.md`.
+Use its engineering/present transitions with actual current checks, scoped source review
+and complete canonical evaluation duties. Present the runnable entry point, prepared
+inputs, walkthrough, expected result and material limitations from their actual output.
+Keep the engineering result and the assigned human's decision separate.
 
-Use delivery status on progress/resume and wait before explicit human waiting. Defaults warn at 60 active
-minutes per operation/120 per story, including preparation/builds/integration/tests/repairs and excluding
-human waiting. Preserve accumulated elapsed effort; never sum parallel command durations or reset by
-renaming/saving/reassigning. Report crossing once with what works/remains, cause and smallest corrective
-action; update materially changed diagnosis/scope. Continue bounded authorized work when appropriate:
-time alone never blocks. Only explicit owner decisions revise budgets.
+Use delivery status on progress/resume and the wait transition before human waiting.
+Its current warnings, active time and retained decisions supply the values and scope;
+do not duplicate thresholds or reconstruct authority in this prompt. Resolve a reported
+boundary through its named owner and supported transition. Preserve source, prior
+failures, effort and decisions. No automatic posting, polling or monitoring is authorized.
 
 ## Current checkpoint
 

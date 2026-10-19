@@ -1,0 +1,1149 @@
+{
+  "schemaVersion": 1,
+  "historicalOnly": true,
+  "sourceCommit": "4b90dc7ea6458fc2fbd6a5ae7e35c552426ad9e8",
+  "requirements": [
+    {
+      "id": "story-delivery",
+      "when": "all",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/phase-evidence.md"
+      ],
+      "sections": {
+        "program-kit-governance/references/phase-evidence.md": [
+          "Story delivery and human review"
+        ]
+      },
+      "requirement": "Deliver small runnable actor stories, verify by risk, and retain explicit assigned human decisions. Required reviews pause product progression; scoped deferrals remain due at feature acceptance. Active effort thresholds warn without blocking solely by time. Existing unfinished features require archived abandonment, constitution amendment/ratification and all phases from fresh specification.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "tasks",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [],
+        "routingCoverage": [
+          "tests/validate_story_delivery.py",
+          "tests/validate_task_generation.py"
+        ],
+        "coverageScope": "Deterministic workflow/state and installed disposable reset contracts; simulated humans establish no real acceptance or delivery-speed claim."
+      },
+      "example": "Generate a known scaffold, run maintained checks, add missing owner-specific behavior tests, exercise the integrated journey, then present US1 for explicit review before starting US2.",
+      "guidance": {
+        "planning": "Confirm useful actor outcome/non-goals, independent walkthrough, connected effects and effort to review. Split oversized stories or disclose larger-story rationale; plan human review per story and early gates only by agreement.",
+        "after-plan": "Review risk-selected verification/scaffold checks, real prerequisites and coherent story sizing. Preserve owner/reviewer authority and explicit checkpoint scope.",
+        "tasks": "Populate Story delivery map and risk-selected operation batches. Required human review belongs to runnable stories; ordinary operations need no repeated human pause.",
+        "after-tasks": "Check finalized story ownership/outcome/walkthrough/effort and exact prerequisites. Fresh policy adoption cannot continue old partial code/checkmarks.",
+        "implementation": "Use task_draft.py delivery for start/present/decision/status/wait/resume. Required review pauses product work except active repair/diagnosis or named deferral. Preserve all decisions, freshness and cumulative effort in the compact checkpoint.",
+        "delivery": "Finish and formal handoff consume the same human state, including absent hooks. Required deferred reviews remain due; engineering success alone establishes no human acceptance."
+      },
+      "decisionRules": [],
+      "ruleIds": [
+        "guidance.phase-evidence.story-delivery-and-human-review"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "domain-semantics",
+      "when": "all",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/software-language.md",
+        "program-kit-governance/references/vertical-slicing.md"
+      ],
+      "requirement": "Define the slice's subjects, policies, legal transitions, effects, required admissions and outcomes. Test applicable denial, transition, acknowledgement, retry and cancellation behavior; review proportional nonapplicability.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "For slot reservation, test duplicate admission, denial and cancellation using the actual domain API; no semantic-contract JSON is needed.",
+      "sections": {
+        "program-kit-governance/references/software-language.md": [
+          "Policies and decisions",
+          "Effects and admission"
+        ],
+        "program-kit-governance/references/vertical-slicing.md": [
+          "Slice contract"
+        ]
+      },
+      "guidance": {
+        "planning": "Define owned policies, transitions, effects, admission and failure outcomes.",
+        "after-plan": "Define owned policies, transitions, effects, admission and failure outcomes.",
+        "tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
+        "after-tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
+        "implementation": "Verify changed domain behavior through its owned public capability with sequencing selected by risk.",
+        "delivery": "Verify all required outcomes and meaningful denials through actual behavior."
+      },
+      "decisionRules": [],
+      "ruleIds": [
+        "guidance.software-language.policies-and-decisions",
+        "guidance.software-language.effects-and-admission",
+        "guidance.vertical-slicing.slice-contract",
+        "guidance.software-language.identity",
+        "guidance.software-language.transition-path",
+        "guidance.software-language.lifecycle"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "implementation-quality",
+      "when": "all",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/programming-guardrails.md",
+        "program-kit-governance/references/vertical-slicing.md"
+      ],
+      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review relevant result invariants, purposeful production abstractions, fresh effect-boundary time, outer deadline propagation, configured operational limits and public production test seams with independent durable-effect evidence. Separate browser protocol checks from accessible recovery and actual session state. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions. Maintain affected application-owned guides, public/configuration contracts and runtime/data requirements with delivered behavior; downstream infrastructure and documentation workflows remain receiver-owned.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Prefer a cohesive typed operation boundary. Use dynamic JSON only at an explicitly bounded external boundary; introduce an interface when substitution or dependency inversion actually needs one.",
+      "sections": {
+        "program-kit-governance/references/programming-guardrails.md": [
+          "Typed boundaries and design evidence",
+          "Review of effects and test boundaries",
+          "Maintained application handoff"
+        ],
+        "program-kit-governance/references/vertical-slicing.md": [
+          "Cohesion and coupling",
+          "Proportional exceptions"
+        ]
+      },
+      "guidance": {
+        "planning": "Choose cohesive typed boundaries and existing extension points; identify affected delivery documentation.",
+        "after-plan": "Choose cohesive typed boundaries and existing extension points; identify affected delivery documentation.",
+        "tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
+        "after-tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
+        "implementation": "Review changed responsibilities, result invariants, final time reads, outer deadlines and actual configured limits; exercise public registration and independent effects, avoiding test-only production abstractions.",
+        "delivery": "Review relevant SOLID/effect conclusions with source and behavior; distinguish complete browser recovery from protocol checks, resolve semantic findings and maintain delivered guides/contracts."
+      },
+      "decisionRules": [
+        "typed-admission"
+      ],
+      "ruleIds": [
+        "principle.typed-admission",
+        "guidance.programming-guardrails.typed-boundaries-and-design-evidence",
+        "guidance.programming-guardrails.review-of-effects-and-test-boundaries",
+        "guidance.programming-guardrails.maintained-application-handoff",
+        "guidance.vertical-slicing.cohesion-and-coupling",
+        "guidance.vertical-slicing.proportional-exceptions"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "architecture-authority",
+      "when": "all",
+      "due": "delivery",
+      "proof": "review",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/architecture-method.md"
+      ],
+      "requirement": "Preserve accepted ownership and exact dependency decisions. Link each exception to explicit accepted authority and current verification.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "review",
+        "coverage": [],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Reuse an accepted ownership decision. A new cross-owner dependency needs design/code review; reformatting an ADR does not need another approval.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Dependency and ownership rules"
+        ],
+        "program-kit-governance/references/architecture-method.md": [
+          "Artifact hierarchy",
+          "Status discipline"
+        ]
+      },
+      "guidance": {
+        "planning": "Preserve accepted ownership, exact pins and scoped exceptions.",
+        "after-plan": "Preserve accepted ownership, exact pins and scoped exceptions.",
+        "tasks": "Carry accepted decisions and required exception tests into affected tasks.",
+        "after-tasks": "Carry accepted decisions and required exception tests into affected tasks.",
+        "implementation": "Keep accepted boundaries; resolve substantive exceptions in normal design/code review.",
+        "delivery": "Check changed ownership and exceptions in normal review; no renewed approval for unchanged decisions."
+      },
+      "decisionRules": [
+        "authority-conflicts"
+      ],
+      "ruleIds": [
+        "principle.authority-conflicts",
+        "guidance.modularity-and-contracts.dependency-and-ownership-rules",
+        "guidance.architecture-method.artifact-hierarchy",
+        "guidance.architecture-method.status-discipline"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-boundaries",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+        "program-kit-dotnet/references/technology-profiles/dotnet.md"
+      ],
+      "requirement": "Enforce separate Core, implementation, API and provider compilation projects when present; one package, activation bundle or deployment does not waive those roles. Validate planned roles/edges/Core-owned bindings in eng/architecture.json after-plan, after-tasks and before affected implementation without building. Reject namespace waivers, role relabeling and omitted active capabilities. Verify evaluated/compiled dependencies, actual feature activation/resolution/lifetimes and compatibility. Review serializers and provider settings hidden behind BCL types; dependency prefixes cannot prove semantic ownership. When the published Foundation host is selected, verify the application release bundle on its unchanged digest-pinned host, including activation/restart as applicable. A substantively accepted alternative host uses its documented adapter.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "architecture-and-runtime",
+        "command": "python eng/repository_architecture.py --repository . --manifest eng/architecture.json --output artifacts/tests/architecture.xml",
+        "coverage": [
+          "tests/validate_architecture_recipe.py",
+          "tests/validate_standalone_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "A Notes.Core capability is implemented in Notes or Notes.PostgreSql, never its own Core/composition project. Validate that graph before building; MSBuild and compiled assemblies then prove structural reality and real shell tests prove registration behavior.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Core, helper, and implementation packages"
+        ],
+        "program-kit-governance/references/tool-selection.md": [
+          "Retained ordinary-development selections"
+        ],
+        "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md": [
+          "Host boundary",
+          "Feature creation and activation closure",
+          "Application release bundle"
+        ],
+        "program-kit-dotnet/references/technology-profiles/dotnet.md": [
+          "Modular DDD topology",
+          "ASP.NET Core Minimal API slices"
+        ]
+      },
+      "guidance": {
+        "planning": "Map actual responsibility names, kinds, effects and provided capabilities in eng/architecture.json; reconcile plan/ADRs before claiming boundary compliance.",
+        "after-plan": "Map actual responsibility names, kinds, effects and provided capabilities in eng/architecture.json; reconcile plan/ADRs before claiming boundary compliance.",
+        "tasks": "Schedule planned/compiled graph checks and actual activation/resolution tests at their required boundaries.",
+        "after-tasks": "Schedule planned/compiled graph checks and actual activation/resolution tests at their required boundaries.",
+        "implementation": "Validate planned roles before affected coding; change-aware tests complement compilation.",
+        "delivery": "Verify current evaluated/compiled boundaries, actual activation/lifetimes and applicable host/bundle compatibility."
+      },
+      "decisionRules": [
+        "compilation-responsibilities"
+      ],
+      "ruleIds": [
+        "principle.compilation-boundaries",
+        "principle.feature-registration",
+        "principle.captured-startup-example",
+        "principle.lifecycle-admission",
+        "principle.domain-event-reactions",
+        "principle.semantic-provider-capability",
+        "principle.composition-selection",
+        "guidance.modularity-and-contracts.core-helper-and-implementation-packages",
+        "guidance.tool-selection.retained-ordinary-development-selections",
+        "guidance.dotnet-runtime-and-application-bundles.host-boundary",
+        "guidance.dotnet-runtime-and-application-bundles.feature-creation-and-activation-closure",
+        "guidance.dotnet-runtime-and-application-bundles.application-release-bundle",
+        "guidance.dotnet.modular-ddd-topology",
+        "guidance.dotnet.asp-net-core-minimal-api-slices",
+        "native.allowed-role-references",
+        "native.project-role-admission",
+        "native.core-package-exclusions",
+        "native.activatable-roles",
+        "native.capability-roles"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "api-contracts",
+      "when": "api",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/software-language.md",
+        "program-kit-dotnet/references/secure-web-profiles.md",
+        "program-kit-dotnet/references/web-security-threat-model.md"
+      ],
+      "requirement": "Bind explicit wire/JSON admission semantics to DTOs and registered OpenAPI production; preserve versioned behavior with compatibility tests, not structural diff alone.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_default_dependency_profile.py",
+          "tests/validate_dotnet_build_contract.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Generate the contract from the real implementation; compare its baseline and test actual operation behavior. An attestation cannot replace either check.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Runtime and HTTP ownership"
+        ],
+        "program-kit-governance/references/software-language.md": [
+          "Effects and admission"
+        ],
+        "program-kit-dotnet/references/secure-web-profiles.md": [
+          "Security assurance contract",
+          "Mandatory verification"
+        ],
+        "program-kit-dotnet/references/web-security-threat-model.md": [
+          "Assumptions and out-of-scope risks",
+          "Project adoption"
+        ]
+      },
+      "guidance": {
+        "planning": "Choose typed wire admission, version compatibility and real OpenAPI production.",
+        "after-plan": "Choose typed wire admission, version compatibility and real OpenAPI production.",
+        "tasks": "Schedule parser/schema parity and operation/client compatibility cases.",
+        "after-tasks": "Schedule parser/schema parity and operation/client compatibility cases.",
+        "implementation": "Run affected HTTP/contract tests when operation admission or wire behavior changes.",
+        "delivery": "Verify real generated contracts and behavior compatibility; structural diff alone is insufficient."
+      },
+      "decisionRules": [
+        "authorization-ownership"
+      ],
+      "ruleIds": [
+        "principle.authorization-ownership",
+        "guidance.modularity-and-contracts.runtime-and-http-ownership",
+        "guidance.software-language.effects-and-admission",
+        "guidance.secure-web-profiles.security-assurance-contract",
+        "guidance.secure-web-profiles.mandatory-verification",
+        "guidance.web-security-threat-model.assumptions-and-out-of-scope-risks",
+        "guidance.web-security-threat-model.project-adoption"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "browser-experience",
+      "when": "web",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-governance/references/ui-experience-v1.md",
+        "program-kit-governance/references/ui-feedback-and-recovery.md",
+        "program-kit-governance/references/ui-design-model.md"
+      ],
+      "requirement": "Materialize the selected UI profile and exercise the actual browser journey, accessibility and declared security boundary. Generated examples are not product acceptance.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_ui_browser.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Exercise the selected authentication boundary and a real user journey; do not create browser records for a command-line-only feature.",
+      "sections": {
+        "program-kit-governance/references/tool-selection.md": [
+          "Retained ordinary-development selections"
+        ],
+        "program-kit-governance/references/ui-experience-v1.md": [
+          "Independent choices",
+          "Quality and evidence"
+        ],
+        "program-kit-governance/references/ui-design-model.md": [
+          "Layers and choices",
+          "Authentication presentation"
+        ],
+        "program-kit-governance/references/ui-feedback-and-recovery.md": [
+          "State and ownership",
+          "Complete fields and forms"
+        ]
+      },
+      "guidance": {
+        "planning": "Select real compositions, complete field guidance, relevant loading/error/recovery and login/logout states, accessibility and the declared security boundary.",
+        "after-plan": "Select real compositions, complete field guidance, relevant loading/error/recovery and login/logout states, accessibility and the declared security boundary.",
+        "tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
+        "after-tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
+        "implementation": "Run focused affected state/journey tests, including changed field hints/errors, normal/reduced motion and authentication presentation; no full gallery per task.",
+        "delivery": "Verify actual browser journeys, recovery, identity flow/theme and accessibility; review visual quality at the existing handoff. Generated examples are not acceptance."
+      },
+      "decisionRules": [
+        "ui-outcome-ownership"
+      ],
+      "ruleIds": [
+        "principle.ui-state-recovery",
+        "principle.provider-owned-journey",
+        "guidance.tool-selection.retained-ordinary-development-selections",
+        "guidance.ui-experience-v1.independent-choices",
+        "guidance.ui-experience-v1.quality-and-evidence",
+        "guidance.ui-design-model.layers-and-choices",
+        "guidance.ui-design-model.authentication-presentation",
+        "guidance.ui-feedback-and-recovery.state-and-ownership",
+        "guidance.ui-feedback-and-recovery.complete-fields-and-forms"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "capability-adoption",
+      "when": "capabilities",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/component-adoption.md",
+        "program-kit-building-blocks/references/orbyss-building-blocks.md"
+      ],
+      "requirement": "For each selected capability prove materialization, configured activation and actual supported public mechanism use; distinguish build-time producers from deployed runtime services.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_default_dependency_profile.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Test that the chosen feature activates and resolves through its real registration. Reuse qualified composition tests; add application-specific tests for custom behavior.",
+      "sections": {
+        "program-kit-governance/references/tool-selection.md": [
+          "Retained ordinary-development selections"
+        ],
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Semantic capability contracts"
+        ],
+        "program-kit-governance/references/component-adoption.md": [
+          "Immutable Forms",
+          "Foundation web and JSON",
+          "Ordinary development evidence"
+        ],
+        "program-kit-building-blocks/references/orbyss-building-blocks.md": [
+          "Ordinary feature use"
+        ]
+      },
+      "guidance": {
+        "planning": "Use the selected qualified public mechanisms and concrete composition boundaries.",
+        "after-plan": "Use the selected qualified public mechanisms and concrete composition boundaries.",
+        "tasks": "Schedule materialization, configured activation and public mechanism-use tests.",
+        "after-tasks": "Schedule materialization, configured activation and public mechanism-use tests.",
+        "implementation": "Use accepted mechanisms; test changed registrations and application-specific integration.",
+        "delivery": "Verify actual activation/resolution and supported public use; package presence alone is insufficient."
+      },
+      "decisionRules": [
+        "capability-evidence"
+      ],
+      "ruleIds": [
+        "principle.capability-evidence",
+        "guidance.tool-selection.retained-ordinary-development-selections",
+        "guidance.modularity-and-contracts.semantic-capability-contracts",
+        "guidance.component-adoption.immutable-forms",
+        "guidance.component-adoption.foundation-web-and-json",
+        "guidance.component-adoption.ordinary-development-evidence",
+        "guidance.orbyss-building-blocks.ordinary-feature-use"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-async",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Async and shell-owned work"
+        ]
+      },
+      "requirement": "Prove owned async completion, fault observation and cancellation; review Task/ValueTask consumption, direct-return lifetime and bounded CPU/fan-out decisions against affected source. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "analyzer-and-behavior",
+        "diagnostics": [
+          "CA2012",
+          "CA2016"
+        ],
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Await a ValueTask once. Forward cancellation to operations that accept it; a deliberately independent lifetime needs a narrowly scoped documented suppression.",
+      "guidance": {
+        "planning": "Define async work ownership, fault observation and cancellation boundaries.",
+        "after-plan": "Define async work ownership, fault observation and cancellation boundaries.",
+        "tasks": "Schedule cancellation, async completion and fault tests for affected operations.",
+        "after-tasks": "Schedule cancellation, async completion and fault tests for affected operations.",
+        "implementation": "Observe async work and forward cancellation; compiler CA2012/CA2016 checks accompany affected builds.",
+        "delivery": "Verify owned completion, cancellation and relevant Task/ValueTask lifetimes."
+      },
+      "mechanism": "dotnet-async",
+      "decisionRules": [
+        "async-ownership"
+      ],
+      "ruleIds": [
+        "principle.async-representation",
+        "principle.bounded-async-work",
+        "principle.async-operation-policy",
+        "principle.shell-owned-work",
+        "principle.shell-task-lifetimes",
+        "guidance.dotnet-engineering.async-and-shell-owned-work"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-concurrency",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Synchronization and collections"
+        ]
+      },
+      "requirement": "For shared state or producers, prove invariant coordination, successful-acquire release, cancellation and bounded completion under controlled scheduling. Review factories, lock ordering and singleton safety. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Define shared invariants, coordination, bounded producers and terminal completion.",
+        "after-plan": "Define shared invariants, coordination, bounded producers and terminal completion.",
+        "tasks": "Schedule controlled contention, acquire/release, cancellation and bounded-completion tests.",
+        "after-tasks": "Schedule controlled contention, acquire/release, cancellation and bounded-completion tests.",
+        "implementation": "Test changed shared-state coordination; avoid unbounded queues or fan-out.",
+        "delivery": "Verify affected invariants under contention, cancellation and controlled scheduling."
+      },
+      "mechanism": "dotnet-concurrency",
+      "decisionRules": [],
+      "ruleIds": [
+        "guidance.dotnet-engineering.synchronization-and-collections"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-lifetime",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Resource and memory ownership"
+        ]
+      },
+      "requirement": "Prove actual shell/DI scope ownership, partial startup and disposal paths. Disposition buffer leases, registrations and retention; require unload proof only when live reload is selected. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Choose real shell/DI scopes and explicit resource/disposal owners.",
+        "after-plan": "Choose real shell/DI scopes and explicit resource/disposal owners.",
+        "tasks": "Schedule activation, partial-startup and disposal tests for changed lifetime boundaries.",
+        "after-tasks": "Schedule activation, partial-startup and disposal tests for changed lifetime boundaries.",
+        "implementation": "Keep scope/resource ownership explicit; test changed registration and teardown behavior.",
+        "delivery": "Verify actual scopes, partial-startup cleanup and disposal; unload checks apply only to selected live reload."
+      },
+      "mechanism": "dotnet-lifetime",
+      "decisionRules": [
+        "resource-ownership"
+      ],
+      "ruleIds": [
+        "principle.disposal-ownership",
+        "principle.async-teardown",
+        "guidance.dotnet-engineering.resource-and-memory-ownership"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-construction",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Type and construction choices",
+          "Deferred initialization"
+        ]
+      },
+      "requirement": "Review typed value/default/equality/immutability and constructor invariants. When deferred initialization is used, prove factory, exception, cancellation and disposable-value ownership; do not defer required startup checks. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Choose identity/value/default/equality semantics and constructor invariants; do not hide I/O in construction.",
+        "after-plan": "Choose identity/value/default/equality semantics and constructor invariants; do not hide I/O in construction.",
+        "tasks": "Schedule meaningful value and construction invariants; deferred initialization tests only when used.",
+        "after-tasks": "Schedule meaningful value and construction invariants; deferred initialization tests only when used.",
+        "implementation": "Preserve admitted immutable values and clear factories; private pure helpers need no extra DI ceremony.",
+        "delivery": "Review value invariants, equality and constructor behavior; prove initialization ownership where applicable."
+      },
+      "decisionRules": [],
+      "ruleIds": [
+        "guidance.dotnet-engineering.type-and-construction-choices",
+        "guidance.dotnet-engineering.deferred-initialization"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-queries",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "LINQ and query boundaries"
+        ]
+      },
+      "requirement": "When queries are used, prove cardinality, ordering, materialization and selected-provider translation; review pagination and N+1. Do not require a data store for a pure slice. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Define ordering, cardinality, pagination and deliberate provider materialization.",
+        "after-plan": "Define ordering, cardinality, pagination and deliberate provider materialization.",
+        "tasks": "Schedule real-provider tests for translation, ordering, bounded pages and applicable N+1 risks.",
+        "after-tasks": "Schedule real-provider tests for translation, ordering, bounded pages and applicable N+1 risks.",
+        "implementation": "Run affected query/provider tests; do not replace real provider semantics with InMemory.",
+        "delivery": "Verify actual provider translation, bounds and ordering for delivered queries."
+      },
+      "mechanism": "dotnet-queries",
+      "decisionRules": [],
+      "ruleIds": [
+        "guidance.dotnet-engineering.linq-and-query-boundaries"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-runtime-io",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Time, configuration and I/O"
+        ]
+      },
+      "requirement": "Prove controlled-time deadlines, actual shell options validation and HTTP/file lifetime/admission where used; test cancellation and unsafe retry boundaries. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Define monotonic deadlines, configuration admission, resource ownership and safe retry boundaries.",
+        "after-plan": "Define monotonic deadlines, configuration admission, resource ownership and safe retry boundaries.",
+        "tasks": "Schedule applicable deadline, invalid-configuration, cancellation and uncertain-effect tests.",
+        "after-tasks": "Schedule applicable deadline, invalid-configuration, cancellation and uncertain-effect tests.",
+        "implementation": "Test changed I/O/deadline mechanisms and preserve ambiguity after uncertain commit.",
+        "delivery": "Verify real configuration activation, resource lifetimes, deadlines and safe retry behavior."
+      },
+      "mechanism": "dotnet-io",
+      "decisionRules": [],
+      "ruleIds": [
+        "guidance.dotnet-engineering.time-configuration-and-i-o"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-runtime-security",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md",
+        "program-kit-governance/references/modularity-and-contracts.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Secure runtime boundaries and observability"
+        ],
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Runtime and HTTP ownership"
+        ]
+      },
+      "requirement": "Apply existing WEB/JSON/assets controls; prove applicable malformed/oversized/denied input and redacted fault paths. Review protocol identity, process/path/URL boundaries and scoped advanced-runtime research. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Reuse selected WEB/JSON/assets controls and identify actual trust boundaries.",
+        "after-plan": "Reuse selected WEB/JSON/assets controls and identify actual trust boundaries.",
+        "tasks": "Schedule denied, malformed, oversized and redacted fault cases at the affected boundary.",
+        "after-tasks": "Schedule denied, malformed, oversized and redacted fault cases at the affected boundary.",
+        "implementation": "Run affected security tests when identity, admission, common envelopes or trust boundaries change.",
+        "delivery": "Verify applicable denied/fault/oversized paths and safe diagnostics, including shared operation consumers."
+      },
+      "mechanism": "dotnet-security",
+      "decisionRules": [
+        "authorization-ownership"
+      ],
+      "ruleIds": [
+        "principle.authorization-ownership",
+        "guidance.dotnet-engineering.secure-runtime-boundaries-and-observability",
+        "guidance.modularity-and-contracts.runtime-and-http-ownership"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "dotnet-source-quality",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Method bodies and extraction",
+          "Source files and documentation",
+          "Orbyss style overlay",
+          "Enforcement classification"
+        ]
+      },
+      "requirement": "Bind actual compiler/analyzer versions, severities, scoped suppressions and generated-code handling. Review responsibility and documentation meaning; an analyzer pass does not certify SOLID or method cohesion. Apply only when the mechanism is used; do not invent usage or a nonapplicability dossier.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "analyzer-and-review",
+        "diagnostics": [
+          "ORB1001",
+          "ORB1002",
+          "ORB1003",
+          "ORB1004",
+          "ORB1005",
+          "ORB1006",
+          "CA2200",
+          "CA2018",
+          "CA2019",
+          "CA2021"
+        ],
+        "coverage": [
+          "tests/validate_dotnet_engineering.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "A readonly struct is appropriate for a small immutable value with value semantics. It is not a blanket replacement for entities or polymorphic reference objects.",
+      "guidance": {
+        "planning": "Select actual analyzer rules and deliberate source/documentation conventions.",
+        "after-plan": "Select actual analyzer rules and deliberate source/documentation conventions.",
+        "tasks": "Use existing analyzer enforcement; schedule semantic review of changed responsibilities.",
+        "after-tasks": "Use existing analyzer enforcement; schedule semantic review of changed responsibilities.",
+        "implementation": "Build affected targets with their analyzers; document contract meaning rather than repeated design history.",
+        "delivery": "Review scoped suppressions, responsibility and meaningful documentation; green analyzers cannot certify SOLID."
+      },
+      "decisionRules": [],
+      "ruleIds": [
+        "guidance.dotnet-engineering.method-bodies-and-extraction",
+        "guidance.dotnet-engineering.source-files-and-documentation",
+        "guidance.dotnet-engineering.orbyss-style-overlay",
+        "guidance.dotnet-engineering.enforcement-classification",
+        "native.analyzer-severity",
+        "native.build-warnings"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "persistence-adoption",
+      "when": "persistence",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/persistence-profiles.md"
+      ],
+      "requirement": "Bind each scoped data owner to admitted profile, actual provider/project/central pins, activated semantic capability and real-provider tests. Prove transaction rollback/contention, replay/conflicting identity, retry/ambiguous commit and controlled migrations/recovery where required by the admission. No-store and read-only exceptions need reviewed evidence; package presence is not behavior.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_persistence_runtime.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "Keep migrations and provider configuration under their data owner. Verify real round trips and transaction/concurrency behavior for the selected provider.",
+      "sections": {
+        "program-kit-dotnet/references/persistence-profiles.md": [
+          "Ordinary development decisions",
+          "Architecture and implementation contract"
+        ]
+      },
+      "guidance": {
+        "planning": "Choose admitted provider ownership, consistency, migration and replay semantics.",
+        "after-plan": "Choose admitted provider ownership, consistency, migration and replay semantics.",
+        "tasks": "Schedule real-provider tests for rollback/contention, replay and uncertain commits where required.",
+        "after-tasks": "Schedule real-provider tests for rollback/contention, replay and uncertain commits where required.",
+        "implementation": "Run affected real-provider tests when queries, mapping, mutation or replay behavior changes.",
+        "delivery": "Verify actual provider integration, atomicity, replay, uncertainty and applicable migration/recovery behavior."
+      },
+      "decisionRules": [
+        "persistence-admission"
+      ],
+      "ruleIds": [
+        "principle.provider-outcomes",
+        "principle.query-shape",
+        "principle.transaction-replay",
+        "principle.durable-external-delivery",
+        "principle.physical-effect-fencing",
+        "guidance.persistence-profiles.ordinary-development-decisions",
+        "guidance.persistence-profiles.architecture-and-implementation-contract"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "http-operation-contracts",
+      "when": "http-api",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-dotnet/references/technology-profiles/dotnet.md"
+      ],
+      "requirement": "Bind HTTP operations to Operations/<Operation>/Endpoint.cs and their real Request.cs/Response.cs where needed; instance endpoints resolve explicit constructor dependencies per request and own route/metadata. IWebShellFeature composes registrations. Use typed public Foundation identity/problem/JSON contracts when the selected qualified version supplies them; preserve named exact-version adapters otherwise. Prove DTO/parser/schema parity, common managed/application failure envelopes, bounded independently paged results, old-client/snapshot behavior and explicit version decisions through tests. Review proportional small/bodyless operations; never invent empty models or abstractions.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_default_dependency_profile.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_normal_development.py"
+        ],
+        "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
+      },
+      "example": "For retryable creation, test the same idempotency key twice and verify one effect. Apply this requirement only when the operation promises that contract.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Runtime and HTTP ownership"
+        ],
+        "program-kit-dotnet/references/technology-profiles/dotnet.md": [
+          "ASP.NET Core Minimal API slices"
+        ]
+      },
+      "guidance": {
+        "planning": "Choose operation-owned endpoints/DTOs, constructor dependencies and qualified typed Foundation identity/problem/JSON contracts.",
+        "after-plan": "Choose operation-owned endpoints/DTOs, constructor dependencies and qualified typed Foundation identity/problem/JSON contracts.",
+        "tasks": "Schedule operation, managed failure-envelope, bounded-output and client compatibility cases.",
+        "after-tasks": "Schedule operation, managed failure-envelope, bounded-output and client compatibility cases.",
+        "implementation": "Use per-request instance endpoints and typed admission/results; run affected operation/contract tests.",
+        "delivery": "Verify parser/schema/runtime parity, common managed/application envelopes, bounded pages and old-client behavior."
+      },
+      "decisionRules": [
+        "authorization-ownership"
+      ],
+      "ruleIds": [
+        "principle.authorization-ownership",
+        "guidance.modularity-and-contracts.runtime-and-http-ownership",
+        "guidance.dotnet.asp-net-core-minimal-api-slices"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "typescript-boundaries",
+      "when": "typescript",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/technology-profiles/typescript.md"
+      ],
+      "requirement": "Preserve strict compiler and runtime admission at selected TypeScript boundaries.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "guidance": {
+        "planning": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
+        "after-plan": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
+        "after-tasks": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
+        "implementation": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
+        "delivery": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks.",
+        "tasks": "Plan strict compilation, checked/generated contracts and actual untrusted-input behavior; carry affected tests into tasks."
+      },
+      "decisionRules": [
+        "typescript-admission"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_ui_experience.py",
+          "tests/validate_dotnet_scaffold.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_knowledge_application.py"
+        ],
+        "coverageScope": "Toolkit routing/selected-mechanism fixtures; consumer source review and real boundary/lifecycle behavior remain required."
+      },
+      "example": "Selected mechanisms receive their actual compiler/boundary tests; unrelated features inherit no obligation.",
+      "sections": {
+        "program-kit-governance/references/technology-profiles/typescript.md": [
+          "Admission and verification"
+        ]
+      },
+      "ruleIds": [
+        "principle.typescript-strictness",
+        "principle.typescript-tools",
+        "principle.typescript-runtime-admission",
+        "principle.typescript-contracts",
+        "principle.typescript-accessibility",
+        "principle.typescript-test-boundaries",
+        "principle.typescript-supply-chain",
+        "principle.typescript-budgets",
+        "principle.typescript-client-security",
+        "guidance.typescript.admission-and-verification"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    },
+    {
+      "id": "identity-administration",
+      "when": "identity-admin",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/keycloak-admin-api.md"
+      ],
+      "requirement": "Use selected portable administration contracts and least privilege; explicit provider facilities retain their exact boundary.",
+      "phases": [
+        "planning",
+        "after-plan",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "guidance": {
+        "planning": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
+        "after-plan": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
+        "after-tasks": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
+        "implementation": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
+        "delivery": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase.",
+        "tasks": "Name selected endpoint families, privilege/admission boundaries and real create/use/cleanup cases; execute them only at the appropriate phase."
+      },
+      "decisionRules": [
+        "identity-administration"
+      ],
+      "enforcement": {
+        "kind": "behavior-and-review",
+        "coverage": [
+          "tests/validate_default_dependency_profile.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_knowledge_application.py"
+        ],
+        "coverageScope": "Toolkit routing/selected-mechanism fixtures; consumer source review and real boundary/lifecycle behavior remain required."
+      },
+      "example": "Selected mechanisms receive their actual compiler/boundary tests; unrelated features inherit no obligation.",
+      "sections": {
+        "program-kit-dotnet/references/keycloak-admin-api.md": [
+          "Recommended application-facing baseline",
+          "Explicit provider facilities",
+          "Authentication and permissions"
+        ]
+      },
+      "ruleIds": [
+        "principle.identity-administration",
+        "guidance.keycloak-admin-api.recommended-application-facing-baseline",
+        "guidance.keycloak-admin-api.explicit-provider-facilities",
+        "guidance.keycloak-admin-api.authentication-and-permissions"
+      ],
+      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+    }
+  ]
+}

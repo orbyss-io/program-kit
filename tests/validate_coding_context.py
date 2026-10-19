@@ -65,6 +65,26 @@ class CodingContextTests(unittest.TestCase):
         self.assertTrue(units)
         self.assertFalse(blockers)
 
+    def test_bound_recipe_uses_installed_packed_bytes_and_rejects_corruption(self):
+        import asset_sources
+        data = copy.deepcopy(catalog())
+        identity = 'principle.compilation-boundaries'
+        data['codingUnits'] = [{'id': 'packed-recipe', 'ruleIds': [identity], 'route': 'bound-recipes'}]
+        relative = 'references/examples/recipe.md'
+        data['rules'][identity]['bindings']['recipes'] = ['extensions/fixture/' + relative]
+        with FixtureDirectory() as directory:
+            extensions = Path(directory)
+            component = extensions / 'fixture'; component.mkdir()
+            (component / 'extension.yml').write_text('extension:\n  id: fixture\n')
+            pack = component / asset_sources.PACK
+            pack.write_bytes(asset_sources.encoded({relative: b'Exact original recipe.\n'}))
+            with patch('coding_context.resolve', return_value={'id': identity, 'fingerprint': 'independent-rule'}):
+                self.assertFalse(compose(data, [], set(), {}, extensions)[2])
+                value = json.loads(pack.read_bytes())
+                value['files'][relative]['sha256'] = '0' * 64
+                pack.write_text(json.dumps(value))
+                self.assertTrue(any(b['code'] == 'PKC004' for b in compose(data, [], set(), {}, extensions)[2]))
+
     def test_native_query_uses_actual_imports_and_runs_no_target_or_restore(self):
         with FixtureDirectory(native=True) as folder:
             root = Path(folder)

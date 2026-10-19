@@ -1,5 +1,30 @@
 # Coding system: feature implementation plan and agent prompt
 
+**F8 approval update, 19 October 2026:** F1–F8 are human approved within the
+recorded acceptance scopes. The human completed the separate Spec Kit session,
+reviewed the snapshot-pattern explanation and said “Super. I approve. Commit and
+close this.” Read the [F8 approval/closeout](coding-system-f8-checkpoint-2026-10-18.md)
+and [final matrix](coding-system-final-handoff-2026-10-18.md). The 126.204s/120s
+fresh overrun remains over-budget; approval preserves every failure, cost and
+proof limit. Commit the scoped F8 work locally and close its task. Retain review
+material and the stopped consumer; no push, publication or cleanup is authorized.
+The development skill was separately created on codex/program-kit-development-skill;
+its other chat owns that work and commit. This supersedes older pending/deferral
+wording below and does not authorize merging the separate branch.
+
+**F8 review update, 18 October 2026:** F1–F7 remain human approved. The human
+agreed the F8 recommendations and extended Q2 to an actual human-operated agent
+journey. F8 implementation and scoped installed proof are retained for review;
+read the [F8 checkpoint](coding-system-f8-checkpoint-2026-10-18.md) and
+[final F1–F8 matrix/handoff](coding-system-final-handoff-2026-10-18.md), starting at
+its guided actual-output index. Final fresh execution completed functionally but
+exceeded 120s at 126.204s; retain that finding. The separate untouched consumer is
+prepared for the human to perform Specify/Clarify/Plan/Tasks/Analyze/Implement with
+an agent and return its exact session for analysis. No agent session has started.
+This is the current continuation boundary; earlier checkpoint wording is historical. Stop at F8 human review;
+complete acceptance and F8 approval remain pending. Do not commit, push, clean,
+publish or create the deferred development skill without further authority.
+
 **Approved implementation scope, synchronized with main on 17 October 2026.** The human approved the feature and its knowledge-ownership, modularity, domain-event, endpoint and browser refinements, then requested that implementation build on the latest release changes. This plan and its [implementation prompt](coding-system-agent-prompt-2026-10-17.md) are the current self-contained handoff. They do not start or message an agent.
 
 The original investigation and approval remain historical context in Git at commit `dabe83d85da148ed426ef2fb7dff9088f2f0e5c2` and in the original planning checkout. Main subsequently retired those reports and their campaign gates. This handoff carries forward the approved feature behavior without restoring obsolete reports, ledgers or release procedures. Historical findings do not automatically establish a defect in the current source.
@@ -235,7 +260,7 @@ strict qualification, source ownership and human review/waiting boundaries; an
 explicit native execution observation supplies no reusable qualification.
 The installed journey retains a 120s budget/240s timeout. Integrity retains 60s;
 Affected uses approved F6 `f2cb90b8f6254cb61052d1b49e6e189e2206e652` as its base.
-F8 has not started; use its separate
+At the F7 checkpoint F8 had not started; its separately authorized session used the
 [session prompt](coding-system-f8-session-prompt-2026-10-18.md). The development
 skill remains deferred. Earlier approvals, raw failures, costs, qualification limits
 and review material remain unchanged. F7 approval is not complete feature acceptance.
@@ -248,9 +273,12 @@ Use existing verification selectors and prerequisite closure. Do not run every d
 
 ### F8 — cleanup, installation, adoption and migration
 
-F8 is the final planned implementation item. It requires a separate human-led
-session and final integrated acceptance review across the existing matrix, using
-maintained per-item proof and actual installed routes. F1–F7 are approved; do not
+F8 is the final planned implementation item. Its separate human-led session has
+implemented cleanup and installed journeys; see the [F8 checkpoint](coding-system-f8-checkpoint-2026-10-18.md)
+and [final acceptance handoff](coding-system-final-handoff-2026-10-18.md). Human
+review, the requested observed agent session and fresh runtime disposition remain
+pending. Final integrated review uses the existing matrix, maintained per-item
+proof and actual installed routes. F1–F7 are approved; do not
 reopen their settled decisions. See the
 [F8 session prompt](coding-system-f8-session-prompt-2026-10-18.md). The F7 commit
 session does not begin F8 or authorize review-material cleanup or the deferred skill.
