@@ -65,6 +65,61 @@ compiled checks, actual behavior and human review retain their independent dutie
 No arbitrary write interception, worker dispatch, installation or application
 acceptance follows from preparation.
 
+## Operation decisions before source work
+
+The Program Kit 0.14.3 candidate adopts the qualified public Foundation 0.3.7
+profile, including its mandatory source-readability contract. Existing consumer
+profiles/locks retain their historical meaning; use the supported profile upgrade
+and source-conformance repair route before dependent implementation. Toolkit
+source changes alone do not migrate a consumer or supply its acceptance.
+
+Preparation reads `## Operation implementation map` in the existing plan and tasks.
+The plan columns are `Operation | Decision | Resolution | Source`; the tasks columns
+are `Operation | Pattern / example | Compatibility / alternative | First adverse cases |
+Test owner / command | First coherent check`. The maintained plan/tasks templates
+describe the bounded cells and supported decision categories. Sources name existing
+repository/feature files and optionally an exact Markdown heading; their current hashes
+attribute the brief. They do not grant approval or certify decision meaning.
+
+Applicable requirements bind `operationDecisions` in the same canonical registry that
+owns guidance selection and independent-review duties. There is no separate runtime
+tag/rule checklist. Preparation uses actual native/source responsibilities as well as
+task prose. A vague task cannot hide observed lifetime/parser/cancellation responsibilities.
+Feature-wide unions remain conservative; use an actual `--operation` scope to narrow
+ownership rather than claiming another operation's effects are irrelevant without evidence.
+Setup can materialize native projects while consequential choices are unresolved. Actual
+source work still needs a ready operation brief, including source discovered during setup.
+
+The brief includes concrete ownership/result invariants and applicable deadline,
+cancellation, cleanup/uncertainty, transaction/replay, admission, bounds, concurrency,
+time/configuration and activation/drain choices. It also carries compatible selected
+patterns/examples or the supported manual route/reason, first adverse cases/test owners,
+and compiler/analyzer plus focused checks at the first coherent compilable increment,
+before expanding work. Applicable .NET constraints are complete source-marked canonical
+atoms in the ordinary brief; extended sections/examples remain focused lookup. Scope
+selection and deduplication bound the brief, rather than clipping mandatory clauses.
+
+For example, if provider dispatch returns an external identity, establish the cleanup
+owner before the next accounting await; name accounting failure and cancellation there
+as first adverse cases. “Propagate cancellation and dispose” is not that decision.
+
+Every `PKC020` blocker names the affected operation, condition, missing fact, consequence,
+owner, artifact updates and retry. Unrelated ready operations remain available.
+
+| Cause | Recovery and actual unblock condition |
+|---|---|
+| Accessible fact/routine choice | Inspect existing spec/plan/ADRs, exact dependency and compatible examples; resolve locally and update affected plan/tasks. |
+| Missing consequential human decision | Ask only missing intent, architecture, risk, data/spending or authority with consequences and supported alternatives; record the real answer through its normal spec/ADR/plan owner and update dependencies/tests. |
+| Stale/contradictory artifacts | Correct only affected authoritative sections and mappings, preserving settled answers, IDs/checkmarks, baseline, effort and history. |
+| Engine cannot represent/enforce a known rule | Reproduce and repair its registry/composer/template/validator owner with positive/negative regressions; qualify/install the supported route instead of patching managed consumer internals or suppressing diagnostics. |
+| Missing environment proof | Use the exact supported preparation owner or capable-CI evidence. Missing tools, failed checks and timeouts remain gaps/failures. |
+
+After repair, retry scoped analysis/preparation and enter through a fresh successful
+implementation preflight. Conditional nonapplicability needs an actual reason and remains
+a semantic review claim. Routine formatting repair may retain existing ownership/results
+and public meaning without new architecture approval. Structural validation, a pattern,
+or a passing build does not prove an arbitrary agent applied the decisions correctly.
+
 ## Extending selected coding units
 
 The [learning round](coding-learning.md) supplies a practical finite extension

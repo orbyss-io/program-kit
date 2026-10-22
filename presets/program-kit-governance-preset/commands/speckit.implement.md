@@ -69,6 +69,17 @@ expanding another operation or future infrastructure. Group related invariants i
 behavior batch; verification does not require a separate shell invocation or progress narration for every
 small assertion. A newly exposed shared-contract failure can justify expanding the batch.
 
+Before editing, use the current operation's brief from the existing plan/tasks `Operation implementation
+map`: concrete ownership/results and applicable deadline/cancellation, cleanup/uncertainty,
+transaction/replay, admission/bounds and lifetime decisions; compatible selected pattern/example or
+supported manual route; first adverse cases/test owner; and first coherent compiler/analyzer/focused
+checks. Resolve a missing consequential choice before dependent source work. Investigate accessible
+facts and routine choices locally; ask the human only for missing material intent, risk, architecture
+or authority. Update affected spec/ADR/plan/tasks through their existing owners, preserve baseline,
+IDs/history/settled decisions, then retry scoped analysis/preparation and a fresh successful preflight.
+An engine gap needs its supported toolkit repair/regression; an environment gap needs its preparation
+owner or actual capable-CI evidence. Unrelated ready operations and setup remain available.
+
 - Select verification sequence from actual responsibilities/uncertainty. Materialize known scaffold
   batches first, run maintained generation/configuration/build/integration checks before dependent
   behavior, then add missing consumer-specific tests. Prefer meaningful test-first for critical
@@ -80,6 +91,9 @@ small assertion. A newly exposed shared-contract failure can justify expanding t
 - Use `eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects <test-project>` and the
   framework's supported filter, or the documented equivalent. Build affected targets with their
   analyzers; do not repeatedly restore unchanged dependencies or package the application.
+  Execute these at the first coherent compilable increment before expanding behavior or another
+  stage. Keep effect evaluation order, cancellation, disposal and deferred activation intact when
+  correcting analyzer diagnostics; moving nested calls is not a blind formatting operation.
   Use the maintained wrapper's supported runner adapter for accepted VSTest or offline/provider
   consumers; retain managed selection, freshness, failure tracking and logs rather than replacing
   orchestration. An unfiltered multi-project Focused run needs an explicit scope reason in its plan.
@@ -98,6 +112,10 @@ small assertion. A newly exposed shared-contract failure can justify expanding t
   original implementation baseline for coverage; do not advance it to hide earlier work. Unknown
   dynamic inputs need a supported adapter or a deliberate broader boundary. Complete acceptance
   and Release always execute their full current gate.
+- If guidance or duty output is truncated/incomplete, capture the complete existing read-only preparation
+  output in a local temporary file and read it in bounded chunks before editing (text guidance and JSON
+  evaluation duties, including required duties without coding units). Truncation is not nonapplicability;
+  this lookup does not repeat preflight or redispatch its hook.
 - Apply the prehook's selected canonical units across actual changed responsibilities. Use focused
   preparation for the current unit's rules, recipe and evaluation duties; keep decisions in their
   existing plan/ADR and review owners.

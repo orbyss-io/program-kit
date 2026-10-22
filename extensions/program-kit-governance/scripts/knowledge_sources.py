@@ -43,8 +43,8 @@ def marked(content, identity, kind='decision-rule'):
     return matches[0].strip()
 
 
-def section(content, heading):
-    # Fenced examples are not headings and cannot create a second authority.
+def markdown_headings(content):
+    """The shared fence-aware structural reader; headings never infer authority."""
     lines, fenced, headings = content.splitlines(), False, []
     for index, line in enumerate(lines):
         if re.match(r'^\s*(```|~~~)', line):
@@ -52,6 +52,22 @@ def section(content, heading):
         match = re.match(r'^(#{1,6})\s+(.+?)\s*#*$', line) if not fenced else None
         if match:
             headings.append((index, len(match[1]), match[2]))
+    return headings
+
+
+def section_span(content, heading):
+    """Return the one actual section body span, without global text replacement."""
+    lines, headings = content.splitlines(keepends=True), markdown_headings(content)
+    matches = [row for row in headings if row[2] == heading]
+    if len(matches) != 1:
+        raise ValueError('Missing/ambiguous canonical section: ' + heading)
+    start, depth, _ = matches[0]
+    end = next((i for i, d, _ in headings if i > start and d <= depth), len(lines))
+    return sum(map(len, lines[:start + 1])), sum(map(len, lines[:end]))
+
+
+def section(content, heading):
+    lines, headings = content.splitlines(), markdown_headings(content)
     matches = [row for row in headings if row[2] == heading]
     if len(matches) != 1:
         raise ValueError('Missing/ambiguous canonical section: ' + heading)

@@ -215,14 +215,17 @@ workflow transitions, not engineering prerequisites for independently runnable b
 | action | Required request fields and effect |
 |--------|------------------------------------|
 | initialize | `baseline`, `source` of actual requesting-human conversation. Requires fresh spec/plan policy markers, a normally ratified constitution, finalized story/operation/task maps and no old implementation checkmarks. Default owner/reviewer is requester. |
-| start | `operation`; validates progression before product work. `purpose: repair` or `diagnose` permits only repair of the active presented outcome. Same stable work IDs retain effort. |
-| engineering | `checkpoint`, `checks` with actual relevant passing artifact paths. Requires checkpoint tasks complete and no retained technical failures. Never establishes human acceptance. |
+| start | `operation`; validates progression before product work. `purpose: repair` or `diagnose` permits only repair of the active presented outcome. `purpose: conformance` targets registered existing-source repair tasks and cannot start product work. Same stable work IDs retain effort. |
+| engineering | `checkpoint`, `checks` with actual relevant passing artifact paths and current grouped `evaluation` with inspections/authorship. Requires checkpoint tasks complete, no retained technical failures and due independent effect/trust/lifetime review. Never establishes human acceptance. |
 | present | engineering fields plus `basisPaths`, `entryPoint`, `preparedData`, `walkthrough`, `expected`, `limitations`. Exercise the actual integrated journey first; disclose simulated externals. Pauses for review. |
 | decision | `checkpoint`, `verdict` (`accepted`, `changes requested`, `deferred`), `actor: requester` and actual explicit `source`, or an explicitly supplied GitHub `reference`. Deferral requires bounded `permits` operation IDs; broader batches require `actor: owner` and the owner's source. Deferred reviews remain due. |
 | verify-reviewer / assign | Owner supplies explicit `source` and nominated `login`/optional `host` to verify-reviewer. Present returned stable ID/login/reference for actual human confirmation. assign adds `checkpoint`, `role`, `confirmedId` and that `confirmation`; a changed ID is rejected. `role: requester` explicitly restores conversation review. |
 | early-checkpoint | `actor: owner`, actual agreed `source`, new `checkpoint`, `story`, scoped `taskIds`. Never silently turn every operation into a required human gate. |
 | budget | `actor: owner`, explicit `source`, `story`, optional `operation`, positive `minutes`. Revisions preserve accumulated effort. |
 | scope | `actor: owner`, explicit `source`, exact affected `stories` after updating existing artifacts. Reopens only affected outcomes; stable operation identity/effort is preserved. |
+| conformance-register | `findings` with unique `id`, canonical `rule`, existing owned `sourcePaths`, existing affected `operations`, concrete `repair`, actual `checks` owner and `materialEffect` (`preserving` or `changed`); optional actual `source`. Atomically inserts uniquely identified repair tasks/prerequisites, preserving previous IDs/checkmarks/baseline/effort/history and human decisions. |
+| conformance-amend | Pending `finding`, `materialEffect: changed`, concrete `rationale`. Escalates a preserving repair when actual outcomes change; retains original classification/amendment and reopens affected human outcomes. Never downgrade changed to preserving. |
+| conformance-complete | Exact `findings`, current `checks`, grouped `evaluation`, and independently authored `outcomeAssessment` with `review`, `reviewer`, `conclusion`, `materialEffects` mapping every finding ID to its actual retained classification. Requires repair tasks complete and admitted current review/checks. Refresh complete story engineering separately before product resume. |
 | reuse-review | `from` accepted earlier checkpoint and target `checkpoint`; allowed only when the unchanged complete story outcome and all its tasks were covered. Retains original human source. |
 | status / wait / suspend / resume | status accrues elapsed time and reports first threshold crossings. wait suspends explicit human waiting; suspend records stopped session work before interruption; resume reactivates accounting for authorized repair/work. Resume grants no progression authority. |
 
@@ -239,6 +242,30 @@ stale/deferred reviews cannot become overall acceptance even with all engineerin
 Absent hooks use these same entry/finish paths explicitly. Engineering `verify` and native commands
 remain independent; their success never supplies human acceptance. The toolkit cannot prevent edits
 outside its workflow and claims no agent-supervisor control.
+
+Use the grouped source-inspection schema described in `docs/coding-evaluation.md` in the
+publisher documentation: claims name `rules`, maintained `checks`, an existing `review`,
+`conclusion`, `limits`, actual `authorship` (`implementationAuthors`, `reviewer`, `kind`),
+and `inspections`. Each inspection covers related canonical source/owner rules exactly once,
+actual in-scope `sources` (`path`, `start`, `end`), the changed `boundary`, concrete
+`findings`/dispositions and an `assessment`. Current native execution, authored source review,
+independent reviewer findings and human product acceptance remain distinct. Required independent
+review needs a fresh scoped reviewer or independent human; missing availability stays pending,
+without self-review fallback or agent-powered CI. Attribution/hashes cannot authenticate identity
+or establish semantic truth, and generic all-rules claims cannot close unchecked obligations.
+
+Current source-policy adoption exposes `PKC025` with a registration request for active owned
+source. Product continuation is blocked by `PKC023` until its actual repairs/checks/review complete;
+unrelated ready operations remain available. Registration supports unfinished, presented, accepted
+and deferred stories, grouping a shared repair once. Preserving repairs retain prior human outcomes
+and refresh engineering proof for changed inputs; materially changed outcomes reopen only affected
+human review. Existing baseline, IDs/checkmarks, effort, failures, authority, data and history stay
+intact. No suppression, debt baseline, consumer reset or new product implementation disguised as repair.
+The candidate default adopts qualified public Foundation 0.3.7 and its source-readability contract.
+A consumer retaining an older profile still receives `PKC024` until explicit supported profile adoption
+and native restore/build. Preserve historical profiles/locks; toolkit updates do not rewrite consumer
+selection. Setup-only work and local development packages cannot certify public-profile source
+acceptance or authorize consumer migrations/publication.
 
 ### Freshness and effort
 

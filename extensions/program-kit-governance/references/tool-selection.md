@@ -2,11 +2,13 @@
 
 ## Retained ordinary-development selections
 
+<!-- program-kit:knowledge-rule principle.retained-engineering-selections -->
 Reuse the accepted exact dependency profile and existing engineering tools during feature work.
 Task generation carries their applicable compatibility, security and behavior checks into owned
 tasks with explicit dependencies. It does not reopen bootstrap research, install alternatives,
 change pins or execute compatibility/admission work before saving tasks. Research only a concrete
 new capability gap or substantive override; retain accepted authority and actual verification.
+<!-- /program-kit:knowledge-rule -->
 
 ## Bootstrap candidate research
 

@@ -59,6 +59,45 @@ Review changed responsibilities and applicable mechanisms, not a repeated full S
 No artifact-ownership, obligation-design/review, semantic-contract or proof-attestation dossier
 is required. Keep semantic design and test intent here; execution output belongs in artifacts/.
 
+## Operation implementation map
+
+| Operation | Decision | Resolution | Source |
+|-----------|----------|------------|--------|
+| [operation-id] | ownership | [actual semantic/effect owner, public seam and first ownership-transfer edge] | plan.md#Architecture and engineering |
+| [operation-id] | results | [valid result/state invariants and material failure meanings] | plan.md#Architecture and engineering |
+
+Use this existing plan table to make applicable decisions concrete before dependent source work.
+One row per operation/decision; `Source` is a current repository-relative or feature-relative file,
+optionally `#Exact Markdown heading`, containing its design basis. Keep each resolution at most
+1600 characters; refer to the actual existing design section for detail. Do not create another receipt.
+Always resolve `ownership` and `results`. Add only applicable categories:
+
+- `cancellation-deadline`: caller token, one composed deadline, late-result handling and terminal state.
+- `cleanup-uncertainty`: ownership from first acquisition/remote identity through every subsequent await,
+  partial failure and cleanup, including uncertain external outcomes.
+- `transactions-replay`: transaction/commit boundaries, concurrency, retry, replay and idempotency owner.
+- `admission`: untrusted input, permission/tenant admission, typed contract and stable failure meaning.
+- `bounds`: parser/enumeration/paging/input/output limits and their owner.
+- `concurrency`: shared-state coordination, conflicting or stale completions and observable outcome.
+- `configuration-time`: replaceable clock, deadline/connection lifetimes and operational options versus
+  fixed protocol identities or accepted product constraints.
+- `activation-drain`: registration/activation owner, admission closure, bounded cancel/drain and disposal.
+
+A conditional mechanism that genuinely does not apply can say `Not applicable: <specific reason>`;
+that claim remains subject to review. Placeholder text, generic rule lists and merely citing an ADR
+are unresolved. For example: after provider dispatch returns its operation ID, cleanup must already
+cover cancellation/failure of the accounting write before polling begins. Name that edge, its owner
+and uncertain-outcome handling; “propagate cancellation and dispose” does not settle it.
+Routine formatting repair can retain existing ownership/results and public meaning without a new ADR
+or human approval. For missing choices, investigate accessible facts first. Ask the human only for
+missing product intent, consequential architecture, risk or data/spending/authority. Update actual
+spec/clarifications if meaning changes, accepted architecture/ADR when required, this plan and affected
+task dependencies/tests. Preserve IDs, baseline, history and settled decisions. A toolkit representation
+gap needs the owning engine repair/regression and supported installation, rather than a managed-file
+patch or suppression. A missing environment prerequisite needs its supported owner or capable-CI proof.
+Retry scoped analysis/preparation, then obtain a fresh successful implementation preflight; only the
+dependent operation is blocked while unrelated ready work and native setup remain available.
+
 ## Story delivery and review
 
 Confirm small runnable journeys and their independent walkthroughs/non-goals, connected effects,

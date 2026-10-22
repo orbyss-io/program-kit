@@ -74,7 +74,9 @@ def require_published_foundation(version):
     return {'commit':commit,'workflow':matching[0]['html_url']}
 
 
-def prepare():
+def prepare(refresh_publisher_knowledge=False, reason=None):
+    if refresh_publisher_knowledge and (not isinstance(reason, str) or not reason.strip()):
+        raise ValueError('Refreshing publisher knowledge requires an explicit nonempty reason')
     base=blocks.default_catalog(Path(blocks.__file__))
     index=blocks.load_json(REGISTRY/'index.json')
     current_entry=index['profiles'][index['default']]
@@ -105,12 +107,14 @@ def prepare():
                 role='Independently selected native browser presentation, confirmation and private session lifecycle.')
             package['activations'] = [{'featureIdentity': 'Orbyss.Foundation.Web.Presentation', 'targetSlot': 'shell'}]
             target['packages'][identity] = package
+    if refresh_publisher_knowledge and current['families'] != profile_families(target):
+        raise ValueError('Publisher-knowledge refresh requires unchanged package families; use normal dependency preparation for upgrades')
     target['resolutionRevision']+=1
     blocks.validate_additive_profile_catalog(current_catalog,target)
     blocks.validate_additive_profile_catalog(blocks.load_json(base),target)
     identity='foundation-'+families['foundation']+'-build-'+families['foundation-build']+'-exporter-'+exporter+'-forms-'+families['forms']+'-localization-'+families['localization']
     # A new qualification never replaces a registered historical identity.
-    if current['families']==profile_families(target) and current_entry.get('knowledge'):
+    if not refresh_publisher_knowledge and current['families']==profile_families(target) and current_entry.get('knowledge'):
         sync_publisher_engineering(current)
         blocks.qualified_dependency_profile(REGISTRY,current['id'],blocks.load_json(blocks.default_catalog(Path(blocks.__file__))))
         return None
@@ -134,6 +138,8 @@ def prepare():
     profile_path=directory/'profile.json'; write(profile_path,profile)
     state={'schemaVersion':1,'profile':reference(profile_path),'catalog':reference(target_path),
            'snapshot':snapshot,'identity':identity,'status':'prepared','publisherRelease':publication}
+    if refresh_publisher_knowledge:
+        state['publisherKnowledgeRefresh'] = {'fromProfile': index['default'], 'reason': reason.strip()}
     write(directory/'state.json',state)
     return directory
 
@@ -151,6 +157,26 @@ def new_result(parent,before,filename):
     paths=[p for p in parent.glob('*/'+filename) if p.parent not in before]
     if len(paths)!=1: raise ValueError('Qualification produced ambiguous/missing '+filename)
     return paths[0].parent
+
+
+def publisher_archive_facts(archive):
+    """Retain exact supported package metadata; the native owner defines its meaning."""
+    facts, files = {}, {}
+    for item in archive.infolist():
+        if item.is_dir() or item.filename == '.signature.p7s':
+            continue
+        if item.file_size > 64 * 1024 * 1024:
+            raise ValueError('Publisher package exceeds bounded fact policy')
+        data = archive.read(item)
+        files[item.filename] = hashlib.sha256(data).hexdigest()
+        if ((item.filename.startswith(('orbyss-foundation/', 'schemas/')) and item.filename.endswith('.json'))
+                or item.filename == 'buildTransitive/source-readability-contract.json'
+                or item.filename.startswith('lib/') and item.filename.endswith('.xml')
+                or item.filename.rsplit('/', 1)[-1].casefold() == 'readme.md'):
+            if len(data) > 2 * 1024 * 1024:
+                raise ValueError('Publisher fact exceeds two MiB')
+            facts[item.filename] = data.decode('utf-8')
+    return facts, files
 
 
 def publisher_knowledge(directory,native,profile,host):
@@ -180,16 +206,7 @@ def publisher_knowledge(directory,native,profile,host):
             if not source_commit or len(source_commit)!=40: raise ValueError('Package knowledge requires an exact publisher commit')
             package_sources.setdefault(source_commit,[]).append(fields['id'])
             if fields['id']!='Orbyss.Foundation.Build' and fields['id']!='Orbyss.Foundation.OpenApi.Exporter': commits.add(repo.get('commit'))
-            facts={}; files={}
-            for item in archive.infolist():
-                if item.is_dir() or item.filename=='.signature.p7s': continue
-                if item.file_size>64*1024*1024: raise ValueError('Publisher package exceeds bounded fact policy')
-                data=archive.read(item); files[item.filename]=hashlib.sha256(data).hexdigest()
-                if ((item.filename.startswith(('orbyss-foundation/','schemas/')) and item.filename.endswith('.json'))
-                        or item.filename.startswith('lib/') and item.filename.endswith('.xml')
-                        or item.filename.rsplit('/',1)[-1].casefold()=='readme.md'):
-                    if len(data)>2*1024*1024: raise ValueError('Publisher fact exceeds two MiB')
-                    facts[item.filename]=data.decode('utf-8')
+            facts, files = publisher_archive_facts(archive)
             data=(json.dumps({'id':fields['id'],'version':version,'license':fields.get('license'),
                              'repository':repo.attrib,'payloadFiles':files,'facts':facts},indent=2)+'\n').encode('utf-8')
             if len(data)>16*1_048_576: raise ValueError('Publisher package knowledge exceeds sixteen MiB')
@@ -332,11 +349,14 @@ def main():
     parser.add_argument('--candidate',type=Path)
     parser.add_argument('--engines',default='chromium,webkit' if os.name=='nt' else 'chromium,firefox,webkit')
     parser.add_argument('--retain-unchanged-browser', help='Explicit qualified historical profile; identical npm pins and browser fixture/toolchain required. No new browser execution claim.')
-    parser.add_argument('--reason', help='Maintainer disposition for explicitly retained unchanged browser evidence')
+    parser.add_argument('--reason', help='Reason for explicit publisher-knowledge refresh or retained unchanged browser evidence')
+    parser.add_argument('--refresh-publisher-knowledge', action='store_true', help='Prepare a distinct qualification identity for corrected publisher capture with unchanged package pins; requires --reason')
     parser.add_argument('--native-evidence',type=Path,help='Exact successful candidate native evidence; the normal builder revalidates all inputs, stages and archives')
     parser.add_argument('--host-evidence',type=Path,help='Exact successful candidate Host evidence; the normal builder revalidates all manifests, cases and cleanup')
     args=parser.parse_args()
-    directory=prepare() if args.command in {'prepare','update'} else args.candidate
+    if args.refresh_publisher_knowledge and args.command not in {'prepare', 'update'}:
+        parser.error('--refresh-publisher-knowledge applies only to prepare/update')
+    directory=prepare(args.refresh_publisher_knowledge, args.reason) if args.command in {'prepare','update'} else args.candidate
     if directory is None and args.command in {'prepare','update'}:
         print('Public profile and publisher knowledge are already current; no duplicate qualification.')
         return

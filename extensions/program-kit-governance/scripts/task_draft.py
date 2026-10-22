@@ -266,9 +266,9 @@ def progress_history(feature, reference=None):
             'events': events, 'current': value if reference is None else None}
 
 
-def save_current(feature, value, submitted=None):
+def save_current(feature, value, submitted=None, *, content=None):
     path = feature / 'tasks.md'
-    content = path.read_text(encoding='utf-8')
+    content = path.read_text(encoding='utf-8') if content is None else content
     summary = current_projection(value)
     require(len(_basis_bytes(value)) <= EXPANDED_LIMIT, 'Expanded checkpoint exceeds its bounded reader limit')
     serialized = json.dumps(_store_bases(value), ensure_ascii=True, separators=(',', ':'), allow_nan=False)
@@ -986,11 +986,16 @@ def validate(value):
                     isinstance(decision.get('permits'), list) and isinstance(decision.get('at'), (int, float)),
                     'Malformed retained human decision provenance')
         if review['human'] in ('accepted', 'deferred'):
+            retained_conformance = review.get('conformanceAcceptance')
+            conformance_retained = (isinstance(retained_conformance, dict) and review['decisions']
+                and retained_conformance.get('human') == review['human']
+                and retained_conformance.get('decisionSha256') == hashlib.sha256(_basis_bytes(review['decisions'][-1])).hexdigest()
+                and any(set(r['operations']) & set(value['stories'][review['story']]['operations']) for r in value.get('conformanceRepairs', [])))
             scoped_retained = ((review.get('materialAssessments') or (review.get('materialScope') and isinstance(review.get('presentation'), dict) and
                               review['presentation'].get('materialBasis') and review.get('engineeringInputBasis') and
                               review['decisions'] and review['decisions'][-1].get('materialBasis') == review['presentation']['materialBasis'] and
                               not review.get('stale'))) and not review.get('stale'))
-            require((review.get('engineering') == 'complete' or scoped_retained or owner_continuation(review, value))
+            require((review.get('engineering') == 'complete' or scoped_retained or conformance_retained or owner_continuation(review, value))
                     and isinstance(review.get('presentation'), dict) and review['decisions'],
                     'Decision requires complete engineering, presented basis and provenance')
             require(review['decisions'][-1]['verdict'] == review['human'] and
@@ -1072,7 +1077,7 @@ def refresh(root, value):
             except (ValueError, OSError, KeyError, TypeError):
                 fresh = False
             if not fresh:
-                if material_fresh:
+                if material_fresh or review.get('conformanceAcceptance'):
                     review.update(engineering='pending')
                 else:
                     review.update(human='deferred' if owner_continuation(review, value) else 'pending',
@@ -1102,7 +1107,7 @@ def accrue(value, now):
     return warnings
 
 
-def guard(root, feature, operation=None, closure=False, repair=False, configuration='Debug', framework=None):
+def guard(root, feature, operation=None, closure=False, repair=False, configuration='Debug', framework=None, conformance=None):
     value = load_delivery(feature)
     import retained_inputs
     retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
@@ -1113,17 +1118,19 @@ def guard(root, feature, operation=None, closure=False, repair=False, configurat
     require(plan(content) == value['plan'],
             'Story plan changed; obtain a scope decision and update the affected artifacts/state')
     persist(feature, value)
-    result = _review_guard(root, feature, value, operation, closure=closure, repair=repair)
+    result = _review_guard(root, feature, value, operation, closure=closure, repair=repair, conformance=conformance)
     if closure:
         # Delivery checks and direct closure share the same duty boundary as finish.
-        from coding_context import prepare as coding_prepare, require_ready, require_evaluated, retained_evaluations
+        from coding_context import prepare as coding_prepare, require_ready, require_evaluated, retained_evaluations, require_independent_review
         prepared = coding_prepare(root, feature, reconcile=True, feature_wide=True, configuration=configuration, framework=framework)
         require_ready(prepared)
-        require_evaluated(root, feature, prepared['coding'], retained_evaluations(feature))
+        records = retained_evaluations(feature)
+        require_evaluated(root, feature, prepared['coding'], records)
+        require_independent_review(prepared['coding'], records)
     return result
 
 
-def _review_guard(root, feature, value, operation=None, closure=False, repair=False):
+def _review_guard(root, feature, value, operation=None, closure=False, repair=False, conformance=None):
     import retained_inputs
     retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
     if operation is None and value.get('active'):
@@ -1131,9 +1138,15 @@ def _review_guard(root, feature, value, operation=None, closure=False, repair=Fa
     content = (feature / 'tasks.md').read_text(encoding='utf-8')
     completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
     rows = _table(content, 'Task dependency map', 5)
-    repairable = repair and any(operation == row[1] and row[0] in completed and
+    from conformance_repair import require_clear
+    active = value.get('active') or {}
+    if conformance is None:
+        conformance = active.get('operation') == operation and active.get('purpose') == 'conformance'
+    operation_dependencies = {row[0]: _items(row[1]) for row in _table(content, 'Operation dependency map', 2)}
+    due_conformance = require_clear(value, operation, repair=conformance, dependencies=operation_dependencies)
+    repairable = (conformance and bool(due_conformance)) or (repair and any(operation == row[1] and row[0] in completed and
             row[0] in review.get('taskIds', value['stories'][review['story']]['taskIds']) and review.get('presentation')
-            for review in value['checkpoints'].values() for row in rows)
+            for review in value['checkpoints'].values() for row in rows))
     require(not repair or repairable, 'Repair/diagnosis must target an existing presented outcome, never a new product operation')
     unresolved = [key for key, review in value['checkpoints'].items() if review['human'] != 'accepted']
     if closure:
@@ -1168,8 +1181,9 @@ def _active_permitted(root, feature, value):
     try:
         content = (feature / 'tasks.md').read_text(encoding='utf-8')
         require(plan(content) == value['plan'], 'Changed operation scope')
-        _review_guard(root, feature, value, active['operation'], repair=active.get('purpose') in ('repair', 'diagnose'))
-        _enabling_tasks(content, active['operation'])
+        _review_guard(root, feature, value, active['operation'], repair=active.get('purpose') in ('repair', 'diagnose', 'conformance'))
+        if active.get('purpose') != 'conformance':
+            _enabling_tasks(content, active['operation'])
     except (ValueError, OSError, KeyError):
         return False
     return True
@@ -1243,13 +1257,19 @@ def initialize(root, feature, request, now):
 def transition(root, feature, request, now=None, reader=github_read):
     now = time.time() if now is None else now
     action = request.get('action')
-    if action in ('engineering', 'present'):
+    if action in ('engineering', 'present', 'conformance-complete'):
         # Direct supported completion/presentation must see manual changes too,
         # even when a host does not run the optional after-implement hook.
-        from coding_context import prepare as coding_prepare, require_ready, bind_evaluation, require_evaluated, retained_evaluations
+        from coding_context import prepare as coding_prepare, require_ready, bind_evaluation, require_evaluated, retained_evaluations, require_independent_review
         delivery = load_delivery(feature)
-        review = delivery['checkpoints'][request['checkpoint']]
-        task_ids = review.get('taskIds', delivery['stories'][review['story']]['taskIds'])
+        if action == 'conformance-complete':
+            from conformance_repair import pending
+            repairs = [r for r in pending(delivery) if r['id'] in request.get('findings', [])]
+            require(repairs and len(repairs) == len(request.get('findings', [])), 'Name existing pending conformance findings exactly once')
+            task_ids = sorted({t for r in repairs for t in r['taskIds']})
+        else:
+            review = delivery['checkpoints'][request['checkpoint']]
+            task_ids = review.get('taskIds', delivery['stories'][review['story']]['taskIds'])
         prepared = coding_prepare(root, feature, task_ids=task_ids, affected_paths=request.get('basisPaths', []), reconcile=True,
                                   configuration=request.get('configuration', 'Debug'), framework=request.get('framework'))
         require_ready(prepared)
@@ -1258,6 +1278,7 @@ def transition(root, feature, request, now=None, reader=github_read):
         evaluation = (bind_evaluation(root, feature, prepared['coding'], request['evaluation'], request.get('checks', [])) if 'evaluation' in request
                       else retained_evaluations(feature))
         require_evaluated(root, feature, prepared['coding'], evaluation)
+        require_independent_review(prepared['coding'], evaluation)
         require('evaluation' not in request or all(item['run'] in request['checks'] for record in evaluation for item in record['checks']),
                 'Include the actual evaluation check artifacts in the engineering handoff')
     if action == 'initialize':
@@ -1267,22 +1288,80 @@ def transition(root, feature, request, now=None, reader=github_read):
     # Persist measured elapsed/freshness even when a requested transition is rejected.
     persist(feature, value)
     owner = request.get('actor') == 'owner' and not request.get('reference')
-    if action == 'start':
+    if action == 'conformance-register':
+        from conformance_repair import register
+        value, content = register(root, feature, value, request)
+        saved = current(feature)
+        saved.update(version=2, delivery=validate(value))
+        # One bounded atomic replacement carries both inserted tasks and state.
+        save_current(feature, saved, content=content)
+        return {'delivery': value, 'warnings': warnings, 'acceptanceEstablished': False}
+    elif action == 'conformance-complete':
+        completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', (feature / 'tasks.md').read_text(encoding='utf-8'), re.M))
+        require(set(task_ids) <= completed, 'Complete the registered repair tasks and regressions first')
+        impact = request.get('outcomeAssessment', {})
+        require(isinstance(impact, dict) and set(impact) == {'review', 'reviewer', 'conclusion', 'materialEffects'}
+                and nonempty(impact['conclusion']) and isinstance(impact['materialEffects'], dict)
+                and set(impact['materialEffects']) == set(request['findings']),
+                'Conformance completion needs an explicit independently authored outcome assessment in its existing source review')
+        attributed = [r for r in prepared['coding']['evaluation'].get('admittedRecords', [])
+                      if r.get('currentQualifiedRules') and r['review']['path'] == impact['review']
+                      and r.get('authorship', {}).get('reviewer', '').strip().casefold() == str(impact['reviewer']).strip().casefold()
+                      and str(impact['reviewer']).strip().casefold() not in {a.strip().casefold() for a in r.get('authorship', {}).get('implementationAuthors', [])}]
+        require(attributed, 'Independent outcome assessment remains pending; authorship is attributable, never authenticated by this engine')
+        from conformance_repair import pending
+        for repair in value['conformanceRepairs']:
+            if repair['id'] not in request['findings']:
+                continue
+            require(impact['materialEffects'][repair['id']] == repair['materialEffect'],
+                    'Outcome assessment changed the effect classification; use conformance-amend before completion and preserve the original finding')
+            repair.update(status='complete', checks=request['checks'], evaluation=evaluation, completedAt=now)
+            repair['outcomeAssessment'] = copy.deepcopy(impact)
+            for review in value['checkpoints'].values():
+                if set(repair['operations']) & set(value['stories'][review['story']]['operations']):
+                    if repair['materialEffect'] == 'changed':
+                        review.update(human='pending', stale=True, permits=[])
+                        review.pop('conformanceAcceptance', None)
+                    review.setdefault('conformanceHistory', []).append(copy.deepcopy(repair))
+        for review in value['checkpoints'].values():
+            if not any(set(r['operations']) & set(value['stories'][review['story']]['operations']) for r in pending(value)):
+                review.pop('conformancePending', None)
+        # Current story engineering is refreshed separately against its complete
+        # scope; original human decisions remain available in their exact history.
+    elif action == 'conformance-amend':
+        repair = next((r for r in value.get('conformanceRepairs', []) if r['id'] == request.get('finding')), None)
+        require(repair and repair['status'] == 'pending' and repair['materialEffect'] == 'preserving'
+                and request.get('materialEffect') == 'changed' and nonempty(request.get('rationale')),
+                'Amend a pending preserving repair to changed with its concrete outcome rationale; never downgrade a changed repair to preserve old acceptance')
+        repair.setdefault('amendments', []).append({'before': repair['materialEffect'], 'after': 'changed', 'rationale': request['rationale'], 'at': now})
+        repair['materialEffect'] = 'changed'
+        for review in value['checkpoints'].values():
+            if set(repair['operations']) & set(value['stories'][review['story']]['operations']):
+                review.update(human='pending', stale=True, permits=[])
+                review.pop('conformanceAcceptance', None)
+    elif action == 'start':
         operation = request['operation']
-        guard(root, feature, operation, repair=request.get('purpose') in ('repair', 'diagnose'))
+        guard(root, feature, operation, repair=request.get('purpose') in ('repair', 'diagnose', 'conformance'),
+              conformance=request.get('purpose') == 'conformance')
         story = next((key for key, row in value['stories'].items() if operation in row['operations']), None)
         require(story, 'Unknown operation; renaming cannot reset effort')
         from task_draft import _table, _items
         content = (feature / 'tasks.md').read_text(encoding='utf-8')
-        _enabling_tasks(content, operation)
+        if request.get('purpose') != 'conformance':
+            _enabling_tasks(content, operation)
         active = value.get('active')
         if active and active['story'] != story:
             review = value['checkpoints'][active['story']]
-            require(request.get('purpose') in ('repair', 'diagnose') or review['human'] == 'accepted' or (review['human'] == 'deferred' and operation in review.get('permits', [])),
+            require(request.get('purpose') in ('repair', 'diagnose', 'conformance') or review['human'] == 'accepted' or (review['human'] == 'deferred' and operation in review.get('permits', [])),
                     'Present and resolve the current story before starting another story')
         value.update(active={'story': story, 'operation': operation})
-        if request.get('purpose') in ('repair', 'diagnose'):
+        if request.get('purpose') in ('repair', 'diagnose', 'conformance'):
             value['active']['purpose'] = request['purpose']
+        if request.get('purpose') == 'conformance':
+            from conformance_repair import pending
+            repairs = pending(value, operation)
+            require(repairs, 'Conformance work must target a registered existing-source repair, never new product work')
+            value['active']['taskIds'] = sorted({t for r in repairs for t in r['taskIds']})
         value['clock'].update(waiting=False, suspended=False)
     elif action in ('present', 'engineering'):
         key = request['checkpoint']
@@ -1294,6 +1373,9 @@ def transition(root, feature, request, now=None, reader=github_read):
         completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
         require(set(review.get('taskIds', story['taskIds'])) <= completed, 'Complete the checkpoint engineering tasks and relevant checks first')
         review.update(engineering='complete', checks=request['checks'], checkBasis=checks)
+        if review.get('conformanceAcceptance') and not review.get('conformancePending'):
+            retained = review.pop('conformanceAcceptance')
+            review.update(human=retained['human'], stale=retained['stale'])
         if review.get('evaluation') and review['evaluation'] != evaluation:
             review.setdefault('evaluationHistory', []).append(copy.deepcopy(review['evaluation']))
         review['evaluation'] = evaluation

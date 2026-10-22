@@ -2,6 +2,7 @@
 
 ## State and ownership
 
+<!-- program-kit:knowledge-rule principle.ui-feedback-state-contract -->
 Treat feedback as an end-to-end contract: domain/transport outcome -> user meaning -> presentation
 -> safe next action. Loading, empty content, invalid input and failed retrieval are separate states.
 Do not show an empty collection while a request is pending or failed. Preserve useful content during
@@ -21,6 +22,7 @@ ephemeral toast or replace the entire application for one failed request.
 | Outcome unknown | Do not assert failure/rollback; reconcile status or safely replay the same operation |
 | Unexpected app failure | Usable fallback, safe reference for support, no raw internal diagnostics |
 | Success | Confirm the established outcome and appropriate next action |
+<!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:decision-rule ui-outcome-ownership -->
 <!-- program-kit:knowledge-rule principle.ui-state-recovery -->
@@ -43,6 +45,7 @@ callbacks/session recovery with the frontend and preserve provider credential/MF
 
 ## Complete fields and forms
 
+<!-- program-kit:knowledge-rule principle.complete-form-contract -->
 A field component supports label, optional persistent hint, input, error slot and state styling.
 Supply concise hints when format, restrictions or consequences need explaining before submission;
 do not pad self-explanatory fields with redundant text. Placeholders do not replace labels/hints.
@@ -63,7 +66,9 @@ and uses the same messages; focus the summary or the affected field according to
 Coordinate focus and announcements so each error is not repeatedly announced. Dynamic ordinary
 status uses polite feedback; reserve assertive interruption for urgent context. Keep values when
 submission fails. Permission/service problems are not automatically invalid field values.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.form-adapter-contract -->
 Generated `integration/patterns/form.html` and interactions.mjs supply the field/error/status
 presentation and `setFieldError`, `presentFormErrors`, `setOperationState`, `bindOperation` helpers.
 The latter accepts localized pending/unknown messages and a consumer-owned callback returning success, validation (errors keyed by owned
@@ -72,9 +77,11 @@ outcome becomes unknown; the helper does not retry, clear input, infer HTTP sema
 drafts. It prevents duplicate local submission while pending; backend idempotency remains required
 where promised. On disposal it ignores late callbacks. Other frameworks can implement equivalent
 behavior through their accepted component model; do not replace them to use the reference helpers.
+<!-- /program-kit:knowledge-rule -->
 
 ## Progress, errors and recovery
 
+<!-- program-kit:knowledge-rule principle.progress-error-recovery -->
 Choose skeletons when structure is known, inline progress for local actions, and measurable progress
 when actual measurements exist. Avoid fake percentages, forced waiting and indefinite spinners
 after a terminal failure. Give long-running work a defined deadline/recovery route; cancellation
@@ -91,32 +98,42 @@ Do not generate a new operation identity on every retry or claim a client-side d
 one backend effect. Concurrency rejection preserves the draft and offers the agreed review/merge/
 reapply behavior; never silently overwrite newer state. Authentication/expiry/logout follow the
 screen ownership and state rules in ui-design-model.md and the selected secure-web profile.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.operation-recovery-outcomes -->
 | Established outcome | Retained state | Explicit permitted recovery |
 | --- | --- | --- |
 | Server contract confirms validation rejected without effect | Preserve editable values and field focus; clear only the rejected action | Correct input, then explicitly prepare a new action |
 | Server contract confirms admission expired before acceptance | Preserve values; restore editability and hide reconciliation for that expired unaccepted action | Explicitly prepare a new action |
 | Accepted operation, lost response, timeout, or uncertain commit | Retain original server-issued operation identity and values | Reauthorize status lookup or supported safe identical replay; no blind new dispatch |
 | Receipt absent or lookup returns unknown | Keep completion unknown and retain original identity | Reconcile using the supported status contract; absence alone proves neither rejection nor rollback |
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.status-lookup-disclosure -->
 Codes and documented acceptance semantics establish no effect; generic HTTP 400/409 alone
 does not. Status lookup checks current owner/permission and performs no business effect.
 Unknown/forbidden status and public errors disclose no private identities, provider data or
 raw diagnostics. Selected Foundation closed problems carry safe standard fields; typed
 operation responses and the UI own recovery choices.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule context.operation-recovery-focused-example -->
 The maintained [operation recovery example](operation-recovery-example.mjs) illustrates these
 semantic transitions. Its events require the consumer's reviewed server contract; it supplies
 neither a competing wire schema nor authority to classify every HTTP 400/409 as no effect.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.ui-server-adverse-controls -->
 Test correction editability for every affected field, retained values, focus, absence of
 automatic preparation, and unknown completion identity retention. A simulated UI refusal
 proves presentation only: separately exercise actual server invalid-input and owned fixture
 expiry rejection, plus accepted-response loss and missing-receipt behavior. Mirror server
 control-character rules including C0, DEL and C1 (`U+0000–001F`, `U+007F–009F`) when the
 server uses that bounded rule; server validation remains authoritative.
+<!-- /program-kit:knowledge-rule -->
 
 ## Phase and acceptance
 
+<!-- program-kit:knowledge-rule principle.actual-ui-acceptance -->
 Intake resolves consequential user meaning, conflict and recovery needs. Feature planning records
 applicable field rules, state/outcome mapping and recovery in existing artifacts. Implement complete
 fields and states with the first working journey. Run focused changed behavior tests selected by risk,
@@ -132,7 +149,9 @@ provider/consumer outcomes. Present the actual runnable journey for human visual
 its required story checkpoint after relevant technical checks. Earlier product checkpoints require
 explicit agreement. Human review assesses usefulness, clarity and intended journey without repeating
 the automated suite; required deferred reviews remain due at feature acceptance. See phase-evidence.md.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.server-draft-durability -->
 When server draft durability is promised, use the generated acceptance/tests/durability.mjs
 checkpoint in the real consumer browser journey. Confirm the exact server draft identity, version
 and content before fixture-owned restart; a pending save or local input value is not acknowledgement.
@@ -152,3 +171,4 @@ checks `authenticated: true`. Both HTTP 200 and an affirmative authenticated res
 an unconditional predicate or a generic unauthenticated health endpoint cannot establish readiness.
 Use the existing isolated consumer fixture and actual host lifecycle; the generated static gallery
 and helper sequencing tests do not establish consumer durability or authentication acceptance.
+<!-- /program-kit:knowledge-rule -->

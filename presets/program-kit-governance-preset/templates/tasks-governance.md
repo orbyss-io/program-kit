@@ -21,6 +21,8 @@ beside the first operation that proves them; each prerequisite names its actual 
 **Verification**: [test level, projects/filter/command and required shared-boundary tests].
 **Risk and sequence**: [changed responsibilities/uncertainty; scaffold-first, test-first, immediate
 verification or regression-based refactoring; brief reason for an alternative].
+**Implementation decisions**: [specific plan Operation implementation map rows and design section;
+resolve consequential gaps before dependent coding, with owner, missing fact and recovery task].
 
 - [ ] T001 [US1] [One owned prerequisite needed by this operation, concrete path]
 - [ ] T002 [US1] [Materialize known scaffold or test critical missing behavior according to risk, concrete paths]
@@ -77,6 +79,25 @@ the obligations that must already be established by an ancestor task's `Provides
 dependencies, not evidence that a task has passed. Do not claim a prerequisite for unrelated
 operations; a missing required gate or unexplained cross-operation dependency blocks finalization.
 Semantic review verifies that the declarations include every actual gate from governing inputs.
+
+## Operation implementation map
+
+| Operation | Pattern / example | Compatibility / alternative | First adverse cases | Test owner / command | First coherent check |
+|-----------|-------------------|-----------------------------|---------------------|----------------------|----------------------|
+| [operation-id] | [selected maintained pattern/example or supported manual-edit route] | [exact selected profile compatibility; reason for an alternative] | [smallest concrete failure/cancellation/ownership/invalid-state cases at the changed edge] | [actual test owner paths, cases/filter and supported command] | [actual compiler/analyzer and focused check commands at the first coherent compilable increment, before expanding behavior] |
+
+One row per operation, each cell at most 1600 characters. Carry the plan's actual applicable decisions,
+not just rule IDs or “implement bounded provider”. When dispatch establishes an external identity,
+test cancellation/accounting failure immediately after dispatch as well as polling failure. Pure
+policy work instead names its invariants/adverse inputs; do not impose provider infrastructure on it.
+Use qualified compatible examples/scaffolds before hand coding known structures; a compatible manual
+route remains supported with its reason and native proof. Plan the first coherent build/analyzers and
+focused checks beside implementation, before expanding another stage or operation. A green build
+cannot substitute for semantic tests/review. Setup may prepare projects while a consequential choice
+is unresolved; dependent source work waits. Resolve routine choices locally; ask the human only for
+missing consequential intent/risk/authority, then update the actual spec/ADR/plan and task dependencies
+as applicable. Scope engine/environment defects to their named owner and supported repair/retry route.
+Source preparation consumes these same existing plan/tasks maps; no reading or approval receipt is added.
 
 ## Verification obligations
 

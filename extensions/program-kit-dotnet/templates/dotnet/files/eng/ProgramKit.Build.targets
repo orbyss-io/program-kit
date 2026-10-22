@@ -12,6 +12,26 @@
     <Error Condition="'$(Version)' == '0.0.0-local'" Text="A release package requires an explicit application Version." />
   </Target>
 
+  <!-- The IDE asks CoreCompile only for command-line metadata in this exact
+       three-flag pass. It does not supply implementation/build acceptance. -->
+  <Target Name="ProgramKitRequireSourceReadability" BeforeTargets="CoreCompile"
+          Condition="'$(DesignTimeBuild)' != 'true' or '$(SkipCompilerExecution)' != 'true' or '$(ProvideCommandLineArgs)' != 'true'">
+    <Error Condition="'$(RunAnalyzers)' == 'false' or '$(RunAnalyzersDuringBuild)' == 'false' or '$(EnableNETAnalyzers)' == 'false' or '$(GenerateMSBuildEditorConfigFile)' == 'false' or '$(SkipCompilerExecution)' == 'true'"
+           Text="PKQ003 Program Kit requires analyzer execution and an actual compiler invocation. Restore RunAnalyzers, RunAnalyzersDuringBuild, EnableNETAnalyzers and GenerateMSBuildEditorConfigFile and set SkipCompilerExecution=false; optimization flags cannot waive mandatory authored-source checks." />
+    <Error Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(NoWarn);$(WarningsNotAsErrors)', '(?i)(^|[;,\s])(?:CS)?878[45]($|[;,\s])'))"
+           Text="PKQ003 Source generator failures CS8784 and CS8785 must remain errors for the selected Foundation suppression-policy guard. Remove those codes from NoWarn and WarningsNotAsErrors and repair the generator failure; other scoped diagnostic settings retain their owners." />
+    <Error Condition="'$(FoundationSourceReadability)' != 'true'"
+           Text="PKQ001 Program Kit source readability is mandatory. Restore FoundationSourceReadability=true and repair existing authored source; do not suppress or baseline violations." />
+    <Error Condition="'$(FoundationSourceReadabilityContract)' != 'source-readability-v1'"
+           Text="PKQ002 The selected Foundation analyzer does not supply qualified source-readability-v1. Adopt an actually published qualified package/profile through supported dependency maintenance; retain current pins and report this blocked adoption until available. A green old-analyzer build cannot certify conformance." />
+    <ItemGroup>
+      <_ProgramKitRequiredSourceAnalyzer Include="@(Analyzer)"
+          Condition="'%(Analyzer.Filename)%(Analyzer.Extension)' == 'Orbyss.Foundation.Analyzers.dll' and Exists('%(Analyzer.FullPath)')" />
+    </ItemGroup>
+    <Error Condition="'@(_ProgramKitRequiredSourceAnalyzer)' == ''"
+           Text="PKQ003 The required Foundation analyzer is not attached to actual compilation. Restore the selected package's analyzer assets and native compiler pipeline; a property marker alone does not qualify source checks." />
+  </Target>
+
   <Target Name="ProgramKitFeatureMetadata"
           BeforeTargets="FoundationEmitFeatureDescriptor;GenerateNuspec"
           Condition="'$(FoundationFeatureIdentity)' != ''">

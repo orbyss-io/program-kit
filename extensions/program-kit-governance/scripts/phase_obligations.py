@@ -10,7 +10,7 @@ import re
 import sys
 import subprocess
 from pathlib import Path
-from feature_context import context, adopted_context
+from feature_context import context, adopted_context, applicable_requirements
 from decision_knowledge import constraints
 from knowledge_sources import resolve
 
@@ -154,7 +154,6 @@ def foundation_applicability(root, feature, inherited, tags):
 def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), selected_tags=None):
     tags = set(selected_tags) if selected_tags is not None else intent(root, feature, phase, affected_paths)
     tags.update(extra_tags)
-    registry_phase = 'after-plan' if phase == 'tasks' else phase
     inherited = adopted_context(root, feature)
     from feature_plan_decisions import project as decisions
     from consumer_upgrade import scan, request_scope
@@ -190,9 +189,7 @@ def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), sel
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
             'prerequisites': retained_proofs(root, feature, phase),
-            'requirements': [r for r in catalog()['requirements']
-                             if r['when'] in tags and registry_phase in r['phases']
-                             and (not r.get('mechanism') or r['mechanism'] in tags)]}
+            'requirements': applicable_requirements(catalog(), tags, phase)}
 
 
 def project(root, feature, phase, affected_paths=()):

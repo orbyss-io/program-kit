@@ -128,6 +128,10 @@
         "extensions/program-kit-governance/scripts/workflow*.py",
         "extensions/program-kit-governance/scripts/bootstrap*.py",
         "extensions/program-kit-governance/scripts/compatibility*.py",
+        "extensions/program-kit-governance/scripts/managed_provider_probes.py",
+        "extensions/program-kit-governance/scripts/fixture_readiness.py",
+        "extensions/program-kit-governance/scripts/runtime_fixture.py",
+        "tests/recover_consumer_bootstrap.py",
         "extensions/program-kit-governance/scripts/windows_workflow_path.py",
         "extensions/program-kit-governance/scripts/python_runtime.py",
         "scripts/Start-IntakeSession.ps1",
@@ -150,6 +154,7 @@
         "scripts/consumer_upgrade_workspace.py",
         "scripts/openapi_upgrade_reconciliation.py",
         "extensions/program-kit-governance/scripts/consumer_upgrade.py",
+        "extensions/program-kit-governance/references/consumer-migration-recipes.json",
         "extensions/program-kit-governance/scripts/inactive_history.py",
         "extensions/program-kit-governance/scripts/repository_sync.py",
         "extensions/program-kit-governance/scripts/dependency_audit.py",
@@ -338,7 +343,9 @@
       "inputs": [
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/source_quality.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
-        "extensions/program-kit-dotnet/references/examples/contract-layout/**"
+        "extensions/program-kit-dotnet/references/examples/contract-layout/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets",
+        "tests/validate_source_readability_native.py"
       ],
       "dependsOn": []
     },
@@ -401,7 +408,8 @@
     "coding-evaluation": {
       "inputs": [
         "tests/evaluation_review_fixture.py",
-        "tests/validate_coding_evaluation.py"
+        "tests/validate_coding_evaluation.py",
+        "tests/coding_evaluation_fixture.py"
       ],
       "dependsOn": [
         "knowledge",
@@ -420,6 +428,28 @@
         "upgrade",
         "coding-realization",
         "coding-evaluation"
+      ]
+    },
+    "operation-readiness": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/operation_readiness.py",
+        "tests/validate_operation_readiness.py"
+      ],
+      "dependsOn": [
+        "knowledge",
+        "phases"
+      ]
+    },
+    "conformance-repair": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/conformance_repair.py",
+        "tests/validate_conformance_repair.py",
+        "tests/conformance_install_review_fixture.py"
+      ],
+      "dependsOn": [
+        "phases",
+        "knowledge",
+        "source-quality"
       ]
     }
   },
@@ -691,13 +721,31 @@
     {
       "id": "validate_packaged_inactive_upgrade",
       "purpose": "Actual packaged inactive-history installation, managed-conflict interruption and retry with fresh fictional local repair cases; preserved profiles, authority and scoped verdicts.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_packaged_upgrade.py", "--inactive-history"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_packaged_upgrade.py",
+        "--inactive-history"
+      ],
       "kind": "integration",
-      "capabilities": ["upgrade"],
-      "inputs": ["tests/validate_packaged_upgrade.py"],
-      "needs": ["build-release"],
-      "prerequisites": ["module:specify_cli", "module:yaml", "tool:git", "runtime:json-schema"],
+      "capabilities": [
+        "upgrade"
+      ],
+      "inputs": [
+        "tests/validate_packaged_upgrade.py"
+      ],
+      "needs": [
+        "build-release"
+      ],
+      "prerequisites": [
+        "module:specify_cli",
+        "module:yaml",
+        "tool:git",
+        "runtime:json-schema"
+      ],
       "suites": [],
       "budgetSeconds": 150,
       "timeoutSeconds": 240,
@@ -1105,13 +1153,27 @@
     {
       "id": "validate_inactive_upgrade",
       "purpose": "Hash-bound inactive history, unchanged active guards, tooling-only apply/idempotence, retained native pins, reviewed repair argument transport/retry and blob-authenticated newline recovery.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_inactive_upgrade.py"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_inactive_upgrade.py"
+      ],
       "kind": "unit",
-      "capabilities": ["upgrade", "scaffolding"],
-      "inputs": ["tests/validate_inactive_upgrade.py"],
+      "capabilities": [
+        "upgrade",
+        "scaffolding"
+      ],
+      "inputs": [
+        "tests/validate_inactive_upgrade.py"
+      ],
       "needs": [],
-      "prerequisites": ["module:specify_cli", "module:yaml"],
+      "prerequisites": [
+        "module:specify_cli",
+        "module:yaml"
+      ],
       "suites": [],
       "budgetSeconds": 30,
       "timeoutSeconds": 120,
@@ -3784,13 +3846,33 @@
     {
       "id": "validate_tracked_upgrade_activation",
       "purpose": "Three real installations through historical tracked setup, isolated upgrade and destination failure/retry; native generation, source integration, retained intent, edit refusal and exact recovery. Explicit investigation; measured Windows journey requires a 360s bound; no agents.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_tracked_upgrade_activation.py"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_tracked_upgrade_activation.py"
+      ],
       "kind": "package",
-      "capabilities": ["upgrade"],
-      "inputs": ["tests/validate_tracked_upgrade_activation.py", "tests/validate_consumer_upgrade_install.py", "tests/local_bundle_fixture.py"],
-      "needs": ["build-release"],
-      "prerequisites": ["module:specify_cli", "module:yaml", "tool:git", "runtime:json-schema", "git-ref:previous-release"],
+      "capabilities": [
+        "upgrade"
+      ],
+      "inputs": [
+        "tests/validate_tracked_upgrade_activation.py",
+        "tests/validate_consumer_upgrade_install.py",
+        "tests/local_bundle_fixture.py"
+      ],
+      "needs": [
+        "build-release"
+      ],
+      "prerequisites": [
+        "module:specify_cli",
+        "module:yaml",
+        "tool:git",
+        "runtime:json-schema",
+        "git-ref:previous-release"
+      ],
       "suites": [],
       "budgetSeconds": 360,
       "timeoutSeconds": 600,
@@ -3824,7 +3906,7 @@
         "module:specify_cli"
       ],
       "suites": [],
-      "budgetSeconds": 120,
+      "budgetSeconds": 180,
       "timeoutSeconds": 240,
       "manualOnly": true
     },
@@ -6136,6 +6218,143 @@
       "suites": [],
       "budgetSeconds": 30,
       "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_operation_readiness",
+      "purpose": "Concrete operation decisions before source work; scoped actionable blockers, current source binding, actual-source applicability retention and unrelated-ready recovery without agents or new receipts.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_operation_readiness.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "operation-readiness"
+      ],
+      "inputs": [
+        "tests/validate_operation_readiness.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 10,
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "validate_conformance_repair",
+      "purpose": "Existing-source repair registration, prerequisite enforcement, task/history preservation, independent outcome assessment and supported repair/resume transitions without agents.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_conformance_repair.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "conformance-repair"
+      ],
+      "inputs": [
+        "tests/validate_conformance_repair.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_source_readability_native",
+      "purpose": "Explicit development-only exact local Foundation analyzer candidate package: actual generated-policy restore/build, invalid manual source rejection and repaired positive. PROGRAM_KIT_ANALYZER_CANDIDATE must name the actual candidate package; no public/profile publication claim.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_source_readability_native.py"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "source-quality"
+      ],
+      "inputs": [
+        "tests/validate_source_readability_native.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_conformance_installed_journey",
+      "purpose": "Exact actual archives through native bundle installation and installed engine missing-decision recovery, existing text-source repair registration/start/complete, independent outcome assessment, engineering refresh and dependent resume; fictional authorship, no native analyzer or human product acceptance.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/conformance_install_review_fixture.py",
+        "--archives",
+        "artifacts"
+      ],
+      "kind": "mechanical",
+      "capabilities": [
+        "conformance-repair",
+        "release"
+      ],
+      "inputs": [
+        "tests/conformance_install_review_fixture.py"
+      ],
+      "needs": [
+        "build-release"
+      ],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_adverse_boundary",
+      "purpose": "Compile fictional acquired-operation/accounting-cancellation source; require valid control before intended42 behavior rejection, failed maintained evidence admission, then corrected cleanup/uncertainty with current independent authored findings. No provider or consumer source.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_adverse_boundary.py"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-evaluation"
+      ],
+      "inputs": [
+        "tests/validate_coding_adverse_boundary.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 90
     }
   ]
 }

@@ -2,6 +2,59 @@
   "schemaVersion": 1,
   "changes": [
     {
+      "id": "coding-system-operation-and-source-conformance",
+      "introduced": "0.14.3",
+      "kind": "contract",
+      "summary": "Resolve current operation responsibilities before coding and repair existing owned source against current coding guidance before dependent continuation.",
+      "constraint": "Current source decisions, real native source-readability-v1 and independent effect/trust/lifetime review are mandatory where applicable; a green old-analyzer build or unchanged human acceptance does not waive them.",
+      "selectors": {
+        "paths": [
+          "eng/**",
+          "**/*.csproj",
+          "**/*.cs",
+          "**/*.ts",
+          "**/*.tsx",
+          "**/*.js",
+          "**/*.jsx",
+          "specs/*/spec.md",
+          "**/*.py",
+          "**/*.rs",
+          "**/*.go",
+          "**/*.java",
+          "**/*.kt",
+          "**/*.cpp",
+          "**/*.h",
+          "**/*.c",
+          "**/*.sql",
+          "**/*.html",
+          "**/*.css",
+          "specs/*/plan.md",
+          "specs/*/tasks.md"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Retain accepted intent, original task IDs/checkmarks, baseline/effort, source/data, exact profile/lock history, frozen migrations, human decisions and unresolved failures."
+      ],
+      "alternatives": [
+        "Reconcile affected existing decisions and source in place through registered conformance tasks, then refresh current story engineering.",
+        "Use the supported reviewed dependency transition for a missing public analyzer/profile; preserve existing pins and report native source entry blocked until qualified support is available."
+      ],
+      "verification": [
+        "Current scoped operation implementation decisions and first coherent positive/adverse check owners.",
+        "Actual selected native analyzer/source checks plus independently attributed current source review and outcome assessment.",
+        "Preserved original progress and human history, registered repair before dependent product work and changed-outcome review reopening."
+      ],
+      "method": "coding-system-conformance-v1",
+      "duePhase": "implementation",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.14.3.md and current canonical coding context/evaluation plus native policy contracts",
+        "route": "Supported isolated upgrade/profile transition and existing task_draft.py conformance-register/start/conformance-complete, followed by story engineering refresh"
+      }
+    },
+    {
       "id": "preimplementation-diagnostics-repair",
       "introduced": "0.13.2",
       "kind": "contract",

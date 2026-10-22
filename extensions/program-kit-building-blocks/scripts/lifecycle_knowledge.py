@@ -15,9 +15,7 @@ def selected(blocks, directory, identity, sources=None):
     if not recipe_ref or not supplement_index.is_file():
         return None
     recipe_path = blocks.repository_path(directory, recipe_ref['path'])
-    if blocks.raw_sha256(recipe_path) != recipe_ref['sha256']:
-        blocks.fail('PKB611', 'selected lifecycle qualification recipe changed')
-    recipe = blocks.load_json(recipe_path)
+    recipe = blocks.qualification_recipe(directory, recipe_ref)
     lock_ref = recipe['nativeLock']
     # Recipe paths are repository-relative; installed registries retain that prefix.
     prefix = 'extensions/program-kit-building-blocks/references/dependency-profiles/'
@@ -57,7 +55,9 @@ def selected(blocks, directory, identity, sources=None):
     manifest = blocks.load_json(manifest_path)
     if manifest.get('version') != version:
         blocks.fail('PKB611', 'lifecycle knowledge differs from selected dependency lock')
-    paths = [supplement_index, recipe_path, *lock_sources, manifest_path]
+    recipe_sources = ([recipe_path] if blocks.filesystem_root(recipe_path).is_file() else
+                      [storage, directory / 'historical-package-facts.pack'])
+    paths = [supplement_index, *recipe_sources, *lock_sources, manifest_path]
     for row in manifest['packages']:
         path = blocks.repository_path(directory, row['path'])
         if hashlib.sha256(blocks.publisher_document_bytes(directory, row, 16 * 1_048_576)).hexdigest() != row['sha256']:

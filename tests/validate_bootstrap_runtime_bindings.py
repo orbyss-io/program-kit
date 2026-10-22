@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 from types import SimpleNamespace
 import zipfile
 from xml.etree import ElementTree as ET
@@ -116,8 +117,31 @@ def main():
     results.append('canonical-cshells-source-matches-maintained-native-restore-mapping')
     parent = ROOT / 'artifacts/bootstrap-runtime-binding-guards'
     parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=parent) as temporary:
+    with FixtureDirectory(prefix='bootstrap-runtime-binding-guards-') as temporary:
         base = Path(temporary)
+        # Actual Windows long-path I/O must use the same maintained adapter;
+        # keep native paths in the NuGet assets and exercise the full retained
+        # archive/provenance path, not merely string-prefix conversion.
+        from owned_scratch import filesystem_path, native_path
+        long_root = base / ('owned-' + 'x' * 120) / ('nested-' + 'y' * 80)
+        pins_long, assets_long, packages_long = fixture(Path(filesystem_path(long_root.resolve())))
+        assets_long['packageFolders'] = {native_path(Path(path)): value for path, value in assets_long['packageFolders'].items()}
+        longest = max((Path(path) / library['path'] / (identity.split('/')[0].lower() + '.' + identity.split('/')[1] + '.nupkg')
+                      for path in assets_long['packageFolders'] for identity, library in assets_long['libraries'].items()), key=lambda path: len(str(path)))
+        assert len(str(longest)) > 260 and probe.io_path(longest).is_file()
+        probe.prepare_shared_runtime(Path(native_path(long_root.resolve())), pins_long, assets_long, Path(native_path(packages_long)))
+        probe.verify_retained_runtime_inputs(Path(native_path(long_root.resolve())), pins_long)
+        changed = Path(filesystem_path(long_root.resolve())) / 'runtime-archive-inputs/orbyss.foundation.json.0.3.0.nupkg'
+        original_long = changed.read_bytes(); changed.write_bytes(b'changed actual archive')
+        try:
+            probe.verify_retained_runtime_inputs(Path(native_path(long_root.resolve())), pins_long)
+        except ValueError as error:
+            assert 'archive bytes changed' in str(error)
+        else:
+            raise AssertionError('Changed long-path archive was admitted')
+        changed.write_bytes(original_long)
+        probe.verify_retained_runtime_inputs(Path(native_path(long_root.resolve())), pins_long)
+        results.append('actual-long-archive-io-retention-and-changed-byte-rejection')
         pins, assets, packages = fixture(base / 'positive')
         shared = probe.prepare_shared_runtime(base / 'positive', pins, assets, packages)
         assert '.orbyss-foundation/settings-sources/host/Transport/Options.cs.txt' in probe.host_runtime_inventory(

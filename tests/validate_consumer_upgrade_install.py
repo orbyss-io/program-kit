@@ -8,6 +8,7 @@ import subprocess
 import sys
 import uuid
 import tempfile
+import time
 import zipfile
 from pathlib import Path
 
@@ -20,13 +21,16 @@ from owned_fixture import FixtureDirectory, native_path, filesystem_path
 
 
 def run(command, root, environment=None, expected_exit=0):
+    started_at = time.time()
+    started = time.monotonic()
     result = subprocess.run(command, cwd=native_path(root), env={**os.environ, 'SPECIFY_INIT_DIR': str(root), 'PYTHONUTF8': '1', **(environment or {})},
                             capture_output=True, text=True, encoding='utf-8', timeout=600)
     RUN.mkdir(parents=True, exist_ok=True)
     attempt = str(len(list(RUN.glob('*.json'))))
     (RUN/(attempt+'-stdout.log')).write_text(result.stdout, encoding='utf-8')
     (RUN/(attempt+'-stderr.log')).write_text(result.stderr, encoding='utf-8')
-    flow.atomic(RUN/(attempt+'.json'), {'command': command, 'exitCode': result.returncode})
+    flow.atomic(RUN/(attempt+'.json'), {'command': command, 'exitCode': result.returncode,
+        'startedAtUnixSeconds': started_at, 'elapsedSeconds': round(time.monotonic() - started, 3)})
     if result.returncode:
         evidence = RUN/(attempt+'-local-state')
         evidence.mkdir()

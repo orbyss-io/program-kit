@@ -96,6 +96,7 @@ memory-only token storage by default, exact CORS, bounded renewal, and correspon
 
 ## Assumptions and out-of-scope risks
 
+<!-- program-kit:knowledge-rule context.web-threat-assumptions -->
 - Production transport uses correctly configured HTTPS; development HTTP is limited to explicit
   loopback/container use and is not production evidence.
 - The operating system, runtime, cryptography, data-protection keys, secret provider, DNS, reverse
@@ -109,11 +110,14 @@ memory-only token storage by default, exact CORS, bounded renewal, and correspon
 - Playwright and contract tests demonstrate selected behavior. They do not prove absence of defects,
   replace dependency review, penetration testing, protocol conformance testing, or formal
   verification of the deployed system.
+<!-- /program-kit:knowledge-rule -->
 
 ## Project adoption
 
+<!-- program-kit:knowledge-rule principle.web-threat-project-delta -->
 A consuming architecture references this model and its evidence profile by exact ID. It records only
 project-specific changes: additional assets or attackers, changed assumptions, configured-value
 overrides, residual-risk acceptance, and stronger controls. Repeating the inherited OAuth/OIDC
 plumbing as feature-specification questions is architecture drift.
+<!-- /program-kit:knowledge-rule -->
 

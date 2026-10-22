@@ -81,6 +81,14 @@ the reason. It claims no new browser execution or fresh npm-registry lookup. Cha
 npm versions, changed fixture inputs, altered evidence and retention chains fail.
 Current Foundation native/exporter and public Host evidence remain required.
 
+When a publisher-knowledge capture needs correction with unchanged package pins,
+use `update_dependency_profiles.py prepare --refresh-publisher-knowledge --reason
+"<concrete capture repair>"`. This prepares a distinct `-q-` identity and records the
+reason in its existing candidate state. Normal unchanged preparation remains a no-op.
+Prior profiles, captures and consumer locks remain immutable; the new candidate must
+pass the ordinary qualification and promotion owners. A reason supplies no qualification
+or publication authority. Exact-identity native/Host checks still govern any evidence reuse.
+
 For an interrupted candidate qualification, explicit `--native-evidence <directory>`
 and `--host-evidence <directory>` can select successful components for that exact
 candidate. The ordinary portable builder revalidates their profile, recipe, locks,

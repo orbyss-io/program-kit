@@ -20,6 +20,17 @@ Units are extended through canonical-bound `codingUnits` in the existing respons
 declarations cannot execute submitted code. Inspect selected qualification and alternatives through
 the installed coding-patterns command; use its teach workflow for a new contribution.
 Missing mandatory context or native evaluation blocks only the affected work with its named repair.
+The operation brief reads the existing plan/tasks `Operation implementation map`. Before editing,
+resolve its concrete applicable decisions, compatible pattern/example/manual route, first adverse
+cases/test owner and first coherent check. Do not defer deadline/cancellation, ownership-transfer,
+cleanup/uncertainty or typed-result choices to a generic completion review. At the first coherent
+compilable increment run the selected build/analyzers and focused checks before expanding behavior.
+For a `PKC020` blocker, investigate accessible facts first; ask the human only for missing
+consequential intent, architecture, risk or authority. Update affected authoritative spec/ADR/plan
+sections and task prerequisites/tests while preserving baseline, IDs, effort and settled answers.
+An engine capability gap needs its supported toolkit repair/regression; an environment gap needs
+the named supported preparation or capable-CI proof. Retry scoped analysis/preparation and fresh
+preflight. Structural table presence/current hashes never certify decision meaning or approval.
 Before source work, native evaluation inspects selected imported/conditional project settings,
 dependencies and Compile membership without a build/restore target; planned-only projects remain
 explicitly unevaluated until materialized. Actual Foundation readiness retains its existing route below.
@@ -27,6 +38,10 @@ Read only changed inputs or the relevant operation when resuming. This is the so
 guidance/structural check; do not independently invoke phase-context or repeat preflight afterward.
 Before editing, resolve the selected unit's canonical rules and complete evaluation duties through
 the focused preparation command above. They own the engineering constraints; this command owns invocation.
+If tool output is truncated or incomplete, capture the complete read-only preparation output in a local
+temporary file and read it in bounded chunks before editing: text guidance plus JSON evaluation duties,
+including required duties without a coding unit. Truncation is not nonapplicability. Use the existing
+preparation owner for this lookup; do not repeat preflight or dispatch the hook again.
 Resolve any reported feature-plan decision in its actual plan section after normal review before
 dependent implementation. Preserve approved bootstrap history; a plan cannot close compatibility
 or delivery execution. Missing responsibility metadata needs review of the selected projects.

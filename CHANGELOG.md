@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.14.3 - 2026-10-22 (candidate)
+
+- Carry complete bounded canonical coding constraints into planning/tasks and require concrete operation decisions before affected source work.
+- Bind current source/behavior evidence and independent effect, trust and lifetime review to the actual owners.
+- Register existing-source conformance prerequisites before dependent continuation while retaining task identity, original baselines, failures and accepted decisions.
+- Require qualified Foundation source-readability-v1 and preserve native analyzer execution; old or disabled analyzers cannot certify conformance.
+- Adopt qualified public Foundation 0.3.7 and its exact publisher knowledge; preserve independent tool versions, historical profiles and consumer locks.
+- See [candidate migration guidance](releases/migration-0.14.3.md) for supported profile adoption and scoped recovery.
+
 ## 0.14.2 - 2026-10-19
 
 - Assess local repairs by purpose, current use and supported outcomes before choosing required cases; old API or dispatch shapes require an actual current contract.

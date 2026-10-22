@@ -2,6 +2,7 @@
 
 ## Default delivery unit
 
+<!-- program-kit:knowledge-rule principle.vertical-outcome-unit -->
 A meaningful delivery slice follows one actor, trigger, or intent through policies, decisions,
 state transitions, effects, and verification to an observable outcome. Organize specifications,
 plans, tasks, code, and tests around that outcome rather than around technical layers.
@@ -9,9 +10,11 @@ plans, tasks, code, and tests around that outcome rather than around technical l
 Vertical slicing is the default Program Kit delivery method. It does not prescribe a folder layout,
 CQRS, a mediator, one project per endpoint, or a particular framework. Physical organization and
 technology choices remain project-specific architecture decisions.
+<!-- /program-kit:knowledge-rule -->
 
 ## Slice contract
 
+<!-- program-kit:knowledge-rule principle.vertical-slice-contract -->
 For every non-trivial slice, identify:
 
 - stable slice identity, actor or trigger, intent, and observable outcome;
@@ -29,9 +32,11 @@ An explicitly bodyless/no-effect authorization probe is a proportional transport
 observable `401`/`403`/success outcomes come from managed endpoint permission metadata, so it must not
 invent an inner application service. A real protected operation remains a full slice and carries its
 resource/state/effect authorization beyond the endpoint gate.
+<!-- /program-kit:knowledge-rule -->
 
 ## Cohesion and coupling
 
+<!-- program-kit:knowledge-rule principle.vertical-cohesion-boundaries -->
 Maximize cohesion inside a slice and minimize coupling between slices. A slice may cross internal
 presentation, application, domain, persistence, and integration concerns, but it must not bypass
 bounded-context, module, security, or data-ownership boundaries.
@@ -39,9 +44,11 @@ bounded-context, module, security, or data-ownership boundaries.
 Prefer adding slice-local behavior over modifying broad shared mechanisms. Promote code to a shared
 contract or capability only after its semantics, owner, consumers, compatibility policy, and reason
 for sharing are explicit. Direct access to another slice's implementation or store is forbidden.
+<!-- /program-kit:knowledge-rule -->
 
 ## Horizontal enabling work
 
+<!-- program-kit:knowledge-rule principle.first-operation-enabling-work -->
 Platform, migration, security, observability, and other horizontal work is allowed when it:
 
 1. names the slices or quality scenarios it enables;
@@ -65,16 +72,20 @@ never change its trigger, affected slices or evidence requirement through operat
 If its approved scope prevents the desired operation order, resolve that architecture/authority
 choice through normal reviewed design before claiming the operation is ready. A delivery-due proof
 remains mandatory at delivery without becoming an invented global implementation dependency.
+<!-- /program-kit:knowledge-rule -->
 
 ## Proportional exceptions
 
+<!-- program-kit:knowledge-rule principle.vertical-proportional-exceptions -->
 Pure libraries, generated code, trivial adapters, presentation-only changes, migrations, and
 infrastructure-only changes may use a documented proportional exception. The exception must name
 the missing slice elements and explain why they are not meaningful. It cannot bypass security,
 public-contract, data-integrity, lifecycle, tenancy, or recovery obligations.
+<!-- /program-kit:knowledge-rule -->
 
 ## Traceability
 
+<!-- program-kit:knowledge-rule principle.slice-authority-traceability -->
 Trace each slice through design evidence, architecture decisions, specification, plan, tasks,
 implementation, and verification. When a slice exposes a new architecture choice, stop at the
 decision boundary, propose the ADR, obtain human acceptance, and update the architecture before
@@ -86,9 +97,11 @@ phases from fresh specification. Do not map partial code/checkmarks into new pro
 concrete owned reset inventory; shared source, outputs, migrations and data need clear ownership.
 Preserve unchanged confirmed bootstrap/intake intent, accepted architecture, foundations/tooling,
 consumer locks and delivered features. Toolkit installation/recovery remains the supported updater.
+<!-- /program-kit:knowledge-rule -->
 
 ## Story and operation boundaries
 
+<!-- program-kit:knowledge-rule principle.story-operation-review-boundary -->
 The story is the human acceptance unit; operations are internal implementation/integration checks.
 One coherent actor intent, useful outcome, explicit non-goals and an independent walkthrough through
 the supported interface/effects define the story. Include success/material failures and necessary
@@ -100,3 +113,4 @@ agreement. Present exercised runnable story behavior and relevant passing checks
 data, walkthrough and limitations. Pause further product work until acceptance or explicit scoped
 deferral; deferred reviews remain due at feature acceptance. See `phase-evidence.md` for state,
 review assignments, decision freshness, resume, no-hook closure and advisory active effort.
+<!-- /program-kit:knowledge-rule -->

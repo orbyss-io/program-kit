@@ -34,6 +34,73 @@ class UpdateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'explicit reason'):
             updater.retain_browser({'id':'new'},'original','')
 
+    def test_explicit_publisher_refresh_preserves_old_identity_pins_and_locks(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import update_dependency_profiles as updater
+        actual_registry = updater.REGISTRY
+        actual_index = updater.blocks.load_json(actual_registry / 'index.json')
+        actual_catalog, actual_profile = updater.blocks.qualified_dependency_profile(actual_registry, actual_index['default'],
+            updater.blocks.load_json(updater.blocks.default_catalog(Path(updater.blocks.__file__))))
+        registry = self.root / 'registry'; registry.mkdir()
+        old = registry / 'old'; old.mkdir()
+        (old / 'profile.json').write_text(json.dumps(actual_profile))
+        (old / 'knowledge.json').write_text('{"unitFixture":"retained exact original knowledge"}')
+        (old / 'packages.lock.json').write_text('{"unitFixture":"retained original native lock"}')
+        (self.root / 'consumer.lock.json').write_text('{"unitFixture":"existing consumer must not transition"}')
+        m.write_json(registry / 'index.json', {'default': actual_profile['id'], 'profiles': {
+            **actual_index['profiles'],
+            actual_profile['id']: {'path': 'old/profile.json', 'knowledge': {'path': 'old/knowledge.json'}}}})
+        before = {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()}
+        versions = {row['packageId']: row['version'] for row in actual_catalog['packages'].values()}
+        with patch.object(updater, 'ROOT', self.root), patch.object(updater, 'REGISTRY', registry), \
+                patch.object(updater.blocks, 'qualified_dependency_profile', return_value=(actual_catalog, actual_profile)), \
+                patch.object(updater.maintenance, 'observe', side_effect=lambda pin, _: {'latest': versions[pin['name']]}), \
+                patch.object(updater, 'require_published_foundation', return_value={'unitFixture': 'no publication claim'}), \
+                patch.object(updater, 'sync_publisher_engineering'):
+            self.assertIsNone(updater.prepare())
+            self.assertTrue(all(path.read_bytes() == content for path, content in before.items()))
+            with patch.object(updater.maintenance, 'observe', side_effect=lambda pin, _: {
+                    'latest': '99.0.0' if pin['name'] == 'Orbyss.Foundation.OpenApi.Exporter' else versions[pin['name']]}):
+                with self.assertRaisesRegex(ValueError, 'requires unchanged package families'):
+                    updater.prepare(True, 'Capture repair must not upgrade an independently observed tool')
+                self.assertEqual(before, {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()})
+            candidate = updater.prepare(True, 'Correct the bounded native metadata capture; preserve prior qualification.')
+        current = updater.blocks.load_json(candidate / 'profile.json')
+        state = updater.blocks.load_json(candidate / 'state.json')
+        self.assertNotEqual(actual_profile['id'], current['id'])
+        self.assertRegex(current['id'], r'-q-[0-9a-f]{8}$')
+        self.assertEqual(actual_profile['families'], current['families'])
+        self.assertEqual(actual_profile['artifacts'], current['artifacts'])
+        self.assertEqual('prepared', state['status'])
+        self.assertEqual(actual_profile['id'], state['publisherKnowledgeRefresh']['fromProfile'])
+        self.assertTrue(state['publisherKnowledgeRefresh']['reason'])
+        self.assertTrue(all(path.read_bytes() == content for path, content in before.items()))
+        with self.assertRaisesRegex(ValueError, 'Failing/prepared candidates'):
+            updater.promote(candidate)
+        with patch.object(updater.maintenance, 'observe') as observe:
+            for reason in (None, '', '  '):
+                with self.subTest(reason=reason), self.assertRaisesRegex(ValueError, 'explicit nonempty reason'):
+                    updater.prepare(True, reason)
+            observe.assert_not_called()
+
+    def test_exact_native_contract_metadata_is_captured_without_unrelated_json_promotion(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import update_dependency_profiles as updater
+        import zipfile
+        contract = b'{"unitFixture":"metadata bytes, no qualification claim","requiredDiagnosticIds":["FIXTURE001"]}'
+        archive = io.BytesIO()
+        with zipfile.ZipFile(archive, 'w') as output:
+            output.writestr('buildTransitive/source-readability-contract.json', contract)
+            output.writestr('buildTransitive/unrelated-example.json', b'{"example":true}')
+            output.writestr('README.md', 'Maintained package guidance')
+        with zipfile.ZipFile(archive) as source:
+            facts, files = updater.publisher_archive_facts(source)
+        self.assertEqual(contract.decode(), facts['buildTransitive/source-readability-contract.json'])
+        self.assertEqual(hashlib.sha256(contract).hexdigest(), files['buildTransitive/source-readability-contract.json'])
+        self.assertNotIn('buildTransitive/unrelated-example.json', facts)
+        self.assertIn('buildTransitive/unrelated-example.json', files)
+        self.assertIn('README.md', facts)
+
     def test_ci_tool_pins_are_discovered_and_updated_without_other_dependency_changes(self):
         requirement = self.root / 'ci-tool-requirements.txt'
         requirement.write_text('uv==0.13.1\n')

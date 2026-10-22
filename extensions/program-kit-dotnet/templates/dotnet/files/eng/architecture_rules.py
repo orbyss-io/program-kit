@@ -20,7 +20,7 @@ def validate_project_role(role, path):
             "registration to its owning feature. Review actual responsibilities before explicitly "
             "repairing or removing the project; do not merely relabel it. Consumer source is unchanged."
         )
-    if role not in RUNTIME_PROJECT_ROLES:
+    if not isinstance(role, str) or role not in RUNTIME_PROJECT_ROLES:
         raise ValueError("Unknown architecture role: " + path + "; " + str(role))
 
 

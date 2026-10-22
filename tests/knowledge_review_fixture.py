@@ -20,6 +20,19 @@ sys.path.insert(0, str(ROOT / 'tests'))
 from owned_fixture import FixtureDirectory, filesystem_path
 
 
+# Reviewed measured ceilings diagnose growth; production never truncates text.
+BRIEF_LIMITS = {'union': 200000, 'core': 64000, 'module': 40000, 'unknown-dotnet': 80000, 'mixed': 200000, 'source-quality': 10000}
+
+
+def assert_complete_required_text(test, catalog, requirements, output, extensions):
+    from knowledge_sources import resolve
+    identities = {identity for row in requirements for identity in row.get('ruleIds', [])}
+    for identity in identities:
+        rule = catalog['rules'][identity]
+        if rule['level'] in ('mandatory', 'conditional') and not rule.get('display'):
+            test.assertIn(resolve(catalog, identity, extensions=extensions)['text'], output, identity)
+
+
 def write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(value if isinstance(value, str) else json.dumps(value, indent=2) + '\n', encoding='utf-8', newline='\n')

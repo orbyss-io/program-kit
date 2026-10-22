@@ -145,6 +145,27 @@
         "Product and human journey acceptance remain distinct."
       ],
       "recoveryLimits": "Stop uses owned lifecycle inventory and retains volumes even if a pending model is invalid. Workspace recovery cannot undo external data or identity changes; no paid retry or provider fallback authority."
+    },
+    {
+      "id": "coding-system-conformance-v1",
+      "version": 1,
+      "applicability": "Affected new or retained in-progress specifications adopting current coding guidance before source implementation or dependent product continuation.",
+      "preservedBehavior": "Retain accepted intent, original baseline/effort, task identities and completed work, source/data, exact profile/lock history, frozen migrations, decisions and failed evidence.",
+      "allowedScope": "Current installed guidance/native policy and the affected existing operation decisions, owned source, attributed source review and registered repair prerequisites; dependency changes use their supported separately reviewed transition.",
+      "ordering": [
+        "Inspect the current source owners, applicable canonical rules and actual selected public analyzer/profile; complete consequential decisions in existing spec/ADR/plan/tasks.",
+        "Adopt the exact public qualified analyzer/profile through supported dependency maintenance when required; preserve old locks and failed evidence.",
+        "Register existing-source conformance findings with task_draft.py delivery, retaining original tasks; start only their registered tasks with purpose=conformance before dependent product work.",
+        "Inspect and refactor each affected existing owner, execute meaningful source/behavior checks and obtain current independently attributed review for effect/trust/lifetime responsibilities.",
+        "Amend preserving findings to changed when the repair changes the outcome; complete conformance with independent outcome assessment, refresh story engineering and reopen only affected human review when required.",
+        "Resume dependent source work only after current operation decisions, repair prerequisites and engineering evidence are ready."
+      ],
+      "verification": [
+        "Actual selected native policy rejects invalid source, disabled/unsupported analyzers and stale evidence; authoring/structure checks do not certify arbitrary semantic correctness.",
+        "Scoped source inspection and real positive/adverse checks cover actual effect/cancellation/cleanup boundaries; incomplete or self-authored independent review cannot close those duties.",
+        "Original task IDs, baseline, progress, failures and accepted decisions remain retained; changed outcomes reopen affected review and unresolved owners block only dependent work."
+      ],
+      "recoveryLimits": "No toolkit-created human authority, coding-agent launch, provider/service operation, task restart, forced pin rewrite, migration-history rewrite or publication. Missing facts, engine support, environment or independent review remain explicit scoped blockers with an existing recovery owner."
     }
   ]
 }

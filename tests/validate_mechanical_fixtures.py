@@ -125,7 +125,8 @@ def phase_journey():
                 '- **Confirmed intake SHA256**: ' + identity['briefHash'] + '\n'
                 '- **Confirmed intake brief**: ' + identity['brief'] + '\n', encoding='utf-8')
             plan = feature / 'plan.md'
-            plan.write_text('# Plan\n## Ownership\nOwned text operation; no runtime dependency.\n', encoding='utf-8')
+            operation_map = '\n## Operation implementation map' + plan.read_text(encoding='utf-8').split('## Operation implementation map', 1)[1]
+            plan.write_text('# Plan\n## Ownership\nOwned text operation; no runtime dependency.\n' + operation_map, encoding='utf-8')
             self.assertTrue(self.eligibility('specification')['eligible'])
             self.assertFalse(self.eligibility('planning')['eligible'])
             before = plan.read_bytes()

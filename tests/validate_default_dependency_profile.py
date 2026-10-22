@@ -196,8 +196,14 @@ public sealed class Probe : IWebShellFeature {{
     /// <summary>Register the document provider.</summary>
     public void ConfigureServices(IServiceCollection services) => services.AddOpenApi("v1");
     /// <summary>Register a consumer endpoint.</summary>
-    public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment) =>
-        endpoints.MapGet("/probe", () => "qualified");
+    public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment)
+    {{
+        var handler = ReadProbe;
+        endpoints.MapGet("/probe", handler);
+    }}
+
+    /// <summary>Returns the fixed qualification response.</summary>
+    private static string ReadProbe() => "qualified";
 }}
 ''', encoding='utf-8')
     return feature, runtime, build_version

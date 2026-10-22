@@ -1,5 +1,6 @@
 # Governed .NET persistence profiles
 
+<!-- program-kit:knowledge-rule principle.sql-application-role-recovery -->
 Explicit SQL deployment is administrator-owned. Before actual startup, grant the exact
 managed application role schema `USAGE` and only the table permissions required by its
 operations, including journal `SELECT` for schema admission. Quote the concrete schema,
@@ -7,6 +8,7 @@ role and table identifiers; verify using the application's real connection and r
 startup. Do not grant to PUBLIC, grant broad administrator privileges, create product tables
 at startup, or reset retained data to work around admission. Schema admission must fail when
 the application role cannot read the journal, even if the deployment administrator can.
+<!-- /program-kit:knowledge-rule -->
 
 Persistence is admitted per domain capability and data owner; it is not inferred from a PostgreSQL
 readiness probe or from the presence of a provider props file. The consuming repository selects
@@ -43,6 +45,7 @@ contract for it; selecting it requires an Accepted ADR and an explicit profile e
 
 ## Ordinary development decisions
 
+<!-- program-kit:knowledge-rule principle.persistence-operation-planning -->
 For the supported Foundation BFF/Keycloak plus EF/PostgreSQL composition, reuse the
 maintained provider setup/runner adapters and feature-owned lifecycle scaffolds. Before
 application schema exists, readiness proves connectivity and selected generic behavior;
@@ -68,7 +71,9 @@ protection and real-provider verification remain required before dependent work 
 
 Address all of the following in the feature plan and tasks. Unresolved answers become explicit
 prerequisite tasks; they do not block saving tasks or reporting architecture-check findings:
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.persistence-ten-admission-topics -->
 1. The domain capability that owns the data and why persistence is required.
 2. Aggregate, invariant, semantic atomic-operation, and transaction boundaries.
 3. Consistency, concurrency-token, idempotency, retry, commit-ambiguity, and isolation semantics.
@@ -79,9 +84,11 @@ prerequisite tasks; they do not block saving tasks or reporting architecture-che
 8. Data classification, secrets, retention/deletion, backup/recovery, and audit constraints.
 9. Production topology, availability, connection limits, latency, and managed-service constraints.
 10. Required real-provider evidence, its test provisioning owner and explicitly non-substitutable behavior.
+<!-- /program-kit:knowledge-rule -->
 
 ## Architecture and implementation contract
 
+<!-- program-kit:knowledge-rule principle.persistence-deployment-activation -->
 For selected PostgreSQL, deploy the product schema and journal with a separate deployment
 identity before admitting application users. Runtime startup verifies its required revision,
 schema usage, each table operation and sequence permission through the actual runtime
@@ -96,7 +103,9 @@ proves these boundaries against a uniquely owned pinned PostgreSQL container, in
 independently observed cleanup. This fixed synthetic schema is not a general production
 migration or ownership-repair tool; application migrations and least privileges remain
 with their data owner.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.persistence-context-lifetime-contract -->
 - Core projects are POCO-only: no EF Core, provider, `DbContext`, migrations, DI, or vendor references.
 - Core-owned interfaces state cohesive semantic capabilities. One interface may contain multiple
   naturally related operations, but split it when consumers, consistency, security, optionality,
@@ -124,6 +133,7 @@ with their data owner.
   lease, cancellation/creation failure, active-unit drain and datasource disposal after units finish.
   A stable datasource owns connection pooling per shell/provider generation; context pooling is a
   separate decision. Do not rewrite connection strings per operation to select time budgets.
+<!-- /program-kit:knowledge-rule -->
 <!-- program-kit:decision-rule persistence-admission -->
 <!-- program-kit:knowledge-rule principle.provider-outcomes -->
 - Native connection/command/lock/deadline options remain provider-owned typed validated configuration.
@@ -155,6 +165,7 @@ with their data owner.
   database completion fence alone cannot revoke an in-flight external mutation.
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
+<!-- program-kit:knowledge-rule principle.persistence-secret-migration-tests -->
 - Connection strings and secrets come from environment/secret providers. `shells.json` may contain
   feature activation and validated configuration names only, never credentials.
 - Never run destructive or uncontrolled migrations at application startup. CI checks pending model
@@ -166,10 +177,13 @@ with their data owner.
   and supplies an isolated connection with the same real-provider contract; do not install an unused
   container client into a worker that cannot access Docker.
   SQLite/InMemory cannot substitute for their SQL, transactions, constraints, concurrency, or types.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.persistence-primary-guidance-context -->
 Microsoft's `DbContext` guidance defines it as a short-lived, non-thread-safe unit of work; EF Core's
 query guidance warns that lazy loading readily creates N+1 round trips; and Microsoft's migrations
 guidance recommends reviewed SQL/bundles and documents provider-specific idempotent limitations.
+<!-- /program-kit:knowledge-rule -->
 
 ## Existing structured setup and upgrade records
 

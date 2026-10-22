@@ -2,6 +2,7 @@
 
 ## Ordinary feature use
 
+<!-- program-kit:knowledge-rule principle.actual-building-block-use -->
 Reuse accepted component instances, exact locks, placement and activation identities. Carry
 supported public mechanism use and actual behavior verification into plan/tasks. An unresolved
 compatibility input or material new selection becomes an owned prerequisite before dependent
@@ -15,6 +16,7 @@ do not establish normalization parity. Consumer-owned .NET label rules can use t
 [Core export and generated browser validator](../../program-kit-dotnet/references/label-validation.md)
 without introducing a Forms dependency. This bounded path preserves source ownership; it neither
 extracts arbitrary business rules nor transfers consumer policy to the renderer or catalog.
+<!-- /program-kit:knowledge-rule -->
 
 ## Selection and materialization contract
 

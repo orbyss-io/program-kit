@@ -114,7 +114,14 @@ def _exercise(project, source_root):
     plan = PresetResolver(project).resolve_content('plan-template', 'template')
     assert 'independent runnable walkthrough' in spec and 'risk and verification sequence' in plan
     (feature / 'spec.md').write_text(policy + 'Fresh specify and clarification: confirmed fictional actor intent, useful owned outcome, non-goals and material failures.\n', encoding='utf-8')
-    (feature / 'plan.md').write_text(policy + 'Fresh plan: coherent known scaffold first, maintained checks, missing consumer tests; explicit story review and advisory effort.\n', encoding='utf-8')
+    (feature / 'plan.md').write_text(policy + 'Fresh plan: coherent known scaffold first, maintained checks, missing consumer tests; explicit story review and advisory effort.\n'
+        '\n## Operation implementation map\n| Operation | Decision | Resolution | Source |\n|---|---|---|---|\n'
+        + '\n'.join('| ' + operation + ' | ' + key + ' | ' + resolution + ' | spec.md |'
+                    for operation in ('create', 'integrate', 'export')
+                    for key, resolution in (
+                        ('ownership', 'The fictional text owner maintains finite task-state artifacts; provider or application behavior is outside this fixture.'),
+                        ('results', 'Fresh uncompleted story tasks preserve the fictional owned outcome and carry no prior implementation progress.')))
+        + '\n', encoding='utf-8')
     for phase in ('planning', 'after-plan', 'tasks'):
         output = run('phase_obligations.py', 'project' if phase != 'after-plan' else 'check', '--feature-dir', relative, '--phase', phase)
         if phase == 'tasks':
@@ -126,7 +133,8 @@ def _exercise(project, source_root):
     run('phase_obligations.py', 'check', '--feature-dir', relative, '--phase', 'after-tasks')
     analyze = (project / '.agents/skills/speckit-analyze/SKILL.md').read_text(encoding='utf-8')
     assert 'STRICTLY READ-ONLY' in analyze and 'risk-selected sequence overrides' in analyze and 'Story delivery map' in analyze
-    request_file.write_text(json.dumps({'action': 'initialize', 'baseline': 'fixture-fresh-commit', 'source': 'simulated reviewer; no real human acceptance'}), encoding='utf-8')
+    baseline = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=project, text=True, encoding='utf-8', timeout=30).strip()
+    request_file.write_text(json.dumps({'action': 'initialize', 'baseline': baseline, 'source': 'simulated reviewer; no real human acceptance'}), encoding='utf-8')
     run('task_draft.py', 'delivery', '--feature-dir', relative, '--content-file', str(request_file))
     run('implementation_preflight.py', '--feature-dir', relative)
     assert not list(feature.glob('*Abandoned*')) and '[X]' not in (feature / 'tasks.md').read_text(encoding='utf-8')

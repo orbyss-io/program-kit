@@ -353,6 +353,34 @@
         "Preserve original and failed evidence. Use the existing activation recovery owner; a source merge remains consumer-owned.",
         "Changed baseline, candidate or destination inputs require scoped review; never fabricate historical generation profiles or patch a public archive."
       ]
+    },
+    {
+      "version": "0.14.3",
+      "previous": "0.14.2",
+      "guide": "migration-0.14.3.md",
+      "automatic": [
+        "Install complete bounded canonical coding guidance, operation decision maps, current source-scoped evaluation and conformance recovery commands.",
+        "Install mandatory native source-readability-v1 policy without changing retained consumer dependency locks."
+      ],
+      "review": [
+        "Review each affected operation before coding: actual owner, result, applicable cancellation/deadline, cleanup/uncertainty, transaction/replay, admission, bounds, configuration/time and activation/drain decisions.",
+        "Adopt an actually published qualified Foundation analyzer/profile through the supported dependency transition before native source work; inspect and refactor existing owned source first.",
+        "Use independent source review for changed effect, trust and lifetime responsibilities; preserve accepted decisions unless the corrected outcome changes."
+      ],
+      "verification": [
+        "Run Integrity and relevant affected contracts, real native source checks and meaningful positive/adverse behavior cases for the changed owner.",
+        "Complete registered conformance repair tasks and independent outcome assessment, refresh current story engineering, then resume dependent product work.",
+        "Require successful exact-source Windows/Linux package CI and native publication approval before release; verify public installation and upgrade separately."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve task IDs/checkmarks, accepted intent, original baseline/effort, prior failed checks, locks and frozen migrations. Update existing spec/ADR/plan/tasks in place.",
+        "Inspect accessible facts locally; ask only for a missing consequential intent, architecture, risk, data or authority choice. Repair a toolkit producer/registry/template/validator gap through its actual owner.",
+        "Unavailable toolchains or independent reviewers remain scoped pending work; no suppression, self-review fallback, task reset or fabricated acceptance."
+      ]
     }
   ]
 }

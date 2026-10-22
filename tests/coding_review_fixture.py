@@ -14,16 +14,54 @@ import subprocess
 import sys
 import time
 import uuid
+from unittest import TestCase
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
 from owned_fixture import FixtureDirectory, filesystem_path
+from knowledge_review_fixture import BRIEF_LIMITS, assert_complete_required_text
 
 
 def write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(value if isinstance(value, str) else json.dumps(value, indent=2) + '\n', encoding='utf-8', newline='\n')
+
+
+def fictional_operation_maps(feature, operation, *, effectful=False):
+    """Actual fictional authoring in normal artifacts, never a native capability waiver."""
+    plan = feature / 'plan.md'
+    decisions = {
+        'ownership': 'The Notes HTTP admission owner delegates to its Core contract and PostgreSQL query owner.' if effectful else 'The existing pure owner computes the immutable result; public meaning and authority remain unchanged.',
+        'results': 'Return an immutable owner-filtered stable result; denied/invalid inputs have explicit failures and no partial success.',
+        'cancellation-deadline': 'The caller token and one composed execution deadline cover query enumeration and materialization; cancellation returns no partial result.' if effectful else 'Not applicable: this synchronous finite pure operation creates no asynchronous work, deadline or retained completion.',
+        'cleanup-uncertainty': 'The provider query unit owns its connection/enumerator from acquisition through cancellation and materialization; finally disposes it; a read produces no remote mutation locator.' if effectful else 'Not applicable: this pure operation acquires no external/disposable resource and produces no uncertain external effect.',
+        'transactions-replay': 'A bounded read unit materializes the owner-filtered snapshot before disposal; no provider write or commit is retried.' if effectful else 'Not applicable: this in-memory immutable projection starts no transaction and performs no durable write/replay.',
+        'admission': 'Validate typed owner identity at HTTP admission and constrain the provider query to that owner; never trust a browser-provided ownership claim.' if effectful else 'Admit the fixed fictional immutable inputs into the existing pure contract and preserve exact ordinal owner comparisons.',
+        'bounds': 'Use the provider-owned page-size option and stable order; materialize only the admitted page.' if effectful else 'The finite immutable input is copied once; empty, duplicate and adversarial ownership inputs have explicit oracle cases.',
+        'concurrency': 'The query consumes its own read unit and immutable result; no caller shares a mutable enumerator or provider scope.' if effectful else 'Not applicable: the operation shares no mutable state or work across calls; supplied rows are immutable.',
+        'configuration-time': 'Use provider-owned connection lifetime, selected shared deadline and typed paging options; public identifier semantics are fixed.' if effectful else 'Not applicable: this deterministic pure projection reads no clock, configuration, connection or operational timeout.',
+        'activation-drain': 'Not applicable: this fixture declares no background, startup or shell-owned task and starts no application/provider.',
+    }
+    plan_content = plan.read_text(encoding='utf-8')
+    if '## Operation implementation map' not in plan_content:
+        write(plan, plan_content + '\n## Fictional implementation decisions\n\n'
+          'The following decisions are fictional test authoring for the finite existing owner. '
+          'They establish no human product acceptance or provider/browser execution.\n\n'
+          '## Operation implementation map\n\n| Operation | Decision | Resolution | Source |\n|---|---|---|---|\n'
+              + '\n'.join('| ' + operation + ' | ' + key + ' | ' + value + ' | plan.md#Fictional implementation decisions |'
+                          for key, value in decisions.items()) + '\n')
+    tasks = feature / 'tasks.md'
+    if '## Operation implementation map' in tasks.read_text(encoding='utf-8'):
+        return
+    write(tasks, tasks.read_text(encoding='utf-8') + '\n## Operation implementation map\n\n'
+          '| Operation | Pattern / example | Compatibility / alternative | First adverse cases | Test owner / command | First coherent check |\n'
+          '|---|---|---|---|---|---|\n| ' + operation
+          + ' | supported manual-edit route using the existing immutable owner/query example'
+          + ' | existing SDK/BCL source; provider declarations are target-free preparation only; no qualified analyzer capability is inferred'
+          + ' | denied owner, empty/duplicate result, mutation attempt' + ('; cancellation while materializing the provider read' if effectful else '')
+          + ' | tests/Proof/SnapshotProof.csproj and its compiled ordinal-owner oracle when present; this routing fixture itself runs target-free native evaluation'
+          + ' | first coherent native compiler/analyzer build and focused owner cases before expanding implementation; unavailable published analyzer capability remains a source blocker |\n')
 
 
 def seed(consumer):
@@ -55,6 +93,7 @@ def seed(consumer):
 | US1 | list | Owner lists private notes | Request owner notes and inspect result | 45 | none |
 '''
     write(feature / 'tasks.md', tasks)
+    fictional_operation_maps(feature, 'list', effectful=True)
     write(consumer / '.program-kit/specification-intake/RM-01/brief.json', {'architectureScope': ['notes'], 'decisions': []})
     write(consumer / 'docs/architecture/bootstrap-decisions.json', {'selected_profiles': ['dotnet', 'typescript-web']})
     schema = consumer / 'contracts/notes.schema.json'
@@ -92,6 +131,7 @@ def seed(consumer):
     write(browser / 'spec.md', '# Browser presentation\nFrontend-only browser presentation.\n- **Specification roadmap entry**: RM-02\n')
     write(browser / 'plan.md', 'A TypeScript browser presentation; no backend changes.\n')
     write(browser / 'tasks.md', '- [ ] T101 Style the browser page.\n')
+    fictional_operation_maps(browser, 'feature')
     write(consumer / '.program-kit/specification-intake/RM-02/brief.json', {'architectureScope': ['browser'], 'decisions': []})
     for args in (['init', '-q'], ['add', '.'], ['-c', 'user.name=Fictional Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Fictional F2 inputs']):
         subprocess.run(['git', *args], cwd=consumer, check=True, capture_output=True, timeout=30)
@@ -137,16 +177,25 @@ def scenario(directory):
             shutil.copytree(filesystem_path(ROOT / 'extensions' / name), consumer / '.specify/extensions' / name, ignore=shutil.ignore_patterns('__pycache__'))
         feature = seed(consumer)
         script = consumer / '.specify/extensions/program-kit-governance/scripts/phase_obligations.py'
-        def command(action, feature='specs/001-notes', operation=True):
-            return [script, action, '--repository', consumer, '--feature-dir', feature, '--format', 'json', *(['--operation', 'list'] if operation else [])]
+        def command(action, feature='specs/001-notes', operation=True, source=False):
+            return [script, action, '--repository', consumer, '--feature-dir', feature, '--format', 'json',
+                    *(['--operation', 'list'] if operation else []),
+                    *(['--stage', 'setup'] if action == 'prepare' and not source else [])]
         before = run('01-prepared', command('prepare'))
         skills = {s['id'] for s in before['coding']['skills']}
         assert {'http-operation-contracts', 'persistence-adoption', 'owned-provider-contract'} <= skills
         assert 'browser-experience' not in skills
         store = next(p for p in before['coding']['projects'] if p['path'].endswith('Notes.Store.csproj'))
         assert {'id': 'Npgsql', 'version': '10.0.0'} in store['packages'], 'Imported conditional package was not evaluated'
-        brief = run('02-bounded-brief', [script, 'prepare', '--repository', consumer, '--feature-dir', 'specs/001-notes', '--operation', 'list'])
-        assert len(brief.split()) < 1600, 'Ordinary coding brief exceeded its unchanged bound'
+        brief = run('02-bounded-brief', [script, 'prepare', '--repository', consumer, '--feature-dir', 'specs/001-notes', '--operation', 'list', '--stage', 'setup'])
+        result['ordinaryBriefBytes'] = len(brief.encode('utf-8'))
+        assert result['ordinaryBriefBytes'] < BRIEF_LIMITS['mixed'], 'Ordinary scoped brief must preserve complete canonical atoms within its reviewed scope budget'
+        # This is the installed copy used by the actual command above.
+        selected_catalog = json.loads((script.parent.parent / 'references/phase-obligations.json').read_text(encoding='utf-8'))
+        assert_complete_required_text(TestCase(), selected_catalog, before['requirements'], brief, consumer / '.specify/extensions')
+        source_gap = run('02b-staged-publication-dependency', command('prepare', source=True), 2)
+        assert any(b['code'] == 'PKC024' for b in source_gap['coding']['blockers'])
+        result['sourceCompletion'] = 'blocked-publication-dependency: current profile lacks the qualified source-readability capability; setup-only routing is not C# acceptance'
         browser = run('03-browser', command('prepare', 'specs/002-browser', False))
         assert 'persistence-adoption' not in {s['id'] for s in browser['coding']['skills']}
         catalog = script.parent.parent / 'references/phase-obligations.json'
@@ -202,7 +251,7 @@ def scenario(directory):
         store_project = consumer / 'src/Notes.Store/Notes.Store.csproj'
         planned_project = store_project.with_suffix('.planned')
         store_project.rename(planned_project)
-        missing_effective = run('09c-missing-effective-project', command('prepare'), 2)
+        missing_effective = run('09c-missing-effective-project', command('prepare', source=True), 2)
         assert any(b.get('context') == 'effective-projects' for b in missing_effective['coding']['blockers'])
         assert 'persistence-adoption' in {s['id'] for s in missing_effective['coding']['skills']}
         setup = run('09d-project-setup-only', [*command('prepare'), '--stage', 'setup'])
@@ -228,7 +277,8 @@ def scenario(directory):
         task_path.write_bytes(task_bytes)
         write(review / 'snapshots/manual-source.cs', manual.read_text())
         manual.unlink()
-        restored = run('11-removed-manual-change', command('reconcile'))
+        restored = run('11-removed-manual-change', command('reconcile'), 2)
+        assert any(b['code'] == 'PKC024' for b in restored['coding']['blockers'])
         assert not any(p['path'] == 'src/Other/Other.csproj' for p in restored['coding']['projects'])
         other = consumer / 'src/Other/Other.csproj'
         other_bytes = other.read_bytes()
