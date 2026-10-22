@@ -563,6 +563,9 @@ def evaluation_basis(root, feature, coding):
     from feature_context import task_sources
     paths.update(p.relative_to(root).as_posix() for p in task_sources(root, coding['scope'].get('tasks', [])))
     paths.update(('.editorconfig', 'Directory.Build.props', 'Directory.Build.targets', 'NuGet.Config'))
+    for operation in coding.get('operationBrief', {}).get('operations', []):
+        paths.update(row['source']['path'] for row in operation.get('decisions', []))
+        paths.update(row['source']['path'] for row in operation.get('limits', {}).get('items', []))
     for project in coding['projects']:
         paths.update(project.get('compile', []))
         paths.update(row['path'] for row in project.get('declarationSources', []))
@@ -654,6 +657,22 @@ def bind_evaluation(root, feature, coding, claims, artifacts=()):
     return result
 
 
+def require_limit_source(root, coding, inspection):
+    """Named limits need an owned implementation witness, beside policy/design authority."""
+    if not any(row['limit'] is not None for row in inspection['limitReconciliation']):
+        return
+    from conformance_repair import manual_sources
+    from feature_context import frontend_sources
+    manual_context = {**coding, 'scope': {**coding['scope'], 'tasks': coding['scope'].get('tasks', [])}}
+    implementations = set(manual_sources(root, manual_context))
+    implementations.update(path for project in coding['projects'] for path in project.get('compile', []))
+    for project in coding['frontendProjects']:
+        implementations.update(path.relative_to(root).as_posix()
+            for path in frontend_sources(root, root / project['package']['path']))
+    if not implementations.intersection(location['path'] for location in inspection['sources']):
+        raise ValueError('PKC020 named limits need an actual owned implementation source inspection; a policy/ADR/configuration reference alone cannot establish consumption. Name the existing actual consumption/contract implementation owner in the affected task/project scope and inspect it; configuration-only work need not edit that consumer. Repair unsupported ownership through its maintained route; do not substitute an unrelated source.')
+
+
 def bind_inspections(root, coding, duties, rules, inspections):
     """Bind concrete per-duty source observations; authors retain semantic responsibility."""
     if not isinstance(inspections, list) or not inspections:
@@ -661,14 +680,21 @@ def bind_inspections(root, coding, duties, rules, inspections):
     covered = []
     result = []
     allowed_sources = {key.removeprefix('source:') for key in evaluation_basis(root, None, coding) if key.startswith('source:')}
+    from operation_readiness import LIMIT_RULE, validate_limit_reconciliation
     for row in inspections:
-        if (not isinstance(row, dict) or set(row) != {'rules', 'sources', 'boundary', 'findings', 'assessment'}
-                or not isinstance(row['rules'], list) or not row['rules'] or not set(row['rules']) <= set(rules)
+        limit_review = (isinstance(row, dict) and isinstance(row.get('rules'), list)
+                        and LIMIT_RULE in row['rules'])
+        fields = {'rules', 'sources', 'boundary', 'findings', 'assessment'} | ({'limitReconciliation'} if limit_review else set())
+        if (not isinstance(row, dict) or set(row) != fields
+                or not isinstance(row['rules'], list) or not row['rules']
+                or any(not isinstance(identity, str) for identity in row['rules']) or not set(row['rules']) <= set(rules)
                 or any(not isinstance(row[k], str) or not row[k].strip() for k in ('boundary', 'assessment'))
                 or not isinstance(row['findings'], list) or not row['findings']
                 or any(not isinstance(f, str) or not f.strip() for f in row['findings'])
                 or not isinstance(row['sources'], list) or not row['sources']):
             raise ValueError('PKC020 each duty needs actual source locations, reviewed boundary, findings/disposition and specific assessment')
+        if limit_review:
+            validate_limit_reconciliation(coding, row['limitReconciliation'])
         families = {(duties[i].get('reviewFamily', i), duties[i]['owner']) for i in row['rules']}
         if len(families) != 1:
             raise ValueError('PKC020 unrelated canonical families need their actual scoped inspections; a bulk all-rules claim cannot close them')
@@ -685,6 +711,8 @@ def bind_inspections(root, coding, duties, rules, inspections):
                     or not 1 <= location['start'] <= location['end'] <= len(lines)):
                 raise ValueError('PKC020 reviewed source location is missing or outside current source')
             locations.append({**location, 'sha256': source(root, target)['sha256']})
+        if limit_review:
+            require_limit_source(root, coding, row)
         result.append({**row, 'sources': locations})
     if len(covered) != len(rules) or set(covered) != set(rules):
         raise ValueError('PKC020 inspect every claimed duty exactly once; broad lists or duplicate duty attribution do not close review')
@@ -729,6 +757,11 @@ def require_evaluated(root, feature, coding, records):
             if source(root, inside(root, reviewed['path'])) != reviewed:
                 continue
             inspections = record.get('inspections', [])
+            from operation_readiness import LIMIT_RULE, validate_limit_reconciliation
+            for inspection in inspections:
+                if LIMIT_RULE in inspection.get('rules', []):
+                    validate_limit_reconciliation(coding, inspection.get('limitReconciliation'), record['taskIds'])
+                    require_limit_source(root, coding, inspection)
             if {i for row in inspections for i in row['rules']} != set(record['rules']):
                 continue
             if any(source(root, inside(root, location['path']))['sha256'] != location['sha256']

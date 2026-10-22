@@ -21,7 +21,7 @@ declarations cannot execute submitted code. Inspect selected qualification and a
 the installed coding-patterns command; use its teach workflow for a new contribution.
 Missing mandatory context or native evaluation blocks only the affected work with its named repair.
 The operation brief reads the existing plan/tasks `Operation implementation map`. Before editing,
-resolve its concrete applicable decisions, compatible pattern/example/manual route, first adverse
+resolve its exact per-limit inventory and individual policy/configuration decisions as well as concrete applicable decisions, compatible pattern/example/manual route, first adverse
 cases/test owner and first coherent check. Do not defer deadline/cancellation, ownership-transfer,
 cleanup/uncertainty or typed-result choices to a generic completion review. At the first coherent
 compilable increment run the selected build/analyzers and focused checks before expanding behavior.

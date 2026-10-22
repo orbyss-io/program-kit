@@ -70,7 +70,7 @@ behavior batch; verification does not require a separate shell invocation or pro
 small assertion. A newly exposed shared-contract failure can justify expanding the batch.
 
 Before editing, use the current operation's brief from the existing plan/tasks `Operation implementation
-map`: concrete ownership/results and applicable deadline/cancellation, cleanup/uncertainty,
+map`: concrete ownership/results, exact per-limit policy/configuration inventory and applicable deadline/cancellation, cleanup/uncertainty,
 transaction/replay, admission/bounds and lifetime decisions; compatible selected pattern/example or
 supported manual route; first adverse cases/test owner; and first coherent compiler/analyzer/focused
 checks. Resolve a missing consequential choice before dependent source work. Investigate accessible

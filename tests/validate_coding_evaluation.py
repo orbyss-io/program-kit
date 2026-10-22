@@ -258,6 +258,224 @@ class EvaluationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'PKC020'):
             coding.require_evaluated(self.root, self.feature, self.value, records)
 
+    def limits_context(self, identity='caption-length'):
+        self.value['scope']['tasks'] = ['- [ ] T001 Maintain Owner.cs']
+        self.value['evaluation']['duties'] = [{
+            'rule': 'principle.operational-setting-lifecycle', 'fingerprint': 'per-limit-v1',
+            'required': True, 'technicalRequired': True, 'owner': 'policy source reviewer'}]
+        self.value['operationBrief'] = {'operations': [{
+            'operation': 'caption', 'taskIds': ['T001'], 'decisions': [],
+            'limits': {'inventory': [identity] if identity is not None else [], 'items': []}}]}
+
+    def limit_claim(self, **change):
+        rule = 'principle.operational-setting-lifecycle'
+        return self.claim(rules=[rule], inspections=[{
+            'rules': [rule], 'sources': [{'path': 'Owner.cs', 'start': 1, 'end': 1}],
+            'boundary': 'Actual caption policy/configuration consumer boundary',
+            'findings': ['Configured owner/source and actual source consumer reconciled by this fictional author.'],
+            'assessment': 'Finite authored review, not universal semantic inference.',
+            'limitReconciliation': [{'operation': 'caption', 'limit': 'caption-length',
+                'disposition': 'compliant', 'assessment': 'Configured caption admission and consumer agree with the current policy decision.'}]}], **change)
+
+    def test_limit_reconciliation_rejects_missing_foreign_duplicates_and_findings_at_bind_and_reuse(self):
+        self.limits_context()
+        claim = self.limit_claim()
+        records = coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+        entry = claim['inspections'][0]['limitReconciliation'][0]
+        for bad in (None, [], [entry, entry], [{**entry, 'operation': 'foreign'}],
+                    [{**entry, 'limit': 'new-invented-policy'}], [{**entry, 'disposition': 'finding'}],
+                    [{**entry, 'assessment': 'TBD'}], [{**entry, 'assessment': 'compliant'}]):
+            with self.subTest(reconciliation=bad):
+                malformed = copy.deepcopy(claim)
+                if bad is None:
+                    malformed['inspections'][0].pop('limitReconciliation')
+                else:
+                    malformed['inspections'][0]['limitReconciliation'] = bad
+                with self.assertRaisesRegex(ValueError, 'PKC020'):
+                    coding.bind_evaluation(self.root, self.feature, self.value, [malformed])
+                retained = copy.deepcopy(records)
+                if bad is None:
+                    retained[0]['inspections'][0].pop('limitReconciliation')
+                else:
+                    retained[0]['inspections'][0]['limitReconciliation'] = bad
+                with self.assertRaisesRegex(ValueError, 'PKC020'):
+                    coding.require_evaluated(self.root, self.feature, self.value, retained)
+        malformed = copy.deepcopy(claim)
+        malformed['inspections'][0]['sources'] = [{'unexpected': 'Owner.cs'}]
+        with self.assertRaisesRegex(ValueError, 'PKC020'):
+            coding.bind_evaluation(self.root, self.feature, self.value, [malformed])
+        # Nested malformed JSON must retain actionable PKC020, never membership TypeError.
+        for invalid_rules in (None, 3, 'principle.operational-setting-lifecycle', [], [{}], 'missing'):
+            malformed = copy.deepcopy(claim)
+            if invalid_rules == 'missing':
+                malformed['inspections'][0].pop('rules')
+            else:
+                malformed['inspections'][0]['rules'] = invalid_rules
+            if invalid_rules == [{}]:
+                malformed['inspections'][0].pop('limitReconciliation')  # Reach existing set validation, not an unrelated extra-field rejection.
+            with self.subTest(rules=invalid_rules), self.assertRaisesRegex(ValueError, 'PKC020'):
+                coding.bind_evaluation(self.root, self.feature, self.value, [malformed])
+            retained = copy.deepcopy(records)
+            if invalid_rules == 'missing':
+                retained[0]['inspections'][0].pop('rules')
+            else:
+                retained[0]['inspections'][0]['rules'] = invalid_rules
+            with self.assertRaisesRegex(ValueError, 'PKC020'):
+                coding.require_evaluated(self.root, self.feature, self.value, retained)
+        # Discovering a previously omitted limit is an actual review finding, not numeric inference.
+        self.value['operationBrief']['operations'][0]['limits']['inventory'].append('new-discovered-policy')
+        with self.assertRaisesRegex(ValueError, 'PKC020'):
+            coding.require_evaluated(self.root, self.feature, self.value, records)
+        self.limits_context(None)
+        no_limits = copy.deepcopy(claim)
+        no_limits['inspections'][0]['limitReconciliation'][0].update(limit=None,
+            assessment='This pure representation changes no behavioral/resource limit; existing exact identity invariant is retained.')
+        record = coding.bind_evaluation(self.root, self.feature, self.value, [no_limits])
+        coding.require_evaluated(self.root, self.feature, self.value, record)
+
+    def test_non_source_work_with_exact_empty_targets_can_complete_without_fabricated_limits(self):
+        self.limits_context()
+        self.value['operationBrief']['operations'] = []
+        self.value['scope']['tasks'] = ['- [ ] T001 Update README.md wording']
+        (self.root / 'README.md').write_text('Fictional documentation-only wording; no implementation work.')
+        claim = self.limit_claim()
+        claim['inspections'][0]['sources'] = [{'path': 'README.md', 'start': 1, 'end': 1}]
+        claim['inspections'][0]['limitReconciliation'] = []
+        records = coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+        self.limits_context()
+        with self.assertRaisesRegex(ValueError, 'PKC020'):
+            coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+
+    def test_cited_limit_policy_changes_stale_only_affected_review(self):
+        authority = self.root / 'accepted-policy.md'
+        authority.write_text('# Caption policy\nConfigured maximum defaults to 48 code points.\n')
+        self.limits_context()
+        operation = self.value['operationBrief']['operations'][0]
+        operation['limits']['items'] = [{'id': 'caption-length', 'source': coding.source(self.root, authority)}]
+        unrelated = self.root / 'other-policy.md'
+        unrelated.write_text('Unrelated operation policy; not selected by this operation brief.')
+        records = coding.bind_evaluation(self.root, self.feature, self.value, [self.limit_claim()])
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+        self.assertIn('source:accepted-policy.md', records[0]['basis'])
+        self.assertNotIn('source:other-policy.md', records[0]['basis'])
+        unrelated.write_text('Unrelated revised policy does not stale this selected operation.')
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+        authority.write_text('# Caption policy\nConfigured maximum defaults to 60 code points.\n')
+        with self.assertRaisesRegex(ValueError, 'PKC020'):
+            coding.require_evaluated(self.root, self.feature, self.value, records)
+
+    def test_named_limit_policy_only_review_cannot_establish_actual_implementation(self):
+        self.limits_context()
+        authority = self.root / 'accepted-policy.md'
+        authority.write_text('Fictional accepted caption policy, independent from implementation.')
+        self.value['operationBrief']['operations'][0]['limits']['items'] = [
+            {'id': 'caption-length', 'source': coding.source(self.root, authority)}]
+        claim = self.limit_claim()
+        # Configuration-only work can explicitly inspect an unchanged existing consumer.
+        (self.root / 'settings.json').write_text('{"maximum": 48}')
+        self.value['scope']['tasks'] = ['- [ ] T001 Update settings.json; inspect existing Owner.cs consumer without editing it']
+        records = coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+        foreign = self.root / 'unrelated.py'
+        foreign.write_text('UNRELATED = 48\n')
+        self.value['operationBrief']['operations'][0]['limits']['items'].append(
+            {'id': 'caption-length', 'source': coding.source(self.root, foreign)})
+        outside = copy.deepcopy(claim)
+        outside['inspections'][0]['sources'] = [{'path': 'unrelated.py', 'start': 1, 'end': 1}]
+        with self.assertRaisesRegex(ValueError, 'actual owned implementation'):
+            coding.bind_evaluation(self.root, self.feature, self.value, [outside])
+        self.value['operationBrief']['operations'][0]['limits']['items'].pop()
+        claim['inspections'][0]['sources'] = [{'path': 'accepted-policy.md', 'start': 1, 'end': 1}]
+        with self.assertRaisesRegex(ValueError, 'actual owned implementation'):
+            coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+        records[0]['inspections'][0]['sources'] = [{**claim['inspections'][0]['sources'][0],
+            'sha256': coding.source(self.root, authority)['sha256']}]
+        with self.assertRaisesRegex(ValueError, 'PKC020'):
+            coding.require_evaluated(self.root, self.feature, self.value, records)
+
+    def test_actual_configured_limit_behavior_rejects_hardcoded_bypass_without_changing_identity_invariant(self):
+        # Fictional portable application, actual maintained process/activation/default/consumer checks.
+        pure_source = ('def admit(value, maximum):\n'
+            '    if len(value) > maximum: raise ValueError("caption-too-long")\n'
+            '    return value\n'
+            'def cite(original, quote):\n'
+            '    if quote != original: raise ValueError("exact-quote-invariant")\n'
+            '    return quote\n')
+        application_source = ('from typing import NamedTuple\nfrom caption import admit\n'
+            'class Policy(NamedTuple): maximum: int\n'
+            'def activate(settings):\n'
+            '    maximum = settings.get("maximum", 48)\n'
+            '    if type(maximum) is not int or not 1 <= maximum <= 64: raise ValueError("invalid-policy")\n'
+            '    return Policy(maximum)\n'
+            'def admit_request(value, policy): return admit(value, policy.maximum)\n'
+            'def execute(value, policy): return admit(value, policy.maximum)\n')
+        (self.root / 'caption.py').write_text(pure_source)
+        (self.root / 'application.py').write_text(application_source)
+        (self.root / 'settings.json').write_text('{"maximum": 3}')
+        (self.root / 'accepted-policy.md').write_text('Fictional accepted caption policy: configurable default 48 Unicode code points; nondefault overrides validated at activation; fixed wire ceiling 64. Pure Core receives admitted values. Both request admission and execution consume one immutable snapshot. This is test authoring, not real human approval.')
+        (self.root / 'check.py').write_text('import json\nfrom caption import cite\nfrom application import activate, admit_request, execute\n'
+            'policy = activate(json.load(open("settings.json")))\n'
+            'assert policy.maximum == 3\n'
+            'for consume, marker in ((admit_request, "configured-limit-bypass"), (execute, "execution-policy-bypass")):\n'
+            '    assert consume("abc", policy) == "abc"\n'
+            '    try: consume("abcd", policy)\n'
+            '    except ValueError as error: assert str(error) == "caption-too-long"\n'
+            '    else: raise AssertionError(marker)\n'
+            'default = activate({})\n'
+            'assert default.maximum == 48\n'
+            'assert admit_request("x" * 48, default) == "x" * 48\n'
+            'try: admit_request("x" * 49, default)\n'
+            'except ValueError as error: assert str(error) == "caption-too-long"\n'
+            'else: raise AssertionError("omitted-default-bypass")\n'
+            'for invalid in (0, -1, True, 65):\n'
+            '    try: activate({"maximum": invalid})\n'
+            '    except ValueError as error: assert str(error) == "invalid-policy"\n'
+            '    else: raise AssertionError("invalid-setting-activated")\n'
+            'assert cite("exact", "exact") == "exact"\n'
+            'try: cite("exact", "changed")\n'
+            'except ValueError as error: assert str(error) == "exact-quote-invariant"\n'
+            'else: raise AssertionError("identity-invariant-bypass")\n'
+            'print("configured-boundary-invalid-default-consumers-and-fixed-invariant-passed")\n')
+        self.config['toolkitChecks'][0]['inputs'] = ['check.py', 'caption.py', 'application.py', 'settings.json']
+        (self.root / 'eng/verification.json').write_text(json.dumps(self.config))
+        self.rows = toolkit.declarations(self.root, self.config)
+        self.execute()  # A successful process precedes each intended behavioral negative.
+        self.limits_context()
+        self.value['scope']['tasks'] = ['- [ ] T001 Maintain caption.py, application.py and settings.json']
+        self.value['operationBrief']['operations'][0]['limits']['inventory'].append('wire-caption-ceiling')
+        self.value['operationBrief']['operations'][0]['limits']['items'] = [
+            {'id': identity, 'classification': classification, 'source': coding.source(self.root, self.root / 'accepted-policy.md')}
+            for identity, classification in [('caption-length', 'configurable-policy'), ('wire-caption-ceiling', 'fixed-contract')]]
+        claim = self.limit_claim()
+        claim['inspections'][0]['sources'] = [{'path': name, 'start': 1, 'end': len((self.root / name).read_text().splitlines())}
+                                             for name in ('caption.py', 'application.py', 'settings.json')]
+        claim['inspections'][0]['limitReconciliation'].append({
+            'operation': 'caption', 'limit': 'wire-caption-ceiling', 'disposition': 'compliant',
+            'assessment': 'Fictional fixed wire ceiling 64 from accepted policy bounds validated configuration; it remains separate from configurable default48 and override3.'})
+        claim['inspections'][0]['assessment'] = 'Fictional reviewer inspects actual activation/default/settings and both pure-policy consumers; the real check process exercises each finite boundary.'
+        records = coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+        for name, mutated, marker in (
+                ('caption.py', pure_source.replace('len(value) > maximum', 'len(value) > 48'), 'configured-limit-bypass'),
+                ('application.py', application_source.replace('def execute(value, policy): return admit(value, policy.maximum)',
+                    'def execute(value, policy): return admit(value, 48)'), 'execution-policy-bypass')):
+            (self.root / name).write_text(mutated)
+            with self.assertRaises(ValueError):
+                self.execute()
+            logs = [path.read_text(encoding='utf-8') for path in (self.root / 'artifacts').rglob('*') if path.is_file() and path.suffix in ('.log', '.txt')]
+            self.assertTrue(any(marker in text for text in logs), 'The intended behavioral oracle must fail, not setup/import.')
+            with self.assertRaisesRegex(ValueError, 'PKC020'):
+                coding.require_evaluated(self.root, self.feature, self.value, records)
+            with self.assertRaises(ValueError):
+                coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+            (self.root / 'caption.py').write_text(pure_source)
+            (self.root / 'application.py').write_text(application_source)
+            self.execute()
+            repaired = coding.bind_evaluation(self.root, self.feature, self.value, [claim])
+            coding.require_evaluated(self.root, self.feature, self.value, repaired)
+
     def test_independent_effect_coverage_accepts_self_authored_mechanical_evidence(self):
         self.value['evaluation']['duties'][1]['independentReviewRequired'] = True
         self_authorship = {'implementationAuthors': [' Writer '], 'reviewer': 'writer', 'kind': 'agent'}

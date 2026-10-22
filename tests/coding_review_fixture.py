@@ -34,6 +34,7 @@ def fictional_operation_maps(feature, operation, *, effectful=False):
     decisions = {
         'ownership': 'The Notes HTTP admission owner delegates to its Core contract and PostgreSQL query owner.' if effectful else 'The existing pure owner computes the immutable result; public meaning and authority remain unchanged.',
         'results': 'Return an immutable owner-filtered stable result; denied/invalid inputs have explicit failures and no partial success.',
+        'limits': 'Limits: page-size' if effectful else 'No applicable limits: this finite pure representation fixture introduces or changes no behavioral/resource limit.',
         'cancellation-deadline': 'The caller token and one composed execution deadline cover query enumeration and materialization; cancellation returns no partial result.' if effectful else 'Not applicable: this synchronous finite pure operation creates no asynchronous work, deadline or retained completion.',
         'cleanup-uncertainty': 'The provider query unit owns its connection/enumerator from acquisition through cancellation and materialization; finally disposes it; a read produces no remote mutation locator.' if effectful else 'Not applicable: this pure operation acquires no external/disposable resource and produces no uncertain external effect.',
         'transactions-replay': 'A bounded read unit materializes the owner-filtered snapshot before disposal; no provider write or commit is retried.' if effectful else 'Not applicable: this in-memory immutable projection starts no transaction and performs no durable write/replay.',
@@ -43,6 +44,8 @@ def fictional_operation_maps(feature, operation, *, effectful=False):
         'configuration-time': 'Use provider-owned connection lifetime, selected shared deadline and typed paging options; public identifier semantics are fixed.' if effectful else 'Not applicable: this deterministic pure projection reads no clock, configuration, connection or operational timeout.',
         'activation-drain': 'Not applicable: this fixture declares no background, startup or shell-owned task and starts no application/provider.',
     }
+    if effectful:
+        decisions['limit:page-size'] = 'meaning=maximum admitted query page; units=rows; owner=Notes query owner; classification=configurable-policy; value=20 default; basis=fictional existing query policy; enforcement=admission and provider materialization; validation=invalid settings, omitted/default and nondefault exact boundaries; setting=NotesQuery.PageSize; default-basis=fictional accepted query default; lifecycle=validated immutable activation snapshot; consumers=HTTP admission and provider query'
     plan_content = plan.read_text(encoding='utf-8')
     if '## Operation implementation map' not in plan_content:
         write(plan, plan_content + '\n## Fictional implementation decisions\n\n'

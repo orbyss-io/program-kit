@@ -82,6 +82,13 @@ Semantic review verifies that the declarations include every actual gate from go
 
 ## Operation implementation map
 
+Carry each plan `limits` / `limit:<id>` decision into these existing adverse cases and check owners:
+configured boundaries, nondefault/omitted defaults, invalid settings and consistent consumers.
+At completion the existing operational-setting source inspection supplies `limitReconciliation`:
+one `{operation, limit, disposition, assessment}` per current ID, or `limit: null` for a reviewed
+no-limit operation. Only resolved `compliant` dispositions close work; record/repair findings through
+these tasks. Assess actual source/configuration consumption, not just table presence or literals.
+
 | Operation | Pattern / example | Compatibility / alternative | First adverse cases | Test owner / command | First coherent check |
 |-----------|-------------------|-----------------------------|---------------------|----------------------|----------------------|
 | [operation-id] | [selected maintained pattern/example or supported manual-edit route] | [exact selected profile compatibility; reason for an alternative] | [smallest concrete failure/cancellation/ownership/invalid-state cases at the changed edge] | [actual test owner paths, cases/filter and supported command] | [actual compiler/analyzer and focused check commands at the first coherent compilable increment, before expanding behavior] |

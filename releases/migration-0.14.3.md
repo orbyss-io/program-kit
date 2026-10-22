@@ -16,7 +16,7 @@ contract.
 
 Before affected coding, resolve ownership and result meaning, then applicable shared
 deadline/cancellation, cleanup and uncertain effects, transaction/replay, admission,
-bounds, configuration/time and activation/drain responsibilities. Select compatible
+bounds, configuration/time and activation/drain responsibilities. Existing plans now also need an exact per-limit inventory with owner/source/classification and applicable configuration/default/lifecycle/consumer decisions; reconcile them in existing source inspections and repair missing policy before dependent coding. Select compatible
 maintained patterns, adverse cases and the first coherent check. Inspect accessible
 facts locally; ask the human only for missing consequential intent, architecture,
 risk, data or authority decisions. Toolkit gaps belong in the actual producer,
