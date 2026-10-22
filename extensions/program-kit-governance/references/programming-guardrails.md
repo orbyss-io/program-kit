@@ -98,11 +98,36 @@ in existing tasks and delivery output; a passing graph or generic SOLID statemen
   actual DI clock replacement, exact boundaries and cancellation before/after effect dispatch.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.operational-setting-lifecycle -->
-- Classify literals by owner and lifecycle: current schema/protocol identity, frozen migration history,
-  accepted application constraint or configurable operational setting. Trace operational defaults and
-  limits through activated options, omitted request input, admission and execution. Consolidating a
-  literal into a constant does not make it configurable. Preserve frozen migration bytes and independent
-  consistency assertions.
+Before coding, inventory each affected behavioral/resource limit in the existing plan Operation
+implementation map and carry its checks into ordinary tasks. Include counts, lengths and their units,
+size/page/batch ceilings, quotas/rates, retries, deadlines and retention across literals, constants,
+attributes, schemas, defaults and client/server copies. Establish each limit's meaning, units, semantic
+owner, authoritative source, value/default, justification, enforcement and validation. Classify it as
+configurable business/operational policy, a fixed contract constraint or an engineering safeguard.
+A constant or a class named Rules supplies no policy authority. Existing hard-coded behavior is an
+observation, not an approved business limit or default; do not auto-fill policy decisions from legacy
+literals. Do not silently invent business policy.
+
+For configurable policy name the setting, default basis (or required input without a default), activation/
+reload lifecycle and every consuming boundary. Validate actual settings at the owning effect/composition
+boundary; pass admitted typed policy values/snapshots to pure Core rather than adding configuration I/O
+there. Trace omitted input, nondefault settings and consistent admission/execution/client behavior.
+Keep adjustable policy separate from fixed wire/storage/protocol ceilings and validate compatibility.
+For a fixed contract cite its actual contract basis; for a safeguard justify the engineering risk and
+owner's chosen bound locally. Missing consequential business policy blocks affected implementation:
+inspect accessible facts first, then clarify only missing consequential intent and update existing
+spec/ADR/plan and dependent tasks. Routine justified engineering caps need no extra human approval.
+
+Before completion reconcile every implemented/changed limit and consumer against those decisions in the
+existing source inspection, including an explicit no-limit assessment for ordinary unbounded/pure work.
+Reject invented/omitted limits, dead settings, hard-coded bypasses, inconsistent consumers and unvalidated
+defaults; repair source/plan/tasks before claiming compliance. Exercise actual nondefault and exact-boundary
+behavior, invalid configuration and omitted/default paths through the maintained check owner. A source
+reference, structurally complete row or authored compliant assessment cannot establish its own truth;
+semantic completeness and authoritative policy meaning remain source-review responsibilities.
+Ordinary numeric indexes/discriminants, protocol identities, authorization and citation identity/hash/
+exact-quote invariants are not adjustable policy. Preserve frozen migration bytes and independent
+consistency assertions; this is no numeric-literal ban or universal semantic detector.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.production-composition-tests -->
 - Tests resolve production capabilities through actual feature registration and lifecycle. Observe

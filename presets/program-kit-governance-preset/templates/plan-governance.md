@@ -65,12 +65,29 @@ is required. Keep semantic design and test intent here; execution output belongs
 |-----------|----------|------------|--------|
 | [operation-id] | ownership | [actual semantic/effect owner, public seam and first ownership-transfer edge] | plan.md#Architecture and engineering |
 | [operation-id] | results | [valid result/state invariants and material failure meanings] | plan.md#Architecture and engineering |
+| [operation-id] | limits | [Limits: stable-id, stable-id OR No applicable limits: specific reason] | plan.md#Architecture and engineering |
 
 Use this existing plan table to make applicable decisions concrete before dependent source work.
 One row per operation/decision; `Source` is a current repository-relative or feature-relative file,
 optionally `#Exact Markdown heading`, containing its design basis. Keep each resolution at most
 1600 characters; refer to the actual existing design section for detail. Do not create another receipt.
-Always resolve `ownership` and `results`. Add only applicable categories:
+Always resolve `ownership`, `results` and `limits`. The `limits` row declares an exact comma-separated
+inventory (`Limits: page-size, request-deadline`) or `No applicable limits: <specific reason>`.
+For each ID add one `limit:<id>` row in this same table. Use these exact semicolon-separated
+`key=value` fields: `meaning; units; owner; classification; value; basis; enforcement; validation`.
+Classification is `configurable-policy`, `fixed-contract` or `engineering-safeguard`.
+Configurable policy additionally requires `setting; default-basis; lifecycle; consumers`. Name the
+actual configuration binding, justified default (or mandatory input), activation/reload ownership,
+all consuming boundaries and configured/invalid/default/boundary checks. Pure Core receives admitted
+typed policy values; it does not read configuration/I/O. Fixed contracts require their actual basis;
+engineering safeguards require a locally justified risk/bound, without routine human approval.
+`Source` must cite an existing authoritative spec/contract/configuration/ADR or independent design
+section; the operation map or whole containing plan cannot authorize its own limit. Missing product
+policy remains unresolved, rather than inventing a value or laundering it through a constant. Existing
+hard-coded behavior alone establishes neither an approved business policy nor an approved default.
+Do not inventory ordinary indexes/discriminants or make protocol/citation/auth invariants configurable.
+Reconcile actual source and all consumers against this inventory at completion; a no-limit claim and
+source authority still require semantic review. Add only applicable mechanism categories:
 
 - `cancellation-deadline`: caller token, one composed deadline, late-result handling and terminal state.
 - `cleanup-uncertainty`: ownership from first acquisition/remote identity through every subsequent await,

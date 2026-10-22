@@ -32,7 +32,7 @@ Report planning coverage separately from actual executed proof: finalized tasks,
 unchanged setup readiness or a focused checkpoint never establish full product acceptance.
 
 Compare both existing `Operation implementation map` tables. For each affected source operation,
-confirm concrete ownership/result invariants and its applicable cancellation/deadline,
+confirm concrete ownership/result invariants, exact limits/limit:<id> inventory and authority/configuration decisions, and its applicable cancellation/deadline,
 cleanup/uncertainty, transaction/replay, admission, bounds, concurrency, configuration/time and
 activation/drain choices. The task row must select a compatible pattern/example or supported manual
 route/reason, name first adverse cases and their actual test owner/command, and place compiler/analyzer

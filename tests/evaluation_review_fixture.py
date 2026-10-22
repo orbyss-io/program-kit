@@ -224,6 +224,13 @@ elif action=='request':
         'assessment':'Fictional inspection of canonical family '+family}],
       'review':'docs/patterns/review.md','conclusion':'Scoped source review and independent compiled owner/order/duplicate/snapshot results inspected.',
       'limits':'Finite .NET/BCL application and native planned graph; authored review is fictional and unauthenticated. No provider/browser/human acceptance.'} for (family,owner),rules in groups.items()]
+    from operation_readiness import LIMIT_RULE, limit_review_targets
+    for claim in claims:
+        if LIMIT_RULE in claim['rules']:
+            claim['inspections'][0]['limitReconciliation']=[
+                {'operation':operation,'limit':identity,'disposition':'compliant',
+                 'assessment':'Explicit fictional per-limit reconciliation; finite compiled behavior and actual source remain the exercised scope.'}
+                for operation,identity in sorted(limit_review_targets(prepared['coding']),key=lambda pair:(pair[0],pair[1] or ''))]
     value={'action':'engineering','checkpoint':'US1','configuration':'Release','checks':[actual['run'],native_reference], 'evaluation':claims}
     (root/'request.json').write_text(json.dumps(value,indent=2))
 elif action=='native-limits':

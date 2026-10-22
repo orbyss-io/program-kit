@@ -120,7 +120,8 @@ def _exercise(project, source_root):
                     for operation in ('create', 'integrate', 'export')
                     for key, resolution in (
                         ('ownership', 'The fictional text owner maintains finite task-state artifacts; provider or application behavior is outside this fixture.'),
-                        ('results', 'Fresh uncompleted story tasks preserve the fictional owned outcome and carry no prior implementation progress.')))
+                        ('results', 'Fresh uncompleted story tasks preserve the fictional owned outcome and carry no prior implementation progress.'),
+                        ('limits', 'No applicable limits: this fresh fictional text-state authoring changes no behavioral/resource ceiling.')))
         + '\n', encoding='utf-8')
     for phase in ('planning', 'after-plan', 'tasks'):
         output = run('phase_obligations.py', 'project' if phase != 'after-plan' else 'check', '--feature-dir', relative, '--phase', phase)

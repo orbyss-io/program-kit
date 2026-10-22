@@ -76,6 +76,7 @@ def seed(root, feature, *, evaluation=False):
             for field in DECISIONS:
                 resolution = ('Fictional state engine owns retained task and review transitions.' if field == 'ownership' else
                               'Fictional decisions and evidence stay separate; tests assert their exact state.' if field == 'results' else
+                              'No applicable limits: this synthetic state fixture changes no product/resource bound.' if field == 'limits' else
                               'Not applicable: this synthetic state-machine fixture executes no real application or provider contract.')
                 stream.write('| ' + operation + ' | ' + field + ' | ' + resolution + ' | spec.md |\n')
     (feature / 'tasks.md').write_text(story_tasks(), encoding='utf-8')

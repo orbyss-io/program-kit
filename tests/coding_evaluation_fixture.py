@@ -8,6 +8,13 @@ def fictional_claims(coding, source_path, checks, review='review.md'):
                     'findings': ['Synthetic authoring exercises admission only; no real semantic or human acceptance claim.'],
                     'assessment': 'Fictional authored inspection for canonical family ' + family}
                    for (family, owner), rules in groups.items()]
+    from operation_readiness import LIMIT_RULE, limit_review_targets
+    for inspection in inspections:
+        if LIMIT_RULE in inspection['rules']:
+            inspection['limitReconciliation'] = [
+                {'operation': operation, 'limit': identity, 'disposition': 'compliant',
+                 'assessment': 'Explicit fictional reconciliation only; executable fixture owns any actual finite behavior claim.'}
+                for operation, identity in sorted(limit_review_targets(coding), key=lambda pair: (pair[0], pair[1] or ''))]
     return [{'rules': [rule for rules in groups.values() for rule in rules], 'checks': checks, 'review': review,
              'authorship': {'implementationAuthors': ['fictional-implementer'], 'reviewer': 'fictional-independent-reviewer', 'kind': 'agent'},
              'inspections': inspections,

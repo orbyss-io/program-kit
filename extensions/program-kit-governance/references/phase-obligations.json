@@ -166,7 +166,8 @@
       "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "operationDecisions": [
         "ownership",
-        "results"
+        "results",
+        "limits"
       ]
     },
     {

@@ -75,7 +75,7 @@ not replace ordinary artifact ownership or human story review.
    missing behavior when test-first is selected; labels alone do not prove low risk. Tests required by the
    constitution are mandatory. Story closure has story regressions; feature closure has complete
    acceptance. Do not schedule every verification category after every task.
-   Carry concrete applicable plan `Operation implementation map` decisions into the task table of
+   Carry concrete applicable plan `Operation implementation map` decisions, including each limit and its configured/invalid/default/boundary/consumer checks, into the task table of
    that name: selected compatible pattern/example or supported manual route and reason, first adverse
    cases with actual test owner/command, and first coherent compiler/analyzer/focused checks before
    expanding behavior. Name ownership-transfer, deadline, cancellation, cleanup, transaction/replay,

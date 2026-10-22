@@ -17,6 +17,7 @@ TASK_COLUMNS = ['Operation', 'Pattern / example', 'Compatibility / alternative',
 DECISIONS = {
     'ownership': 'the semantic/effect owner, first ownership-transfer edge and public seam',
     'results': 'valid result/state invariants, material failures and externally visible meaning',
+    'limits': 'an exact per-limit inventory with authoritative policy/configuration decisions, or a specific no-limit explanation',
     'cancellation-deadline': 'the caller token, one composed deadline/budget, cancellation and late-result handling',
     'cleanup-uncertainty': 'resource lifetime and cleanup/recovery from the first acquired identity through every later failure',
     'transactions-replay': 'transaction boundaries, commit uncertainty, concurrency and replay/idempotency ownership',
@@ -84,6 +85,96 @@ def _reference(root, feature, value):
             return None
     return {'path': path.relative_to(root).as_posix(), 'heading': heading or None,
             'sha256': hashlib.sha256(data).hexdigest()}
+
+
+LIMIT_RULE = 'principle.operational-setting-lifecycle'
+LIMIT_FIELDS = {'meaning', 'units', 'owner', 'classification', 'value', 'basis', 'enforcement', 'validation'}
+CONFIG_FIELDS = {'setting', 'default-basis', 'lifecycle', 'consumers'}
+LIMIT_CLASSES = {'configurable-policy', 'fixed-contract', 'engineering-safeguard'}
+LIMIT_ID = r'[a-z][a-z0-9-]{0,63}'
+
+
+def _limits(root, feature, operation, decisions, block):
+    """Read individual decisions in the existing table, never infer policy from numbers."""
+    inventories = [row for row in decisions if row[1] == 'limits']
+    rows = [row for row in decisions if row[1].startswith('limit:')]
+    result = {'inventory': None, 'items': []}
+    if len(inventories) != 1:
+        return result  # The ordinary decision loop owns the missing/duplicate diagnostic.
+    resolution = inventories[0][2]
+    no_limits = re.fullmatch(r'No applicable limits:\s*(.+)', resolution, re.I)
+    if (no_limits and _concrete(no_limits[1])
+            and not re.fullmatch(r'(?:not applicable|no applicable limits|no limits|no changes)', no_limits[1].strip(), re.I)):
+        result['inventory'] = []
+    else:
+        declared = re.fullmatch(r'Limits:\s*(.+)', resolution, re.I)
+        ids = [value.strip() for value in declared[1].split(',')] if declared else []
+        if not ids or any(not re.fullmatch(LIMIT_ID, value) for value in ids) or len(set(ids)) != len(ids):
+            block('limits', 'Use Limits: <unique stable-id>, <stable-id> or No applicable limits: <specific reason>; a generic bounds/configuration decision is insufficient.')
+            return result
+        result['inventory'] = ids
+    expected = set(result['inventory'])
+    actual = [row[1].removeprefix('limit:') for row in rows]
+    if len(actual) != len(set(actual)) or set(actual) != expected:
+        block('limits', 'The limits inventory and individual limit:<id> rows must match exactly, without missing, duplicate or orphan decisions.')
+    for _, key, resolution, reference in rows:
+        identity = key.removeprefix('limit:')
+        fields = {}
+        malformed = False
+        for cell in resolution.split(';'):
+            label, separator, value = cell.strip().partition('=')
+            if not separator or label in fields or not _concrete(value):
+                malformed = True
+            fields[label] = value.strip()
+        classification = fields.get('classification')
+        observed_only = any(re.fullmatch(r'(?:existing implementation|current constant|legacy value|existing hardcoded value)', fields.get(label, ''), re.I)
+                            for label in ('basis', 'default-basis'))
+        expected_fields = LIMIT_FIELDS | (CONFIG_FIELDS if classification == 'configurable-policy' else set())
+        authority = _reference(root, feature, reference)
+        # A row cannot establish its own policy authority by citing itself or the whole plan.
+        self_citation = authority and authority['path'] in {
+            (feature / name).relative_to(root).as_posix() for name in ('plan.md', 'tasks.md')
+        } and authority['heading'] in (None, HEADING)
+        if (not re.fullmatch(LIMIT_ID, identity) or len(resolution) > 1600 or malformed
+                or observed_only or set(fields) != expected_fields or classification not in LIMIT_CLASSES
+                or authority is None or self_citation):
+            block(key, 'Name exact meaning, units, owner, classification, value, basis, enforcement and validation fields; configurable-policy also needs setting, default-basis, lifecycle and consumers. Use semicolon-separated key=value fields and an independent current design/spec/ADR/configuration basis; the map cannot authorize itself.')
+            continue
+        result['items'].append({'id': identity, **fields, 'source': authority})
+    return result
+
+
+def limit_review_targets(coding, task_ids=None):
+    """Current scoped inventory identities; authors still own completeness and meaning."""
+    tasks = set(task_ids if task_ids is not None else coding['scope']['taskIds'])
+    result = set()
+    for operation in coding.get('operationBrief', {}).get('operations', []):
+        if operation.get('taskIds') and not tasks.intersection(operation['taskIds']):
+            continue
+        inventory = operation.get('limits', {}).get('inventory')
+        if inventory is None:
+            raise ValueError('PKC020 current per-limit decisions remain unresolved; reprepare affected plan/tasks')
+        result.update((operation['operation'], identity) for identity in inventory or [None])
+    return result
+
+
+def validate_limit_reconciliation(coding, rows, task_ids=None):
+    """Validate existing review structure, not the truth of an authored assessment."""
+    expected = limit_review_targets(coding, task_ids)
+    if not isinstance(rows, list) or (not rows and expected):
+        raise ValueError('PKC020 reconcile every current limit (or explicit no-limit operation) in its existing source inspection')
+    actual = []
+    for row in rows:
+        if (not isinstance(row, dict) or set(row) != {'operation', 'limit', 'disposition', 'assessment'}
+                or not isinstance(row['operation'], str) or not (row['limit'] is None or isinstance(row['limit'], str))
+                or row['disposition'] != 'compliant' or not isinstance(row['assessment'], str)
+                or not _concrete(row['assessment']) or re.fullmatch(r'(?:compliant|passed|reviewed|not applicable|no applicable limits)', row['assessment'].strip(), re.I)
+                or len(row['assessment']) > 1600):
+            raise ValueError('PKC020 unresolved/invalid limit reconciliation; repair actual policy/configuration/source/tests and plan/tasks before claiming compliance')
+        actual.append((row['operation'], row['limit']))
+    if len(actual) != len(set(actual)) or set(actual) != expected:
+        raise ValueError('PKC020 reconcile exact current operation/limit identities without missing, duplicate or foreign decisions')
+    return rows
 
 
 def _required(tags):
@@ -164,6 +255,8 @@ def inspect(root, feature, scope, tags, stage='source', *, operation_contexts=No
         else:
             for field in sorted(required | {row[1] for row in decisions}):
                 rows = [row for row in decisions if row[1] == field]
+                if field.startswith('limit:'):
+                    continue
                 if field not in DECISIONS:
                     block(field, 'Unknown decision category; use the existing supported categories or repair the maintained detector for a missing capability.')
                     continue
@@ -174,11 +267,12 @@ def inspect(root, feature, scope, tags, stage='source', *, operation_contexts=No
                 source = _reference(root, feature, reference)
                 nonapplicable = bool(re.match(r'Not applicable:\s*\S', resolution, re.I))
                 if not _concrete(resolution) or len(resolution) > 1600 or source is None or (
-                        nonapplicable and (field in {'ownership', 'results'} or not _concrete(resolution.split(':', 1)[1]))):
+                        nonapplicable and (field in {'ownership', 'results', 'limits'} or not _concrete(resolution.split(':', 1)[1]))):
                     block(field, 'Replace the placeholder/oversized resolution or missing/stale local source; describe the actual choice, or a reasoned conditional nonapplicability.')
                     continue
                 brief['decisions'].append({'decision': field, 'resolution': resolution,
                                            'source': source, 'nonapplicableClaim': nonapplicable})
+        brief['limits'] = _limits(root, feature, operation, decisions, block)
         if task_error:
             block('implementation-route', task_error, 'tasks.md')
         elif len(implementation) != 1:

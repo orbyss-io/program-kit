@@ -90,6 +90,19 @@ ownership rather than claiming another operation's effects are irrelevant withou
 Setup can materialize native projects while consequential choices are unresolved. Actual
 source work still needs a ready operation brief, including source discovered during setup.
 
+Every source operation also needs `limits` plus exact individual `limit:<id>` decisions in that same
+plan table (or a reasoned no-limit declaration). The plan template owns the bounded labeled fields;
+configurable policy includes actual setting/default basis/lifecycle/all-consumer decisions. A generic
+bounds row cannot replace them. Existing source inspections for operational-setting-lifecycle must
+reconcile exact `(operation, limit)` identities (null for no limits) through `limitReconciliation`;
+missing, duplicate, foreign or unresolved entries cannot close completion. Both new and retained
+reviews recheck this structure. Named limits also require an actual evaluated/native, selected frontend
+or explicitly task-owned manual implementation source witness; policy/ADR/configuration citations alone
+cannot close consumption review. No-limit and unrelated design-only inspections retain their scope. All scoped authority references enter the existing freshness basis,
+so changed cited policy/default/ADR bytes stale affected review. These checks establish structure and
+freshness, not whether an author hid a limit or a cited policy is authoritative; source review and
+actual configured-boundary/invalid/default/consumer tests retain those semantic responsibilities.
+
 The brief includes concrete ownership/result invariants and applicable deadline,
 cancellation, cleanup/uncertainty, transaction/replay, admission, bounds, concurrency,
 time/configuration and activation/drain choices. It also carries compatible selected

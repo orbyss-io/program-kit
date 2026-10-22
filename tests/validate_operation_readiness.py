@@ -32,6 +32,7 @@ class OperationReadinessTests(unittest.TestCase):
             rows.extend([
                 (operation, 'ownership', 'The ' + operation + ' package owns its isolated view and public seam.'),
                 (operation, 'results', 'Only the admitted view value is observable; failures retain the appropriate view state.'),
+                (operation, 'limits', 'No applicable limits: this target-free synthetic routing fixture changes no actual behavioral ceiling.'),
                 (operation, 'admission', 'The isolated view accepts the typed local contract and admits untrusted values at its entry.'),
             ])
         rows.extend([
@@ -77,7 +78,7 @@ class OperationReadinessTests(unittest.TestCase):
         with FixtureDirectory(native=True) as directory:
             root = Path(directory)
             feature = self.mixed_frontend_fixture(root)
-            static_expected = {'ownership', 'results', 'admission'}
+            static_expected = {'ownership', 'results', 'limits', 'admission'}
             preview_expected = static_expected | {'cancellation-deadline', 'cleanup-uncertainty', 'bounds'}
             expected = {'static': static_expected, 'preview': preview_expected}
             for label, scope, selected in (
@@ -115,8 +116,8 @@ class OperationReadinessTests(unittest.TestCase):
         import task_draft as tasks
         import conformance_repair
         from coding_context import prepare
-        expected = {'static': {'ownership', 'results', 'admission'},
-                    'preview': {'ownership', 'results', 'admission', 'cancellation-deadline', 'cleanup-uncertainty', 'bounds'}}
+        expected = {'static': {'ownership', 'results', 'limits', 'admission'},
+                    'preview': {'ownership', 'results', 'limits', 'admission', 'cancellation-deadline', 'cleanup-uncertainty', 'bounds'}}
         for operations in (['static', 'preview'], ['preview', 'static']):
             with self.subTest(first_owner=operations[0]), FixtureDirectory(native=True) as directory:
                 root = Path(directory)
@@ -175,7 +176,7 @@ class OperationReadinessTests(unittest.TestCase):
         (package / 'source.ts').write_text('export async function preview(file: File) { const bytes = await file.arrayBuffer(); return getDocument(bytes).promise; }')
         target = self.feature / 'tasks.md'
         target.write_text(target.read_text().replace('Implement async provider upload in src/Upload.cs', 'Implement preview in apps/client/source.ts'))
-        self.plan_rows = [row for row in self.plan_rows if row[0] != 'upload' or row[1] in ('ownership', 'results')]
+        self.plan_rows = [row for row in self.plan_rows if row[0] != 'upload' or row[1] in ('ownership', 'results', 'limits')]
         self.write_plan()
         value = prepare(self.root, self.feature, task_ids=['T001'], check_adoption=False)['coding']
         self.assertIn('browser-effects', value['responsibilities'])
@@ -210,10 +211,12 @@ class OperationReadinessTests(unittest.TestCase):
         self.plan_rows = [
             ('upload', 'ownership', 'Document application owns dispatch identity before the accounting await.'),
             ('upload', 'results', 'Completed requires admitted immutable observations; failures retain the remote locator.'),
+            ('upload', 'limits', 'No applicable limits: this target-free ownership-edge fixture does not implement or alter a behavioral/resource ceiling.'),
             ('upload', 'cancellation-deadline', 'Caller token and shared operation deadline span dispatch, accounting and polling; stale results are discarded.'),
             ('upload', 'cleanup-uncertainty', 'Cleanup owner records the operation ID before accounting; accounting failure or cancellation triggers bounded cleanup and retains uncertain outcome.'),
             ('list', 'ownership', 'Catalog pure policy owns the in-memory title projection.'),
             ('list', 'results', 'An immutable ordered title list preserves existing public meaning.'),
+            ('list', 'limits', 'No applicable limits: this pure representation repair introduces no policy or work ceiling.'),
         ]
         self.write_plan()
         self.write_tasks()
@@ -249,7 +252,7 @@ class OperationReadinessTests(unittest.TestCase):
         result = self.inspect()
         self.assertEqual('ready', result['status'])
         operation = result['operations'][0]
-        self.assertEqual({'ownership', 'results', 'cancellation-deadline', 'cleanup-uncertainty'}, set(operation['requiredDecisions']))
+        self.assertEqual({'ownership', 'results', 'limits', 'cancellation-deadline', 'cleanup-uncertainty'}, set(operation['requiredDecisions']))
         cleanup = next(d for d in operation['decisions'] if d['decision'] == 'cleanup-uncertainty')
         self.assertIn('accounting failure', cleanup['resolution'])
         self.assertIn('cancel during accounting', operation['implementation']['adverseCases'])
@@ -326,7 +329,7 @@ class OperationReadinessTests(unittest.TestCase):
         result = self.inspect('list')
         self.assertEqual('ready', result['status'])
         self.assertFalse(result['blockers'])
-        self.assertEqual(['ownership', 'results'], result['operations'][0]['requiredDecisions'])
+        self.assertEqual(['limits', 'ownership', 'results'], result['operations'][0]['requiredDecisions'])
 
     def test_legacy_missing_maps_cannot_silently_pass_source_entry(self):
         (self.feature / 'plan.md').write_text('Existing plan.', encoding='utf-8')
@@ -361,6 +364,90 @@ class OperationReadinessTests(unittest.TestCase):
         result = self.inspect()
         self.assertEqual('ready', result['status'])
         self.assertTrue(next(d for d in result['operations'][0]['decisions'] if d['decision'] == 'bounds')['nonapplicableClaim'])
+
+    def limit_policy(self, classification='configurable-policy'):
+        fields = {
+            'meaning': 'maximum admitted caption length', 'units': 'Unicode code points',
+            'owner': 'Caption application owner', 'classification': classification,
+            'value': '48 default' if classification == 'configurable-policy' else '64 fixed ceiling',
+            'basis': 'existing caption policy in Design', 'enforcement': 'typed admission and pure validation',
+            'validation': 'invalid/default/nondefault and exact-boundary cases',
+        }
+        if classification == 'configurable-policy':
+            fields.update(setting='Caption.MaxLength', **{'default-basis': 'existing policy default of 48'},
+                          lifecycle='validated immutable activation snapshot', consumers='API admission, pure Core and client contract')
+        return fields
+
+    def add_limit(self, operation='upload', classification='configurable-policy'):
+        self.plan_rows = [row for row in self.plan_rows if not (row[0] == operation and row[1] == 'limits')]
+        self.plan_rows.extend([(operation, 'limits', 'Limits: caption-length'),
+                              (operation, 'limit:caption-length', '; '.join(key + '=' + value for key, value in self.limit_policy(classification).items()))])
+        self.write_plan()
+        plan = self.feature / 'plan.md'
+        plan.write_text(plan.read_text(encoding='utf-8').replace('Current agreed design.',
+            'Current agreed design. Fictional accepted caption policy: the application owner uses a configurable maximum of 48 Unicode code points by default, validated at activation and enforced at all consumers. The independent fixed wire ceiling is 64 code points; the fictional engineering owner also chooses a 64-item work cap for bounded memory. These are simulated test decisions, not inferred from source or human acceptance.'), encoding='utf-8')
+
+    def test_each_limit_needs_classified_authority_and_configured_consumption_before_coding(self):
+        for classification in readiness.LIMIT_CLASSES:
+            with self.subTest(classification=classification):
+                self.add_limit(classification=classification)
+                result = self.inspect()
+                self.assertEqual('ready', result['status'], result['blockers'])
+                limit = result['operations'][0]['limits']['items'][0]
+                self.assertEqual(classification, limit['classification'])
+                self.assertEqual('caption-length', limit['id'])
+                self.assertEqual('Design', limit['source']['heading'])
+                self.plan_rows = [row for row in self.plan_rows if not row[1].startswith('limit:')]
+        # The same local id in another operation has a distinct policy and scope.
+        self.add_limit('list', 'engineering-safeguard')
+        self.add_limit()
+        self.assertEqual('configurable-policy', self.inspect()['operations'][0]['limits']['items'][0]['classification'])
+        self.assertEqual('engineering-safeguard', self.inspect('list')['operations'][0]['limits']['items'][0]['classification'])
+
+    def test_generic_bounds_cannot_replace_inventory_and_every_limit_field_is_due(self):
+        self.plan_rows = [row for row in self.plan_rows if row[:2] != ('upload', 'limits')]
+        self.plan_rows.append(('upload', 'bounds', 'The operation owner chooses sensible configured bounds.'))
+        self.write_plan()
+        result = self.inspect()
+        self.assertEqual('blocked', result['status'])
+        self.assertIn('limits', {finding['decision'] for finding in result['blockers']})
+        self.assertEqual('ready', self.inspect('list')['status'])
+        self.add_limit()
+        original = (self.feature / 'plan.md').read_text(encoding='utf-8')
+        fields = self.limit_policy()
+        for field, value in fields.items():
+            with self.subTest(field=field):
+                text = original.replace(field + '=' + value, field + '=TBD')
+                (self.feature / 'plan.md').write_text(text, encoding='utf-8')
+                self.assertEqual('blocked', self.inspect()['status'])
+        for replacement in ('Limits: caption-length, caption-length', 'Limits: missing-id', 'No applicable limits: none', 'No applicable limits: not applicable', 'No applicable limits: no applicable limits'):
+            (self.feature / 'plan.md').write_text(original.replace('Limits: caption-length', replacement), encoding='utf-8')
+            self.assertEqual('blocked', self.inspect()['status'])
+        for observed in ('existing implementation', 'current constant'):
+            (self.feature / 'plan.md').write_text(original.replace(fields['default-basis'], observed), encoding='utf-8')
+            self.assertEqual('blocked', self.inspect()['status'])
+        for reference in ('plan.md', 'plan.md#Operation implementation map', 'plan.md#Absent', 'https://example.test/policy'):
+            text = original.replace('| limit:caption-length | ' + '; '.join(key + '=' + value for key, value in fields.items()) + ' | plan.md#Design |',
+                                    '| limit:caption-length | ' + '; '.join(key + '=' + value for key, value in fields.items()) + ' | ' + reference + ' |')
+            (self.feature / 'plan.md').write_text(text, encoding='utf-8')
+            self.assertEqual('blocked', self.inspect()['status'], reference)
+        (self.feature / 'plan.md').write_text(original, encoding='utf-8')
+        with (self.feature / 'plan.md').open('a', encoding='utf-8') as stream:
+            stream.write(next(line for line in original.splitlines() if '| limit:caption-length |' in line) + '\n')
+        self.assertEqual('blocked', self.inspect()['status'])
+
+    def test_pure_manual_non_dotnet_operation_has_same_inventory_requirement(self):
+        tags = {'source-production'}
+        good = readiness.inspect(self.root, self.feature, self.scope('list'), tags)
+        self.assertEqual('ready', good['status'])
+        self.assertEqual([], good['operations'][0]['limits']['inventory'])
+        self.plan_rows = [row for row in self.plan_rows if row[:2] != ('list', 'limits')]
+        self.write_plan()
+        blocked = readiness.inspect(self.root, self.feature, self.scope('list'), tags)
+        self.assertEqual('blocked', blocked['status'])
+        self.assertEqual('PKC020', blocked['blockers'][0]['code'])
+        self.assertIn('spec.md/clarifications only when product meaning changes', blocked['blockers'][0]['artifactUpdates'])
+        self.assertEqual('setup-only', readiness.inspect(self.root, self.feature, self.scope('list'), tags, 'setup')['status'])
 
     def test_installed_helper_uses_existing_local_artifacts(self):
         installed = self.root / '.specify/extensions/program-kit-governance/scripts'

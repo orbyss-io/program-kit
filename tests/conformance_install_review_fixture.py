@@ -81,8 +81,10 @@ def scenario(archives):
               '## Operation implementation map\n| Operation | Decision | Resolution | Source |\n|---|---|---|---|\n'
               '| maintain | ownership | The existing text-record owner maintains src/Record.txt; authority and public identity remain fixed. | plan.md#Decisions |\n'
               '| maintain | results | Whitespace representation changes preserve the admitted uppercase ALPHA identity and exact result. | spec.md |\n'
+              '| maintain | limits | No applicable limits: whitespace repair changes no behavioral/resource ceiling; ALPHA identity remains invariant. | spec.md |\n'
               '| continue | ownership | The same existing owner writes src/Next.txt only after maintained-record prerequisites. | plan.md#Decisions |\n'
-              '| continue | results | Continuation observes the same admitted ALPHA identity; no new product meaning is approved. | spec.md |\n')
+              '| continue | results | Continuation observes the same admitted ALPHA identity; no new product meaning is approved. | spec.md |\n'
+              '| continue | limits | No applicable limits: this continuation preserves the existing identity without a resource/policy ceiling. | spec.md |\n')
         write(feature / 'tasks.md', POLICY + '''
 # Fictional record tasks
 - [ ] T001 [US1] Maintain admitted identity in src/Record.txt
@@ -138,6 +140,11 @@ def scenario(archives):
         assert any(row['code'] == 'PKC020' for row in blocked['coding']['blockers'])
         plan.write_bytes(original_plan)
         prepare('07-recovered-precode-decision')
+        plan.write_bytes(b'\n'.join(line for line in original_plan.split(b'\n') if not line.startswith(b'| maintain | limits |')))
+        missing_limits = prepare('07a-missing-individual-limit-inventory', expected=2)
+        assert any(row['code'] == 'PKC020' and row.get('decision') == 'limits' for row in missing_limits['coding']['blockers'])
+        plan.write_bytes(original_plan)
+        prepare('07b-recovered-limit-inventory')
         git = ['git', '-c', 'safe.directory=' + native_path(consumer), '-c', 'core.excludesFile=']
         for label, args in [('08-git-init', ['init', '-q']), ('09-git-add', ['add', '.']),
                             ('10-git-baseline', ['-c', 'user.name=Fictional Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Fictional installed inputs'])]:
@@ -177,6 +184,13 @@ def scenario(archives):
                        'conclusion': 'Finite record identity preserved; grouped fictional source review has its explicit state-test scope.',
                        'limits': 'No authenticated reviewer, real product acceptance, provider/browser or native analyzer qualification.'}
                       for (family, owner), rules in groups.items()]
+            for claim in claims:
+                if 'principle.operational-setting-lifecycle' in claim['rules']:
+                    assert all(op['limits']['inventory'] == [] for op in coding['operationBrief']['operations'])
+                    claim['inspections'][0]['limitReconciliation'] = [
+                        {'operation': op['operation'], 'limit': None, 'disposition': 'compliant',
+                         'assessment': 'Fictional current text representation changes no resource/policy bound; fixed ALPHA identity is an invariant.'}
+                        for op in coding['operationBrief']['operations']]
             return {'action': 'engineering', 'checkpoint': 'US1', 'checks': [check_reference],
                     'basisPaths': ['src/Record.txt'], 'evaluation': claims, **extra}
 
