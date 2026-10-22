@@ -34,9 +34,15 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def io_path(path):
+    """Use the shared owned-path adapter only for Python filesystem operations."""
+    from owned_scratch import filesystem_path
+    return Path(filesystem_path(Path(path).resolve()))
+
+
 def file_sha256(path):
     digest = hashlib.sha256()
-    with Path(path).open('rb') as stream:
+    with io_path(path).open('rb') as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b''):
             digest.update(block)
     return digest.hexdigest()
@@ -56,6 +62,7 @@ def contracts_profile(pins):
 
 
 def host_runtime_inventory(payload):
+    payload = io_path(payload)
     paths = [p for p in payload.iterdir() if p.is_file() and p.suffix.lower() in ('.dll', '.json')]
     for directory in (payload / 'runtimes', payload / '.orbyss-foundation'):
         if directory.is_dir():
@@ -74,6 +81,7 @@ def host_runtime_inventory(payload):
 
 
 def shared_contract_versions(payload):
+    payload = io_path(payload)
     libraries=json.loads((payload/'Orbyss.Foundation.Host.deps.json').read_text(encoding='utf-8'))['libraries']
     versions={}
     for identity in HOST_SHARED:
@@ -85,6 +93,7 @@ def shared_contract_versions(payload):
 
 
 def public_host_contract(payload, image, image_id, release='0.3.0'):
+    payload = io_path(payload)
     validate_public_image(image)
     require(re.fullmatch(r'sha256:[0-9a-f]{64}', image_id or '') is not None, 'Captured native image ID is invalid')
     inventory = host_runtime_inventory(payload)
@@ -136,6 +145,7 @@ def validate_public_image(image):
 
 def prepare_shared_runtime(root, pins, assets, runtime_packages):
     """Prove image/archive identity before excluding any native loader root."""
+    root, runtime_packages = io_path(root), io_path(runtime_packages)
     require(contracts_profile(pins), 'Shared binding preparation requires the exact contracts profile')
     binding = pins.get('hostPayload', {})
     require(set(binding) == {'path', 'inputs', 'inputsSha256'} and binding['path'] == 'public-host-payload'
@@ -146,7 +156,7 @@ def prepare_shared_runtime(root, pins, assets, runtime_packages):
     actual = public_host_contract(root / binding['path'], pins['hostImage'], proof.get('imageId'),pins['foundationRelease'])
     shared_versions=shared_contract_versions(root/binding['path'])
     require(proof == actual, 'Captured public Host payload/configuration differs from its recorded inputs')
-    roots = [Path(value) for value in assets['packageFolders']]
+    roots = [io_path(value) for value in assets['packageFolders']]
     archives, bindings, observed, provenance_inputs = [], [], set(), []
     for identity, library in assets['libraries'].items():
         if library['type'] != 'package':
@@ -207,6 +217,7 @@ def prepare_shared_runtime(root, pins, assets, runtime_packages):
 
 def verify_retained_runtime_inputs(root, pins):
     """Recheck immutable inputs after native execution; outputs do not replace admitted inputs."""
+    root = io_path(root)
     binding = pins['hostPayload']
     require(file_sha256(root / binding['inputs']) == binding['inputsSha256'], 'Public capture inputs changed during runtime')
     proof = json.loads((root / binding['inputs']).read_text(encoding='utf-8'))
@@ -258,6 +269,7 @@ def verify_retained_runtime_inputs(root, pins):
 
 def published_host_evidence(root, pins):
     """Portable complete input proof, rechecked by the wrapper and receipt sealer."""
+    root = io_path(root)
     require(contracts_profile(pins), 'Published Host proof requires the reviewed contracts profile')
     verify_retained_runtime_inputs(root, pins)
     cleanup = json.loads((root / 'runtime-cleanup.json').read_text(encoding='utf-8'))
@@ -352,7 +364,7 @@ def main():
     if shared_contracts:
         shared_assemblies = prepare_shared_runtime(root, pins, assets, packages)
     else:
-        package_roots = [Path(p) for p in assets['packageFolders']]
+        package_roots = [io_path(p) for p in assets['packageFolders']]
         copied = []
         for identity, library in assets['libraries'].items():
             if library['type'] != 'package' or identity.lower().startswith(('cshells.', 'nuplane')):

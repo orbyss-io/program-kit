@@ -2,6 +2,7 @@
 
 ## Vocabulary
 
+<!-- program-kit:knowledge-rule principle.context-vocabulary -->
 - **Bounded context**: a business-language and model-ownership boundary.
 - **Core**: one context or cohesive subdomain's stable semantic surface and extension points.
 - **Implementation**: activatable behavior that realizes capabilities from one or more Core projects.
@@ -18,9 +19,11 @@ These concepts are related but not interchangeable. A feature identity is not a 
 shell is not a bounded context, an endpoint is not a composition root, and one project may expose
 more than one runtime feature. Project/package names use domain language and never add `.Feature` as
 a generic segment; a feature implementation type may use the `Feature` suffix.
+<!-- /program-kit:knowledge-rule -->
 
 ## Proportional domain-driven design
 
+<!-- program-kit:knowledge-rule principle.proportional-context-design -->
 Use strategic DDD to discover bounded contexts, ownership, relationships, and ubiquitous language.
 First classify evidenced subdomains as Core (product differentiation), Supporting (necessary but
 not differentiating), or Generic (commodity/managed mechanism). A bounded context is not a synonym
@@ -35,9 +38,11 @@ behavior may remain transaction scripts inside a well-owned slice.
 Core behavior is independent of transport, persistence, serialization, dependency injection,
 runtime activation, and vendor frameworks. Aggregates protect invariants and transaction boundaries.
 Internal aggregates never double as public transport, integration-event, or persistence contracts.
+<!-- /program-kit:knowledge-rule -->
 
 ## Core, helper, and implementation packages
 
+<!-- program-kit:knowledge-rule principle.core-semantic-surface -->
 An `<Application>.<Context>.Core` may own deliberately stable:
 
 - aggregates, entities, value objects, invariants, policies, errors, and pure domain services;
@@ -50,6 +55,7 @@ Core excludes runtime feature classes, DI registration, ASP.NET endpoints and wi
 ORM/provider types, persistence records and mappings, migrations, serializers, vendor SDKs, and
 private implementation interfaces. Do not put a type in Core merely because two implementations use
 it today.
+<!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:decision-rule compilation-responsibilities -->
 <!-- program-kit:knowledge-rule principle.compilation-boundaries -->
@@ -101,6 +107,7 @@ composition projects require explicit responsibility repair; do not silently rel
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 
+<!-- program-kit:knowledge-rule principle.core-implementation-topology -->
 Shell/deployment configuration selects implementations; it does not own their behavior.
 A capability belongs to Core and its runtime implementation belongs to a distinct implementation,
 provider or bridge project.
@@ -114,9 +121,11 @@ Do not create generic `Domain`, `Contracts`, `Application`, or `Infrastructure` 
 default topology. Do not create a solution-wide `Core`, `Common`, or `Shared` dependency sink. Split a
 Core into cohesive subdomains only when language, consumers, dependency weight, ownership, or change
 lifecycle justifies the boundary.
+<!-- /program-kit:knowledge-rule -->
 
 ## Semantic capability contracts
 
+<!-- program-kit:knowledge-rule principle.semantic-capability-boundary -->
 Core declares behavior in domain language rather than prescribing repositories, stores, units of
 work, generic CRUD, or implementation technology. Prefer names such as `IActiveCatalogItemLookup`,
 `ICatalogRevisionLifecycle`, and `IPriceDashboardQueries`.
@@ -132,9 +141,11 @@ Do not expose `DbContext`, `DbSet`, `IQueryable`, provider query expressions, st
 transaction objects from Core. Express necessary filters, pagination, temporal rules, projections,
 and atomic effects in business-semantic request/result types. Do not create an abstraction solely to
 mock a framework in a unit test.
+<!-- /program-kit:knowledge-rule -->
 
 ## Persistence boundaries
 
+<!-- program-kit:knowledge-rule context.persistence-boundary-overlap -->
 Provider-specific records, mappings, schemas, indexes, migrations, ORM contexts, and query plans stay
 private to the provider. A provider maps those records to and from the owning domain or published
 boundary model. Persistence entities are separate provider-owned types, including persistence-ignorant
@@ -144,9 +155,11 @@ equality/tracking behavior and schema evolution independent of public business s
 A context never accesses another context's database, schema, ORM context, persistence record, or
 internal model. A materialized analytical plane may expose a semantically named query capability
 while background workers and provider packages privately own how it is populated.
+<!-- /program-kit:knowledge-rule -->
 
 ## Cross-context decision rule
 
+<!-- program-kit:knowledge-rule principle.cross-context-admissibility -->
 Use a consumer-owned capability and bridge when the consumer needs a synchronous answer in its own
 language, meanings differ, the provider is optional, or translation protects either side. Use a
 domain event when an owner announces a fact to zero or more independent observers and does not need a
@@ -172,15 +185,19 @@ capability/event/orchestrator mode, contract and contract owner, translation/ACL
 data owner, consistency owner, failure owner, and atomicity. Partnership and Shared Kernel are not
 neutral defaults; require explicit accepted evidence. Cross-context atomic writes remain unresolved
 until an ADR justifies the consistency and failure semantics.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.consumer-meaning-ownership -->
 Managed capability coverage describes a mechanism, never automatic ownership of consumer meaning.
 Program Kit Forms owns reusable schema/rendering/validation/editor/lookup/action mechanisms. A
 calculator's form configuration, item references, pricing/VAT meaning, quantification visibility,
 publication, and workflow are consumer semantics. Keep them in consumer-owned contexts/modules and
 connect them to the mechanism through a named semantic profile and adapter/bridge.
+<!-- /program-kit:knowledge-rule -->
 
 ## Domain and integration events
 
+<!-- program-kit:knowledge-rule principle.domain-integration-delivery -->
 Domain events are immutable past-tense facts owned by a Core. Publish them through a lightweight
 abstraction; do not inject a dispatcher into an aggregate or make event delivery part of the business
 object model. Activatable implementations register awaited typed handlers. Subscribers are
@@ -193,9 +210,11 @@ Events architecture backlog. The owning context maps an internal domain event in
 integration contract and atomically records it with the state change through an outbox-capable
 provider. Integration design must define at-least-once delivery, idempotency, ordering, retry and
 dead-letter behavior, versioning, retention, replay, security, and observability.
+<!-- /program-kit:knowledge-rule -->
 
 ## Dependency and ownership rules
 
+<!-- program-kit:knowledge-rule principle.dependency-ownership-contract -->
 - Core references only other explicitly accepted Core packages and lightweight abstractions.
 - Helpers reference Core/helpers, never implementations.
 - Implementations, providers, and bridges reference Core/helpers, never peer implementations.
@@ -208,11 +227,13 @@ dead-letter behavior, versioning, retention, replay, security, and observability
 - Business behavior never resolves dependencies through a service locator.
 - Public API, event, and schema contracts are versioned independently from internal aggregates.
 - Framework registration interfaces live in deliberately lightweight framework abstractions.
+<!-- /program-kit:knowledge-rule -->
 
 ## Runtime and HTTP ownership
 
 ### API evolution evidence
 
+<!-- program-kit:knowledge-rule principle.api-evolution-pipeline -->
 The existing OpenAPI registry, exporter, normalized baseline, oasdiff and locked client generator
 remain the contract pipeline. Record affected operations, registered contracts, baseline references,
 typed DTO/parser/schema checks, compatibility cases and version decisions in the existing plan/tasks.
@@ -220,7 +241,9 @@ No api-proof dossier or separate verification-plan is required. Task generation 
 and compatibility checks before dependent work; it does not execute them before saving tasks.
 A new API may declare an absent baseline during design, but delivery needs the generated initial baseline.
 Never create a second baseline simply because evidence is stale or a compatibility check fails.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.api-semantic-compatibility -->
 Review strict request admission and tolerant response consumption according to the supported wire
 contract. Test old clients, stored snapshots, approved converters/variants, canonical identity and
 denied inputs as applicable; a structural OpenAPI diff cannot prove semantic compatibility. Preserve
@@ -229,14 +252,18 @@ accepted version/migration/deprecation policy and removal conditions, not a sile
 Keep API route/document versions, NuGet versions, persistence schema versions, form schema versions
 and canonical identity versions distinct. Introduce parallel V1/V2 namespaces/routes only for an
 actual supported compatibility boundary. Evaluate runtime version negotiation separately when needed.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.api-evolve-historical-disposition -->
 API Evolve v1.0.0 was evaluated at upstream commit `ca528b093120d3e10c50c3a5c6179577e8264852`
 on 2026-09-13. Its manifest fails the installed Spec Kit validator (`requires.speckit_version`
 missing); commands/hooks are agent instruction documents, and its baseline/task/release mutations
 overlap this pipeline. Do not install or invoke it as a required gate in this version. Retain the
 useful compatibility questions above; reconsider adoption only with verified compatible hooks,
 one baseline authority, current proof and no feature-triggered release side effects.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.http-runtime-ownership -->
 The external host and selected Program Kit web runtime own authentication mechanisms, standard
 middleware ordering, common Problem Details/correlation/security-header infrastructure, CORS and
 OpenAPI infrastructure. Deployment configuration supplies provider
@@ -245,6 +272,7 @@ authority, audience, origins, claim mappings, and limits.
 Each `.Api` implementation owns its route groups, wire models, endpoint-specific validation and
 bounds, OpenAPI metadata, stable application permission identities, and policy/rate requirements.
 Provider roles and token shapes are normalized by the host boundary; endpoints do not parse them.
+<!-- /program-kit:knowledge-rule -->
 <!-- program-kit:decision-rule authorization-ownership -->
 <!-- program-kit:knowledge-rule principle.authorization-ownership -->
 Keep three owners distinct: deployment selects provider-role/scope mappings, the Program Kit
@@ -254,6 +282,7 @@ of the first two or reparse canonical permission claims in a consumer feature. F
 authorization decision; for a protected business effect it is only the outer gate.
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
+<!-- program-kit:knowledge-rule principle.operation-owned-api-source -->
 Do not create an application-root `Administration.Api` or `Platform.WebBoundary` project merely to
 repeat generic host plumbing.
 
@@ -262,7 +291,9 @@ when needed, local admission/mapping and route/metadata. Resolve endpoint instan
 explicit constructor dependencies; never capture scoped instances at startup. Composition assembles
 operation registrations. A small/bodyless operation may remain a simple mapping with a reviewed
 rationale; do not invent empty DTOs or a mediator. Peer operations do not use each other's helpers.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.typed-operation-focused-example -->
 For a concrete native API/Core/provider slice, use the installed optional
 `program-kit-dotnet/references/examples/typed-operation/README.md` and its exact
 source-export command. It registers strict typed JSON, resolves an explicit Core
@@ -272,21 +303,27 @@ transport adapter. Qualification includes authenticated HTTP and independent
 durable-effect observation; cold metadata export alone establishes neither.
 Export it with `python .specify/extensions/program-kit-governance/scripts/asset_sources.py
 --repository . --component program-kit-dotnet --subtree references/examples/typed-operation`.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.owned-identifiers-result-bounds -->
 Use cohesive owner-specific Constants/keys types for route, schema, profile and replay identifiers;
 prefer exported framework constants. Deployment limits belong to typed validated options, and
 localized text to owned resources. Do not create a solution-wide Constants sink. Preserve canonical
 bytes, hashes and replay versions; runtime `GetHashCode` is not a persistent identity. Large result
 sections page independently and stay bounded through construction, storage, hashing and delivery.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.foundation-typed-wire-contract -->
 Use public typed Foundation identity, problem contribution and JSON budget contracts when the
 selected qualified version supplies them. Retained versions use named exact-version compatibility
 adapters rather than private-provider conventions scattered across endpoints. Application ownership,
 outcome policy and canonical ordering remain consumer semantics. Test managed and application error
 paths together; unexpected programming exceptions must retain safe server-failure handling.
+<!-- /program-kit:knowledge-rule -->
 
 ## Enforcement evidence
 
+<!-- program-kit:knowledge-rule principle.architecture-semantic-evidence -->
 Keep ownership, semantic capability/event boundaries and dependency decisions in the existing
 architecture model, plan and ADRs. Use ordinary engineering configuration such as
 `eng/architecture.json` and the actual project/compiled graph for project roles, exact dependency
@@ -305,3 +342,4 @@ types explicitly in normal source review. A filename, namespace or dependency-pr
 certify semantic responsibility. Record source locations and dispositions in normal tasks/delivery
 output. Upgrade diagnoses incompatible retained graphs while preserving ADRs and consumer settings;
 it does not silently rewrite role authority or grant a namespace exception.
+<!-- /program-kit:knowledge-rule -->

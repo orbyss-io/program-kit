@@ -5,6 +5,7 @@ this general .NET profile or by an operational database health probe.
 
 ## Baseline
 
+<!-- program-kit:knowledge-rule principle.dotnet-baseline-engineering -->
 When .NET is detected, evaluate and normally enforce:
 
 - a current supported SDK/runtime policy pinned in `global.json` where appropriate;
@@ -18,18 +19,24 @@ When .NET is detected, evaluate and normally enforce:
 - unit, integration, architecture, contract, and acceptance tests selected by risk;
 - ArchUnitNET or an equivalent deterministic check when project or assembly dependency rules need executable enforcement;
 - Reqnroll when business-critical multistep behavior benefits from executable examples.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.dotnet-adopted-baseline-context -->
 Explicit intake selections and the versioned Program Kit .NET defaults are adopted through the
 bootstrap assessment gate. Choices outside that reviewed baseline remain Proposed until accepted by
 ADR. ORM, serializer, and test-framework details use the baseline defaults when available rather
 than becoming mandatory human questions.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.dotnet-managed-sdk-authority -->
 The exact SDK in the selected Program Kit profile's managed `global.json` is authoritative even
 when `dotnet --version` reports an older or different local SDK. Treat that mismatch as an actionable
 install/upgrade requirement and urge exact, side-by-side remediation. Keep the local SDK as project
 truth only after the user explicitly approves the `managed-toolchain-version` override recorded by
 the bootstrap decision contract; current-version research alone is not an override.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.device-toolchain-recovery -->
 When shared device tools are missing or have different versions, follow the installed
 governance `references/device-toolchain-policy.md`. Pause dependent execution and give the user
 officially verified exact-version commands for their own terminal, along with the pin, detected
@@ -37,12 +44,16 @@ path/version, privileges, persistent selection and refresh/verification steps. T
 runs device installers, even with legacy approval flags. Repository-local SDK/Node/npm tools,
 local uv tool environments and temporary PATH selections cannot establish device readiness.
 Preserve existing installations and side-by-side SDKs. Normal project restores remain supported.
+<!-- /program-kit:knowledge-rule -->
 
 ## Modular DDD topology
 
+<!-- program-kit:knowledge-rule principle.dotnet-topology-introduction -->
 Apply `modularity-and-contracts.md` and `vertical-slicing.md`. The required compilation graph, for
 the responsibilities actually present, is:
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.dotnet-compilation-graph-example -->
 ```text
 external Orbyss.Foundation.Host
   -> packaged activatable implementations selected by shells.json
@@ -61,7 +72,9 @@ Application.Consumer.Provider
   -> Application.Consumer.Core
   -> Application.Provider.Core
 ```
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.dotnet-compilation-ownership -->
 The external host is the composition root and loads the selected feature package closure; the
 consumer repository does not create a host project unless an explicit accepted opt-out selects a
 custom runtime. A runtime feature is an activation type and stable identity, not a project-name
@@ -83,7 +96,9 @@ descriptors, and semantic capability interfaces. It excludes CShells activation,
 ASP.NET wire types, middleware, EF/provider types, persistence records, migrations, serializers,
 vendor SDKs, and private implementation interfaces. Core must not become a catalogue of every type
 that could possibly be shared.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.dotnet-domain-package-topology -->
 Do not create `Domain`, `Contracts`, `Application`, or `Infrastructure` projects as generic
 horizontal layers. Create a `.Core` only for an identified context or cohesive subdomain. Put the
 default activatable implementation in the domain-named project, HTTP adaptation in `.Api`, and
@@ -95,9 +110,11 @@ capability while translating between their semantic models.
 Do not create a solution-wide `Core`, `Common`, or `Shared` project as a default dependency sink.
 Keep a genuinely shared semantic kernel small, jointly owned, versioned, and backed by an Accepted
 ADR. Name it for the business language it owns rather than `Shared`.
+<!-- /program-kit:knowledge-rule -->
 
 ## Feature references and inheritance
 
+<!-- program-kit:knowledge-rule context.dotnet-dependency-native-overlap -->
 - Implementations of a semantic capability depend on its owning `.Core`; they do not depend on each
   other.
 - A concrete feature-to-feature `ProjectReference` is forbidden by default.
@@ -112,29 +129,39 @@ ADR. Name it for the business language it owns rather than `Shared`.
   assembly dependencies. The declared graph is authoritative even when a reference has not yet
   produced a CLR type dependency. Exact Accepted exceptions are allowlisted; naming conventions
   alone are insufficient enforcement.
+<!-- /program-kit:knowledge-rule -->
 
 ## Orbyss Foundation host and CShells profile mapping
 
+<!-- program-kit:knowledge-rule context.dotnet-host-adoption-context -->
 When .NET is selected, adopt the application-neutral `Orbyss.Foundation.Host` and its CShells/Nuplane composition model as the
 automatic Program Kit default unless intake explicitly opts out. This default uses CShells as the
 runtime composition mechanism; it does not imply that shells are tenants or bounded contexts.
 Record the independently pinned building-block packages, their third-party dependencies, and package
 sources as a material acknowledgement in the assessment review packet. Do not download or restore
 them merely by approving architecture.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.package-source-routing -->
 Treat Package Source Mapping as source routing, not as a Program Kit dependency allowlist. The
 scaffolded configuration maps the protected `CShells` and `Nuplane` namespaces to their approved
 preview feeds; a generic nuget.org mapping accepts other public packages and their transitive
 closures. Consumers own dependency selection and may add private sources with specific namespace
 mappings. Keep dependency approval in the consumer's version pins, lock files, architecture rules,
 security checks, and accepted decisions rather than requiring Program Kit to enumerate package IDs.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.dotnet-host-optout-context -->
 An explicit opt-out may select a conventional ASP.NET Core host. Record why the Orbyss Foundation host is
 not suitable and which composition, packaging, task, and deployment responsibilities the project
 then owns.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.accepted-host-mapping-context -->
 When accepted:
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.shell-feature-lifecycle-contract -->
 - feature projects reference `CShells.Abstractions` or, for web composition,
   `CShells.AspNetCore.Abstractions`;
 - the selected published host owns the full `CShells` and `CShells.AspNetCore` runtimes;
@@ -157,14 +184,18 @@ When accepted:
   and compatibility treatment;
 - all CShells packages are pinned to the same researched version and exercised through composition,
   isolation, routing, reload, drain, and upgrade tests appropriate to the accepted capabilities.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.shell-isolation-security -->
 Shells are runtime isolation contexts; they are not bounded contexts. Verify tenant identity,
 authorization, service lifetimes, root-service copying/exclusion, configuration isolation, route
 ownership, background scopes, drain semantics, and recovery before treating a shell as a security or
 tenancy boundary.
+<!-- /program-kit:knowledge-rule -->
 
 ## ASP.NET Core Minimal API slices
 
+<!-- program-kit:knowledge-rule principle.minimal-api-operation-ownership -->
 Use built-in ASP.NET Core Minimal APIs as the default HTTP candidate when a vertical slice exposes an
 HTTP boundary. A web feature maps a feature-owned `RouteGroupBuilder` from
 `IWebShellFeature.MapEndpoints`; each slice contributes a small mapping method and co-located wire
@@ -182,7 +213,9 @@ request model or new layer is required. Keep domain behavior in its owned semant
 
 For example, `Operations/ReadNote/Endpoint.cs` can register a request-resolved instance while the
 feature registers its scoped endpoint and the selected implementation registers `INoteLookup`:
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.minimal-api-layout-example -->
 ```csharp
 internal sealed class Endpoint(INoteLookup notes)
 {
@@ -198,7 +231,9 @@ internal sealed class Endpoint(INoteLookup notes)
     }
 }
 ```
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.minimal-api-contract-verification -->
 The operation-owned `ResponseMapping` uses the selected qualified typed Foundation response budget
 and problem contribution contracts. This layout example does not supply that application mapping,
 authorization or metadata: each operation must define and test them. For a protected read, pass the
@@ -223,7 +258,9 @@ Require every public operation to define:
 Endpoints remain thin transport adapters. They may coordinate a simple transaction script or invoke
 application/domain behavior, but they do not own business invariants. Endpoint filters handle
 transport-cross-cutting concerns only and must not become a hidden domain pipeline.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.active-api-capability-bindings -->
 The selected Program Kit web runtime configures authentication schemes, middleware ordering, common
 Problem Details, correlation, standard security headers, CORS, and OpenAPI infrastructure from
 host/deployment configuration. Consumer `.Api` packages
@@ -243,7 +280,9 @@ after-plan/after-tasks and before affected implementation. Real shell activation
 tests must prove registration behavior; method existence alone cannot prove correct DI wiring.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.openapi-producer-client-closure -->
 For an externally consumed OpenAPI surface, register a consumer-owned contract in
 `eng/openapi-contracts.json` before implementation readiness. The contract names the shell and
 every route-contributing feature, uses its shell's unique declared host `runtimeStage` plus `/packages`
@@ -256,7 +295,9 @@ runs the separately locked client generator, and finally compiles the applicatio
 The exporter tool is restored only when the registry is non-empty; its dependencies are not added to feature
 projects or the application. Generator dependencies remain consumer-selected inside the isolated generator
 package, subject to strict peer/engine resolution evidence.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.protected-api-policy-boundary -->
 When the application has an authenticated browser boundary, the selected Orbyss Foundation host web
 profile owns the versioned runtime contract in `../secure-web-profiles.md`. Feature endpoints declare
 a stable application permission/policy or explicit anonymous access; they do not select schemes,
@@ -268,6 +309,7 @@ Do not add a feature-side provider-role parser, canonical `permissions` claim pa
 `*PermissionPolicy` around the managed dynamic policy provider. A bodyless/no-effect permission probe
 uses only `.RequireAuthorization("permission:<identity>")`. A command or query that changes, reveals,
 or admits protected business state additionally invokes the owning resource/state/effect rule.
+<!-- /program-kit:knowledge-rule -->
 
 ## Domain and persistence rules
 

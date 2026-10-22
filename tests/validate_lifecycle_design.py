@@ -56,6 +56,30 @@ class LifecycleDesignTests(unittest.TestCase):
         self.assertIn('do not merely relabel', findings[0]['message'])
         self.assertEqual(original, self.manifest)
 
+    def test_missing_role_has_selected_owner_repair_without_assuming_runtime_ownership(self):
+        self.manifest['runtimeComposition']['projects'][0].pop('role')
+        original = copy.deepcopy(self.manifest)
+        with self.assertRaisesRegex(ValueError, 'Unknown architecture role'):
+            architecture.validate_manifest(self.root, self.manifest)
+        findings = architecture.lifecycle_findings(self.root, self.manifest, {self.provider})
+        self.assertEqual(['invalid-project-role'], [row['id'] for row in findings])
+        self.assertIn('architecture owner', findings[0]['message'])
+        self.assertIn('eng/architecture.json', findings[0]['message'])
+        self.assertEqual(original, self.manifest)
+        self.assertEqual([], architecture.lifecycle_findings(self.root, self.manifest, {self.application}))
+
+    def test_nonstring_json_role_is_actionable_through_the_same_enum_owner(self):
+        for role in ([], {}):
+            with self.subTest(role=role):
+                self.manifest['runtimeComposition']['projects'][0]['role'] = role
+                original = copy.deepcopy(self.manifest)
+                with self.assertRaisesRegex(ValueError, 'Unknown architecture role'):
+                    architecture.validate_manifest(self.root, self.manifest)
+                findings = architecture.lifecycle_findings(self.root, self.manifest, {self.provider})
+                self.assertEqual(['invalid-project-role'], [row['id'] for row in findings])
+                self.assertIn('architecture owner', findings[0]['message'])
+                self.assertEqual(original, self.manifest)
+
     def test_foreign_tasks_are_found_after_preset_retirement(self):
         self.manifest['runtimeComposition']['projects'].pop()
         self.source(self.provider, 'Schema.cs', 'namespace Notes.PostgreSql; public class Schema : IShellInitializer { }')

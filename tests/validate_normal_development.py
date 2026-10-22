@@ -18,6 +18,7 @@ import implementation_preflight
 import execution_history
 import upgrade_remediation
 from validate_story_delivery import seed, accepted_fixture
+from knowledge_review_fixture import BRIEF_LIMITS, assert_complete_required_text
 
 
 class DevelopmentTests(unittest.TestCase):
@@ -79,6 +80,49 @@ class DevelopmentTests(unittest.TestCase):
         (self.feature / 'plan.md').write_text('Use src/Owner/Owner.csproj for a frontend-only application.')
         with self.assertRaisesRegex(ValueError, 'conflicts with selected backend'):
             feature_context.context(self.root, self.feature, 'planning')
+
+    def test_operation_decision_labels_do_not_invent_effects_for_pure_policy(self):
+        import feature_context
+        plan = self.feature / 'plan.md'
+        with plan.open('a') as stream:
+            stream.write('\nC# pure policy in src/Policy/Policy.csproj.\n')
+        plan.write_text(plan.read_text().replace('Fictional state engine owns retained task and review transitions.', 'The finite immutable policy owner computes its supplied result.'))
+        tags = feature_context.context(self.root, self.feature, 'implementation')
+        self.assertIn('dotnet', tags)
+        self.assertNotIn('capabilities', tags)
+        self.assertNotIn('dotnet-async', tags)
+        self.assertNotIn('dotnet-concurrency', tags)
+        # The same maintained table retains concrete affirmative resolutions.
+        text = plan.read_text()
+        old = '| create | activation-drain | Not applicable: this synthetic state-machine fixture executes no real application or provider contract. | spec.md |'
+        self.assertIn(old, text)
+        plan.write_text(text.replace(old, '| create | activation-drain | The ShellFeature activation owner starts and drains its owned background task before disposal. | spec.md |'))
+        actual = feature_context.context(self.root, self.feature, 'implementation')
+        self.assertIn('capabilities', actual)
+        self.assertIn('dotnet-async', actual)
+        self.assertIn('dotnet-lifetime', actual)
+
+    def test_unknown_or_malformed_decision_rows_retain_conservative_intent(self):
+        import feature_context
+        plan = self.feature / 'plan.md'
+        prefix = 'C# pure policy.\n## Operation implementation map\n| Operation | Decision | Resolution | Source |\n|---|---|---|---|\n'
+        for row in (
+                '| create | unknown-activation | Not applicable: activation and async worker ownership is unresolved. | spec.md |',
+                '| create | ShellFeature activation | Unknown responsibility | spec.md | extra-column |'):
+            with self.subTest(row=row):
+                plan.write_text(prefix + row)
+                self.assertIn('capabilities', feature_context.context(self.root, self.feature, 'implementation'))
+
+    def test_not_applicable_decisions_do_not_hide_actual_selected_source(self):
+        import feature_context
+        project = self.root / 'src/Policy/Policy.csproj'
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project Sdk="Microsoft.NET.Sdk" />')
+        (project.parent / 'Policy.cs').write_text('internal class Policy { internal async Task Run() { await Task.Delay(1); } }')
+        with (self.feature / 'plan.md').open('a') as stream:
+            stream.write('\nC# policy in src/Policy/Policy.csproj.\n')
+        tags = feature_context.context(self.root, self.feature, 'implementation')
+        self.assertIn('dotnet-async', tags)
 
     def test_genuine_frontend_only_scope_remains_supported(self):
         import feature_context
@@ -309,7 +353,14 @@ class DevelopmentTests(unittest.TestCase):
         outputs = {p: knowledge.render(knowledge.project(self.root, self.feature, p), p)
                    for p in ('planning','tasks','implementation','delivery')}
         # Brevity cannot erase decisive canonical constraints; full references stay focused.
-        self.assertTrue(all(len(o.split()) < 1600 for o in outputs.values()))
+        self.assertTrue(all(len(o.encode('utf-8')) < BRIEF_LIMITS['mixed'] for o in outputs.values()))
+        for phase, output in outputs.items():
+            value = knowledge.project(self.root, self.feature, phase)
+            assert_complete_required_text(self, knowledge.catalog(), value['requirements'], output, ROOT / 'extensions')
+        for output in outputs.values():
+            self.assertIn('Never invoke a method inside an argument', output)
+            self.assertIn('Preserve evaluation order, cancellation, disposal and deferred activation', output)
+            self.assertIn('a green build does not waive that review', output)
         self.assertTrue(all('canonical permission' in o and 'when those responsibilities exist' in o
                             for o in outputs.values()))
         self.assertIn('decisions', outputs['planning'])

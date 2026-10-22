@@ -2,6 +2,7 @@
 
 ## Purpose
 
+<!-- program-kit:knowledge-rule principle.secure-web-owner-contract -->
 This is an implementation contract, not a menu of unanswered questions. Once a profile is selected,
 the Orbyss Foundation web building blocks supplies its authentication, common authorization, HTTP,
 configuration, operational, and test behavior. An application `.Api` implementation supplies route
@@ -11,9 +12,11 @@ and its business outcomes; it does not create an application-root web-boundary f
 The profile contract version is recorded in `docs/architecture/bootstrap-decisions.json` and
 `eng/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
 behavior change requires a new profile version.
+<!-- /program-kit:knowledge-rule -->
 
 ## Security assurance contract
 
+<!-- program-kit:knowledge-rule principle.secure-web-assurance -->
 Both authenticated profiles inherit:
 
 - threat model `program-kit-web-threat-model-v1` from `web-security-threat-model.md`; and
@@ -32,6 +35,7 @@ additional assets, threats or assumptions; configured-value overrides; accepted 
 stronger controls. Any security-sensitive override requires an Accepted ADR naming the owner,
 evidence, review condition, and regression test. Feature specifications consume the resulting
 boundary and do not reopen inherited protocol decisions.
+<!-- /program-kit:knowledge-rule -->
 
 ## Selection
 
@@ -68,6 +72,7 @@ architecture; it can and normally should use the BFF profile.
 
 ### Runtime configuration
 
+<!-- program-kit:knowledge-rule principle.secure-shell-configuration -->
 Configuration binds to the selected shell's `Foundation:Web` section and is validated when that
 shell activates. Secret values come from the environment or a secret provider and never from
 committed settings. For the scaffolded `default` shell, the BFF client-secret environment key is
@@ -75,7 +80,9 @@ committed settings. For the scaffolded `default` shell, the BFF client-secret en
 scaffold-owned `eng/spa-pkce.json` is the typed security input; synchronization validates it
 and derives the managed shell overlay, Keycloak registration, and browser contract. Consumers
 change that input and resynchronize rather than editing a derived managed file.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.secure-shell-settings -->
 - The active `Orbyss.Foundation.Authentication.BffCookie` or `Orbyss.Foundation.Authentication.SpaPkce` feature is
   the profile discriminator; runtime code does not branch on a profile enum.
 - `Authority`: HTTPS issuer URL; HTTP is permitted only by an explicit local-development setting.
@@ -100,9 +107,11 @@ change that input and resynchronize rather than editing a derived managed file.
 Invalid or incomplete selected-profile configuration prevents startup with a path-specific error.
 Checked-in local settings contain identifiers and loopback URLs only; production secrets and origins
 must be supplied by deployment.
+<!-- /program-kit:knowledge-rule -->
 
 ### Provider-neutral capability boundary
 
+<!-- program-kit:knowledge-rule principle.neutral-auth-capabilities -->
 Orbyss Foundation features model standards-based authentication capabilities, never the currently
 bundled identity-provider product. Interactive OIDC/OAuth, client credentials, downstream API token
 attachment, RFC 8693 token exchange, DPoP sender constraint, assurance/step-up (`acr`/`amr`), and
@@ -124,15 +133,19 @@ common authentication packages.
 The local-development HTTP exception follows this boundary too. Public authorities may use HTTP
 only on a loopback origin under the explicit development override. A container/provider hostname is
 not special-cased; server-only routing belongs in `BackchannelAuthority`.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.local-identity-network-fixture -->
 The local Keycloak fixture advertises `http://localhost:8080` to browsers while the application
 container retrieves discovery through `http://program-kit-identity:8080`. Keycloak derives its
 backchannel endpoints from that private request and retains the public issuer/frontchannel URLs.
 The application and identity Compose projects join the named `program-kit-local` network; replacing
 container `localhost` is forbidden because it changes loopback semantics for every process.
+<!-- /program-kit:knowledge-rule -->
 
 ### Authentication verification tiers
 
+<!-- program-kit:knowledge-rule principle.actual-authentication-verification -->
 Supported foundation compositions reuse these maintained tests and exact component evidence.
 Consumers run the maintained configuration/binding and small browser login/provider setup
 checks against their actual selected inputs. They own product permission/owner predicates,
@@ -143,13 +156,17 @@ The public identity issuer remains separate from private administration/transpor
 Link generated `docs/architecture/foundation-configuration.md` and the redacted settings
 view when describing materially configured behavior; distinguish configured projections
 from observed activation-effective options. Preserve the mandatory assurance gates below.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.publisher-portable-auth-contract -->
 Core CI continuously proves the portable contract: configuration validation, issuer/audience/key/lifetime
 validation, claims and permission normalization, BFF and SPA-PKCE journeys, machine identity, token
 exchange, downstream routing, refresh-token replay rejection, DPoP request binding, and deterministic
 discovery/JWKS rollover. These checks must remain unattended, deterministic, and provider-neutral except
 for the pinned local provider used as a baseline conformance fixture.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.advanced-auth-qualification -->
 Specialized authenticator and provider-administration lifecycles run through
 `scripts/Test-AdvancedAuthentication.ps1`. This explicit local suite proves real TOTP enrollment and
 challenge, passkey enrollment and passwordless sign-in, one-time recovery-code use and replay rejection,
@@ -163,16 +180,20 @@ distributed replay/nonce seams. Moving these journeys out of per-change CI does 
 acceptance contract: an advertised capability still requires a green portable contract and a green
 real-provider path before publication. Run the advanced suite whenever authentication runtime, the
 identity adapter/theme, or the pinned provider version changes.
+<!-- /program-kit:knowledge-rule -->
 
 ### Identity administration boundary
 
+<!-- program-kit:knowledge-rule principle.identity-portable-capability-selection -->
 `Orbyss.Foundation.Identity.Admin.Abstractions` owns the provider-neutral business-orchestration contracts.
 Consumers can create and maintain users and applications, manage reusable scopes and user-attribute
 claim mappings, assign realm roles and groups, initiate credential/enrollment actions, and observe or
 revoke sessions without referencing a provider product. `Orbyss.Foundation.Identity.Keycloak.Admin` implements
 those contracts and contributes separate CShell features for Users, Applications, Scopes, Access,
 Enrollment, and Sessions. Selecting one subdomain does not register another.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.identity-provider-selection-boundary -->
 Keycloak-specific facilities remain behind separately selected AuthenticationFlows, IdentityProviders,
 Organizations, and RealmOperations features. RealmOperations contains key metadata, audit-event
 configuration/queries, and brute-force lockout maintenance because those structures and permission
@@ -182,25 +203,33 @@ exposed. Those operations have destructive or privilege-escalating semantics tha
 accidental application dependency. Each enabled feature should receive a distinct confidential service
 account with only its required fine-grained administration permissions; pipeline application/scope
 provisioning should not share credentials with subscription-driven user enrollment.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.identity-provider-probe-context -->
 The deterministic consumer probe verifies feature isolation, safe service-account token caching, path
 encoding, portable projections, enrollment-action mapping, and every supported endpoint family. The
 advanced real-provider probe performs create/use/delete lifecycles for users, roles, groups, applications,
 scopes, claim mappers, credentials, sessions, and key metadata. Provider-specific JSON is confined to the
 explicit provider interfaces so a future adapter can implement the common orchestration contracts without
 consumer changes.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.identity-selection-source-context -->
 The complete endpoint selection, exclusions, and service-account permission model are documented in
 `references/keycloak-admin-api.md`.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.web-configured-default-review -->
 The presence of a configurable value does not mean its default is universal. The evidence register
 classifies every material default and states when it must be reviewed. In particular, identity time
 budgets are service-objective choices, session durations depend on assurance level and product risk,
 local identities and ports are development fixtures, locale selection is a product default, and CSP
 must be tightened or minimally adapted to the actual frontend resource model.
+<!-- /program-kit:knowledge-rule -->
 
 ### Authentication and claims
 
+<!-- program-kit:knowledge-rule principle.canonical-auth-permission-contract -->
 - Issuer, audience, signature, and token lifetime are validated.
 - The stable application subject is the issuer plus `sub`; email and display name are not keys.
 - provider roles/scopes/claims are normalized into canonical application permissions using
@@ -216,9 +245,11 @@ must be tightened or minimally adapted to the actual frontend resource model.
   endpoint needs a separately owned contract.
 - authentication failures use `401`; authenticated policy failures use `403`. API failures are
   `application/problem+json` with stable `code`, `traceId`, and no provider internals.
+<!-- /program-kit:knowledge-rule -->
 
 ### HTTP and telemetry
 
+<!-- program-kit:knowledge-rule principle.http-telemetry-contract -->
 - Every request has a validated or generated correlation ID, returned as `X-Correlation-ID` and
   included in problem responses and logging scopes.
 - Security headers include no-sniff, frame denial, a restrictive referrer policy, permissions policy,
@@ -230,9 +261,11 @@ must be tightened or minimally adapted to the actual frontend resource model.
 - identity-provider navigation is outside app-controlled response budgets. Product SLOs for
   discovery, JWKS, callback, API, and session operations are feature/deployment decisions and are
   not inferred from Program Kit's separate five-second local preflight default.
+<!-- /program-kit:knowledge-rule -->
 
 ### Identity provider fixture
 
+<!-- program-kit:knowledge-rule context.local-identity-profile-fixture -->
 The selected local profile supplies a pinned Keycloak container, imported realm, bearer-only API
 audience/scope, exactly one interactive client, and three non-production personas: authorized user,
 administrator, and authenticated user without the provider role that maps to the requested
@@ -252,9 +285,11 @@ validation describe BFF and SPA-PKCE as alternatives; they never prescribe their
 credentials are local-test data and are never reused in deployed environments. SPA redirect and
 post-logout registrations are exact routes derived from `eng/spa-pkce.json`; wildcard
 registrations are rejected before Compose starts.
+<!-- /program-kit:knowledge-rule -->
 
 ## `bff-cookie-v1`
 
+<!-- program-kit:knowledge-rule principle.bff-selected-browser-contract -->
 - The profile activates `Orbyss.Foundation.Authentication.BffCookie`, an `IWebShellFeature` plus ordered
   `IMiddlewareShellFeature`; the generic host contains no BFF endpoints, authentication handlers,
   antiforgery middleware, or response-format policy.
@@ -285,9 +320,11 @@ registrations are rejected before Compose starts.
   compatible profile.
 - cookie redirects are converted to `401`/`403` problem responses for `/api`; interactive BFF
   endpoints retain protocol redirects.
+<!-- /program-kit:knowledge-rule -->
 
 ## `spa-pkce-v1`
 
+<!-- program-kit:knowledge-rule principle.spa-selected-browser-contract -->
 - The profile activates `Orbyss.Foundation.Authentication.SpaPkce`, an ordered `IMiddlewareShellFeature`
   (and endpoint-capable `IWebShellFeature`); the generic host contains no bearer handler, CORS
   policy, or authentication response formatting.
@@ -324,6 +361,7 @@ registrations are rejected before Compose starts.
   top-level navigation needs no CSP source, while browser discovery/token calls need its exact
   origin in `connect-src`. Another approved SPA server must implement the same header contract and
   pass WEB-V1 configuration and WEB-V3 browser assertions.
+<!-- /program-kit:knowledge-rule -->
 
 ## Local preflight ownership
 
@@ -335,13 +373,16 @@ or stopped daemon without cascading commands or echoing daemon error details.
 
 ## Mandatory verification
 
+<!-- program-kit:knowledge-rule principle.web-assurance-levels -->
 Every selected web profile implements assurance levels `WEB-V1` through `WEB-V3` from the evidence
 register. A production deployment additionally owns `WEB-V4`. Every control must retain at least one
 prevention or detection mechanism and its mapped negative evidence; a passing happy-path login is
 not security evidence by itself.
 
 The shared contract suite plus profile-specific browser suite verifies:
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.web-adverse-verification -->
 1. Anonymous API call is `401`; a principal without the requested application permission receives
    exactly `403`; a principal with it succeeds with any `2xx` response, including `200` and `204`.
    Redirects and every other non-`2xx` response fail the authorized permission probe.
@@ -365,6 +406,7 @@ The shared contract suite plus profile-specific browser suite verifies:
     capture for login, callback, renewal, logout, or authenticated storage/network activity.
 
 Unit mocks may test feature policy logic, but they do not replace this browser/provider contract.
+<!-- /program-kit:knowledge-rule -->
 
 ## Managed ownership and extension points
 
@@ -383,6 +425,7 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 
 ## CShells feature composition
 
+<!-- program-kit:knowledge-rule principle.feature-owned-web-composition -->
 `Orbyss.Foundation.Host` owns only Nuplane/CShells bootstrapping, eager shell activation, `MapShells()`, and
 process lifetime. Web behavior is package-owned:
 
@@ -401,9 +444,11 @@ process lifetime. Web behavior is package-owned:
 Per-shell exception middleware covers downstream shell middleware and endpoints. A failure before
 CShells resolves and enters a shell remains a host-infrastructure failure and is not reformatted by
 an application feature.
+<!-- /program-kit:knowledge-rule -->
 
 ## Review and non-claims
 
+<!-- program-kit:knowledge-rule principle.authentication-presentation-contract -->
 Browser presentation is part of application acceptance. Keep authentication machine/API problems
 and `/bff/signed-out` typed JSON as protocol contracts. An application-owned presentation feature
 uses `IAuthenticationErrorWriter` for safe browser callback/access-denied output and provides public
@@ -428,7 +473,9 @@ and `TryAddSingleton` replacement seam, and additionally routes proven native pr
 document-retrieval and PAR availability failures to 503 `identity_provider_unavailable`. This excludes
 caller cancellation, malformed/client/configuration errors and unmarked or opaque custom transports;
 do not infer availability from exception text or catch every challenge failure as a provider outage.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.auth-human-interaction-budget -->
 The remote authentication timeout bounds the entire human flow, including credential entry, MFA
 and consent. Program Kit's omitted default is fifteen minutes; discovery/backchannel HTTP waits
 retain their separate short per-request limits, and native metadata retries can use more than one.
@@ -437,7 +484,9 @@ seconds; Foundation 0.3.4 defaults to 900 seconds and aligns native nonce lifeti
 the selected interaction timeout. Exact consumer selection is still required before relying on its contract.
 Test a fresh actual login with human-paced delay, expired-flow rejection/restart and independently
 bounded network failure. Immediate automated credential filling does not prove the interaction window.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.bff-independent-logout-budget -->
 Invoke the managed BFF logout adapter from a trusted user gesture, with an explicit application-owned
 `signedOutPath` and a signal independent of cancelled private-view work. Clear private content through
 `onDispatched`. Inspect its `localTermination` result: a postdispatch `unconfirmed` observation needs
@@ -445,7 +494,9 @@ public status/recovery, never restored private content or a claim that logout di
 adapter's one monotonic budget bounds its fetches/body reads; provider navigation is separate. Confirmed
 local termination can show a signed-out page even if provider completion is unavailable; say which fact
 is known and offer explicit sign-in. Preserve the possibility that an existing provider session is reused.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.logout-publisher-compatibility -->
 Use the selected publisher's supported browser logout destination setting when available and qualified;
 retain its root/non-root success/fallback coverage and JSON status contract. Before that capability is
 selected, a client-owned landing can control the application window but does not fix the publisher's
@@ -458,15 +509,20 @@ local session state nor provider-wide termination. Select the exact published/qu
 before relying on this option; do not retrofit it into the retained 0.3.3 profile or shadow its routes.
 Test actual controls/adapter, keyboard/focus/recovery and denied private access after provider failure;
 label raw JSON/status assertions as protocol evidence rather than complete browser acceptance.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.web-profile-review-triggers -->
 The profile must be reviewed when its standards or platform guidance changes, when the browser-app
 draft becomes final, when the runtime/provider/library/deployment model changes, after a relevant
 incident or advisory, for a security-sensitive override, and at least every twelve months. Review
 updates the evidence register's `lastReviewed` value and either preserves the profile contract or
 introduces a versioned migration.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule context.web-profile-nonclaims -->
 Program Kit does not claim that browser tests, security headers, BFF, PKCE, or OIDC alone make an
 application secure. It does not cover compromised identity providers or hosts, business-policy
 correctness, tenant isolation, abuse controls, privacy classification, production secret/key
 management, or risk-specific step-up authentication. Those responsibilities remain visible in the
 threat model and the consuming architecture.
+<!-- /program-kit:knowledge-rule -->

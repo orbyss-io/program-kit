@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "profile": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/profile.json",
+    "sha256": "195cc94e5a3c04c042b8c8c04b7bc574c7be1023da5ca48a95a6a32ce1be3a98"
+  },
+  "catalog": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/catalog.json",
+    "sha256": "d705b6caaa593fa3116312b226624eb35a2d5b46fb2f9ccf07030b40127a0992"
+  },
+  "snapshot": {
+    "path": "catalogs/candidate-2f7e806e/target-d705b6caaa593fa3116312b226624eb35a2d5b46fb2f9ccf07030b40127a0992.json",
+    "sha256": "d705b6caaa593fa3116312b226624eb35a2d5b46fb2f9ccf07030b40127a0992",
+    "base": {
+      "path": "catalogs/candidate-2f7e806e/base-8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae.json",
+      "sha256": "8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae"
+    }
+  },
+  "identity": "foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63",
+  "status": "qualified",
+  "publisherRelease": {
+    "commit": "b7802042ea3e68a2d4e533b4938674e2d5a4a6c5",
+    "workflow": "https://github.com/orbyss-io/dotnet-foundation/actions/runs/39781902982"
+  },
+  "publisherKnowledgeRefresh": {
+    "fromProfile": "foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2",
+    "reason": "Correct the publisher capture omission of the public analyzer buildTransitive/source-readability-contract.json; preserve the first 0.3.7 profile/capture and all history, keep exact package pins, and freshly qualify the distinct identity."
+  },
+  "recipe": {
+    "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/recipe-681f3070.json",
+    "sha256": "2e7cd3fc02130b14f55165f239b1cf76fe0f046df7778ce7d0c49b42dfe55753"
+  },
+  "proof": {
+    "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/qualification.json",
+    "sha256": "bfc598c59572a6d97cce42c2748c73b039f2ce28dd910f267402b9aa575b33cc"
+  },
+  "lockSha256": "da09e4aafe2dae6e76b10e63e7ff8fb6fac4bb3a98a60432d48645680c51a400",
+  "knowledge": {
+    "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/knowledge/index.json",
+    "sha256": "5b3a26dacb3a3c13bd066be530db043080e9fc5d53228f944ee2a8efa5dea15a"
+  }
+}

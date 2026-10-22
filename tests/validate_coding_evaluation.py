@@ -34,13 +34,14 @@ class EvaluationTests(unittest.TestCase):
         (self.feature / 'tasks.md').write_text('- [ ] T001 Apply owned behavior\n')
         (self.root / 'review.md').write_text('Scoped fictional review: inspect ownership, effects and source style. No human acceptance claim.')
         (self.root / 'check.py').write_text('print("Independent executed finite check")\n')
+        (self.root / 'Owner.cs').write_text('internal sealed class Owner {}\n')
         (self.root / 'eng').mkdir()
         self.config = {'schemaVersion': 1, 'toolkitChecks': [{'id': 'proof', 'script': 'check.py', 'arguments': [],
                        'inputs': ['check.py'], 'timeoutSeconds': 5}]}
         (self.root / 'eng/verification.json').write_text(json.dumps(self.config))
         self.rows = toolkit.declarations(self.root, self.config)
         self.execute()
-        self.value = {'scope': {'taskIds': ['T001']}, 'inputs': [coding.source(self.root, self.feature / 'tasks.md')],
+        self.value = {'scope': {'taskIds': ['T001']}, 'inputs': [coding.source(self.root, self.feature / 'tasks.md'), coding.source(self.root, self.root / 'Owner.cs')],
                       'projects': [], 'frontendProjects': [], 'profiles': [], 'patternsContext': {}, 'architecture': {},
                       'nativeContext': {'applicable': True, 'configuration': 'Debug', 'framework': None},
                       'evaluation': {'duties': [{'rule': 'owned', 'fingerprint': 'one', 'required': True,
@@ -52,7 +53,13 @@ class EvaluationTests(unittest.TestCase):
         return toolkit.execute(self.root, ['proof'], self.rows)
 
     def claim(self, **change):
+        rules = change.get('rules', ['owned', 'semantic'])
         return {'rules': ['owned', 'semantic'], 'checks': [{'kind': 'toolkit', 'id': 'proof'}], 'review': 'review.md',
+                'authorship': {'implementationAuthors': ['fictional-implementer'], 'reviewer': 'fictional-reviewer', 'kind': 'agent'},
+                'inspections': [{'rules': [rule], 'sources': [{'path': 'Owner.cs', 'start': 1, 'end': 1}],
+                                 'boundary': 'Fictional Owner declaration and caller capability',
+                                 'findings': ['No effectful behavior is claimed by this empty declaration.'],
+                                 'assessment': 'Inspected ' + rule + ' against the finite source declaration.'} for rule in rules],
                 'conclusion': 'Finite behavior and scoped source responsibilities inspected independently.',
                 'limits': 'Fictional authored review; actual check is finite Python behavior only.', **change}
 
@@ -196,6 +203,84 @@ class EvaluationTests(unittest.TestCase):
         declaration = {'kind': 'native', 'project': 'tests/Example.csproj', 'arguments': [], 'configuration': 'Release'}
         with self.assertRaisesRegex(ValueError, 'configuration differs'):
             self.bind(checks=[declaration])
+
+    def test_crossed_incomplete_duties_do_not_combine_into_complete_tasks(self):
+        first = self.bind(rules=['owned'])
+        other = copy.deepcopy(self.value)
+        other['scope']['taskIds'] = ['T002']
+        second = coding.bind_evaluation(self.root, self.feature, other, [self.claim(rules=['semantic'])])
+        whole = copy.deepcopy(self.value)
+        whole['scope']['taskIds'] = ['T001', 'T002']
+        with self.assertRaisesRegex(ValueError, 'PKC020'):
+            coding.require_evaluated(self.root, self.feature, whole, first + second)
+        # Heterogeneous applicability is valid; unrelated duties are not imposed.
+        whole['evaluation']['duties'][0]['taskIds'] = ['T001']
+        whole['evaluation']['duties'][1]['taskIds'] = ['T002']
+        coding.require_evaluated(self.root, self.feature, whole, first + second)
+
+    def test_generic_duplicate_outside_and_malformed_inspections_reject(self):
+        (self.root / 'private.txt').write_text('Unrelated source must not be read as task evidence.')
+        for change in ({'inspections': []}, {'inspections': [self.claim()['inspections'][0]] * 2},
+                       {'inspections': [{**row, 'sources': [{'path': 'private.txt', 'start': 1, 'end': 1}]}
+                                        for row in self.claim()['inspections']]},
+                       {'inspections': [{**row, 'sources': [{'path': 'Owner.cs', 'start': True, 'end': 200}]}
+                                        for row in self.claim()['inspections']]}):
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'PKC020'):
+                self.bind(**change)
+        # An actual scoped design/configuration source remains legitimate.
+        (self.root / 'design.md').write_text('Accepted finite owner design.')
+        self.value['inputs'].append(coding.source(self.root, self.root / 'design.md'))
+        self.bind(inspections=[{**row, 'sources': [{'path': 'design.md', 'start': 1, 'end': 1}]}
+                               for row in self.claim()['inspections']])
+
+    def test_related_family_groups_are_useful_but_bulk_unrelated_groups_reject(self):
+        inspections = [{**self.claim()['inspections'][0], 'rules': ['owned', 'semantic']}]
+        with self.assertRaisesRegex(ValueError, 'unrelated canonical families'):
+            self.bind(inspections=inspections)
+        for duty in self.value['evaluation']['duties']:
+            duty.update(reviewFamily='same-canonical-family', owner='actual owner')
+        records = self.bind(inspections=inspections)
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+
+    def test_explicit_manual_task_source_is_current_but_affected_hint_is_not_ownership(self):
+        (self.root / 'src').mkdir()
+        (self.root / 'src/Record.txt').write_text('Existing manual owner result.')
+        (self.root / 'src/Unrelated.txt').write_text('Unrelated source.')
+        self.value['scope']['tasks'] = ['- [ ] T001 Repair existing src/Record.txt']
+        self.value['affectedPaths'] = ['src/Unrelated.txt']
+        inspections = [{**row, 'sources': [{'path': 'src/Record.txt', 'start': 1, 'end': 1}]}
+                       for row in self.claim()['inspections']]
+        records = self.bind(inspections=inspections)
+        coding.require_evaluated(self.root, self.feature, self.value, records)
+        with self.assertRaisesRegex(ValueError, 'outside the affected/evaluated'):
+            self.bind(inspections=[{**row, 'sources': [{'path': 'src/Unrelated.txt', 'start': 1, 'end': 1}]} for row in inspections])
+        (self.root / 'src/Record.txt').write_text('Changed manual owner result.')
+        with self.assertRaisesRegex(ValueError, 'PKC020'):
+            coding.require_evaluated(self.root, self.feature, self.value, records)
+
+    def test_independent_effect_coverage_accepts_self_authored_mechanical_evidence(self):
+        self.value['evaluation']['duties'][1]['independentReviewRequired'] = True
+        self_authorship = {'implementationAuthors': [' Writer '], 'reviewer': 'writer', 'kind': 'agent'}
+        mechanical = self.bind(rules=['owned'], authorship=self_authorship)
+        semantic_self = self.bind(rules=['semantic'], checks=[], authorship=self_authorship)
+        coding.require_evaluated(self.root, self.feature, self.value, mechanical + semantic_self)
+        with self.assertRaisesRegex(ValueError, 'PKC022'):
+            coding.require_independent_review(self.value, mechanical + semantic_self)
+        semantic_independent = self.bind(rules=['semantic'], checks=[])
+        coding.require_evaluated(self.root, self.feature, self.value, mechanical + semantic_independent)
+        coding.require_independent_review(self.value, mechanical + semantic_independent)
+        unrelated = copy.deepcopy(semantic_self)
+        unrelated[0]['taskIds'] = ['T999']
+        coding.require_evaluated(self.root, self.feature, self.value, mechanical + semantic_independent + unrelated)
+        coding.require_independent_review(self.value, mechanical + semantic_independent + unrelated)
+        self.value['evaluation']['duties'][1]['fingerprint'] = 'new-canonical-policy'
+        semantic_current_self = self.bind(rules=['semantic'], checks=[], authorship=self_authorship)
+        coding.require_evaluated(self.root, self.feature, self.value, mechanical + semantic_current_self + semantic_independent)
+        with self.assertRaisesRegex(ValueError, 'PKC022'):
+            coding.require_independent_review(self.value, mechanical + semantic_current_self + semantic_independent)
+        fresh_independent = self.bind(rules=['semantic'], checks=[])
+        coding.require_evaluated(self.root, self.feature, self.value, mechanical + semantic_current_self + fresh_independent)
+        coding.require_independent_review(self.value, mechanical + semantic_current_self + fresh_independent)
 
 
 if __name__ == '__main__':

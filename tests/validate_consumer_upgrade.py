@@ -74,6 +74,28 @@ class ConsumerUpgradeTests(unittest.TestCase):
         record(self.root)
         self.guidance = build(ROOT, Path(self.temp.name) / 'guidance', '0.12.9')
 
+    def test_coding_conformance_adoption_blocks_only_affected_source_and_preserves_progress(self):
+        client = write(self.root, 'apps/preview/source.ts', 'export const label = "retained";')
+        value = flow.load(self.root)
+        value.update(sourceVersion='0.14.2', targetVersion='0.14.3')
+        flow.save(self.root, value, 'fictional-candidate-upgrade')
+        preserved = {path: path.read_bytes() for path in (self.root / 'specs/001-notes/tasks.md',
+            self.root / 'docs/architecture/bootstrap-decisions.json', client)}
+        guidance = build(ROOT, Path(self.temp.name) / 'conformance-guidance', '0.14.3')
+        assessed = flow.assess(self.root, guidance)
+        self.assertEqual(['coding-system-operation-and-source-conformance'],
+                         [finding['changeId'] for finding in assessed['findings']])
+        finding = assessed['findings'][0]
+        self.assertEqual('implementation', finding['duePhase'])
+        self.assertIn('apps/preview/source.ts', finding['scope']['paths'])
+        changes = semantic_changes(guidance, '0.14.2', '0.14.3')['changes']
+        self.assertEqual('coding-system-conformance-v1', changes[0]['method'])
+        self.assertEqual([], changes[0]['supersedes'])
+        self.assertTrue(flow.scan(self.root, scope(paths=['specs/001-notes']), 'planning')['canProceed'])
+        self.assertFalse(flow.scan(self.root, scope(paths=['specs/001-notes']), 'implementation')['canProceed'])
+        self.assertTrue(flow.scan(self.root, scope('other', paths=['src/Other']), 'implementation')['canProceed'])
+        self.assertEqual(preserved, {path: path.read_bytes() for path in preserved})
+
     def test_cumulative_target_semantics_supersede_intermediate_default_and_bind_metadata(self):
         result = semantic_changes(self.guidance, '0.12.5', '0.12.9')
         ids = [c['id'] for c in result['changes']]

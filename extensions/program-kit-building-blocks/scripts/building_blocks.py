@@ -1682,6 +1682,29 @@ def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576
     return result
 
 
+def qualification_recipe(directory: Path, reference: dict) -> dict:
+    """Read only registered recipe data, retaining its exact raw-byte authority."""
+    reference = require_object(reference, 'profile.qualificationRecipe')
+    if set(reference) != {'path', 'sha256'}:
+        fail('PKB611', 'named qualification recipe requires an exact path and hash')
+    item = {'path': normalize_path(reference['path'], 'profile.qualificationRecipe.path'),
+            'sha256': require_sha(reference['sha256'], 'profile.qualificationRecipe.sha256')}
+    try:
+        raw = publisher_document_bytes(directory, item)
+    except OSError:
+        fail('PKB611', 'named qualification recipe is missing or unreadable')
+    if hashlib.sha256(raw).hexdigest() != item['sha256']:
+        fail('PKB611', 'named qualification recipe changed')
+    try:
+        recipe = json.loads(raw.decode('utf-8'))
+    except (ValueError, UnicodeError):
+        fail('PKB611', 'named qualification recipe must be a JSON object')
+    if (not isinstance(recipe, dict) or recipe.get('schemaVersion') != 1
+            or set(recipe) != {'schemaVersion', 'id', 'profile', 'families', 'catalogSnapshot', 'nativeLock', 'executor'}):
+        fail('PKB611', 'named qualification recipe differs from its supported object schema')
+    return recipe
+
+
 def publisher_package_fact(directory: Path, item: dict) -> dict:
     value=json.loads(publisher_document_bytes(directory,item,16*1_048_576).decode('utf-8'))
     if not isinstance(value,dict): fail('PKB611','publisher package fact must be an object')
@@ -1780,13 +1803,7 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
     if (named_recipe is None) != (named_hash is None):
         fail('PKB611', 'named qualification receipt requires its matching registered recipe')
     if named_recipe is not None:
-        named_recipe = require_object(named_recipe, 'profile.qualificationRecipe')
-        if set(named_recipe) != {'path', 'sha256'}:
-            fail('PKB611', 'named qualification recipe requires an exact path and hash')
-        recipe_path = repository_path(directory, normalize_path(named_recipe['path'], 'profile.qualificationRecipe.path'))
-        if not recipe_path.is_file() or raw_sha256(recipe_path) != require_sha(named_recipe['sha256'], 'profile.qualificationRecipe.sha256'):
-            fail('PKB611', 'named qualification recipe changed')
-        recipe = load_json(recipe_path)
+        recipe = qualification_recipe(directory, named_recipe)
         snapshot = entry.get('catalogSnapshot', {})
         if (set(recipe) != {'schemaVersion', 'id', 'profile', 'families', 'catalogSnapshot', 'nativeLock', 'executor'}
                 or recipe.get('schemaVersion') != 1 or not isinstance(recipe.get('id'), str) or not ID.fullmatch(recipe['id'])

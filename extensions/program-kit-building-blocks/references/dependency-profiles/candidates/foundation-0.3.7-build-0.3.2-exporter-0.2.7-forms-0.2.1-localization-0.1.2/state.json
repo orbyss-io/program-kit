@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "profile": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/profile.json",
+    "sha256": "81eefc787b042bf28c827d0d592617a29a27503aeb2806e108287477dc75a57d"
+  },
+  "catalog": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/catalog.json",
+    "sha256": "83089234e299b0cd03371eb43cd02464bef43163a55430bfa5c8bc649ee53e57"
+  },
+  "snapshot": {
+    "path": "catalogs/candidate-9f8e6452/target-83089234e299b0cd03371eb43cd02464bef43163a55430bfa5c8bc649ee53e57.json",
+    "sha256": "83089234e299b0cd03371eb43cd02464bef43163a55430bfa5c8bc649ee53e57",
+    "base": {
+      "path": "catalogs/candidate-9f8e6452/base-8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae.json",
+      "sha256": "8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae"
+    }
+  },
+  "identity": "foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2",
+  "status": "qualified",
+  "publisherRelease": {
+    "commit": "b7802042ea3e68a2d4e533b4938674e2d5a4a6c5",
+    "workflow": "https://github.com/orbyss-io/dotnet-foundation/actions/runs/39781902982"
+  },
+  "recipe": {
+    "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/recipe-45d90fde.json",
+    "sha256": "ec57994909c63c4af62a91ee18e27417bbc8ebd6a196051ff14f339562e62b04"
+  },
+  "proof": {
+    "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/qualification.json",
+    "sha256": "76358e4004860ef2bab3c86ffa4a2b12d626b099a454107b26d9b0fbd22ddaf9"
+  },
+  "lockSha256": "da09e4aafe2dae6e76b10e63e7ff8fb6fac4bb3a98a60432d48645680c51a400",
+  "knowledge": {
+    "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "sha256": "a7a6af7155e872432e50fe3e5b3ab7face298103d6a9159950bc97d2b08d24c1"
+  }
+}

@@ -17,6 +17,7 @@ from compatibility_process import run as bounded_run
 
 
 def runtime_contract_module():
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
     path = ROOT / 'extensions/program-kit-governance/examples/bootstrap-runtime/runtime_probe.py'
     spec = importlib.util.spec_from_file_location('published_host_runtime_contract', path)
     module = importlib.util.module_from_spec(spec)
@@ -138,6 +139,7 @@ def main():
     template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
     for name in ['global.json', 'NuGet.config']:
         shutil.copyfile(template / name, target / name)
+    shutil.copyfile(template / 'eng/owned_scratch.py', target / 'owned_scratch.py')
     shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts/compatibility_process.py', target / 'bounded_process.py')
     # Retarget only this disposable fixture. The installed historical example
     # and all consumer projects retain their original reviewed inputs.

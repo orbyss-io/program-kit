@@ -101,6 +101,16 @@ class SelectionTests(unittest.TestCase):
         self.assertTrue(all(not c.get('manualOnly') for c in runner.selected('Baseline')))
         self.assertEqual(6, len(runner.selected('Baseline')))
 
+    def test_consumer_migration_recipe_selects_existing_upgrade_coverage(self):
+        checks, gaps, _ = runner.select_affected(runner.load_definition(), [
+            'extensions/program-kit-governance/references/consumer-migration-recipes.json'])
+        self.assertEqual([], gaps)
+        ids = {c['id'] for c in checks}
+        self.assertIn('mechanics-upgrade', ids)
+        self.assertIn('validate_coding_installation_contracts', ids)
+        self.assertFalse(any(c.get('manualOnly') for c in checks))
+        self.assertNotIn('mechanics-bootstrap', ids)
+
     def test_feature_phase_change_does_not_select_bootstrap(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [
             'extensions/program-kit-governance/scripts/task_draft.py'])
@@ -108,7 +118,8 @@ class SelectionTests(unittest.TestCase):
         self.assertFalse(gaps)
         self.assertIn('mechanics-phases', ids)
         self.assertNotIn('mechanics-bootstrap', ids)
-        self.assertEqual({'validate_coding_evaluation_journey'}, {c['id'] for c in checks if c['kind'] == 'integration'})
+        self.assertEqual({'validate_coding_evaluation_journey', 'validate_coding_adverse_boundary'},
+                         {c['id'] for c in checks if c['kind'] == 'integration'})
 
     def test_native_evidence_owners_have_focused_affected_coverage(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [

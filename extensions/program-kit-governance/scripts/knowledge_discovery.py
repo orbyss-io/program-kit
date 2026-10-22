@@ -14,7 +14,7 @@ import subprocess
 import re
 import xml.etree.ElementTree as ET
 
-from knowledge_sources import confined, resolve, effective_rule, marked
+from knowledge_sources import confined, resolve, effective_rule, marked, section, section_span, markdown_headings, digest
 
 
 CATALOG = Path(__file__).resolve().parents[1] / 'references/phase-obligations.json'
@@ -168,6 +168,153 @@ def validate_group(content, identity, declared):
         raise ValueError('Unmapped/ambiguous canonical group content: ' + identity)
 
 
+def section_coverage(catalog, source, heading, extensions):
+    """Check exact source spans, never infer normative strength from keywords."""
+    body = section(confined(extensions, source['locator']['path']).read_text(encoding='utf-8'), heading)
+    identities = re.findall(r'<!-- program-kit:knowledge-rule ([^ ]+) -->', body)
+    if len(identities) != len(set(identities)):
+        raise ValueError('Duplicate canonical section leaf: ' + source['id'] + '#' + heading)
+    for identity in identities:
+        rule = effective_rule(catalog, identity)
+        if (rule['source'] != source['id'] or rule['status'] != 'active'
+                or rule['selector'] != {'kind': 'markdown-marker', 'marker': 'knowledge-rule', 'id': identity}
+                or (rule['level'] != 'recommended' and not rule['requirements'])):
+            raise ValueError('Unrouted/foreign canonical section leaf: ' + identity)
+        marked(body, identity, 'knowledge-rule')
+    remainder = re.sub(r'<!-- program-kit:knowledge-rule [^>]+ -->.*?<!-- /program-kit:knowledge-rule -->', '', body, flags=re.S)
+    remainder = re.sub(r'<!-- /?program-kit:decision-rule[^>]* -->', '', remainder)
+    # Headings organize a section; its substantive advice/examples still need
+    # their explicit source leaf and owner disposition, just like its duties.
+    remainder = re.sub(r'^#{1,6}\s+.*$', '', remainder, flags=re.M)
+    if remainder.strip() or not identities:
+        raise ValueError('Unmapped canonical section content: ' + source['id'] + '#' + heading)
+    return identities
+
+
+def display_coverage(catalog, identity, extensions, *, selected_rules=None, tags=None):
+    """An ordinary brief can omit only explicitly classified, accountable text."""
+    rule = effective_rule(catalog, identity)
+    display = rule.get('display')
+    if display is None:
+        return
+    if display not in ('focused-detail', 'focused-example'):
+        raise ValueError('Unknown canonical display mode: ' + identity)
+    disposition = rule.get('contextDisposition', {})
+    if (not isinstance(disposition, dict) or set(disposition) != {'kind', 'owner', 'reason'}
+            or not all(isinstance(disposition.get(k), str) and disposition[k].strip() for k in disposition)):
+        raise ValueError('Focused canonical text needs an explicit owner disposition: ' + identity)
+    source = next(row for row in catalog['sources'] if row['id'] == rule['source'])
+    selector = rule['selector']
+    if (selector['kind'] == 'markdown-section' and disposition['kind'] == 'native'
+            and rule['level'] == 'recommended'):
+        if not rule['bindings'].get('checks'):
+            raise ValueError('Focused specialized procedure needs its existing native check owner: ' + identity)
+    elif selector['kind'] == 'markdown-section':
+        actual = section_coverage(catalog, source, selector['heading'], extensions)
+        declared = rule.get('coveredBy', [])
+        if (not isinstance(declared, list) or len(declared) != len(set(declared))
+                or set(declared) != set(actual) or identity in declared):
+            raise ValueError('Incomplete canonical focused coverage: ' + identity)
+        from feature_context import rule_applicable
+        for child in actual:
+            leaf = effective_rule(catalog, child)
+            if leaf['level'] == 'recommended':
+                continue
+            if not set(rule['requirements']) <= set(leaf['requirements']):
+                raise ValueError('Incomplete focused responsibility coverage: ' + identity + ' -> ' + child)
+            if (selected_rules is not None and (tags is None or rule_applicable(leaf, tags))
+                    and child not in selected_rules):
+                raise ValueError('Omitted applicable focused canonical duty: ' + identity + ' -> ' + child)
+    elif disposition['kind'] == 'native':
+        if source['locator']['kind'] != 'extension' or Path(source['locator']['path']).suffix == '.md' or not rule['bindings'].get('checks'):
+            raise ValueError('Focused native declaration needs its existing native check owner: ' + identity)
+    elif rule['level'] != 'recommended' and display != 'focused-example':
+        raise ValueError('Required canonical atom cannot be hidden as context: ' + identity)
+    elif disposition['kind'] not in ('context', 'example', 'overlap', 'bibliography', 'native', 'setup', 'bootstrap'):
+        raise ValueError('Unknown canonical context disposition: ' + identity)
+
+
+def validate_section_routes(catalog, extensions):
+    """Declared phase routing must reach actual rules or a named specialized owner."""
+    for source in catalog['sources']:
+        if source['locator']['kind'] != 'extension' or source.get('route', {}).get('kind') != 'phase':
+            continue
+        path = confined(extensions, source['locator']['path'])
+        if path.suffix != '.md':
+            continue
+        text = path.read_text(encoding='utf-8')
+        for heading, declaration in source.get('sections', {}).items():
+            if declaration.get('route') != 'phase' or declaration.get('disposition') not in ('active', 'conditional'):
+                continue
+            body = section(text, heading)
+            exact = [identity for identity, rule in catalog['rules'].items()
+                     if rule['source'] == source['id'] and rule['status'] == 'active' and rule['requirements']
+                     and rule['selector'].get('kind') == 'markdown-section' and rule['selector'].get('heading') == heading]
+            if exact:
+                continue
+            disposition = declaration.get('codingDisposition', {})
+            if not disposition and '<!-- program-kit:knowledge-rule ' in body:
+                section_coverage(catalog, source, heading, extensions)
+                continue
+            if (not isinstance(disposition, dict) or set(disposition) != {'kind', 'owner', 'reason'}
+                    or disposition.get('kind') not in ('context', 'example', 'overlap', 'bibliography', 'native', 'setup', 'bootstrap', 'manual')
+                    or not all(isinstance(disposition.get(k), str) and disposition[k].strip() for k in disposition)):
+                raise ValueError('Unrouted active canonical section: ' + source['id'] + '#' + heading)
+
+
+def source_partition(catalog, source, extensions):
+    """Account for exact raw spans outside selected sections, not copied policy."""
+    text = confined(extensions, source['locator']['path']).read_text(encoding='utf-8')
+    headings = markdown_headings(text)
+    structure = [[depth, heading] for _, depth, heading in headings]
+    spans = []
+    opening = re.findall(r'<!-- program-kit:knowledge-rule ([^ ]+) -->', text)
+    blocks = list(re.finditer(r'<!-- program-kit:knowledge-rule ([^ ]+) -->.*?<!-- /program-kit:knowledge-rule -->', text, re.S))
+    if (len(opening) != len(set(opening)) or len(blocks) != len(opening)
+            or text.count('<!-- /program-kit:knowledge-rule -->') != len(opening)):
+        raise ValueError('Unbalanced/duplicate canonical source marker: ' + source['id'])
+    for block in blocks:
+        identity = block[1]
+        rule = effective_rule(catalog, identity)
+        if (rule['source'] != source['id'] or rule['status'] != 'active'
+                or rule['selector'] != {'kind': 'markdown-marker', 'marker': 'knowledge-rule', 'id': identity}):
+            raise ValueError('Unrouted/foreign canonical source marker: ' + identity)
+        marked(text, identity, 'knowledge-rule')
+        spans.append(block.span())
+    for declaration in catalog['rules'].values():
+        if declaration['source'] != source['id'] or declaration['status'] != 'active':
+            continue
+        selector = declaration['selector']
+        if selector['kind'] == 'markdown-section' and not declaration.get('display'):
+            spans.append(section_span(text, selector['heading']))
+    # Mask exact offsets in the original text. Identical prose elsewhere and
+    # heading-like lines inside a fenced context example remain accountable.
+    lines = text.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+    spans.extend((offsets[index], offsets[index + 1]) for index, _, _ in headings)
+    spans.extend(match.span() for match in re.finditer(r'<!-- /?program-kit:decision-rule[^>]* -->', text))
+    chars = list(text)
+    for start, end in spans:
+        chars[start:end] = ['\n' if char == '\n' else ' ' for char in chars[start:end]]
+    remainder = '\n'.join(line.rstrip() for line in ''.join(chars).splitlines() if line.strip())
+    return structure, digest(remainder)
+
+
+def validate_source_partition(catalog, source, extensions):
+    structure, remaining = source_partition(catalog, source, extensions)
+    declared = source.get('contentCoverage', {})
+    if declared.get('headings') != structure:
+        raise ValueError('Unregistered canonical source structure/preamble: ' + source['id'])
+    disposition = declared.get('remaining', {})
+    if (set(disposition) != {'sha256', 'kind', 'owner', 'reason'}
+            or disposition.get('sha256') != remaining
+            or disposition.get('kind') not in ('context', 'example', 'overlap', 'bibliography', 'native', 'setup', 'bootstrap', 'manual')
+            or not all(isinstance(disposition.get(k), str) and disposition[k].strip() for k in disposition)):
+        raise ValueError('Unclassified canonical source remainder/preamble: ' + source['id'])
+
+
 def validate(catalog, extensions, repository=None):
     source_ids = [row['id'] for row in catalog['sources']]
     if len(set(source_ids)) != len(source_ids):
@@ -186,6 +333,16 @@ def validate(catalog, extensions, repository=None):
             raise ValueError('Incomplete canonical rule metadata: ' + identity)
         if rule['family'] not in catalog['knowledgeFamilies'] or rule['level'] not in ('mandatory', 'conditional', 'recommended'):
             raise ValueError('Invalid rule family/level: ' + identity)
+        from feature_context import responsibility_tags
+        when = rule.get('when', {})
+        if (not isinstance(when, dict) or set(when) - {'all', 'any', 'not'}
+                or any(not isinstance(values, list) or any(not isinstance(v, str) for v in values) or set(values) - responsibility_tags() for values in when.values())):
+            raise ValueError('Unknown canonical applicability adapter: ' + identity)
+        scopes = rule.get('profileScope', {})
+        if (not isinstance(scopes, dict) or any(not isinstance(dimension, str) or not isinstance(values, list) or not values
+                or any(not isinstance(value, str) or dimension + ':' + value not in responsibility_tags() for value in values)
+                for dimension, values in scopes.items())):
+            raise ValueError('Unknown canonical selected profile facet: ' + identity)
         if rule['source'] not in source_ids or not rule['bindings'].get('review'):
             raise ValueError('Canonical rule lacks owner or evaluation route: ' + identity)
         key = (rule['source'], json.dumps(rule['selector'], sort_keys=True))
@@ -216,6 +373,13 @@ def validate(catalog, extensions, repository=None):
         for requirement in rule['requirements']:
             if requirement not in by_requirement or identity not in by_requirement[requirement].get('ruleIds', []):
                 raise ValueError('Unrouted canonical responsibility binding: ' + identity)
+    for identity in catalog['rules']:
+        display_coverage(catalog, identity, extensions)
+    validate_section_routes(catalog, extensions)
+    for source in catalog['sources']:
+        if (source['locator']['kind'] == 'extension' and source.get('route', {}).get('kind') == 'phase'
+                and Path(source['locator']['path']).suffix == '.md'):
+            validate_source_partition(catalog, source, extensions)
     for row in catalog['migrations']:
         if not row['canonicalRules'] or not set(row['canonicalRules']) <= catalog['rules'].keys() or not row.get('replacementProof'):
             raise ValueError('Incomplete old-to-canonical mapping: ' + row['oldLocation'])

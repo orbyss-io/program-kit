@@ -1,14 +1,18 @@
 # TypeScript and web profile
 
+<!-- program-kit:knowledge-rule principle.frontend-profile-authority -->
 Adopt the independent `ui-experience-v1` profile for browser UI: consumer-owned branding and optional
 SVG logos, Lucide/custom icons, responsive archetypes, semantic tokens, safe initial-response
 metadata, page-level discovery intent, and opt-in analytics. Read `../ui-experience-v1.md` and its
 evidence register. Native CSS is the default adapter; accepted frontend/framework decisions remain
 authoritative. The isolated UI acceptance graph must not change the application's own npm graph.
+<!-- /program-kit:knowledge-rule -->
 
 ## Admission and verification
 
+<!-- program-kit:knowledge-rule context.typescript-profile-applicability -->
 When TypeScript or a browser UI is detected, evaluate and normally enforce:
+<!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:decision-rule typescript-admission -->
 <!-- program-kit:knowledge-rule principle.typescript-strictness -->
@@ -40,6 +44,7 @@ When TypeScript or a browser UI is detected, evaluate and normally enforce:
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 
+<!-- program-kit:knowledge-rule principle.typescript-selected-auth-contract -->
 For an authenticated browser UI, adopt the versioned secure web profile selected by the bootstrap.
 The default is a same-origin BFF even when the UI is a React or other single-page application. The
 browser calls `/bff/user`, obtains an in-memory antiforgery token from `/bff/antiforgery`, and sends
@@ -49,3 +54,4 @@ authentication is an explicit deployment-profile choice, not a frontend-framewor
 Adopt explicit intake choices and applicable versioned Program Kit defaults in the reviewed bootstrap
 baseline. Choices not supplied by either source remain Proposed until accepted in the project context;
 do not invent a framework merely to make the register look complete.
+<!-- /program-kit:knowledge-rule -->

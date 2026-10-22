@@ -20,7 +20,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
-from coding_review_fixture import write
+from coding_review_fixture import write, fictional_operation_maps
 from owned_fixture import FixtureDirectory, filesystem_path, native_path
 
 EXAMPLE = ROOT / 'extensions/program-kit-dotnet/references/examples/snapshot-query'
@@ -85,6 +85,7 @@ def seed(root, *, installed=False, features=True):
 | T001 | report | none | none | none |
 | T002 | report | T001 | none | none |
 ''')
+        fictional_operation_maps(feature, 'report')
     git = ['git', '-c', 'safe.directory=' + native_path(root), '-c', 'core.excludesFile=']
     for args in (['init', '-q'], ['add', '.'], ['-c', 'user.name=Fictional F6 Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Fictional F6 accepted inputs']):
         subprocess.run([*git, *args], cwd=native_path(root), check=True, capture_output=True, timeout=30)
@@ -134,7 +135,8 @@ def scenario(directory):
             'actualExit': child.returncode, 'elapsedSeconds': round(time.perf_counter() - before, 3),
             'stdoutSha256': hashlib.sha256(child.stdout.encode()).hexdigest(), 'stderrSha256': hashlib.sha256(child.stderr.encode()).hexdigest()})
         write(review / 'results.json', result)
-        assert (child.returncode == expected if expected is not None else child.returncode != 0), name + ': inspect retained streams'
+        accepted = child.returncode in expected if isinstance(expected, tuple) else child.returncode == expected if expected is not None else child.returncode != 0
+        assert accepted, name + ': inspect retained streams'
         if marker:
             assert marker in child.stdout + child.stderr, name + ': missing intended independent failure marker'
         try:
@@ -149,9 +151,9 @@ def scenario(directory):
         native = consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py'
         phase = scripts / 'phase_obligations.py'
         local_path = consumer / 'docs/architecture/coding-patterns.json'
-        def prepare(name, feature='001-learn', expected=0, code=None):
+        def prepare(name, feature='001-learn', expected=0, code=None, source=False):
             value = run(name, [sys.executable, phase, 'prepare', '--repository', consumer, '--feature-dir', 'specs/' + feature,
-                              '--operation', 'report', '--format', 'json'], expected)
+                              '--operation', 'report', '--format', 'json', *([] if source else ['--stage', 'setup'])], expected)
             if code:
                 streams = ''.join((review / 'output' / (name + '.' + stream + '.txt')).read_text(encoding='utf-8') for stream in ('stdout', 'stderr'))
                 assert code in streams, name + ': missing intended context diagnostic'
@@ -198,6 +200,35 @@ def scenario(directory):
         write(local_path, local)
         choice('001-learn', 'local-snapshot-v1', '1.0.0')
         prepare('04-selected-missing-proof', expected=2, code='PKP005')
+        source_entry = prepare('04b-actual-source-profile-gate', expected=(0, 2), source=True)
+        missing_capability = [b for b in source_entry['coding']['blockers'] if b['code'] == 'PKC024']
+        if missing_capability:
+            assert all(b['code'] in {'PKC024', 'PKC025', 'PKP005'} for b in source_entry['coding']['blockers']), source_entry['coding']['blockers']
+            # Keep real compiled adverse behavior separate from the unsupported
+            # profile. Compiler/setup failure cannot satisfy this negative.
+            for name, invalid, marker in [
+                ('owner-leak', valid_code.replace('byOwner.TryGetValue(owner, out var notes)', 'byOwner.TryGetValue("alice", out var notes)'), 'owner-isolation-and-duplicate-count'),
+                ('reversed-order', valid_code.replace('var rows = group.ToArray();', 'group.Reverse();\n            var rows = group.ToArray();'), 'stable-owner-order')]:
+                assert invalid != valid_code
+                write(code, invalid)
+                check('04c-compiled-invalid-' + name, expected=2)
+                nested = sorted((consumer / 'artifacts/tests/toolkit-runs').glob('*/result.json'), key=lambda p: p.stat().st_mtime_ns)[-1]
+                streams = ''.join(p.read_text(encoding='utf-8') for p in nested.parent.glob('*.log'))
+                assert 'BUILD_SUCCEEDED_BEFORE_BEHAVIOR' in streams and marker in streams
+                write(code, valid_code)
+            check('04d-restored-current-proof')
+            run('04e-native-scope-binding-remains-blocked', [sys.executable, pattern, 'bind-evidence', '--repository', consumer,
+                '--feature-dir', 'specs/001-learn', '--operation', 'report', '--id', 'local-snapshot-v1'], 2)
+            result.update(status='passed', sourceCompletion='blocked-publication-dependency', sourceBlockers=missing_capability,
+                          workingInputsUnchanged=input_snapshot()['digest'] == result['workingInputsDigest'],
+                          scope='Setup-only .NET owner context, data-only teaching draft, real finite compiled/benchmark positive, independent compiled owner/order negatives and restored proof. Native-scope qualification/application remains blocked by actual missing public analyzer capability.')
+            write(review / 'index.md', '# F6 staged source-profile dependency\n\n'
+                  'Inspect output/01–04 for setup context, actual baseline correctness/finite benchmark, data-only teaching and missing pattern proof. '
+                  'Output/04b retains PKC024. Both output/04c negative controls require successful compilation before their exact owner/order failure marker; '
+                  '04d restores actual proof and 04e rejects unsupported native-scope binding. '
+                  'Full qualification, later source application, refinement/shared promotion and C# completion remain blocked until actual qualified analyzer/profile adoption. '
+                  'No public native capability, provider behavior, agent obedience or real human product acceptance is inferred.\n')
+            return result
         bind('05-bind-actual-check-and-review')
         local = json.loads(local_path.read_text())
         selected = prepare('06-qualified-local-selection')

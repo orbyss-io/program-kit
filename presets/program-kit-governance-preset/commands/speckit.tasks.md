@@ -75,6 +75,14 @@ not replace ordinary artifact ownership or human story review.
    missing behavior when test-first is selected; labels alone do not prove low risk. Tests required by the
    constitution are mandatory. Story closure has story regressions; feature closure has complete
    acceptance. Do not schedule every verification category after every task.
+   Carry concrete applicable plan `Operation implementation map` decisions into the task table of
+   that name: selected compatible pattern/example or supported manual route and reason, first adverse
+   cases with actual test owner/command, and first coherent compiler/analyzer/focused checks before
+   expanding behavior. Name ownership-transfer, deadline, cancellation, cleanup, transaction/replay,
+   admission and uncertainty decisions where applicable. Never replace these choices with rule IDs.
+   Resolve consequential missing decisions before dependent source tasks; include their owner,
+   missing fact, artifact updates and retry route. Investigate routine facts locally; ask humans only
+   for missing material intent, architecture, risk or authority. Preserve unrelated ready operations.
 4. Use checklist lines `- [ ] T001 [P] [US1] Description with concrete file path`, omitting `[P]`
    unless tasks have independent writes and prerequisites. Continue unique IDs. Group by operation
    within story priority, with coherent verification/implementation batches, followed by closure work.

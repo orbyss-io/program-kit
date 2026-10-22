@@ -71,9 +71,25 @@ authored against invalid behavior, not generated from catalog values.
 
 Active phase briefs now resolve rule bindings instead of rendering the registry's
 retained policy summaries. Existing requirement IDs, phase commands, `--only` and
-bootstrap marker resolution remain compatible. The default brief links complete
-canonical sections and uses labeled excerpts; `--only` resolves the full applicable
-text. Redundant summary/example fields are retired from the active registry. Historical inspection reads original retained feature records; fixture-only historical projections use their exact original catalog.
+bootstrap marker resolution remain compatible. Ordinary briefs retain complete applicable
+canonical coding atoms and their conditions. Fully covered section parents are focused
+lookup context; recommendations, examples and specialized procedures retain their explicit
+owners and strength. `--only` resolves the full attributable reference text. Redundant summary/example fields are retired from the active registry. Historical inspection reads original retained feature records; fixture-only historical projections use their exact original catalog.
+
+Maintainer validation accounts for the complete raw source partition, including headings,
+preambles, every registered marker and remaining explicitly classified context. A new
+heading, unknown/foreign marker or changed unclassified prose fails coverage. When guidance
+changes, review the exact authored spans, register required clauses with their real owner
+and applicability or an explicit context/specialized disposition, and refresh that source's
+reviewed partition. Rehashing unreviewed text does not establish coverage. Keywords do not
+promote recommendations into duties.
+
+One applicability owner joins accepted scoped targets/instances and actual task project or
+package paths. A neighboring profile or root default cannot replace a more specific owned
+selection. Actual evaluated Core/helper roles exclude unrelated Host/bundle duties; mixed
+owners retain their applicable union. Unknown ownership/profile facts remain conservative.
+The same selected rules feed ordinary briefs, coding units, pre-code decisions and current
+evaluation. Source routing still establishes no semantic correctness or agent obedience.
 
 The registry's migration rows distinguish replaced active rendering from remaining
 policy carriers in version adapters, source-style guidance, commands and presets.

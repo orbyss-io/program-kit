@@ -101,6 +101,7 @@ def render(root, kind, identity, host_image):
             fixture('themes/' + source.relative_to(theme).as_posix(), source)
         targets = ['Probe.csproj', 'package.json']
         entry = 'identity_probe'
+    fixture('owned_scratch.py', extensions / 'program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
     fixture('runtime_fixture.py', governance / 'scripts/runtime_fixture.py')
     fixture('fixture_readiness.py', governance / 'scripts/fixture_readiness.py')
     fixture('runtime_probe.py', governance / 'examples/bootstrap-runtime/runtime_probe.py')

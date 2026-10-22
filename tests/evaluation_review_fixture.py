@@ -19,7 +19,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
-from coding_review_fixture import write
+from coding_review_fixture import write, fictional_operation_maps
 from learning_review_fixture import seed, declaration, EXAMPLE, ref
 from owned_fixture import filesystem_path, native_path
 
@@ -50,7 +50,8 @@ def scenario(review, *, installed_consumer=None, qualification_only=False):
                                    'stdoutSha256': hashlib.sha256(child.stdout.encode()).hexdigest(),
                                    'stderrSha256': hashlib.sha256(child.stderr.encode()).hexdigest()})
         write(review / 'results.json', result)
-        if child.returncode != expected or marker and marker not in child.stdout + child.stderr:
+        accepted_exit = child.returncode in expected if isinstance(expected, tuple) else child.returncode == expected
+        if not accepted_exit or marker and marker not in child.stdout + child.stderr:
             raise AssertionError(name + ': unexpected outcome; inspect both retained streams')
         try:
             return json.loads(child.stdout)
@@ -110,6 +111,7 @@ def scenario(review, *, installed_consumer=None, qualification_only=False):
 ''')
         for name in ('spec.md', 'plan.md'):
             write(feature / name, '<!-- program-kit:story-delivery-v1 -->\n' + (feature / name).read_text())
+        fictional_operation_maps(feature, 'report')
         app = consumer / 'src/Lookup/OwnerReport.cs'
         applied = app.read_text()
         before = applied.replace('SnapshotQuery', 'SnapshotScan')
@@ -203,15 +205,25 @@ if action=='initialize':
         value=task.transition(root,feature,{'action':'initialize','baseline':baseline,'source':'Fictional fixture author; no ratification or real human acceptance claim'})
     task.checkpoint(root/'specs/004-browser',{'baseline':baseline,'outcome':'Independent fictional browser scope','next':'Prepare browser'})
 elif action=='request':
-    prepared=coding.prepare(root,feature,task_ids=['T001','T002'],reconcile=True,configuration='Release')
+    # Fictional authoring projection only. Source completion independently calls
+    # actual reconciliation and cannot use setup to waive missing capabilities.
+    prepared=coding.prepare(root,feature,task_ids=['T001','T002'],reconcile=False,configuration='Release',stage='setup')
     coding.require_ready(prepared)
     duties=prepared['coding']['evaluation']['duties']
     actual=patterns.current_check(root,{'kind':'toolkit','id':'snapshot-proof'})
     native_reference=(root/'artifacts/native-proof-reference.txt').read_text()
     native_declaration={'kind':'native','project':'tests/Proof/SnapshotProof.csproj','arguments':[],'configuration':'Release'}
-    claims=[{'rules':[d['rule'] for d in duties if d['required']], 'checks':[{'kind':'toolkit','id':'snapshot-proof'},native_declaration],
+    groups={}
+    for duty in duties:
+        if duty['required']:
+            groups.setdefault((duty.get('reviewFamily',duty['rule']),duty['owner']),[]).append(duty['rule'])
+    claims=[{'rules':rules, 'checks':[{'kind':'toolkit','id':'snapshot-proof'},native_declaration],
+      'authorship':{'implementationAuthors':['fictional-implementer'],'reviewer':'fictional-independent-reviewer','kind':'agent'},
+      'inspections':[{'rules':rules,'sources':[{'path':'src/Lookup/OwnerReport.cs','start':1,'end':8}],
+        'boundary':'Fictional owner report source and acceptance fixture','findings':['Finite owner/order controls inspected; fictional authored semantic review only.'],
+        'assessment':'Fictional inspection of canonical family '+family}],
       'review':'docs/patterns/review.md','conclusion':'Scoped source review and independent compiled owner/order/duplicate/snapshot results inspected.',
-      'limits':'Finite .NET/BCL application and native planned graph; authored review is fictional and unauthenticated. No provider/browser/human acceptance.'}]
+      'limits':'Finite .NET/BCL application and native planned graph; authored review is fictional and unauthenticated. No provider/browser/human acceptance.'} for (family,owner),rules in groups.items()]
     value={'action':'engineering','checkpoint':'US1','configuration':'Release','checks':[actual['run'],native_reference], 'evaluation':claims}
     (root/'request.json').write_text(json.dumps(value,indent=2))
 elif action=='native-limits':
@@ -267,8 +279,9 @@ print(json.dumps(value))
 ''')
         run('00-fictional-authoring-setup', [sys.executable, helper, 'initialize'])
 
-        def prepare(name, expected=0, target=feature):
-            return run(name, [sys.executable, phase, 'prepare', '--repository', consumer, '--feature-dir', target.relative_to(consumer), '--configuration', 'Release', '--format', 'json'], expected)
+        def prepare(name, expected=0, target=feature, source=False):
+            return run(name, [sys.executable, phase, 'prepare', '--repository', consumer, '--feature-dir', target.relative_to(consumer), '--configuration', 'Release', '--format', 'json',
+                              *([] if source else ['--stage', 'setup'])], expected)
 
         def check(name, expected=0):
             return run(name, [sys.executable, native, '--repository', consumer, '--scope', 'Focused', '--check', 'snapshot-proof'], expected)
@@ -280,7 +293,6 @@ print(json.dumps(value))
 
         initial = prepare('01-prepared-duties')
         assert initial['coding']['canProceed']
-        delivery('01b-start-actual-operation', {'action': 'start', 'operation': 'report'})
         write(app, applied)
         write(review / 'snapshots/application-after.cs', applied)
         write(review / 'snapshots/application.diff', ''.join(difflib.unified_diff(before.splitlines(True), applied.splitlines(True), fromfile='before/OwnerReport.cs', tofile='after/OwnerReport.cs')))
@@ -290,6 +302,43 @@ print(json.dumps(value))
         native_results = sorted((consumer / 'artifacts/tests/runs').glob('*/result.json'), key=lambda p: json.loads(p.read_text()).get('startedAtUtc', ''))
         write(consumer / 'artifacts/native-proof-reference.txt', native_results[-1].relative_to(consumer).as_posix())
         run('02c-native-observation-does-not-qualify-reuse', [sys.executable, helper, 'native-limits'])
+        entry = prepare('02d-source-profile-admission', (0, 2), source=True)
+        capability_gap = [b for b in entry['coding']['blockers'] if b['code'] == 'PKC024']
+        if capability_gap:
+            # The current public profile genuinely lacks the new capability.
+            # Keep actual compiled behavioral negatives independent of that gate;
+            # neither a compiler/setup error nor fictional review is acceptance.
+            assert all(b['code'] in {'PKC024', 'PKC025'} for b in entry['coding']['blockers']), entry['coding']['blockers']
+            query = consumer / 'src/Lookup/SnapshotQuery.cs'
+            valid_query = query.read_text()
+            invalid_query = valid_query.replace('StringComparer.Ordinal)', 'StringComparer.OrdinalIgnoreCase)')
+            assert invalid_query != valid_query
+            write(query, invalid_query)
+            run('02e-independent-compiled-invalid-behavior', [sys.executable, consumer / 'tests/Proof/check.py'], 1,
+                'owner-isolation-and-duplicate-count')
+            stdout = (review / 'output/02e-independent-compiled-invalid-behavior.stdout.txt').read_text(encoding='utf-8')
+            assert 'BUILD_SUCCEEDED_BEFORE_BEHAVIOR' in stdout, 'Compilation failure cannot satisfy the behavior negative'
+            write(query, valid_query)
+            check('02f-restored-compiled-proof')
+            run('02g-fictional-grouped-request-only', [sys.executable, helper, 'request'])
+            request = json.loads((consumer / 'request.json').read_text())
+            assert all(c['inspections'] and c['authorship']['reviewer'] not in c['authorship']['implementationAuthors']
+                       for c in request['evaluation'])
+            delivery('02h-source-engineering-remains-blocked', request, 2)
+            run('02i-pattern-binding-cannot-waive-capability', [sys.executable, pattern, 'bind-evidence', '--repository', consumer,
+                '--feature-dir', feature.relative_to(consumer), '--configuration', 'Release', '--id', 'local-f7'], 2)
+            result.update(status='passed', completion='blocked-publication-dependency',
+                          sourceBlockers=capability_gap,
+                          scope='Setup-only installed-layout routing, actual finite compiled positive/behavioral negative, grouped fictional request authoring, and source admission rejection. No C# engineering/presentation/feature completion or public analyzer qualification.')
+            write(review / 'index.md', '# F7 staged source-profile dependency\n\n'
+                  'Actual compiled positive, invalid owner behavior after a successful build, and restored proof ran. '
+                  'Inspect output/02d-source-profile-admission.stdout.txt for PKC024, output/02e-independent-compiled-invalid-behavior.* for the independent failure, '
+                  'and output/02h-source-engineering-remains-blocked.* for the unchanged source-completion gate. '
+                  'Grouped request authoring is fictional; setup cannot qualify the missing published analyzer capability. '
+                  'Full C# engineering/present/acceptance remains blocked until actual qualified package/profile adoption.\n')
+            return result
+        assert entry['coding']['canProceed'], entry['coding']['blockers']
+        delivery('01b-start-actual-operation', {'action': 'start', 'operation': 'report'})
         run('03-bind-qualified-pattern', [sys.executable, pattern, 'bind-evidence', '--repository', consumer, '--feature-dir', feature.relative_to(consumer), '--configuration', 'Release', '--id', 'local-f7'])
         selected_plan = (feature / 'plan.md').read_text() + '\n<!-- program-kit:pattern-choices -->\n' + json.dumps({
             'snapshot-owner-query': {'id': 'local-f7', 'version': '1.0.0', 'reason': 'Explicit qualified immutable owner-report implementation.'}}) + '\n<!-- /program-kit:pattern-choices -->\n'

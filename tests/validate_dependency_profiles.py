@@ -88,9 +88,56 @@ class ProfileTests(unittest.TestCase):
                     for source, digest in sources.items():
                         self.assertEqual(digest, blocks.raw_sha256(Path(source)))
                 if entry.get('qualificationRecipe'):
-                    recipe = blocks.load_json(registry / entry['qualificationRecipe']['path'])
+                    reference = entry['qualificationRecipe']
+                    self.assertFalse((registry / reference['path']).exists())
+                    self.assertEqual(before[reference['path']], blocks.publisher_document_bytes(registry, reference))
+                    recipe = blocks.qualification_recipe(registry, reference)
+                    self.assertEqual(blocks.load_json(original_registry / reference['path']), recipe)
                     relative = recipe['nativeLock']['path'].split('/dependency-profiles/', 1)[1]
                     self.assertIn(relative, storage['entries'])
+            # A registered recipe retains raw-byte, range and schema authority;
+            # neither storage metadata nor a loose override can silently renew it.
+            identity, entry = next((identity, entry) for identity, entry in index['profiles'].items()
+                                   if entry.get('qualificationRecipe') and
+                                   lifecycle_knowledge.selected(blocks, registry, identity) is not None)
+            reference = entry['qualificationRecipe']
+            recipe_row = copy.deepcopy(storage['entries'][reference['path']])
+            pack = registry / 'historical-package-facts.pack'
+            original_pack = pack.read_bytes()
+            changed = bytearray(original_pack); changed[recipe_row['byteOffset']] ^= 1
+            pack.write_bytes(changed)
+            with self.assertRaisesRegex(ValueError, 'historical publisher package fact changed'):
+                blocks.qualified_dependency_profile(registry, identity, blocks.load_json(fixtures.CATALOG))
+            pack.write_bytes(original_pack)
+            for malformed in (None, {**recipe_row, 'byteOffset': len(original_pack)}):
+                if malformed is None:
+                    del storage['entries'][reference['path']]
+                else:
+                    storage['entries'][reference['path']] = malformed
+                (registry / 'historical-package-facts.json').write_text(json.dumps(storage))
+                with self.assertRaises(ValueError):
+                    blocks.qualification_recipe(registry, reference)
+            storage['entries'][reference['path']] = recipe_row
+            (registry / 'historical-package-facts.json').write_text(json.dumps(storage))
+            loose = registry / reference['path']
+            loose.parent.mkdir(parents=True, exist_ok=True)
+            loose.write_bytes(before[reference['path']] + b'\n')
+            with self.assertRaisesRegex(ValueError, 'named qualification recipe changed'):
+                blocks.qualification_recipe(registry, reference)
+            loose.write_bytes(b'[]')
+            with self.assertRaisesRegex(ValueError, 'named qualification recipe differs from its supported object schema'):
+                blocks.qualification_recipe(registry, {**reference, 'sha256': blocks.raw_sha256(loose)})
+            loose.unlink()
+            recipe = blocks.qualification_recipe(registry, reference)
+            relative = recipe['nativeLock']['path'].split('/dependency-profiles/', 1)[1]
+            lock = registry / relative
+            lock.parent.mkdir(parents=True, exist_ok=True)
+            lock.write_bytes(before[relative].replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
+            self.assertIsNotNone(lifecycle_knowledge.selected(blocks, registry, identity))
+            lock.write_bytes(lock.read_bytes() + b' ')
+            with self.assertRaisesRegex(ValueError, 'selected lifecycle dependency lock changed'):
+                lifecycle_knowledge.selected(blocks, registry, identity)
+            lock.unlink()
             # Read a real indexed source through its unchanged original range,
             # then prove it cannot escape its own container into adjacent bytes.
             for entry in index['profiles'].values():

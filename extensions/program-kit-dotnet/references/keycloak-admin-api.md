@@ -13,6 +13,7 @@ Verify denied operations and real create/use/cleanup; package activation alone i
 
 ## Recommended application-facing baseline
 
+<!-- program-kit:knowledge-rule context.identity-portable-subdomains -->
 | CShell feature | Portable contract | Selected Admin REST resources |
 | --- | --- | --- |
 | `Users` | `IIdentityUserAdministration` | user search/count/get/create/update/delete |
@@ -27,22 +28,28 @@ create an account after payment, provision a machine application and scopes from
 subscription roles/groups, send enrollment, or revoke access. The abstraction assembly has no CShell,
 HTTP, DI, or provider dependency. Another adapter can implement the same interfaces without changing
 consumer orchestration code.
+<!-- /program-kit:knowledge-rule -->
 
 ## Explicit provider facilities
 
+<!-- program-kit:knowledge-rule context.identity-provider-facilities-context -->
 | CShell feature | Selected Admin REST resources | Reason it remains provider-specific |
 | --- | --- | --- |
 | `AuthenticationFlows` | flow list/create/copy/delete, execution list/create/update | authenticator aliases, nesting and execution requirements are Keycloak models |
 | `IdentityProviders` | provider instances and provider mappers | provider factory/configuration maps are Keycloak SPI-shaped |
 | `Organizations` | organization lifecycle and existing-user membership | organization representation and managed-membership semantics are versioned Keycloak facilities |
 | `RealmOperations` | key metadata, event configuration/query/delete, per-user/all brute-force failure clearing | realm operational structures and privileges are provider-specific |
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.identity-provider-representation -->
 Provider-specific representations use `JsonElement` deliberately: those exact structures evolve with
 Keycloak and must not be disguised as portable domain models. They are still endpoint-specific methods,
 not an unrestricted transport.
+<!-- /program-kit:knowledge-rule -->
 
 ## Endpoint families not selected
 
+<!-- program-kit:knowledge-rule principle.identity-selected-exclusions -->
 The following endpoints are useful to administrators but should not be part of the default application
 adapter:
 
@@ -68,9 +75,11 @@ adapter:
 Additional provider-specific feature packages should be introduced only with an endpoint inventory,
 least-privilege role mapping, typed or deliberately exact provider representation, negative tests, and a
 real create/use/cleanup lifecycle. Do not expand `RealmOperations` into a generic Admin REST client.
+<!-- /program-kit:knowledge-rule -->
 
 ## Authentication and permissions
 
+<!-- program-kit:knowledge-rule principle.identity-admin-permissions -->
 The adapter accepts only OAuth client credentials for a confidential service account. It caches tokens
 inside their safe lifetime, bounds every request, rejects non-HTTPS servers except an explicit loopback
 Development override, encodes realm/resource identifiers, and never logs response bodies or credentials.
@@ -82,3 +91,4 @@ The core suite uses a recording transport to prove subdomain isolation, request 
 caching, and public-contract mappings. The advanced suite creates a disposable service account in a
 pinned real Keycloak, runs user/access/application/scope/enrollment/session/key-metadata lifecycles through
 the public CShell features, and cleans up all resources.
+<!-- /program-kit:knowledge-rule -->

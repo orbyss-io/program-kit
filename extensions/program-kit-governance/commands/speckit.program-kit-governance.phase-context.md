@@ -15,6 +15,16 @@ Resolve reported associations/conflicts; repository-wide adoption does not selec
 Use focused section lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
 for a focused follow-up. Apply their conditions to concrete design/code choices;
 record decisions, exceptions and actual required tests in the existing plan and tasks.
+Use the plan template's `Operation implementation map` for actual ownership/results and applicable
+cancellation/deadline, cleanup/uncertainty, transaction/replay, admission/bounds, concurrency,
+configuration/time and activation/drain decisions. State ownership from the first acquisition or
+external identity through every following failure edge. Task drafting carries compatible selected
+patterns/examples or supported manual alternatives, first adverse cases/test owners and the first
+coherent compiler/analyzer/focused checks before expansion. Missing consequential choices block only
+dependent source work. Investigate accessible facts locally; ask humans only for missing material
+intent, architecture, risk or authority. Update the actual spec/ADR/plan/tasks where affected and
+retry scoped analysis/preparation then fresh preflight. Toolkit representation and environment gaps
+need their owning repair/preparation route; a rule list or reading receipt cannot unblock them.
 For attributable source ownership and evaluation routes, use the single discovery entry point:
 `python .specify/extensions/program-kit-governance/scripts/knowledge_discovery.py catalog --requirement <id>`.
 Add `--resolve` for actual canonical declarations. This lookup is regenerable output, not another

@@ -11,6 +11,7 @@ from unittest.mock import patch
 import os
 import shutil
 from owned_fixture import filesystem_path, FixtureDirectory
+from knowledge_review_fixture import BRIEF_LIMITS, assert_complete_required_text
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
@@ -127,7 +128,7 @@ def validate_installed_workflow(project, fresh_reset=False, *, execute=True):
                 raise AssertionError('Installed resolver appended rather than replaced tasks template')
         guidance = run(project / '.specify/extensions/program-kit-governance/scripts/phase_obligations.py',
                        'project', '--feature-dir', feature.relative_to(project).as_posix(), '--phase', 'tasks')
-        if len(guidance.encode('utf-8')) >= 24000 or 'not a reading checklist' not in guidance:
+        if len(guidance.encode('utf-8')) >= 40000 or 'not a reading checklist' not in guidance:
             raise AssertionError('Installed before_tasks context lost bounded guidance')
         helper = project / '.specify/extensions/program-kit-governance/scripts/task_draft.py'
         arguments = ('--feature-dir', feature.relative_to(project).as_posix())
@@ -689,14 +690,20 @@ class TaskTests(unittest.TestCase):
     def test_context_is_bounded_phase_scoped_and_keeps_required_checks(self):
         value = context.project(self.root, self.feature, 'after-plan')
         output = context.render(value, 'after-plan')
-        self.assertLess(len(output.encode('utf-8')), 24000)
+        # Complete mandatory atoms replace the old lossy preview; broad output
+        # remains explicitly bounded, with focused source/async budgets elsewhere.
+        self.assertLess(len(output.encode('utf-8')), BRIEF_LIMITS['union'])
+        assert_complete_required_text(self, context.catalog(), value['requirements'], output, ROOT / 'extensions')
         self.assertNotIn('Guidance: ', output)
         self.assertIn('not a reading checklist', output)
         ids = {r['id'] for r in value['requirements']}
         self.assertTrue({'architecture-authority', 'persistence-adoption', 'dotnet-runtime-security',
                          'capability-adoption', 'http-operation-contracts'} <= ids)
         self.assertIn('real-provider tests', output)
-        self.assertNotIn('ui-evaluation-v1.md', output)  # Optional paid experiments are not browser acceptance.
+        # An applicable canonical body may accurately mention optional experiments;
+        # their document must not become a selected required reading/gate.
+        self.assertFalse(any(source.endswith('/ui-evaluation-v1.md')
+            for row in value['requirements'] for source in row['sources']))
         catalog = copy.deepcopy(context.catalog())
         next(rule for rule in catalog['requirements'] if rule['id'] == 'domain-semantics')['phases'] = ['delivery']
         with patch.object(context, 'catalog', return_value=catalog):

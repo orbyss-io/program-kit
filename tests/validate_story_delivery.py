@@ -55,6 +55,13 @@ def story_tasks():
 |-------|------------|----------------|-------------------------|--------------------------|------------------------|
 | US1 | create, integrate | Create owned record | Open UI, create and reopen record | 90 | none |
 | US2 | export | Export record | Export and inspect durable result | 45 | none |
+
+## Operation implementation map
+| Operation | Pattern / example | Compatibility / alternative | First adverse cases | Test owner / command | First coherent check |
+| --- | --- | --- | --- | --- | --- |
+| create | Fictional state-machine manual route | BCL text fixture; no real product behavior claimed | failed evidence; stale review | story-state synthetic executable | execute story-state after first coherent fixture increment |
+| integrate | Fictional state-machine manual route | BCL text fixture; no real product behavior claimed | crossed scope; lost acceptance | story-state synthetic executable | execute story-state after first coherent fixture increment |
+| export | Fictional state-machine manual route | BCL text fixture; no real product behavior claimed | stale evidence; changed scope | story-state synthetic executable | execute story-state after first coherent fixture increment |
 '''
 
 
@@ -62,6 +69,15 @@ def seed(root, feature, *, evaluation=False):
     """Initialize fictional state for focused controls; installed reset exercises ratification."""
     for name in ('spec.md', 'plan.md'):
         (feature / name).write_text(delivery.POLICY + '\nFictional fresh specification.', encoding='utf-8')
+    from operation_readiness import DECISIONS
+    with (feature / 'plan.md').open('a', encoding='utf-8') as stream:
+        stream.write('\n\n## Operation implementation map\n| Operation | Decision | Resolution | Source |\n| --- | --- | --- | --- |\n')
+        for operation in ('create', 'integrate', 'export'):
+            for field in DECISIONS:
+                resolution = ('Fictional state engine owns retained task and review transitions.' if field == 'ownership' else
+                              'Fictional decisions and evidence stay separate; tests assert their exact state.' if field == 'results' else
+                              'Not applicable: this synthetic state-machine fixture executes no real application or provider contract.')
+                stream.write('| ' + operation + ' | ' + field + ' | ' + resolution + ' | spec.md |\n')
     (feature / 'tasks.md').write_text(story_tasks(), encoding='utf-8')
     for name in ('src/Create.txt', 'src/Export.txt'):
         target = root / name
@@ -91,14 +107,14 @@ def seed(root, feature, *, evaluation=False):
         delivery.save_current(feature, saved)
 
 
-def fictional_evaluation(root, feature, task_ids=None):
+def fictional_evaluation(root, feature, task_ids=None, configuration="Debug"):
     """Ordinary fictional authorship for workflow tests, not application qualification."""
     from coding_context import prepare
-    coding = prepare(root, feature, task_ids=task_ids, feature_wide=task_ids is None)['coding']
-    return [{'rules': [d['rule'] for d in coding['evaluation']['duties']],
-             'checks': [{'kind': 'toolkit', 'id': 'story-state'}], 'review': 'review.md',
-             'conclusion': 'Synthetic workflow state and declared material scope inspected; no application correctness claim.',
-             'limits': 'Fictional unit-test review; technical evidence executes only its synthetic state check.'}]
+    coding = prepare(root, feature, task_ids=task_ids, feature_wide=task_ids is None, configuration=configuration)['coding']
+    from coding_evaluation_fixture import fictional_claims
+    sources = [path for project in coding['projects'] for path in project.get('compile', []) if (root / path).is_file()]
+    reviewed_source = sources[0] if sources else (feature / 'spec.md').relative_to(root).as_posix()
+    return fictional_claims(coding, reviewed_source, [{'kind': 'toolkit', 'id': 'story-state'}])
 
 
 def accepted_fixture(root, feature):
@@ -132,11 +148,12 @@ class DeliveryTests(unittest.TestCase):
             self.act('decision', checkpoint='US1', verdict='accepted', actor='worker', source='fixture has no human authority')
         self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
 
-    def material_assessment(self, extra_basis=()):
+    def material_assessment(self, extra_basis=(), checks=None, configuration="Debug"):
         solution = self.root / 'Application.slnx'
         solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')
         self.complete('T001', 'T002')
-        self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
+        checks = checks or ['artifacts/tests/toolkit-runs/story-fixture/result.json']
+        self.act('present', checkpoint='US1', checks=checks, configuration=configuration,
                  basisPaths=['src/Create.txt', 'Application.slnx', *extra_basis], entryPoint='Fictional application',
                  preparedData='Synthetic records', walkthrough='Create and reopen', expected='Owned result',
                  limitations='Simulated human assessment; unit fixture has no native build claim')
@@ -162,16 +179,34 @@ class DeliveryTests(unittest.TestCase):
         self.assertIsNotNone(shutil.which('dotnet'), 'Prepare the selected .NET SDK before this native case')
         evidence = ROOT / 'artifacts/tests/review-material-native' / uuid.uuid4().hex
         evidence.mkdir(parents=True)
-        empty = self.root / 'empty-feed'; empty.mkdir()
+        # Use the actual registered public analyzer, through the shipped policy.
+        # An older default without source-readability-v1 must fail the real build;
+        # a local candidate archive cannot become public profile qualification.
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
+        import building_blocks as blocks
+        selected_catalog = blocks.new_project_catalog()
+        analyzer_version = selected_catalog['packages']['nuget:Orbyss.Foundation.Analyzers']['version']
+        template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+        for name in ('ProgramKit.Build.props', 'ProgramKit.Build.targets'):
+            shutil.copyfile(template / name, self.root / 'eng' / name)
+        (self.root / 'Directory.Packages.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>'
+            '<PackageVersion Include="Orbyss.Foundation.Analyzers" Version="' + analyzer_version + '" /></ItemGroup></Project>')
+        (self.root / 'Directory.Build.targets').write_text('<Project><Import Project="eng/ProgramKit.Build.targets" /></Project>')
+        (self.root / 'NuGet.Config').write_text('<configuration><packageSources><clear/><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources>'
+            '<packageSourceMapping><clear/><packageSource key="nuget.org"><package pattern="*" /></packageSource></packageSourceMapping>'
+            '<fallbackPackageFolders><clear/></fallbackPackageFolders><config><add key="globalPackagesFolder" value="' + (self.root / 'packages').as_posix() + '" /></config></configuration>')
         props = self.root / 'Directory.Build.props'
-        props.write_text('<Project><PropertyGroup><DefineConstants>BASELINE</DefineConstants></PropertyGroup></Project>')
+        props.write_text('<Project><Import Project="eng/ProgramKit.Build.props" /><PropertyGroup><DefineConstants>BASELINE</DefineConstants></PropertyGroup></Project>')
         project_text = ('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework>'
-                        '<OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings>'
+                        '<OutputType>Exe</OutputType><Version>1.0.0</Version><ImplicitUsings>enable</ImplicitUsings>'
                         '</PropertyGroup></Project>')
         for name in ('Create', 'Unrelated'):
             directory = self.root / 'src' / name; directory.mkdir()
             (directory / (name + '.csproj')).write_text(project_text)
             (directory / 'Program.cs').write_text('#if CHANGED\nConsole.WriteLine("changed shared runtime");\n#else\nConsole.WriteLine("baseline runtime");\n#endif\n')
+        target = self.feature / 'tasks.md'
+        target.write_text(target.read_text().replace('Materialize src/Create.txt', 'Materialize src/Create/Program.cs')
+                          .replace('Integrate src/Create.txt and tests/Create.txt', 'Integrate src/Create/Program.cs and tests/Create.txt'))
         solution = self.root / 'Application.slnx'
         solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')
         commands = []
@@ -183,8 +218,8 @@ class DeliveryTests(unittest.TestCase):
             {'path': 'src/' + name + '/' + name + '.csproj', 'role': 'implementation', 'projectReferences': [],
              'responsibilities': [{'name': name + 'Work', 'kind': 'runtime', 'effects': []}]}
             for name in ('Create', 'Unrelated')], 'bindings': []}}))
-        (self.root / '.gitignore').write_text('**/bin/\n**/obj/\nartifacts/\n')
-        for arguments in (['init', '-q'], ['add', 'src', 'eng/architecture.json', 'Directory.Build.props', 'Application.slnx', '.gitignore'],
+        (self.root / '.gitignore').write_text('**/bin/\n**/obj/\nartifacts/\npackages/\n')
+        for arguments in (['init', '-q'], ['add', 'src', 'eng', 'Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props', 'NuGet.Config', 'Application.slnx', '.gitignore'],
                           ['-c', 'user.name=Fictional Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Native fixture baseline'],
                           ['tag', 'original-commit']):
             subprocess.run(['git', *arguments], cwd=self.root, check=True, capture_output=True, timeout=30)
@@ -203,15 +238,44 @@ class DeliveryTests(unittest.TestCase):
             self.assertEqual(0, completed.returncode, completed.stdout + completed.stderr)
             return completed.stdout.strip()
         def build_and_pack(output):
-            native('restore', 'Application.slnx', '--source', str(empty))
+            native('restore', 'Application.slnx')
             native('build', 'Application.slnx', '--no-restore', '-c', 'Release')
             native('pack', 'src/Create/Create.csproj', '--no-build', '--no-restore', '-c', 'Release', '-o', str(output))
             return {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
                     for path in (self.root / 'src/Create/bin/Release/net10.0').iterdir() if path.is_file()}
         before = build_and_pack(self.root / 'artifacts/package-before')
         self.assertEqual('baseline runtime', native('src/Create/bin/Release/net10.0/Create.dll'))
+        # The existing explicit toolkit owner now compiles and executes this
+        # actual selected native project, rather than inheriting seed's 2+2 proof.
+        check_script = self.root / 'checks/story.py'
+        check_script.write_text('import subprocess\n'
+            'subprocess.run(["dotnet", "build", "src/Create/Create.csproj", "--no-restore", "-c", "Release", "-m:1"], check=True)\n'
+            'output = subprocess.check_output(["dotnet", "src/Create/bin/Release/net10.0/Create.dll"], text=True).strip()\n'
+            'assert output == "baseline runtime", output\n')
+        declaration = {'id': 'story-state', 'script': 'checks/story.py', 'arguments': [], 'inputs': [
+            'checks/story.py', 'src/Create/Create.csproj', 'src/Create/Program.cs', 'Directory.Build.props',
+            'Directory.Build.targets', 'Directory.Packages.props', 'NuGet.Config', 'eng/ProgramKit.Build.props',
+            'eng/ProgramKit.Build.targets'], 'timeoutSeconds': 120}
+        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [declaration]}))
+        import toolkit_verification as toolkit
+        toolkit.execute(self.root, ['story-state'], toolkit.declarations(self.root, {'schemaVersion': 1, 'toolkitChecks': [declaration]}))
+        native_checks = [path.relative_to(self.root).as_posix() for path in (self.root / 'artifacts/tests/toolkit-runs').glob('*/result.json')
+                         if path.parent.name != 'story-fixture']
+        self.assertEqual(1, len(native_checks))
+        from coding_context import prepare
+        coding = prepare(self.root, self.feature, task_ids=['T001', 'T002'], configuration='Release')['coding']
+        adoption = next(row for row in coding['blockers'] if row['code'] == 'PKC025')['request']
+        registered = delivery.transition(self.root, self.feature, adoption, now=0)['delivery']
+        repair = registered['conformanceRepairs'][-1]
+        self.act('start', operation=repair['operations'][0], purpose='conformance', configuration='Release')
+        self.complete(*repair['taskIds'])
+        self.act('conformance-complete', findings=[repair['id']], configuration='Release', checks=native_checks,
+            evaluation=fictional_evaluation(self.root, self.feature, repair['taskIds'], configuration='Release'),
+            outcomeAssessment={'review': 'review.md', 'reviewer': 'fictional-independent-reviewer',
+                'conclusion': 'Fictional source inspection; actual compiled baseline output is unchanged and no outcome authority is granted.',
+                'materialEffects': {repair['id']: 'preserving'}})
         original, request = self.material_assessment(extra_basis=['Directory.Build.props',
-            'src/Create/Create.csproj', 'src/Create/Program.cs'])
+            'src/Create/Create.csproj', 'src/Create/Program.cs'], checks=native_checks, configuration='Release')
         after = build_and_pack(self.root / 'artifacts/package-after')
         self.assertEqual(before, after)
         self.assertEqual('baseline runtime', native('src/Create/bin/Release/net10.0/Create.dll'))
@@ -439,7 +503,7 @@ class DeliveryTests(unittest.TestCase):
         if action in ('engineering', 'present') and 'evaluation' not in fields:
             value = delivery.load_delivery(self.feature)
             review = value['checkpoints'][fields['checkpoint']]
-            fields['evaluation'] = fictional_evaluation(self.root, self.feature, review.get('taskIds', value['stories'][review['story']]['taskIds']))
+            fields['evaluation'] = fictional_evaluation(self.root, self.feature, review.get('taskIds', value['stories'][review['story']]['taskIds']), configuration=fields.get('configuration', 'Debug'))
         return delivery.transition(self.root, self.feature, {'action': action, **fields}, self.now)
 
     def complete(self, *ids):
@@ -478,9 +542,12 @@ class DeliveryTests(unittest.TestCase):
     def story_document_presentation(self):
         self.complete('T001', 'T002')
         self.shared_plan = self.feature / 'plan.md'
+        if not hasattr(self, 'fixture_operation_map'):
+            self.fixture_operation_map = '\n\n## Operation implementation map' + self.shared_plan.read_text().split('## Operation implementation map', 1)[1]
+        operation_map = self.fixture_operation_map
         self.shared_plan.write_text('# Shared plan\nAuthentication: required for private records.\n'
             '<!-- program-kit:story-start US1 -->\nCreate and reopen an owned record.\n'
-            '<!-- program-kit:story-end US1 -->\n', encoding='utf-8')
+            '<!-- program-kit:story-end US1 -->\n' + operation_map, encoding='utf-8')
         self.plan_relative = self.shared_plan.relative_to(self.root).as_posix()
         self.document_scope = {'schemaVersion': 1, 'inputs': [
             {'path': 'src/Create.txt', 'kind': 'file'},
@@ -605,8 +672,13 @@ class DeliveryTests(unittest.TestCase):
         original = copy.deepcopy(expanded['delivery']['checkpoints']['US1']['decisions'])
         stored = self.stored_checkpoint()
         self.assertEqual(3, stored['version'])
-        self.assertLess(len(json.dumps(stored).encode()), 65536)
-        self.assertGreater(len(json.dumps(expanded).encode()), 65536)
+        stored_bytes = len(json.dumps(stored).encode())
+        expanded_bytes = len(json.dumps(expanded).encode())
+        # Current complete canonical evaluation is retained once per owner;
+        # repeated human basis data must still compress by more than tenfold.
+        self.assertLess(stored_bytes, 80 * 1024)
+        self.assertLess(stored_bytes * 10, expanded_bytes)
+        self.assertGreater(expanded_bytes, 65536)
         self.assertEqual(2, len(stored['delivery']['basisStorage']['values']))
         self.assertEqual(60, len(original))
         self.assertEqual(121, len(original[0]['basis']))

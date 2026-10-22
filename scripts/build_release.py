@@ -243,6 +243,7 @@ def pack_historical_package_facts(staging: Path) -> Path:
             if not recipe_path.is_relative_to(registry.resolve()) or sha256(recipe_path) != recipe_ref['sha256']:
                 raise ValueError('Historical qualification recipe differs from its original authority')
             recipe = load_json(recipe_path)
+            retain(recipe_ref)
             prefix = registry_relative.as_posix() + '/'
             if not recipe['nativeLock']['path'].startswith(prefix):
                 raise ValueError('Historical qualification lock escapes its registry')

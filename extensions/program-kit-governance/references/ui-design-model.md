@@ -2,6 +2,7 @@
 
 ## Layers and choices
 
+<!-- program-kit:knowledge-rule context.ui-choice-model -->
 Start from the person's journey and context of use. Use this model to explain what the profile
 knows, what a choice changes, and where to override it. It is a coverage lens, not a questionnaire.
 
@@ -18,7 +19,9 @@ knows, what a choice changes, and where to override it. It is a coverage lens, n
 | Icons | Family, weight, size, labels and directional behavior | Brand icons; sanitized used subset and notices |
 | Implementation | Frontend, component library and CSS integration | Existing accepted frontend; native/tailwind/existing-system CSS adapter |
 | Authentication experience | Login, errors, success, expiry and logout states | Shared brand/theme; provider or application screen owner |
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.ui-layer-owner-fit -->
 Brand and theme are related but distinct: the same identity must work in light and dark themes.
 Global navigation and a page's composition are distinct; a list/detail page need not create a new
 global navigation destination. Density follows the work and input needs, not visual taste alone.
@@ -30,33 +33,43 @@ components. React/Vue/etc are frontend implementation choices. These options can
 other; do not combine competing resets, component semantics or token owners blindly. Program Kit
 ships a native reference, a tested Tailwind token bridge and an explicit existing-system mapping.
 It does not ship qualified Material or Bootstrap adapters merely because their guidance is known.
+<!-- /program-kit:knowledge-rule -->
 
 ## Modern product baseline
 
+<!-- program-kit:knowledge-rule principle.ui-presentation-version -->
 New profiles select `presentation: modern-product-v1`. Omitted presentation means `classic-v1`;
 init never overwrites a consumer profile. Upgrade intentionally by editing the presentation input,
 reviewing the changed generated appearance and adapter fit, and using normal build/check ownership.
 The experience profile remains `ui-experience-v1`; presentation is a separate versioned choice.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.ui-visual-hierarchy -->
 Use coherent typography/spacing, layered surfaces, restrained decorative separators, distinct
 action styles, useful information hierarchy and responsive compositions. Essential control/focus
 indicators retain contrast independently of decorative dividers. Keep touch targets usable and
 keyboard/focus meaning stable. Compact workspace density is legitimate when the actual work fits.
 Choose navigation from destinations and page composition from the journey; a sidebar is a fallback
 proposal, not evidence that every small application needs one.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.ui-motion-independent-completion -->
 Motion is enabled normally. Productive feedback, entry and exit have separate roles; expressive
 moments need a purpose. Honor reduced-motion preferences with equivalent static feedback. Do not
 make completion, focus restoration or the next action depend on an animation finishing. Prefer
 transform/opacity for movement; measure other animated properties when consequential.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.actual-ui-composition -->
 Generated list/detail and form fragments are composition starters. The consumer owns actual
 selection, responsive back navigation, retained state, rules and operation adapters. A component
 gallery is not a working product journey. Review a representative real composition with the human
 at the existing review handoff; contrast/axe passing does not establish visual quality or usability.
+<!-- /program-kit:knowledge-rule -->
 
 ## Authentication presentation
 
+<!-- program-kit:knowledge-rule principle.auth-journey-brand-owner -->
 Accepted identity-screen styling describes the person's complete sign-in/recovery journey,
 including provider-hosted screens when they are in that journey. Trace the requirement from
 project intent/intake and bootstrap decisions into the affected spec, plan, tasks and acceptance.
@@ -81,7 +94,9 @@ They are inert presentation templates with explicit control slots, not deployed 
 that authentication occurred. Bind localized copy, verified state and provider/application-owned
 controls. Never add a mandatory login-success interstitial when the established flow continues
 directly into the application; use the same branded completion treatment in that flow.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.auth-application-recovery -->
 Preserve provider-owned credential forms, MFA, required actions and provider error/recovery flows.
 The Keycloak login theme scaffold inherits the provider templates and appends generated brand CSS;
 it does not replace forms or change redirects. Integrate its logo and realm display name from the
@@ -100,6 +115,7 @@ Run actual provider login success/error, required actions where selected, callba
 confirmation/cancellation/success and unavailable-provider logout acceptance before declaring the
 consumer flow complete. Screen fixtures prove presentation only. Do not start a provider during
 intake or expand paid/live acceptance to verify these templates.
+<!-- /program-kit:knowledge-rule -->
 
 ## Inspecting and changing
 

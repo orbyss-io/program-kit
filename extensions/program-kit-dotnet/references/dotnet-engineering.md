@@ -27,6 +27,7 @@ ownership rules are profile requirements.
   Shutdown is idempotent, cancels, awaits with a bound, drains before provider disposal, and has disposal fallback.
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
+<!-- program-kit:knowledge-rule principle.async-completion -->
 - Custom schedulers, `Task.Factory.StartNew`, invisible fire-and-forget, and runtime work without an owner require
   an Accepted ADR and measured evidence.
 - Await asynchronous I/O directly. `Task.Run` does not improve server I/O scalability; CPU offload needs a
@@ -35,9 +36,11 @@ ownership rules are profile requirements.
   cancellation. Async streams propagate enumeration cancellation and dispose their enumerators.
 - Choose continuation behavior for the actual caller context; do not mechanically add or remove
   `ConfigureAwait`. Distinguish per-process Foundation scheduling from distributed work ownership.
+<!-- /program-kit:knowledge-rule -->
 
 ## Synchronization and collections
 
+<!-- program-kit:knowledge-rule principle.synchronization-contract -->
 - Use `lock` or `System.Threading.Lock` for short synchronous critical sections. Never await while holding it.
 - Use `SemaphoreSlim` for asynchronous mutual exclusion or bounded concurrency, with acquisition/release paired
   in `try/finally` after successful acquisition. It is not a universal lock and provides no fairness guarantee.
@@ -49,6 +52,7 @@ ownership rules are profile requirements.
   external I/O and slow work outside critical sections. Singleton lifetime does not establish thread safety.
 - A channel design defines capacity, full mode, cancellation, completion and failed-consumer behavior.
   Specialized locks and lock-free algorithms require a scoped investigation and measured justification.
+<!-- /program-kit:knowledge-rule -->
 
 ## Resource and memory ownership
 
@@ -61,6 +65,7 @@ ownership rules are profile requirements.
 - Use `IAsyncDisposable` when teardown performs asynchronous work. Constructors do not start background work.
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
+<!-- program-kit:knowledge-rule principle.resource-retention -->
 - Bound caches, queues, buffers, subscriptions, and retained task state. Static references, timers, event
   handlers, callbacks, threads, and outstanding work must not retain a drained shell generation.
 - `Span<T>` is stack-only and synchronous; `Memory<T>` can cross async boundaries. Follow explicit buffer
@@ -73,9 +78,11 @@ ownership rules are profile requirements.
   failures; clear sensitive pooled data as required. Never use memory after return or across an invalid lease.
   Prefer `SafeHandle` for owned unmanaged handles. Pinning, forced GC, LOH optimizations and custom pooling
   are conditional measured choices, not ordinary application defaults.
+<!-- /program-kit:knowledge-rule -->
 
 ## LINQ and query boundaries
 
+<!-- program-kit:knowledge-rule principle.query-execution -->
 - Preserve deferred-execution awareness and avoid multiple enumeration. Enable CA1851 where it adds signal.
 - Keep `IQueryable<T>` expressions provider-translatable until the deliberate materialization boundary. Do not
   hide client evaluation, accidental full-table reads, or offset-pagination scaling costs.
@@ -86,9 +93,11 @@ ownership rules are profile requirements.
   Specify stable ordering and pagination. Test projection, N+1 behavior and named helper translation on
   the real selected provider; an in-memory substitute cannot prove database semantics. Do not replace
   readable queries with loops without an actual correctness or measured performance reason.
+<!-- /program-kit:knowledge-rule -->
 
 ## Type and construction choices
 
+<!-- program-kit:knowledge-rule principle.construction-invariants -->
 - Use classes for identity, mutability, inheritance, large values, and DI-owned services. Persistence entities are
   normally classes, not records.
 - Use record classes for data-oriented value equality and immutable contracts. Record structs and structs must be
@@ -104,9 +113,11 @@ ownership rules are profile requirements.
   properties do not make referenced collections deeply immutable. Test promised substitution contracts.
   Factories clean up partially acquired resources; static initialization must not hide required startup
   validation or introduce unrecoverable initialization dependencies.
+<!-- /program-kit:knowledge-rule -->
 
 ## Deferred initialization
 
+<!-- program-kit:knowledge-rule principle.deferred-initialization -->
 Use `Lazy<T>` only for genuinely deferred, reusable initialization with an explicit lifetime. Define the
 factory's side effects, exception policy, thread-safety mode and disposal owner. `ExecutionAndPublication`
 coordinates initialization and can cache factory exceptions; it does not make the value thread-safe.
@@ -115,9 +126,11 @@ It is not an automatic retry policy. `Lazy<Task<T>>` can retain faulted or cance
 failure and cancellation semantics instead of binding shared initialization to one caller's token.
 Required initialization uses the selected Foundation startup mechanism. Do not invent a universal
 AsyncLazy abstraction, hide synchronous blocking, or defer mandatory configuration validation.
+<!-- /program-kit:knowledge-rule -->
 
 ## Time, configuration and I/O
 
+<!-- program-kit:knowledge-rule principle.runtime-time-and-io -->
 - Use `TimeProvider` for replaceable time, monotonic timestamps for elapsed duration, and controlled-time
   tests for deadlines. Use `PeriodicTimer` when its single-consumer semantics fit owned periodic work.
   Consume the selected replaceable default rather than unconditionally registering `TimeProvider.System`.
@@ -135,13 +148,17 @@ AsyncLazy abstraction, hide synchronous blocking, or defer mandatory configurati
   a configured pooled connection lifetime. Define deadlines and cancellation; retry only replay-safe
   operations, accounting for effects and commit ambiguity. Use `IFileProvider` where it fits the resource
   boundary; it does not by itself establish path admission or tenant isolation.
+<!-- /program-kit:knowledge-rule -->
 
 ## Secure runtime boundaries and observability
 
+<!-- program-kit:knowledge-rule context.selected-web-runtime-specialization -->
 Reuse the selected WEB controls and managed JSON/asset mechanisms in `secure-web-profiles.md`; these
 rules specialize runtime use, not their identities or policy. Known envelopes become typed after
 admission as defined in `programming-guardrails.md`.
+<!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.runtime-security -->
 - Specify ordinal/culture and normalization semantics for protocol identifiers; do not let machine culture
   change authorization, identity or persisted wire meaning. Bound untrusted parsing, regular expressions,
   archives and decompression; use timeouts or an appropriate non-backtracking regex where supported.
@@ -163,9 +180,11 @@ admission as defined in `programming-guardrails.md`.
 - Unsafe code, interop, runtime code generation, custom schedulers, distributed locks and live reload
   trigger scoped security/compatibility research. Source generation, reflection caches, trimming and AOT
   are conditional on measured needs and the selected deployment; verify that deployment before adoption.
+<!-- /program-kit:knowledge-rule -->
 
 ## Method bodies and extraction
 
+<!-- program-kit:knowledge-rule principle.method-coherence -->
 Write a non-trivial method as one coherent operation. Use this sequence when the phases apply; do not add empty
 sections, comments, temporary variables, or helper calls merely to make the shape visible:
 
@@ -203,6 +222,7 @@ do not use a tuple as an unnamed parameter bag when the values form a durable co
 Order fields first, followed by constructors and the type's externally meaningful members. Put private helper
 methods at the bottom of the type, in the order in which the higher-level flow first uses them. A private method is
 not automatically justified: it must make the caller easier to read or own an independently meaningful contract.
+<!-- /program-kit:knowledge-rule -->
 
 ## Source files and documentation
 
@@ -216,6 +236,7 @@ those valid types fails ORB1003. Nested configuration and suppressions still req
 the actual native build; declared root settings alone establish no effective-policy pass.
 <!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.source-documentation -->
 - A C# source file declares exactly one named type: class, record, struct, interface, enum, or delegate. Nested and
   supporting type declarations use their own files as well. Anonymous types and tuples are expressions and do not
   violate this rule. Generated code is excluded. Name the file after the declared type; partial declarations may
@@ -227,9 +248,11 @@ the actual native build; declared root settings alone establish no effective-pol
   alternatives, implementation diaries, or architectural justification. Put durable design decisions and their
   substantiation in Architecture/ADRs; use a short inline comment only for a locally non-obvious mechanism. Code
   that follows an accepted pattern should normally explain its mechanics through names and structure.
+<!-- /program-kit:knowledge-rule -->
 
 ## Orbyss style overlay
 
+<!-- program-kit:knowledge-rule principle.invocation-layout -->
 - Private fields use camelCase without an underscore; enforce through EditorConfig naming rules.
 - Use a 120-column target. Methods and constructors with more than two parameters, and calls with more than
   two arguments, must put every parameter/argument on its own line after the opening parenthesis. Close on
@@ -247,9 +270,11 @@ the actual native build; declared root settings alone establish no effective-pol
   positional. Public parameter renames remain a source-compatibility concern.
 - Built-in formatting and analyzers remain primary. `Orbyss.Foundation.Analyzers` supplies only semantic Program Kit
   rules that the SDK cannot express; generated repositories reference it centrally with `PrivateAssets=all`.
+<!-- /program-kit:knowledge-rule -->
 
 ## Enforcement classification
 
+<!-- program-kit:knowledge-rule principle.source-enforcement -->
 - Universal: argument/parameter layout, prepared argument values, one invocation per chain line,
   owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
   resource ownership, immutable production composition, no shell-level `AddHostedService`, coherent method
@@ -258,12 +283,20 @@ the actual native build; declared root settings alone establish no effective-pol
 - Conditional: `ValueTask`, PLINQ, structs, records, primary constructors, frozen collections, live unloading,
   and specialized synchronization.
 - Recommendation: line width, contextual named arguments, and sealing internal leaves.
-- The invocation readability rules above are mandatory source-review checks. The current SDK/selected
-  Foundation analyzer configuration does not certify them; a green build does not waive that review.
+- Invocation readability remains mandatory. The qualified Foundation `source-readability-v1` contract
+  enforces argument/parameter layout, prepared argument values, invocation-chain layout and fields-first
+  ordering through ORB1007–ORB1010 with `FoundationSourceReadability=true`. An older selected package
+  does not supply that contract: supported adoption stays blocked until an actually qualified release/profile
+  is available. A local source-built candidate is development proof, never a new public pin.
+  Selected mandatory diagnostics cannot be downgraded/suppressed; native build and preflight reject
+  disabled analyzer execution rather than accepting an optimization flag as passing conformance.
+  Analyzer success does not certify semantic ownership, cancellation/cleanup, abstraction or XML purpose;
+  current scoped source review and adverse checks remain due; a green build does not waive that review.
   Apply them to owned authored source and editable examples/templates; do not reformat external packages,
   immutable historical evidence or native generated output. Check changes after manual edits too.
 - Prohibited unless ADR: invisible work, sync-over-async, unbounded queues/fan-out, custom schedulers, runtime feed
   mutation, and live reload without drain/unload evidence.
+<!-- /program-kit:knowledge-rule -->
 
 ## Primary references
 

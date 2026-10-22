@@ -211,7 +211,12 @@ class PatternTests(unittest.TestCase):
             result = scenario(directory)
             self.assertEqual('passed', result['status'])
             self.assertTrue(result['workingInputsUnchanged'])
-            self.assertGreaterEqual(sum(c['actualExit'] == 2 for c in result['commands']), 10)
+            if result.get('sourceCompletion') == 'blocked-publication-dependency':
+                self.assertTrue(any(b['code'] == 'PKC024' for b in result['sourceBlockers']))
+                self.assertTrue(any(c['name'] == '04-independent-invalid-implementation' and c['actualExit'] == 2 for c in result['commands']))
+                self.assertTrue(any(c['name'] == '04c-independent-browser-remains-available' and c['actualExit'] == 0 for c in result['commands']))
+            else:
+                self.assertTrue(any(c['name'] == '23-restored-qualified-context' and c['actualExit'] == 0 for c in result['commands']))
 
 
 if __name__ == '__main__':

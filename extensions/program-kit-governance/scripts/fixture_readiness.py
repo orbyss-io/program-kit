@@ -255,10 +255,20 @@ def current_files(root, contract):
             if changed:
                 payload = (json.dumps(package, indent=2) + '\n').encode('utf-8')
         files[relative] = payload
+    def maintained_support(relative):
+        paths = [contained(root, prefix + relative) for prefix in ('.specify/extensions/', 'extensions/')]
+        selected_path = next((path for path in paths if path.is_file()), None)
+        if selected_path is None:
+            raise ValueError('FIXTURE_PICKUP: install the maintained support before runtime fixture renewal: ' + relative)
+        return selected_path
     if 'runtime_fixture.py' in files and 'fixture_readiness.py' not in files:
-        readiness = Path(__file__).with_name('fixture_readiness.py')
+        readiness = maintained_support('program-kit-governance/scripts/fixture_readiness.py')
         files['fixture_readiness.py'] = readiness.read_bytes()
         sources[readiness.relative_to(root).as_posix()] = sha(files['fixture_readiness.py'])
+    if 'runtime_probe.py' in files and 'owned_scratch.py' not in files:
+        helper = maintained_support('program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
+        files['owned_scratch.py'] = helper.read_bytes()
+        sources[helper.relative_to(root).as_posix()] = sha(files['owned_scratch.py'])
     return files, sources
 
 

@@ -2,6 +2,7 @@
 import copy
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -11,7 +12,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-governance/scripts')]
-from owned_fixture import FixtureDirectory
+from owned_fixture import FixtureDirectory, native_path
 import validate_bootstrap_provider_context as provider_tests
 from validate_building_blocks import load_module, write_json, RESOLVER, CATALOG, accepted_fixture, refresh_registration
 import bootstrap_provider_context as providers
@@ -117,6 +118,10 @@ class EffectiveContextTests(unittest.TestCase):
         recipe = renderer.render(self.root, 'foundation-activation', 'host-old', 'ghcr.io/orbyss-io/foundation-host@sha256:' + 'a' * 64)
         contract_path = (self.root / recipe['recipe']).with_suffix('.contract.json')
         contract = json.loads(contract_path.read_text())
+        # Retained older contracts lack the newly required maintained helper.
+        contract['fixtures'].pop('owned_scratch.py')
+        write_json(contract_path, contract)
+        self.assertIn('owned_scratch.py (required maintained support missing)', pickup.stale_inputs(self.root, contract))
         for relative, source in contract['fixtures'].items():
             path = self.root / source
             if relative.endswith('.csproj'):
@@ -135,6 +140,8 @@ class EffectiveContextTests(unittest.TestCase):
         record = pickup.apply(self.root, contract_path.relative_to(self.root).as_posix(), 'host-current', plan['planDigest'])
         self.assertTrue(all(path.read_bytes() == payload for path, payload in before.items()))
         current = json.loads((self.root / plan['newRecipe']).with_suffix('.contract.json').read_text())
+        self.assertEqual((self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py').read_bytes(),
+                         (self.root / current['fixtures']['owned_scratch.py']).read_bytes())
         self.assertEqual([], pickup.stale_inputs(self.root, current))
         parameters = json.loads((self.root / current['fixtures']['runtime-inputs.json']).read_text())
         self.assertEqual(catalog['families']['foundation']['releaseVersion'], parameters['foundationRelease'])
@@ -144,6 +151,10 @@ class EffectiveContextTests(unittest.TestCase):
         with patch.object(bootstrap_compatibility, 'configuration', return_value=({}, {})):
             _, prepared = bootstrap_compatibility.prepare(self.root, scratch, current)
         self.assertTrue(prepared)
+        loaded = subprocess.run([sys.executable, '-c',
+            'from pathlib import Path; import runtime_probe; assert runtime_probe.io_path(Path.cwd()).is_dir()'],
+            cwd=native_path(scratch), capture_output=True, text=True, timeout=20)
+        self.assertEqual(0, loaded.returncode, loaded.stdout + loaded.stderr)
 
     def selected(self, identity=None):
         self.blocks = load_module(self.root / '.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py')
@@ -400,6 +411,12 @@ class EffectiveContextTests(unittest.TestCase):
                     expected = catalog['packages'].get('nuget:' + identity, {}).get('version', pins['sharedAbi']['pins'].get(identity))
                     if expected: self.assertEqual(expected, ref.get('Version'))
                 self.assertEqual('false', next(ET.parse(project).iter('RestoreEnablePackagePruning')).text)
+            helper = scratch / 'owned_scratch.py'
+            self.assertEqual((self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py').read_bytes(), helper.read_bytes())
+            loaded = subprocess.run([sys.executable, '-c',
+                'from pathlib import Path; import runtime_probe; assert runtime_probe.io_path(Path.cwd()).is_dir()'],
+                cwd=native_path(scratch), capture_output=True, text=True, timeout=20)
+            self.assertEqual(0, loaded.returncode, loaded.stdout + loaded.stderr)
             runtime = load_module(scratch / 'runtime_probe.py')
             self.assertTrue(runtime.contracts_profile(pins))
             self.assertIn('provision_public_host', (self.root / recipe['recipe']).read_text())

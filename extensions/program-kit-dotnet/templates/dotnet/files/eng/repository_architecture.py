@@ -108,12 +108,16 @@ def lifecycle_findings(root, manifest, affected=None):
     for project in projects:
         path = project['path']
         if path not in selected: continue
-        if project['role'] == 'composition':
-            try:
-                validate_project_role(project['role'], path)
-            except ValueError as error:
-                findings.append({'id': 'retired-composition-project', 'project': path, 'message': str(error)})
-        elif project['role'] not in ACTIVATABLE_PROJECT_ROLES:
+        role = project.get('role')
+        try:
+            validate_project_role(role, path)
+        except ValueError as error:
+            findings.append({'id': 'retired-composition-project' if role == 'composition' else 'invalid-project-role',
+                             'project': path, 'message': str(error) + (
+                                 '; architecture owner must record the actual reviewed role/responsibilities in eng/architecture.json; '
+                                 'do not infer or relabel ownership to bypass its duties.' if role != 'composition' else '')})
+            continue
+        if role not in ACTIVATABLE_PROJECT_ROLES:
             continue
         for owner, owner_source, symbol, contracts in contributors:
             if owner == path: continue
@@ -426,7 +430,7 @@ def evaluate_project(root, relative, configuration='Debug', version=None, framew
             return declared
     from owned_scratch import native_path
     command = ['dotnet', 'msbuild', native_path(path), '-nologo', f'-p:Configuration={configuration}',
-               '-getProperty:AssemblyName,TargetPath,Configuration,ManagePackageVersionsCentrally,TargetFramework,TargetFrameworks,NETCoreSdkVersion,MSBuildProjectFullPath',
+               '-getProperty:AssemblyName,TargetPath,Configuration,ManagePackageVersionsCentrally,TargetFramework,TargetFrameworks,NETCoreSdkVersion,MSBuildProjectFullPath,FoundationSourceReadability,FoundationSourceReadabilityContract,RunAnalyzers,RunAnalyzersDuringBuild,EnableNETAnalyzers,GenerateMSBuildEditorConfigFile,SkipCompilerExecution,NoWarn,WarningsNotAsErrors,DesignTimeBuild,ProvideCommandLineArgs',
                '-getItem:ProjectReference,PackageReference,PackageVersion,FrameworkReference,InternalsVisibleTo,AssemblyAttribute,Compile']
     if version:
         command.append('-p:Version=' + version)

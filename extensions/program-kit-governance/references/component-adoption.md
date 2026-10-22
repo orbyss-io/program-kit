@@ -21,6 +21,7 @@ Their absence does not block writing the task plan.
 
 ## Immutable Forms
 
+<!-- program-kit:knowledge-rule principle.immutable-forms-runtime-adoption -->
 Prefer `forms_immutable_release` for a form published at build time. Bind its producer
 slot to a build project and frontend to the consumer package. The producer uses public
 `DefaultFormCatalogService` create/review/approve/publish APIs with explicit identities,
@@ -34,6 +35,7 @@ Admit the exact release and artifacts against a trusted deployment manifest with
 submission and reload. A handwritten schema or form replacing these selected APIs
 does not satisfy adoption. Forms 0.2 uses JSON Forms 3.8.0 and the approved Node/npm
 context; metadata/strict graph verification remains required before planning acceptance.
+<!-- /program-kit:knowledge-rule -->
 
 ## Foundation web and JSON
 
@@ -50,11 +52,13 @@ values. Keep application permission/route identities in application-owned consta
 and use captured framework identifiers; classify literals by owner and lifecycle.
 <!-- /program-kit:knowledge-rule -->
 
+<!-- program-kit:knowledge-rule principle.explicit-json-boundary-profile -->
 JSON endpoints explicitly obtain `JsonProfileCatalog.Get("strict-request")` (or the
 appropriate accepted profile) and perform typed admission. `Json.AspNetCore` does
 not configure global HttpJsonOptions or infer profiles from DTO types. Tolerant response
 reading is a distinct boundary policy. Do not silently replace existing canonical
 numeric/hash identity with the new canonicalizer during upgrade.
+<!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule adapter.hosted-pages -->
 HostedPages supports fixed encoded semantic HTML, typed bootstrap and admitted
@@ -80,6 +84,7 @@ review a different adapter. Verify the actual hosted journey and asset admission
 
 ## Ordinary development evidence
 
+<!-- program-kit:knowledge-rule principle.selected-instance-engineering -->
 Record each selected instance's owner, rationale, supported public APIs, placement,
 implementation paths and concrete behavior tests in the existing plan/tasks. Reuse accepted
 dependency profiles and authority; do not create capability-adoption, obligation-design or
@@ -88,6 +93,7 @@ For future work, link the roadmap entry and the prerequisite's due phase in the 
 Task generation schedules compatibility/admission work; it does not execute probes, provision
 services or claim acceptance. Execute the relevant checks before dependent implementation
 and require actual executed behavior and normal code review before completion.
+<!-- /program-kit:knowledge-rule -->
 <!-- program-kit:decision-rule capability-evidence -->
 <!-- program-kit:knowledge-rule principle.capability-evidence -->
 Keep selected, materialized, activated and exercised claims separate; none substitutes
