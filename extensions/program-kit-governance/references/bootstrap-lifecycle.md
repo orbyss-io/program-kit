@@ -49,6 +49,13 @@ Each prerequisite has these fields, with optional `verification` (`compatibility
 
 Every unresolved/deferred register ID must appear in source_ids. Split a broad prerequisite across
 actual affected slices when necessary; use distinct IDs and preserve the common source ID.
+For an epic with several features, optionally add `affected_features: ["feature-id", ...]` to
+restrict the condition to exact named children. Keep their parent epic in `affected_slices`.
+Each child must have explicit canonical `epic` membership or a durable v2 intake proving that parent;
+unknown, unparented or mismatched IDs reject. Omit `affected_features` for a truly shared epic-wide
+condition, preserving historical behavior. A renewal-specific condition must not block independent
+policy maintenance simply because both belong to the same epic. Without a selected feature,
+eligibility reports a conservative aggregate; it does not waive child conditions.
 Architecture/before-implementation items gate affected implementation, not specification. Architecture/before-specification items gate specification. Legacy before-bootstrap-completion obligations conservatively gate specification; do not silently waive them.
 Feature/feature-plan items identify ordinary specification/planning decisions inside accepted
 boundaries. Later/production and later/later-release items retain later policy triggers. Their
@@ -261,7 +268,7 @@ The native renderer produces INITIALIZED when the reviewed baseline validates, e
 obligations. It lists candidate phase eligibility. Broken hashes, missing required artifacts and
 contradictory accepted records still prevent acceptance. Artifact conflicts pause their owning stage;
 ordinary unresolved intent/design is carried into the existing ledger, never answered by assumption.
-Use `bootstrap_handoff.py eligibility --entry <ID> --phase specification|planning|implementation|delivery|production`
+Use `bootstrap_handoff.py eligibility --entry <ID> --feature <feature-ID> --phase specification|planning|implementation|delivery|production`
 to inspect a slice. Resolve the named obligation through existing research/design, ADR review or
 compatibility recipes, reconcile source bindings and review changed authority. Then resume the
 affected feature phase. A consumer-owned technology uses this same evidence route; it does not

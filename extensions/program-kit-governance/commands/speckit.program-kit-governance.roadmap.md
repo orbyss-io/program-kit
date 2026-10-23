@@ -1,5 +1,5 @@
 ---
-description: Create the governed project-level portfolio of candidate feature specifications.
+description: Create roadmap epics with agreed outcomes, priorities and linked feature seeds.
 scripts:
   py: scripts/governance_state.py
 ---
@@ -7,8 +7,9 @@ scripts:
 ## Ordinary roadmap editing
 
 After initial bootstrap, the roadmap belongs to the user. For a requested addition or edit,
-read the existing roadmap and affected spec/design/ADRs. Keep one entry with stable ID, title,
-outcome, scope, non-goals, dependencies and a link to its specification. Keep useful existing
+read the existing roadmap and affected spec/design/ADRs. Keep one epic entry with stable ID, title,
+outcome, scope, non-goals, completion criteria, dependencies and links to its candidate features and
+specifications. One epic can have several specifications. Keep useful existing
 fields, but do not create prerequisite ledgers, regenerate unrelated architecture/traceability
 views, renew fingerprints or require a Ready status to start specifying. Ask only about
 substantive scope or priority changes. This path needs no bootstrap context or ratification receipt.
@@ -64,9 +65,12 @@ first vertical slice before their named trigger.
 
 ## Output
 
-Create or update `docs/architecture/specification-roadmap.md`. This is a portfolio—the specification
-of candidate specifications—not an implementable feature specification and never an input to
-`speckit.implement`.
+Create or update `docs/architecture/specification-roadmap.md` as the epic portfolio. Each epic
+describes agreed capability outcomes and can be delivered through several feature specifications.
+Domains own meaning and can support several epics. Preserve each source journey and the candidate
+features' actual boundaries; one source journey does not force one epic or specification. The
+roadmap recommends a starting outcome; feature intake settles the selected feature's exact commission.
+The roadmap itself never enters `speckit.implement`.
 
 For a single confirmed journey, keep the first complete roadmap draft at most 550 words and aim
 below 4,500 UTF-8 bytes. Do not repeatedly measure or trim toward the target; run the supplied
@@ -99,8 +103,29 @@ the colon outside the bold label (for example `- **User-visible outcome**: ...`)
 - **Recommended sequence**
 - **Status**
 
+For new epic records also include these exact fields:
+
+- **Type**: Epic
+- **Completion criteria**: The observable outcomes needed to call this epic delivered.
+- **Feature seeds**: Comma-separated exact canonical candidate IDs, or None when not yet identified.
+- **Intent**: Intended or Exploratory
+
+Use each candidate's explicit `epic` and `commitment` when supplied. Preserve rich `seed` input and
+its evidence through the canonical model; link it instead of copying detailed feature behavior into
+the epic. Intended work gets an agreed priority rationale. Exploratory options retain a decision
+trigger and architectural consequences without an invented delivery promise. An epic is complete
+against its agreed outcomes, not simply because every currently listed child has a completed spec.
+Keep legacy records without Type readable under their original specification-oriented contract.
+
+The canonical candidate `dependencies` collection names actual feature prerequisites with rationale
+and an optional shared contract. It is distinct from epic membership and preferred sequence. Use
+explicit epic IDs in Dependencies only for real epic prerequisites. An entire domain or sibling
+feature set is not a blocker merely because it owns a contract another feature consumes. Unknown
+dependencies stay visibly unresolved; do not manufacture a complete graph. The generated roadmap
+view renders membership and these prerequisite edges from their maintained owners.
+
 Statuses are `Candidate`, `Blocked`, `Ready`, `Active`, `Delivered`, and `Superseded`. Bootstrap may
-create Candidate, Blocked, and Ready records. `Ready` means ready to write the feature specification,
+create Candidate, Blocked, and Ready records. `Ready` means sufficient context to begin affected feature intake,
 Planning, implementation and delivery have separate phase eligibility checks against the same prerequisite ledger. It does not mean every field-level, data-model, business-rule, failure,
 or implementation choice was decided during architecture bootstrap.
 
@@ -117,7 +142,7 @@ separate design task or ADR only when the evidence identifies an unresolved arch
 outside the slice that changes an accepted boundary, shared store, cross-domain/public contract,
 security profile, or deployment topology.
 
-A record is Ready when its outcome, boundary and ownership are sufficient for specification and
+A record is Ready when its outcome and ownership are sufficient to begin affected feature intake and
 its specification-due decisions are resolved. `before-implementation` obligations do not prohibit
 Ready or Active: they prohibit dependent implementation. Candidate or Blocked entries may remain
 after bootstrap, even when no entry is Ready. Never invent a journey start/end or provider choice
@@ -137,12 +162,16 @@ Before that terminal batch, inventory `docs/architecture/bootstrap-prerequisites
 the installed `references/bootstrap-lifecycle.md` contract. It binds all unresolved/deferred
 assessment items and retained ADR conditions to exact affected entries, owners, triggers and
 closure evidence. Program Kit owns IDs and paths. Read the full roadmap including its preamble;
-never redefine Ready as specification-ready or place a global before-code gate outside records.
+never redefine Ready as implementation or delivery acceptance or place a global before-code gate outside records.
 
 For a retained ADR condition assigned to feature/later work, bind that cataloged ADR in `sources`
 with the exact condition ID. This is phase-assignment authority, not closure evidence: leave the
 condition open until its own gate. Cover compound slices through their declared primary and
 `supporting_journeys` IDs, never narrative-only claims.
+When only named child features need a retained condition, set the existing prerequisite record's
+`affected_features` to their exact feature IDs as well as `affected_slices` to the parent epic.
+Omit the child scope only for genuinely shared conditions. Preserve its source, owner and due phase;
+epic membership does not make every sibling depend on that feature-specific condition.
 Keep open architecture dependencies Blocked. The subsequent bootstrap-closure command executes
 bounded compatibility tasks and reconciles eligibility before final review. An all-Blocked draft
 is a valid portfolio assessment and does not authorize implementation or bootstrap completion.
@@ -154,17 +183,15 @@ step only copies the status already justified here; it never chooses or promotes
 
 Report blocked records and the exact design task or ADR that can unlock each one.
 
-The approved `first_slice.journey_ids` is one selected specification boundary. Create exactly
-one first entry whose Scope includes every canonical candidate ID projected in
-`stage_plan.first_entry.candidate_ids`, and no candidate for a future journey. If this boundary
-contains several supporting journeys, describe them in that one entry; four separate entries
-plus prose saying they share a specification do not satisfy the handoff. Do not enlarge or shrink
-the approved boundary. Create separate portfolio entries for the remaining user-visible journeys.
-Without a structured first_slice, start with one entry per journey unless accepted architecture
-requires another boundary. Reuse the compact authority and normalized brief rather than reconstructing the
-design from every downstream document. Report entry IDs, statuses, final byte counts, and validation
-counts only; do
-not print the complete roadmap or repository-wide diffs.
+For new bootstrap, `recommended_start.candidate_ids` identifies recommended features without
+binding them into one first specification or including their source-journey siblings. Link them to
+their actual epic records. A coherent feature can include supporting journeys; retain those exact
+references while allowing several features per epic. Specification intake can refine the feature
+boundary within the epic's agreed outcomes. Preserve an existing legacy `first_slice` contract when
+resuming old accepted work; do not silently reinterpret or rewrite its original scope.
+Reuse the compact authority and normalized brief rather than reconstructing the design from every
+downstream document. Report entry IDs, statuses, final byte counts, and validation counts only;
+do not print the complete roadmap or repository-wide diffs.
 
 For `ui-experience-v1`, the first slice renders the consumer's brand, layout and a real user outcome.
 Login/logout supports that journey when needed; inherited authentication correctness is Program Kit

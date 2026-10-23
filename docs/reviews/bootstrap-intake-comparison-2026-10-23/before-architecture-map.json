@@ -1,0 +1,2507 @@
+{
+  "model_id": "workshopflow",
+  "title": "WorkshopFlow provisional architecture",
+  "elements": [
+    {
+      "id": "staff",
+      "type": "person",
+      "name": "Workshop staff",
+      "description": "Reception, technicians, planners, collection staff and managers.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "customer",
+      "type": "person",
+      "name": "Customer or business contact",
+      "description": "Approves through staff today; explicit portal grants later.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "supplier",
+      "type": "external-system",
+      "name": "Supplier processes",
+      "description": "Manual supplier interactions initially; electronic integration is future.",
+      "status": "explicit",
+      "ownership": "external",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "accounting",
+      "type": "external-system",
+      "name": "Accounting system",
+      "description": "External financial authority; manual references initially.",
+      "status": "explicit",
+      "ownership": "external",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "workshopflow",
+      "type": "software-system",
+      "name": "WorkshopFlow",
+      "description": "Connect repair intent, approval, work and retained history.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "service",
+      "type": "bounded-context",
+      "name": "Service agreements",
+      "description": "Commercial agreement and stable service-subject meaning differ from stock, physical work and accounting.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e-brief"
+      ],
+      "parent": "workshopflow",
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "service-work",
+      "type": "domain-capability",
+      "name": "Service agreements behavior",
+      "description": "Consumer-owned service agreements behavior.",
+      "status": "proposed",
+      "ownership": "service",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "service"
+    },
+    {
+      "id": "parts",
+      "type": "bounded-context",
+      "name": "Parts supply",
+      "description": "Stock allocation and procurement have distinct ownership and local consistency.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e-brief"
+      ],
+      "parent": "workshopflow",
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "parts-work",
+      "type": "domain-capability",
+      "name": "Parts supply behavior",
+      "description": "Consumer-owned parts supply behavior.",
+      "status": "proposed",
+      "ownership": "parts",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "parts"
+    },
+    {
+      "id": "execution",
+      "type": "bounded-context",
+      "name": "Workshop execution",
+      "description": "Physical execution, evidence and custody differ from customer commercial approval and stock.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e-brief"
+      ],
+      "parent": "workshopflow",
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "execution-work",
+      "type": "domain-capability",
+      "name": "Workshop execution behavior",
+      "description": "Consumer-owned workshop execution behavior.",
+      "status": "proposed",
+      "ownership": "execution",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "execution"
+    },
+    {
+      "id": "finance",
+      "type": "bounded-context",
+      "name": "Financial handoff",
+      "description": "External financial document semantics require translation independently of repair history.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e-brief"
+      ],
+      "parent": "workshopflow",
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "finance-work",
+      "type": "domain-capability",
+      "name": "Financial handoff behavior",
+      "description": "Consumer-owned financial handoff behavior.",
+      "status": "proposed",
+      "ownership": "finance",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "finance"
+    },
+    {
+      "id": "approval-for-work-bridge",
+      "type": "domain-capability",
+      "name": "Approved work revision translation",
+      "description": "Translate approved work revision without another owner’s private model.",
+      "status": "proposed",
+      "ownership": "execution",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "execution"
+    },
+    {
+      "id": "parts-for-work-bridge",
+      "type": "domain-capability",
+      "name": "Parts reservation result translation",
+      "description": "Translate parts reservation result without another owner’s private model.",
+      "status": "proposed",
+      "ownership": "execution",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "execution"
+    },
+    {
+      "id": "consume-parts-bridge",
+      "type": "domain-capability",
+      "name": "Consume reserved parts translation",
+      "description": "Translate consume reserved parts without another owner’s private model.",
+      "status": "proposed",
+      "ownership": "execution",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "execution"
+    },
+    {
+      "id": "completed-work-bridge",
+      "type": "domain-capability",
+      "name": "Issued service report translation",
+      "description": "Translate issued service report without another owner’s private model.",
+      "status": "proposed",
+      "ownership": "finance",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "finance"
+    },
+    {
+      "id": "financial-condition-bridge",
+      "type": "domain-capability",
+      "name": "Collection financial condition translation",
+      "description": "Translate collection financial condition without another owner’s private model.",
+      "status": "proposed",
+      "ownership": "execution",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": "",
+      "parent": "execution"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "staff-use",
+      "source": "staff",
+      "target": "workshopflow",
+      "description": "Staff record and inspect authorized workshop work.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "customer-contact",
+      "source": "customer",
+      "target": "workshopflow",
+      "description": "Customer instructions are recorded by staff; future direct access is deferred.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "supplier-handoff",
+      "source": "workshopflow",
+      "target": "supplier",
+      "description": "Staff record manual orders and receipts; future electronic ordering needs admission.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "accounting-handoff",
+      "source": "workshopflow",
+      "target": "accounting",
+      "description": "Staff retain a manual accounting reference; future integration is deferred.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "approval-for-work",
+      "source": "execution",
+      "target": "service",
+      "description": "Work reads the exact authorized commercial revision.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "parts-for-work",
+      "source": "execution",
+      "target": "parts",
+      "description": "Work reads availability and reservation outcomes; consumption is a separate command.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "consume-parts",
+      "source": "execution",
+      "target": "parts",
+      "description": "Parts owner records consumption or rejects a stale reservation.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "completed-work",
+      "source": "finance",
+      "target": "execution",
+      "description": "Financial handoff reads an immutable service-report reference.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "financial-condition",
+      "source": "execution",
+      "target": "finance",
+      "description": "Collection reads known accounting references and disclosed manual authority.",
+      "status": "proposed",
+      "evidence": [
+        "e-brief"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    }
+  ],
+  "views": [
+    {
+      "key": "system-context",
+      "type": "system-context",
+      "title": "System Context",
+      "scope": "workshopflow",
+      "elements": [
+        "staff",
+        "customer",
+        "supplier",
+        "accounting",
+        "workshopflow"
+      ],
+      "relationships": [
+        "staff-use",
+        "customer-contact",
+        "supplier-handoff",
+        "accounting-handoff"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "domain-landscape",
+      "type": "domain-landscape",
+      "title": "Domain landscape",
+      "scope": "workshopflow",
+      "elements": [
+        "service",
+        "parts",
+        "execution",
+        "finance"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "context-map",
+      "type": "context-map",
+      "title": "Context Map",
+      "scope": "workshopflow",
+      "elements": [
+        "service",
+        "parts",
+        "execution",
+        "finance"
+      ],
+      "relationships": [
+        "approval-for-work",
+        "parts-for-work",
+        "consume-parts",
+        "completed-work",
+        "financial-condition"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "service-decomposition",
+      "type": "context-decomposition",
+      "title": "service ownership",
+      "scope": "service",
+      "elements": [
+        "service",
+        "service-work"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "parts-decomposition",
+      "type": "context-decomposition",
+      "title": "parts ownership",
+      "scope": "parts",
+      "elements": [
+        "parts",
+        "parts-work"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "execution-decomposition",
+      "type": "context-decomposition",
+      "title": "execution ownership",
+      "scope": "execution",
+      "elements": [
+        "execution",
+        "execution-work",
+        "approval-for-work-bridge",
+        "parts-for-work-bridge",
+        "consume-parts-bridge",
+        "financial-condition-bridge"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "finance-decomposition",
+      "type": "context-decomposition",
+      "title": "finance ownership",
+      "scope": "finance",
+      "elements": [
+        "finance",
+        "finance-work",
+        "completed-work-bridge"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "receiving-view",
+      "type": "dynamic",
+      "title": "Receiving equipment",
+      "scope": "",
+      "elements": [
+        "staff",
+        "workshopflow"
+      ],
+      "relationships": [
+        "staff-use"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "staff-use"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "agreement-view",
+      "type": "dynamic",
+      "title": "Diagnosing and agreeing work",
+      "scope": "",
+      "elements": [
+        "staff",
+        "workshopflow",
+        "customer"
+      ],
+      "relationships": [
+        "staff-use",
+        "customer-contact"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "staff-use",
+        "customer-contact"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "supply-view",
+      "type": "dynamic",
+      "title": "Obtaining parts",
+      "scope": "",
+      "elements": [
+        "staff",
+        "workshopflow",
+        "supplier"
+      ],
+      "relationships": [
+        "staff-use",
+        "supplier-handoff"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "staff-use",
+        "supplier-handoff"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "repair-view",
+      "type": "dynamic",
+      "title": "Planning and executing repairs",
+      "scope": "",
+      "elements": [
+        "staff",
+        "workshopflow",
+        "execution",
+        "service",
+        "parts"
+      ],
+      "relationships": [
+        "staff-use",
+        "approval-for-work",
+        "parts-for-work",
+        "consume-parts"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "staff-use",
+        "approval-for-work",
+        "parts-for-work",
+        "consume-parts"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "collection-view",
+      "type": "dynamic",
+      "title": "Billing and collection",
+      "scope": "",
+      "elements": [
+        "staff",
+        "workshopflow",
+        "finance",
+        "execution",
+        "accounting"
+      ],
+      "relationships": [
+        "staff-use",
+        "completed-work",
+        "financial-condition",
+        "accounting-handoff"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "staff-use",
+        "completed-work",
+        "financial-condition",
+        "accounting-handoff"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "history-view",
+      "type": "dynamic",
+      "title": "History and recurring care",
+      "scope": "",
+      "elements": [
+        "staff",
+        "workshopflow"
+      ],
+      "relationships": [
+        "staff-use"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "staff-use"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "administration-view",
+      "type": "dynamic",
+      "title": "Administration and future external access",
+      "scope": "",
+      "elements": [
+        "staff",
+        "workshopflow",
+        "customer"
+      ],
+      "relationships": [
+        "staff-use",
+        "customer-contact"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "staff-use",
+        "customer-contact"
+      ],
+      "layout": {},
+      "animations": []
+    }
+  ],
+  "strategic_model": {
+    "status": "proposed",
+    "founding_decisions": [
+      {
+        "id": "founding-service",
+        "title": "Service agreements ownership",
+        "question": "Who owns service agreements meaning and lifecycle?",
+        "recommended_option": "Keep an explicit service owner with translated boundary contracts.",
+        "alternatives": [
+          "Keep all workflow and data in one undifferentiated job model.",
+          "Split each named page into a separate context."
+        ],
+        "rationale": "Commercial agreement and stable service-subject meaning differ from stock, physical work and accounting.",
+        "consequences": [
+          "Independent ownership of party or asset master data emerges.",
+          "Proposed logical boundaries do not require separately deployed services."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "service",
+          "service-work"
+        ],
+        "affected_relationships": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ]
+      },
+      {
+        "id": "founding-parts",
+        "title": "Parts supply ownership",
+        "question": "Who owns parts supply meaning and lifecycle?",
+        "recommended_option": "Keep an explicit parts owner with translated boundary contracts.",
+        "alternatives": [
+          "Keep all workflow and data in one undifferentiated job model.",
+          "Split each named page into a separate context."
+        ],
+        "rationale": "Stock allocation and procurement have distinct ownership and local consistency.",
+        "consequences": [
+          "Independent procurement ownership or high-value serial tracking warrants a further split.",
+          "Proposed logical boundaries do not require separately deployed services."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "parts",
+          "parts-work"
+        ],
+        "affected_relationships": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ]
+      },
+      {
+        "id": "founding-execution",
+        "title": "Workshop execution ownership",
+        "question": "Who owns workshop execution meaning and lifecycle?",
+        "recommended_option": "Keep an explicit execution owner with translated boundary contracts.",
+        "alternatives": [
+          "Keep all workflow and data in one undifferentiated job model.",
+          "Split each named page into a separate context."
+        ],
+        "rationale": "Physical execution, evidence and custody differ from customer commercial approval and stock.",
+        "consequences": [
+          "Field service develops independent scheduling and mobile ownership.",
+          "Proposed logical boundaries do not require separately deployed services."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "execution",
+          "execution-work"
+        ],
+        "affected_relationships": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ]
+      },
+      {
+        "id": "founding-finance",
+        "title": "Financial handoff ownership",
+        "question": "Who owns financial handoff meaning and lifecycle?",
+        "recommended_option": "Keep an explicit finance owner with translated boundary contracts.",
+        "alternatives": [
+          "Keep all workflow and data in one undifferentiated job model.",
+          "Split each named page into a separate context."
+        ],
+        "rationale": "External financial document semantics require translation independently of repair history.",
+        "consequences": [
+          "A selected accounting provider introduces materially different integration semantics.",
+          "Proposed logical boundaries do not require separately deployed services."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "finance",
+          "finance-work"
+        ],
+        "affected_relationships": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ]
+      }
+    ],
+    "subdomains": [
+      {
+        "id": "service-domain",
+        "name": "Service agreements",
+        "classification": "core",
+        "vision": "Service agreements remains independently meaningful.",
+        "ownership": "party and equipment references; job and diagnosis; issued quote revisions; approval evidence; warranty reference links",
+        "non_ownership": "Other contexts and external account/financial authorities.",
+        "language_terms": [
+          "customer party",
+          "contact authority",
+          "equipment identity",
+          "job",
+          "diagnosis",
+          "quote revision",
+          "approval"
+        ],
+        "data_ownership": [
+          "party and equipment references",
+          "job and diagnosis",
+          "issued quote revisions",
+          "approval evidence",
+          "warranty reference links"
+        ],
+        "invariants": [
+          "An approval names its exact issued quote revision.",
+          "Equipment serial numbers and customer email are not identities.",
+          "History does not transfer another party’s private information."
+        ],
+        "lifecycle": "Job admitted; diagnosis recorded; quote drafted, issued and responded to; future warranty links preserve source meaning.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "parts-domain",
+        "name": "Parts supply",
+        "classification": "supporting",
+        "vision": "Parts supply remains independently meaningful.",
+        "ownership": "catalog identity; branch stock; reservations; supplier requests and receipts",
+        "non_ownership": "Other contexts and external account/financial authorities.",
+        "language_terms": [
+          "part",
+          "stock position",
+          "reservation",
+          "supplier order",
+          "receipt",
+          "consumption",
+          "return"
+        ],
+        "data_ownership": [
+          "catalog identity",
+          "branch stock",
+          "reservations",
+          "supplier requests and receipts"
+        ],
+        "invariants": [
+          "A stock unit cannot be reserved twice.",
+          "Receipt, usability and consumption are distinct facts."
+        ],
+        "lifecycle": "Request, reserve or shortage, purchase, receive, consume, return or scrap; supplier integrations later.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "execution-domain",
+        "name": "Workshop execution",
+        "classification": "core",
+        "vision": "Workshop execution remains independently meaningful.",
+        "ownership": "technician assignments; work and safety results; issued report revisions; custody and collection facts",
+        "non_ownership": "Other contexts and external account/financial authorities.",
+        "language_terms": [
+          "schedule",
+          "work task",
+          "safety review",
+          "service report",
+          "equipment custody",
+          "collection"
+        ],
+        "data_ownership": [
+          "technician assignments",
+          "work and safety results",
+          "issued report revisions",
+          "custody and collection facts"
+        ],
+        "invariants": [
+          "Completion requires the applicable safety review.",
+          "One current custody location is reported.",
+          "Issued reports retain historical meaning."
+        ],
+        "lifecycle": "Schedule, begin, pause, resume, test, issue report, transfer or collect; work can return after a failed test.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "finance-domain",
+        "name": "Financial handoff",
+        "classification": "supporting",
+        "vision": "Financial handoff remains independently meaningful.",
+        "ownership": "accounting handoff references; delivery attempts and reconciled outcomes",
+        "non_ownership": "Other contexts and external account/financial authorities.",
+        "language_terms": [
+          "accounting reference",
+          "handoff identity",
+          "reconciliation",
+          "collection financial condition"
+        ],
+        "data_ownership": [
+          "accounting handoff references",
+          "delivery attempts and reconciled outcomes"
+        ],
+        "invariants": [
+          "Accounting remains financial authority.",
+          "An uncertain external outcome is reconciled before retry."
+        ],
+        "lifecycle": "Capture reference first; prepare, send, reconcile and correct external handoffs later.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "bounded_contexts": [
+      {
+        "element": "service",
+        "boundary_kind": "domain-model",
+        "vision": "Service agreements with one semantic owner.",
+        "responsibilities": [
+          "party and equipment references",
+          "job and diagnosis",
+          "issued quote revisions",
+          "approval evidence",
+          "warranty reference links"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "language_terms": [
+          "customer party",
+          "contact authority",
+          "equipment identity",
+          "job",
+          "diagnosis",
+          "quote revision",
+          "approval"
+        ],
+        "subdomains": [
+          "service-domain"
+        ],
+        "data_ownership": [
+          "party and equipment references",
+          "job and diagnosis",
+          "issued quote revisions",
+          "approval evidence",
+          "warranty reference links"
+        ],
+        "invariants": [
+          "An approval names its exact issued quote revision.",
+          "Equipment serial numbers and customer email are not identities.",
+          "History does not transfer another party’s private information."
+        ],
+        "lifecycle": "Job admitted; diagnosis recorded; quote drafted, issued and responded to; future warranty links preserve source meaning.",
+        "separation_rationale": "Commercial agreement and stable service-subject meaning differ from stock, physical work and accounting.",
+        "split_triggers": [
+          "Independent ownership of party or asset master data emerges."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "parts",
+        "boundary_kind": "domain-model",
+        "vision": "Parts supply with one semantic owner.",
+        "responsibilities": [
+          "catalog identity",
+          "branch stock",
+          "reservations",
+          "supplier requests and receipts"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "language_terms": [
+          "part",
+          "stock position",
+          "reservation",
+          "supplier order",
+          "receipt",
+          "consumption",
+          "return"
+        ],
+        "subdomains": [
+          "parts-domain"
+        ],
+        "data_ownership": [
+          "catalog identity",
+          "branch stock",
+          "reservations",
+          "supplier requests and receipts"
+        ],
+        "invariants": [
+          "A stock unit cannot be reserved twice.",
+          "Receipt, usability and consumption are distinct facts."
+        ],
+        "lifecycle": "Request, reserve or shortage, purchase, receive, consume, return or scrap; supplier integrations later.",
+        "separation_rationale": "Stock allocation and procurement have distinct ownership and local consistency.",
+        "split_triggers": [
+          "Independent procurement ownership or high-value serial tracking warrants a further split."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "execution",
+        "boundary_kind": "domain-model",
+        "vision": "Workshop execution with one semantic owner.",
+        "responsibilities": [
+          "technician assignments",
+          "work and safety results",
+          "issued report revisions",
+          "custody and collection facts"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "language_terms": [
+          "schedule",
+          "work task",
+          "safety review",
+          "service report",
+          "equipment custody",
+          "collection"
+        ],
+        "subdomains": [
+          "execution-domain"
+        ],
+        "data_ownership": [
+          "technician assignments",
+          "work and safety results",
+          "issued report revisions",
+          "custody and collection facts"
+        ],
+        "invariants": [
+          "Completion requires the applicable safety review.",
+          "One current custody location is reported.",
+          "Issued reports retain historical meaning."
+        ],
+        "lifecycle": "Schedule, begin, pause, resume, test, issue report, transfer or collect; work can return after a failed test.",
+        "separation_rationale": "Physical execution, evidence and custody differ from customer commercial approval and stock.",
+        "split_triggers": [
+          "Field service develops independent scheduling and mobile ownership."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "finance",
+        "boundary_kind": "domain-model",
+        "vision": "Financial handoff with one semantic owner.",
+        "responsibilities": [
+          "accounting handoff references",
+          "delivery attempts and reconciled outcomes"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "language_terms": [
+          "accounting reference",
+          "handoff identity",
+          "reconciliation",
+          "collection financial condition"
+        ],
+        "subdomains": [
+          "finance-domain"
+        ],
+        "data_ownership": [
+          "accounting handoff references",
+          "delivery attempts and reconciled outcomes"
+        ],
+        "invariants": [
+          "Accounting remains financial authority.",
+          "An uncertain external outcome is reconciled before retry."
+        ],
+        "lifecycle": "Capture reference first; prepare, send, reconcile and correct external handoffs later.",
+        "separation_rationale": "External financial document semantics require translation independently of repair history.",
+        "split_triggers": [
+          "A selected accounting provider introduces materially different integration semantics."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "modules": [
+      {
+        "element": "service-work",
+        "context": "service",
+        "kind": "domain-module",
+        "responsibilities": [
+          "party and equipment references",
+          "job and diagnosis",
+          "issued quote revisions",
+          "approval evidence",
+          "warranty reference links"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "contracts": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "parts-work",
+        "context": "parts",
+        "kind": "domain-module",
+        "responsibilities": [
+          "catalog identity",
+          "branch stock",
+          "reservations",
+          "supplier requests and receipts"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "contracts": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "execution-work",
+        "context": "execution",
+        "kind": "domain-module",
+        "responsibilities": [
+          "technician assignments",
+          "work and safety results",
+          "issued report revisions",
+          "custody and collection facts"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "contracts": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "finance-work",
+        "context": "finance",
+        "kind": "domain-module",
+        "responsibilities": [
+          "accounting handoff references",
+          "delivery attempts and reconciled outcomes"
+        ],
+        "non_responsibilities": [
+          "Other contexts’ private models and stores."
+        ],
+        "contracts": [],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "approval-for-work-bridge",
+        "context": "execution",
+        "kind": "bridge",
+        "responsibilities": [
+          "Work reads the exact authorized commercial revision."
+        ],
+        "non_responsibilities": [
+          "Access to upstream private data."
+        ],
+        "contracts": [
+          "approval-for-work-contract"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "parts-for-work-bridge",
+        "context": "execution",
+        "kind": "bridge",
+        "responsibilities": [
+          "Work reads availability and reservation outcomes; consumption is a separate command."
+        ],
+        "non_responsibilities": [
+          "Access to upstream private data."
+        ],
+        "contracts": [
+          "parts-for-work-contract"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "consume-parts-bridge",
+        "context": "execution",
+        "kind": "bridge",
+        "responsibilities": [
+          "Parts owner records consumption or rejects a stale reservation."
+        ],
+        "non_responsibilities": [
+          "Access to upstream private data."
+        ],
+        "contracts": [
+          "consume-parts-contract"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "completed-work-bridge",
+        "context": "finance",
+        "kind": "bridge",
+        "responsibilities": [
+          "Financial handoff reads an immutable service-report reference."
+        ],
+        "non_responsibilities": [
+          "Access to upstream private data."
+        ],
+        "contracts": [
+          "completed-work-contract"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "financial-condition-bridge",
+        "context": "execution",
+        "kind": "bridge",
+        "responsibilities": [
+          "Collection reads known accounting references and disclosed manual authority."
+        ],
+        "non_responsibilities": [
+          "Access to upstream private data."
+        ],
+        "contracts": [
+          "financial-condition-contract"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "contracts": [
+      {
+        "id": "approval-for-work-contract",
+        "name": "Approved work revision",
+        "kind": "query",
+        "owner": "service",
+        "version": "provisional-v1",
+        "description": "Work reads the exact authorized commercial revision.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "parts-for-work-contract",
+        "name": "Parts reservation result",
+        "kind": "query",
+        "owner": "parts",
+        "version": "provisional-v1",
+        "description": "Work reads availability and reservation outcomes; consumption is a separate command.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "consume-parts-contract",
+        "name": "Consume reserved parts",
+        "kind": "command",
+        "owner": "parts",
+        "version": "provisional-v1",
+        "description": "Parts owner records consumption or rejects a stale reservation.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "completed-work-contract",
+        "name": "Issued service report",
+        "kind": "query",
+        "owner": "execution",
+        "version": "provisional-v1",
+        "description": "Financial handoff reads an immutable service-report reference.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "financial-condition-contract",
+        "name": "Collection financial condition",
+        "kind": "query",
+        "owner": "finance",
+        "version": "provisional-v1",
+        "description": "Collection reads known accounting references and disclosed manual authority.",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "context_relationships": [
+      {
+        "relationship": "approval-for-work",
+        "upstream": "service",
+        "downstream": "execution",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "approval-for-work-contract",
+        "contract_owner": "service",
+        "translation_policy": "acl",
+        "bridge": "approval-for-work-bridge",
+        "data_owner": "service",
+        "consistency_owner": "service",
+        "failure_owner": "execution",
+        "atomicity": "read-only",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "relationship": "parts-for-work",
+        "upstream": "parts",
+        "downstream": "execution",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "parts-for-work-contract",
+        "contract_owner": "parts",
+        "translation_policy": "acl",
+        "bridge": "parts-for-work-bridge",
+        "data_owner": "parts",
+        "consistency_owner": "parts",
+        "failure_owner": "execution",
+        "atomicity": "read-only",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "relationship": "consume-parts",
+        "upstream": "parts",
+        "downstream": "execution",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "consume-parts-contract",
+        "contract_owner": "parts",
+        "translation_policy": "acl",
+        "bridge": "consume-parts-bridge",
+        "data_owner": "parts",
+        "consistency_owner": "parts",
+        "failure_owner": "execution",
+        "atomicity": "local-to-owner",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "relationship": "completed-work",
+        "upstream": "execution",
+        "downstream": "finance",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "completed-work-contract",
+        "contract_owner": "execution",
+        "translation_policy": "acl",
+        "bridge": "completed-work-bridge",
+        "data_owner": "execution",
+        "consistency_owner": "execution",
+        "failure_owner": "finance",
+        "atomicity": "read-only",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      },
+      {
+        "relationship": "financial-condition",
+        "upstream": "finance",
+        "downstream": "execution",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "financial-condition-contract",
+        "contract_owner": "finance",
+        "translation_policy": "acl",
+        "bridge": "financial-condition-bridge",
+        "data_owner": "finance",
+        "consistency_owner": "finance",
+        "failure_owner": "execution",
+        "atomicity": "read-only",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q6"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "capability_bindings": [
+      {
+        "assessment": "need-auth",
+        "module": "service-work",
+        "mechanism_coverage": "managed",
+        "program_kit_capabilities": [
+          "authenticated-browser-bff"
+        ],
+        "semantic_owner": "service",
+        "semantic_profile": "Staff identity mechanism; consumer owns branch, party and resource permissions.",
+        "integration_owner": "service",
+        "provider_selection": "Managed local Keycloak development/evaluation; production undecided.",
+        "decision_state": "program-kit-default",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q5"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "need-ui",
+        "module": "service-work",
+        "mechanism_coverage": "managed",
+        "program_kit_capabilities": [
+          "ui-experience"
+        ],
+        "semantic_owner": "service",
+        "semantic_profile": "Consumer owns job/quote information hierarchy and accessible next actions.",
+        "integration_owner": "service",
+        "provider_selection": "Provisional product-shell presentation, no frontend framework preference claimed.",
+        "decision_state": "derived-default",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q5"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "need-durability",
+        "module": "service-work",
+        "mechanism_coverage": "guided",
+        "program_kit_capabilities": [
+          "modularity-contracts"
+        ],
+        "semantic_owner": "service",
+        "semantic_profile": "Each context owns durable records, immutable issued revisions and concurrent-edit meaning.",
+        "integration_owner": "service",
+        "provider_selection": "",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q5"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "need-parts",
+        "module": "parts-work",
+        "mechanism_coverage": "not-declared",
+        "program_kit_capabilities": [],
+        "semantic_owner": "parts",
+        "semantic_profile": "Consumer owns stock, purchasing, supplier and consumption meaning.",
+        "integration_owner": "parts",
+        "provider_selection": "",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q5"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "need-money",
+        "module": "finance-work",
+        "mechanism_coverage": "not-declared",
+        "program_kit_capabilities": [],
+        "semantic_owner": "finance",
+        "semantic_profile": "Accounting is external authority; consumer owns references and reconciliation.",
+        "integration_owner": "finance",
+        "provider_selection": "",
+        "decision_state": "deferred",
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q5"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "journeys": [
+      {
+        "id": "receiving",
+        "name": "Receiving equipment",
+        "source_journey": "vision-receiving",
+        "actor_or_trigger": "Reception identifies a customer and equipment.",
+        "outcome": "A traceable job and custody record exist.",
+        "view": "receiving-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "staff-use",
+            "description": "Staff record and inspect authorized workshop work.",
+            "contract": ""
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "agreement",
+        "name": "Diagnosing and agreeing work",
+        "source_journey": "vision-agreement",
+        "actor_or_trigger": "A technician investigates a job and staff seek a contact’s response.",
+        "outcome": "Findings and an exact issued quote response are retained.",
+        "view": "agreement-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "staff-use",
+            "description": "Staff record and inspect authorized workshop work.",
+            "contract": ""
+          },
+          {
+            "order": 2,
+            "relationship": "customer-contact",
+            "description": "Customer instructions are recorded by staff; future direct access is deferred.",
+            "contract": ""
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "supply",
+        "name": "Obtaining parts",
+        "source_journey": "vision-supply",
+        "actor_or_trigger": "Staff request parts for authorized work.",
+        "outcome": "Reservation, shortage, order and receipt meaning are visible.",
+        "view": "supply-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "staff-use",
+            "description": "Staff record and inspect authorized workshop work.",
+            "contract": ""
+          },
+          {
+            "order": 2,
+            "relationship": "supplier-handoff",
+            "description": "Staff record manual orders and receipts; future electronic ordering needs admission.",
+            "contract": ""
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "repair",
+        "name": "Planning and executing repairs",
+        "source_journey": "vision-repair",
+        "actor_or_trigger": "A planner and technicians perform authorized work.",
+        "outcome": "Work and safety results produce an issued service report.",
+        "view": "repair-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "staff-use",
+            "description": "Staff record and inspect authorized workshop work.",
+            "contract": ""
+          },
+          {
+            "order": 2,
+            "relationship": "approval-for-work",
+            "description": "Work reads the exact authorized commercial revision.",
+            "contract": "approval-for-work-contract"
+          },
+          {
+            "order": 3,
+            "relationship": "parts-for-work",
+            "description": "Work reads availability and reservation outcomes; consumption is a separate command.",
+            "contract": "parts-for-work-contract"
+          },
+          {
+            "order": 4,
+            "relationship": "consume-parts",
+            "description": "Parts owner records consumption or rejects a stale reservation.",
+            "contract": "consume-parts-contract"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "collection",
+        "name": "Billing and collection",
+        "source_journey": "vision-collection",
+        "actor_or_trigger": "Collection staff prepare release of completed equipment.",
+        "outcome": "Financial conditions, custody transfer and accounting reference are visible.",
+        "view": "collection-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "staff-use",
+            "description": "Staff record and inspect authorized workshop work.",
+            "contract": ""
+          },
+          {
+            "order": 2,
+            "relationship": "completed-work",
+            "description": "Financial handoff reads an immutable service-report reference.",
+            "contract": "completed-work-contract"
+          },
+          {
+            "order": 3,
+            "relationship": "financial-condition",
+            "description": "Collection reads known accounting references and disclosed manual authority.",
+            "contract": "financial-condition-contract"
+          },
+          {
+            "order": 4,
+            "relationship": "accounting-handoff",
+            "description": "Staff retain a manual accounting reference; future integration is deferred.",
+            "contract": ""
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "history",
+        "name": "History and recurring care",
+        "source_journey": "vision-history",
+        "actor_or_trigger": "Staff investigate equipment history or a future warranty/service need.",
+        "outcome": "Historical work remains explainable with private party information protected.",
+        "view": "history-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "staff-use",
+            "description": "Staff record and inspect authorized workshop work.",
+            "contract": ""
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "administration",
+        "name": "Administration and future external access",
+        "source_journey": "vision-administration",
+        "actor_or_trigger": "Managers set staff/branch scope; later customers seek their own records.",
+        "outcome": "Authorized access and future actor boundaries are explicit.",
+        "view": "administration-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "staff-use",
+            "description": "Staff record and inspect authorized workshop work.",
+            "contract": ""
+          },
+          {
+            "order": 2,
+            "relationship": "customer-contact",
+            "description": "Customer instructions are recorded by staff; future direct access is deferred.",
+            "contract": ""
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q1",
+          "e-q2",
+          "e-q3",
+          "e-q4",
+          "e-q5",
+          "e-q6",
+          "e-q7",
+          "e-q8",
+          "e-q9",
+          "e-q10",
+          "e-q11",
+          "e-q12",
+          "e-q13"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "candidate_slices": [
+      {
+        "id": "identify-job",
+        "name": "Identify Job",
+        "journey": "receiving",
+        "actor_or_trigger": "Reception",
+        "outcome": "Identify equipment and retain a traceable job.",
+        "contexts": [
+          "service"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "record-diagnosis",
+        "name": "Record Diagnosis",
+        "journey": "agreement",
+        "actor_or_trigger": "Technician",
+        "outcome": "Retain diagnosis for a known job.",
+        "contexts": [
+          "service"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "issue-quote",
+        "name": "Issue Quote",
+        "journey": "agreement",
+        "actor_or_trigger": "Staff",
+        "outcome": "Issue an immutable quote revision.",
+        "contexts": [
+          "service"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "record-response",
+        "name": "Record Response",
+        "journey": "agreement",
+        "actor_or_trigger": "Staff",
+        "outcome": "Record an authorized contact response to one issued revision.",
+        "contexts": [
+          "service"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "catalog-and-stock",
+        "name": "Catalog And Stock",
+        "journey": "supply",
+        "actor_or_trigger": "Stock clerk",
+        "outcome": "Inspect and adjust branch parts with reasons.",
+        "contexts": [
+          "parts"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "reserve-parts",
+        "name": "Reserve Parts",
+        "journey": "supply",
+        "actor_or_trigger": "Planner",
+        "outcome": "Reserve available parts or see shortage.",
+        "contexts": [
+          "parts"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "manual-procurement",
+        "name": "Manual Procurement",
+        "journey": "supply",
+        "actor_or_trigger": "Purchaser",
+        "outcome": "Track manual supplier order and partial receipts.",
+        "contexts": [
+          "parts"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "schedule-job",
+        "name": "Schedule Job",
+        "journey": "repair",
+        "actor_or_trigger": "Planner",
+        "outcome": "Schedule a job without silently changing a customer promise.",
+        "contexts": [
+          "execution"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "perform-repair",
+        "name": "Perform Repair",
+        "journey": "repair",
+        "actor_or_trigger": "Technician",
+        "outcome": "Perform authorized work, consume parts and record safety results.",
+        "contexts": [
+          "service",
+          "parts",
+          "execution"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "issue-report",
+        "name": "Issue Report",
+        "journey": "repair",
+        "actor_or_trigger": "Technician",
+        "outcome": "Retain a report as issued.",
+        "contexts": [
+          "execution"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "release-equipment",
+        "name": "Release Equipment",
+        "journey": "collection",
+        "actor_or_trigger": "Collection staff",
+        "outcome": "Record permitted collection and custody transfer.",
+        "contexts": [
+          "execution",
+          "finance"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "accounting-reference",
+        "name": "Accounting Reference",
+        "journey": "collection",
+        "actor_or_trigger": "Accounting clerk",
+        "outcome": "Record the external financial reference.",
+        "contexts": [
+          "finance"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "accounting-export",
+        "name": "Accounting Export",
+        "journey": "collection",
+        "actor_or_trigger": "Accounting clerk",
+        "outcome": "Reconcile later export/import without duplicates.",
+        "contexts": [
+          "finance"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "equipment-history",
+        "name": "Equipment History",
+        "journey": "history",
+        "actor_or_trigger": "Staff",
+        "outcome": "Inspect service history without leaking another owner’s information.",
+        "contexts": [
+          "service",
+          "execution"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "warranty-case",
+        "name": "Warranty Case",
+        "journey": "history",
+        "actor_or_trigger": "Staff",
+        "outcome": "Link a claim to earlier work under a later specified entitlement policy.",
+        "contexts": [
+          "service"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "recurring-service",
+        "name": "Recurring Service",
+        "journey": "history",
+        "actor_or_trigger": "Business coordinator",
+        "outcome": "Plan future recurring care with contract rules specified later.",
+        "contexts": [
+          "service",
+          "execution"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "staff-scope",
+        "name": "Staff Scope",
+        "journey": "administration",
+        "actor_or_trigger": "Manager",
+        "outcome": "Assign staff branch/resource authority.",
+        "contexts": [
+          "service"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "customer-portal",
+        "name": "Customer Portal",
+        "journey": "administration",
+        "actor_or_trigger": "Customer contact",
+        "outcome": "Access only granted records and approve exact revisions later.",
+        "contexts": [
+          "service"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "supplier-portal",
+        "name": "Supplier Portal",
+        "journey": "administration",
+        "actor_or_trigger": "Supplier",
+        "outcome": "See supplier-owned handoff facts without customer records later.",
+        "contexts": [
+          "parts"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-brief",
+          "e-q12"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "version": "1.0",
+    "decision_refs": []
+  },
+  "schema_version": "1.1",
+  "decisions": [],
+  "documentation": [],
+  "constraints": [],
+  "extensions": [],
+  "configuration": {
+    "styles": [],
+    "themes": [],
+    "terminology": {},
+    "branding": {},
+    "properties": {}
+  },
+  "sources": [
+    {
+      "id": "project-intent",
+      "path": "docs/architecture/project-intent.md",
+      "sha256": "5797f2ba4e85ad5f1e517ba82ab26078c2876ff99bb6090d05ff9e89d00dbe9b",
+      "format": "markdown",
+      "importer": {
+        "id": "program-kit-intake",
+        "version": "1.1"
+      }
+    }
+  ]
+}

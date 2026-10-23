@@ -196,6 +196,92 @@ class DefaultAndHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'before asking for final acceptance'):
             handoff.first_feature(self.root, require_ready=True)
 
+    def epic_fixture(self):
+        from validate_governance_state import roadmap
+        self.register.pop('first_slice')
+        self.register['recommended_start'] = {'candidate_ids': ['policy-terms'],
+            'outcome': 'Maintain applicable policy terms', 'rationale': 'Useful before claims and renewal'}
+        write(self.root / handoff.REGISTER, self.register)
+        model = {'elements': [], 'relationships': [], 'strategic_model': {
+            'journeys': [{'id': 'policy-journey', 'source_journey': 'shopping', 'steps': []}],
+            'candidate_slices': [
+                {'id': 'policy-terms', 'journey': 'policy-journey', 'contexts': ['policy'], 'epic': 'RM-POLICY', 'commitment': 'intended'},
+                {'id': 'renew-policy', 'journey': 'policy-journey', 'contexts': ['policy'], 'epic': 'RM-POLICY', 'commitment': 'intended',
+                 'dependencies': [{'feature': 'policy-terms', 'contract': 'revision-terms', 'rationale': 'Renewal preserves the applicable revision'}]},
+                {'id': 'customer-portal', 'journey': 'policy-journey', 'contexts': ['policy'], 'epic': 'RM-PORTAL', 'commitment': 'exploratory'}]}}
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        base = roadmap(status='Candidate').replace('SPEC-001', 'RM-POLICY')
+        policy = base + '\n- **Type**: Epic\n- **Completion criteria**: Maintain and renew policies with historical meaning preserved\n- **Feature seeds**: policy-terms, renew-policy\n- **Intent**: Intended\n'
+        portal = base.replace('RM-POLICY', 'RM-PORTAL') + '\n- **Type**: Epic\n- **Completion criteria**: Customers can review applicable terms\n- **Feature seeds**: customer-portal\n- **Intent**: Exploratory\n'
+        path.write_text(policy + '\n' + portal, encoding='utf-8')
+        return model, path
+
+    def test_recommendation_does_not_commission_same_journey_or_epic_siblings(self):
+        from bootstrap_context import stage_plan
+        model, path = self.epic_fixture()
+        self.assertEqual('complete', handoff.check(self.root, 'trial', 'assessment')['status'])
+        projected = handoff.first_feature(self.root, require_ready=True)
+        self.assertFalse(projected['binding'])
+        self.assertEqual(['policy-terms'], [item['featureId'] for item in projected['features']])
+        self.assertEqual('Candidate', projected['features'][0]['status'])
+        plan = stage_plan(self.root, {}, 'roadmap', {'assessment_decisions': self.register}, 'trial')
+        self.assertIsNone(plan['first_entry'])
+        self.assertEqual(3, len(plan['feature_seeds']))
+        self.assertEqual(['policy-terms'], plan['recommended_start']['candidate_ids'])
+
+    def test_epic_seed_references_and_dependency_graph_are_exact(self):
+        import governance_state as governance
+        model, path = self.epic_fixture()
+        records = governance.roadmap_records(path)
+        with patch.object(governance, 'project_path', side_effect=lambda p: self.root / p):
+            governance.validate_epic_features(records)
+            view = governance._roadmap_view(records)
+            self.assertIn('epic_RM_POLICY -. contains .-> feature_policy_terms', view)
+            self.assertIn('feature_policy_terms -->|"revision-terms"| feature_renew_policy', view)
+            self.assertNotIn('epic_RM_POLICY -->', view)
+            path.write_text(path.read_text(encoding='utf-8').replace('policy-terms, renew-policy', 'policy-terms'), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'missing from its canonical epic'):
+                governance.validate_epic_features(governance.roadmap_records(path))
+        with self.assertRaisesRegex(ValueError, 'Completion criteria'):
+            governance.roadmap_records(self._without_completion(path))
+
+    def _without_completion(self, path):
+        import re
+        path.write_text(re.sub(r'(?m)^- \*\*Completion criteria\*\*:.*\n', '', path.read_text(encoding='utf-8')), encoding='utf-8')
+        return path
+
+    def test_recommendation_rejects_exploratory_and_parent_mismatch_without_rewriting(self):
+        model, path = self.epic_fixture()
+        original = path.read_bytes()
+        self.register['recommended_start']['candidate_ids'] = ['customer-portal']
+        write(self.root / handoff.REGISTER, self.register)
+        with self.assertRaisesRegex(ValueError, 'exploratory'):
+            handoff.first_feature(self.root)
+        with self.assertRaisesRegex(ValueError, 'exploratory'):
+            handoff.check(self.root, 'trial', 'assessment')
+        self.register['recommended_start']['candidate_ids'] = ['policy-terms']
+        write(self.root / handoff.REGISTER, self.register)
+        model['strategic_model']['candidate_slices'][0]['epic'] = 'RM-WRONG'
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        with self.assertRaisesRegex(ValueError, 'matching parent epic'):
+            handoff.first_feature(self.root)
+        self.assertEqual(original, path.read_bytes())
+
+    def test_epic_completion_remains_owned_outcomes_not_legacy_single_feature_audit(self):
+        import governance_state as governance
+        model, path = self.epic_fixture()
+        content = path.read_text(encoding='utf-8').replace('**Status**: Candidate', '**Status**: Delivered', 1)
+        path.write_text(content, encoding='utf-8')
+        with patch.object(governance, 'project_path', side_effect=lambda p: self.root / p), \
+             patch.object(governance, 'lifecycle_call'), \
+             patch.object(governance, 'validate_roadmap_decision_sources'):
+            records = governance.validate_roadmap(False, verify_delivery=True)
+        self.assertEqual('Delivered', records[0]['Status'])
+        self.assertIn('historical meaning preserved', records[0]['Completion criteria'])
+        self.assertEqual('Candidate', records[1]['Status'])
+        self.assertEqual(content, path.read_text(encoding='utf-8'))
+
     def test_combined_first_outcome_requires_one_explicit_roadmap_entry(self):
         from validate_governance_state import roadmap
         from bootstrap_context import stage_plan

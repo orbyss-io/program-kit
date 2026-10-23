@@ -83,13 +83,25 @@ that Program Kit or the project cannot support it.
 Keep user intent, Program Kit defaults, derived conclusions, proposals, and unresolved questions
 distinct. Do not turn a suggested default into explicit user intent. Candidate vertical slices are
 discovery signals only and begin with an actor or trigger and end in an observable outcome.
-Maintain the linked functional model and walk through the first journey and material alternatives
-before convergence, following functional-discovery.md. An empty frontier alone is insufficient.
+Maintain the linked functional model and challenge architecture-significant relationships across
+the supplied vision before convergence, following functional-discovery.md. An empty frontier alone
+is insufficient. Understand identity continuity, ownership, independently evolving lifecycles,
+shared invariants, trust, consistency and historical meaning wherever they affect other boundaries.
 
-Start with the first useful outcome and a concise portfolio of later journeys. Keep future
-journeys as actor/outcome summaries and minimal traceable interactions; do not predesign their
-endpoints, data models, implementation conditions or acceptance suites. Ask for consumer meaning
-and constraints, not technical selections with an unambiguous Program Kit default.
+Recognize the depth of the user's input. Preserve carefully considered feature boundaries, their
+rationale, detailed rules, examples and questions as feature seeds in the canonical candidate slices.
+Use targeted grilling to test their cohesion and relationships; keep supplied facts distinct from
+proposals and assumptions. Do not reduce rich input to actor/outcome summaries or repeat settled
+questions. Sparse input can retain sparse seeds. Ask for additional feature detail now only when
+alternative answers change architectural understanding or the deliverable graph.
+
+Roadmap items are epics with agreed outcomes; each can lead to several feature specifications.
+Domains own meaning and are distinct from epic membership. Candidate feature IDs, source journeys,
+epic relationships and actual feature prerequisites remain separately traceable. Distinguish intended
+work from exploratory options regardless of how detailed either is. Recommend a starting outcome;
+specification intake later settles its exact commission without silently including its siblings.
+Detailed future policies remain at their feature trigger, with supplied detail preserved for reuse.
+Ask for consumer meaning and constraints, not technical selections with an unambiguous Program Kit default.
 
 Before authoring, perform proportional evidence-backed strategic analysis. Classify every identified subdomain as Core,
 Supporting, or Generic. Propose bounded contexts only where model, language, ownership, lifecycle,

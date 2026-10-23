@@ -98,6 +98,40 @@ def verification_kind(item: dict) -> str:
                     or item['trigger'] == 'delivery' else 'decision')
 
 
+def applies_to(item: dict, entry: str, feature: str | None = None) -> bool:
+    """An absent child scope is epic-wide; no child selection is an aggregate view."""
+    return entry in item.get('affected_slices', []) and (
+        not item.get('affected_features') or feature is None or feature in item['affected_features'])
+
+
+def validate_feature_scope(root: Path, item: dict) -> None:
+    if 'affected_features' not in item:
+        return
+    features = item['affected_features']
+    if (not isinstance(features, list) or not features
+            or any(not isinstance(f, str) or not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,63}', f) for f in features)
+            or len(features) != len(set(features))):
+        raise LifecycleError(f"{item['id']}: affected_features requires unique canonical feature IDs")
+    model = root / 'docs/architecture/architecture-map.json'
+    known = {c['id']: c.get('epic') for c in load(model).get('strategic_model', {}).get('candidate_slices', [])} if model.is_file() else {}
+    for feature in features:
+        brief = local(root, Path('.program-kit/specification-intake/features') / feature / 'brief.json')
+        parent = known.get(feature)
+        if brief.is_file():
+            value = load(brief)
+            if value.get('schemaVersion') != 2 or value.get('featureId') != feature:
+                raise LifecycleError(f"{item['id']}: malformed scoped feature identity {feature}")
+            if parent and parent != value.get('roadmapEntry'):
+                raise LifecycleError(f"{item['id']}: scoped feature parent differs from its canonical epic")
+            parent = value.get('roadmapEntry')
+        elif feature not in known:
+            raise LifecycleError(f"{item['id']}: unknown affected feature {feature}")
+        if not parent:
+            raise LifecycleError(f"{item['id']}: scoped feature {feature} requires an explicit parent epic")
+        if parent not in item['affected_slices']:
+            raise LifecycleError(f"{item['id']}: scoped feature {feature} belongs to another epic")
+
+
 def validate_prerequisites(root: Path, records: list[dict], *, required: bool = False, allow_proposed_authority: bool = False, _ledger: dict | None = None) -> list[dict]:
     decision_path = root / 'docs/architecture/bootstrap-decisions.json'
     decisions = load(decision_path) if decision_path.is_file() else {}
@@ -116,7 +150,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
     slices = {item['id'] for item in records}
     for item in items:
         fields = {'id', 'source_ids', 'affected_slices', 'disposition', 'trigger', 'owner', 'task', 'rationale', 'status', 'evidence'}
-        if not isinstance(item, dict) or set(item) - {'verification'} != fields:
+        if not isinstance(item, dict) or set(item) - {'verification', 'affected_features'} != fields:
             raise LifecycleError('Prerequisite has missing or unexpected fields')
         identity = item['id']
         if not isinstance(identity, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9-]{0,100}', identity) or identity in by_id:
@@ -130,6 +164,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 raise LifecycleError(f'{identity}: {field} must be a list')
         if not item['affected_slices'] or set(item['affected_slices']) - slices:
             raise LifecycleError(f'{identity} must identify exact affected roadmap slices')
+        validate_feature_scope(root, item)
         disposition = item['disposition']
         triggers = {'architecture': {'before-bootstrap-completion', 'before-specification', 'before-implementation'}, 'feature': {'feature-plan', 'delivery'}, 'later': {'production', 'later-release'}}
         if disposition not in triggers or item['trigger'] not in triggers[disposition]:
@@ -225,7 +260,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
         if item['disposition'] == 'architecture' and item['status'] != 'closed':
             blockers.append(item)
             ineligible = [r['id'] for r in records if r['id'] in item['affected_slices'] and r['Status'] in {'Ready', 'Active'}]
-            if ineligible and item['trigger'] in {'before-bootstrap-completion', 'before-specification'}:
+            if ineligible and not item.get('affected_features') and item['trigger'] in {'before-bootstrap-completion', 'before-specification'}:
                 raise LifecycleError(f"Architecture prerequisite {item['id']} blocks {', '.join(ineligible)}; owner: {item['owner']}; task: {item['task']}")
     return blockers
 
@@ -280,20 +315,24 @@ TRIGGER_PHASE = {'before-bootstrap-completion': 'specification',
                  'later-release': 'production'}
 
 
-def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -> dict:
+def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str, *, feature: str | None = None) -> dict:
     if phase not in PHASE_ORDER:
         raise LifecycleError('Unknown eligibility phase: ' + phase)
     selected = [r for r in records if r['id'] == entry]
     if len(selected) != 1:
         raise LifecycleError('Select exactly one roadmap entry')
+    if feature is not None:
+        validate_feature_scope(root, {'id': 'selected-feature', 'affected_slices': [entry],
+                                      'affected_features': [feature]})
     validate_prerequisites(root, records)
     record = selected[0]
     items = load(root / LEDGER)['prerequisites'] if (root / LEDGER).is_file() else []
     resolved_feature = satisfied_feature_proofs(root, records, items)
     if phase != 'specification':
         from feature_plan_decisions import satisfied
-        resolved_feature.update(satisfied(root, entry, items))
-    brief_path = root / '.program-kit/specification-intake' / entry / 'brief.json'
+        resolved_feature.update(satisfied(root, entry, items, feature_id=feature))
+    from specification_intake import directory
+    brief_path = directory(root, entry, feature) / 'brief.json'
     if phase != 'specification' and brief_path.is_file():
         proposed = {d.get('bootstrapPrerequisite') for d in load(brief_path).get('decisions', [])
                     if d.get('disposition') in {'answered', 'default'}}
@@ -303,13 +342,13 @@ def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -
             # a later compatibility gate or recurse into this branch.
             from specification_intake import check
             try:
-                check(root, entry, later=True)
+                check(root, entry, later=True, feature=feature)
             except (ValueError, OSError):
                 pass  # Stale/unconfirmed text never closes an obligation.
             else:
                 resolved_feature.update(candidates)
     blockers = [{'id': i['id'], 'owner': i['owner'], 'task': i['task'], 'due': TRIGGER_PHASE[i['trigger']]}
-                for i in items if i['status'] != 'closed' and i['id'] not in resolved_feature and entry in i['affected_slices']
+                for i in items if i['status'] != 'closed' and i['id'] not in resolved_feature and applies_to(i, entry, feature)
                 and PHASE_ORDER.index(TRIGGER_PHASE[i['trigger']]) <= PHASE_ORDER.index(phase)]
     if record['Status'] not in {'Ready', 'Active', 'Delivered'}:
         blockers.insert(0, {'id': 'journey-scope', 'owner': 'Consumer and architecture owner',

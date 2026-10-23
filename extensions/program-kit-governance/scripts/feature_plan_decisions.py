@@ -21,14 +21,18 @@ def read(path, default=None):
 
 
 def rows(root, feature):
-    entry = feature_scope(root, feature)['entry']
+    from bootstrap_lifecycle import applies_to, validate_feature_scope
+    scoped = feature_scope(root, feature)
+    entry = scoped['entry']
     ledger = read(root / 'docs/architecture/bootstrap-prerequisites.json', {})
     candidates = [i for i in ledger.get('prerequisites', []) if i.get('disposition') == 'feature'
                   and i.get('trigger') == 'feature-plan' and i.get('verification', 'decision') == 'decision'
                   and i.get('status') != 'closed']
+    for item in candidates:
+        validate_feature_scope(root, item)
     if candidates and entry is None:
         raise ValueError('Resolve feature roadmap identity before applying retained feature-plan decisions')
-    return [i for i in candidates if entry in i.get('affected_slices', [])]
+    return [i for i in candidates if applies_to(i, entry, scoped.get('featureId'))]
 
 
 def section(root, feature, reference):
@@ -120,10 +124,11 @@ def project(root, feature):
     return result
 
 
-def satisfied(root, entry, items):
-    from specification_intake import spec_entries
+def satisfied(root, entry, items, *, feature_id=None):
+    from specification_intake import spec_entries, resolve_spec_brief
     features = [p.parent for p in (root / 'specs').glob('*/spec.md')
-                if entry in spec_entries(p.read_text(encoding='utf-8'))]
+                if entry in spec_entries(p.read_text(encoding='utf-8'))
+                and (feature_id is None or resolve_spec_brief(root, p)[1].get('featureId') == feature_id)]
     if len(features) != 1:
         return set()
     allowed = {i['id'] for i in items if i.get('disposition') == 'feature' and i.get('trigger') == 'feature-plan'}

@@ -42,9 +42,45 @@ def inside(repository: Path, relative: str) -> Path:
     return path
 
 
-def directory(repository: Path, entry: str) -> Path:
+def directory(repository: Path, entry: str, feature: str | None = None) -> Path:
     require(bool(re.fullmatch(r"[A-Z][A-Z0-9-]+", entry)), "Use the exact roadmap entry ID")
+    if feature is not None:
+        require(bool(re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", feature)), "Use a stable lowercase canonical feature ID")
+        return inside(repository, f".program-kit/specification-intake/features/{feature}")
     return inside(repository, f".program-kit/specification-intake/{entry}")
+
+
+def validate_identity(brief: dict, entry: str, feature: str | None = None) -> None:
+    require(brief.get('schemaVersion') == (2 if feature else 1) and brief.get('roadmapEntry') == entry,
+            'Brief schema or roadmap identity does not match')
+    require(brief.get('featureId') == feature, 'Brief feature identity does not match')
+
+
+def resolve_spec_brief(repository: Path, spec_path: Path) -> tuple[Path | None, dict]:
+    """Resolve the authored intake reference, never infer a v2 brief from its epic."""
+    require(spec_path.resolve().is_relative_to(repository.resolve()), 'Spec must stay inside the repository')
+    text = spec_path.read_text(encoding='utf-8') if spec_path.is_file() else ''
+    entries = spec_entries(text)
+    references = re.findall(r'^\s*- \*\*Confirmed intake brief\*\*:\s*(\S+)\s*$', text, re.MULTILINE)
+    features = re.findall(r'^\s*- \*\*Specification feature ID\*\*:\s*(\S+)\s*$', text, re.MULTILINE)
+    require(len(entries) <= 1 and len(references) <= 1 and len(features) <= 1,
+            'Feature must identify exactly one roadmap entry, feature and intake brief')
+    if not entries:
+        require(not references and not features, 'Intake reference requires a roadmap entry')
+        return None, {}
+    entry, feature = entries[0], features[0] if features else None
+    expected = directory(repository, entry, feature) / 'brief.json'
+    path = inside(repository, references[0]) if references else expected
+    require(path == expected, 'Spec intake path differs from its roadmap/feature identity')
+    if not path.is_file():
+        return path, {}
+    brief = read(path)
+    # Historical context readers accepted partial unversioned drafts. They confer
+    # no confirmation authority; versioned and explicit references remain exact.
+    if feature or references or 'schemaVersion' in brief or 'roadmapEntry' in brief:
+        validate_identity(brief, entry, feature)
+    require(not feature or bool(references), 'A feature intake requires its exact brief reference')
+    return path, brief
 
 
 def nonempty(value: object) -> bool:
@@ -83,9 +119,8 @@ def require_bootstrap_carryover(brief: dict, obligations: list[dict]) -> None:
                 if 'bootstrapPrerequisite' in item), 'Unknown or out-of-scope bootstrap prerequisite link')
 
 
-def validate_brief(brief: dict, entry: str) -> None:
-    require(brief.get("schemaVersion") == 1 and brief.get("roadmapEntry") == entry,
-            "Brief schema or roadmap identity does not match")
+def validate_brief(brief: dict, entry: str, feature: str | None = None) -> None:
+    validate_identity(brief, entry, feature)
     for key in ("request", *FIELDS):
         require(nonempty(brief.get(key)), f"Brief requires {key}")
     decisions = brief.get("decisions")
@@ -129,7 +164,7 @@ def validate_brief(brief: dict, entry: str) -> None:
         visit(identity)
 
 
-def context(repository: Path, entry: str, *, later: bool = False) -> dict:
+def context(repository: Path, entry: str, *, later: bool = False, feature: str | None = None) -> dict:
     # Product intent is durable; mechanical governance state is not a prerequisite.
     governance.configure_paths()
     roadmap = repository / governance.ROADMAP
@@ -137,15 +172,22 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
     matches = [r for r in records if r['id'] == entry]
     record = matches[0] if len(matches) == 1 else {'id': entry}
     from feature_knowledge import project as project_knowledge
-    brief_path = directory(repository, entry) / 'brief.json'
+    brief_path = directory(repository, entry, feature) / 'brief.json'
     brief = read(brief_path) if brief_path.is_file() else {}
+    if brief and feature:
+        validate_identity(brief, entry, feature)
     return {'roadmap': {k:v for k,v in record.items() if k != 'Status'},
-            'canonicalKnowledge': project_knowledge(repository, brief.get('architectureScope')),
+            'canonicalKnowledge': project_knowledge(repository, brief.get('architectureScope'), feature_id=feature),
             'bootstrapObligations': [], 'sources': {}}
 
 
 def review_text(brief: dict, basis: dict) -> str:
     lines = [f"# Specification intake: {brief['roadmapEntry']}", "", "## Request", brief["request"]]
+    if brief.get('featureId'):
+        lines += ['', '## Feature identity', brief['featureId']]
+    if brief.get('bootstrapSeed'):
+        lines += ['', '## Preserved bootstrap feature seed', '```json',
+                  json.dumps(brief['bootstrapSeed'], ensure_ascii=False, indent=2), '```']
     for field in FIELDS:
         lines += ["", f"## {field}", brief[field]]
     lines += ["", "## Decisions, defaults and deferred work"]
@@ -169,29 +211,50 @@ def review_text(brief: dict, basis: dict) -> str:
     return "\n".join(lines)
 
 
-def prepare(repository: Path, entry: str, *, later: bool = False) -> tuple[Path, dict, dict, str]:
-    folder = directory(repository, entry)
+def prepare(repository: Path, entry: str, *, later: bool = False, feature: str | None = None) -> tuple[Path, dict, dict, str]:
+    folder = directory(repository, entry, feature)
     brief = read(folder / "brief.json")
-    validate_brief(brief, entry)
-    basis = context(repository, entry, later=later)
+    validate_brief(brief, entry, feature)
+    basis = context(repository, entry, later=later, feature=feature)
     require_bootstrap_carryover(brief, basis['bootstrapObligations'])
     return folder, brief, basis, review_text(brief, basis)
 
 
-def begin(repository: Path, entry: str, request: str) -> Path:
-    context(repository, entry)
-    path = directory(repository, entry) / "brief.json"
+def begin(repository: Path, entry: str, request: str, *, feature: str | None = None) -> Path:
+    context(repository, entry, feature=feature)
+    path = directory(repository, entry, feature) / "brief.json"
     if path.exists():
-        require(read(path).get("roadmapEntry") == entry, "Existing interview has a different identity")
+        validate_identity(read(path), entry, feature)
         return path  # Resume without discarding answers or replacing the original request.
-    require(nonempty(request), "An initial feature request is required")
-    atomic_write(path, {"schemaVersion": 1, "roadmapEntry": entry, "request": request,
-                        **{field: "" for field in FIELDS}, "decisions": []})
+    seed = None
+    model_path = repository / 'docs/architecture/architecture-map.json'
+    if feature and model_path.is_file():
+        candidates = read(model_path).get('strategic_model', {}).get('candidate_slices', [])
+        matches = [item for item in candidates if item.get('id') == feature]
+        require(len(matches) <= 1, 'Canonical feature candidate identity must be unique')
+        seed = matches[0] if matches else None
+        require(not seed or not seed.get('epic') or seed['epic'] == entry,
+                'Feature seed belongs to a different roadmap epic')
+    value = {'schemaVersion': 2 if feature else 1, 'roadmapEntry': entry,
+             'request': request, **{field: '' for field in FIELDS}, 'decisions': []}
+    if feature:
+        value['featureId'] = feature
+    if seed:
+        value['bootstrapSeed'] = seed
+        supplied = seed.get('seed', {}).get('brief', {})
+        require(isinstance(supplied, dict), 'Feature seed brief must be an object')
+        value.update({key: supplied[key] for key in (*FIELDS, 'decisions') if key in supplied})
+        if not nonempty(request):
+            value['request'] = supplied.get('request') or seed.get('outcome') or seed.get('title', '')
+        if seed.get('contexts'):
+            value['architectureScope'] = list(seed['contexts'])
+    require(nonempty(value['request']), 'An initial feature request is required')
+    atomic_write(path, value)
     return path
 
 
-def review(repository: Path, entry: str) -> dict:
-    folder, brief, basis, text = prepare(repository, entry)
+def review(repository: Path, entry: str, *, feature: str | None = None) -> dict:
+    folder, brief, basis, text = prepare(repository, entry, feature=feature)
     (folder / "review.md").write_text(text, encoding="utf-8", newline="\n")
     result = {"briefHash": digest(brief), "context": basis,
               "reviewHash": hashlib.sha256(text.encode("utf-8")).hexdigest()}
@@ -199,8 +262,8 @@ def review(repository: Path, entry: str) -> dict:
     return result
 
 
-def current_review(repository: Path, entry: str, *, later: bool = False) -> tuple[Path, dict]:
-    folder, brief, basis, text = prepare(repository, entry, later=later)
+def current_review(repository: Path, entry: str, *, later: bool = False, feature: str | None = None) -> tuple[Path, dict]:
+    folder, brief, basis, text = prepare(repository, entry, later=later, feature=feature)
     expected = {"briefHash": digest(brief), "context": basis,
                 "reviewHash": hashlib.sha256(text.encode("utf-8")).hexdigest()}
     require(read(folder / "review-basis.json") == expected, "Review is stale; reopen affected decisions and review again")
@@ -208,23 +271,26 @@ def current_review(repository: Path, entry: str, *, later: bool = False) -> tupl
     return folder, expected
 
 
-def confirm(repository: Path, entry: str, review_hash: str, source: str, answer: str) -> dict:
-    folder, expected = current_review(repository, entry)
+def confirm(repository: Path, entry: str, review_hash: str, source: str, answer: str, *, feature: str | None = None) -> dict:
+    folder, expected = current_review(repository, entry, feature=feature)
     require(review_hash == expected["reviewHash"], "Confirmation must name the exact presented review hash")
     require(nonempty(source) and nonempty(answer), "Record the explicit user confirmation and its conversation source")
-    receipt = {"schemaVersion": 1, "roadmapEntry": entry, **expected,
+    receipt = {"schemaVersion": 2 if feature else 1, "roadmapEntry": entry, **expected,
                "confirmationSource": source, "confirmationText": answer,
                "confirmedAtUtc": datetime.now(timezone.utc).isoformat()}
+    if feature:
+        receipt['featureId'] = feature
     atomic_write(folder / "confirmation.json", receipt)
     return receipt
 
 
-def check(repository: Path, entry: str, *, later: bool = False) -> dict:
-    folder = directory(repository, entry)
+def check(repository: Path, entry: str, *, later: bool = False, feature: str | None = None) -> dict:
+    folder = directory(repository, entry, feature)
     brief = read(folder / 'brief.json')
-    validate_brief(brief, entry)
+    validate_brief(brief, entry, feature)
     receipt = read(folder / 'confirmation.json')
-    require(receipt.get('schemaVersion') == 1 and receipt.get('roadmapEntry') == entry,
+    require(receipt.get('schemaVersion') == (2 if feature else 1) and receipt.get('roadmapEntry') == entry
+            and receipt.get('featureId') == feature,
             'Confirmation belongs to another feature or unsupported schema')
     require(receipt.get('briefHash') == digest(brief), 'Feature intent changed; clarify the affected product choices')
     synthesis = folder / 'review.md'
@@ -234,6 +300,7 @@ def check(repository: Path, entry: str, *, later: bool = False) -> dict:
     require(all(nonempty(receipt.get(key)) for key in ('confirmationSource','confirmationText','confirmedAtUtc')),
             'Explicit product confirmation is missing')
     return {'roadmapEntry':entry,'briefHash':receipt['briefHash'],
+            **({'featureId': feature} if feature else {}),
             'brief':(folder / 'brief.json').relative_to(repository).as_posix()}
 
 
@@ -249,7 +316,8 @@ def check_spec(repository: Path, spec_path: Path) -> dict:
     references = re.findall(r"^\s*- \*\*Confirmed intake brief\*\*:\s*(\S+)\s*$", text, re.MULTILINE)
     require(len(identities) == len(hashes) == len(references) == 1,
             "Spec requires one roadmap entry, confirmed intake brief and SHA256; run specification-intake")
-    result = check(repository, identities[0], later=True)
+    _, brief = resolve_spec_brief(repository, spec_path)
+    result = check(repository, identities[0], later=True, feature=brief.get('featureId'))
     require(hashes[0] == result["briefHash"] and references[0] == result["brief"],
             "Spec intake reference differs from the current confirmed brief")
     return result
@@ -262,8 +330,9 @@ def main() -> int:
     for name in ("begin", "context", "review", "confirm", "check"):
         command = commands.add_parser(name)
         command.add_argument("--entry", required=True)
+        command.add_argument('--feature', help='Stable canonical feature ID within the parent roadmap epic')
         if name == "begin":
-            command.add_argument("--request", required=True)
+            command.add_argument("--request", default='')
         if name == "confirm":
             command.add_argument("--review-sha256", required=True)
             command.add_argument("--confirmation-source", required=True)
@@ -279,15 +348,15 @@ def main() -> int:
             from consumer_upgrade import scan, request_scope
             result = scan(repository, request_scope(repository, read(inside(repository, args.request_file))), 'specification')
         elif args.command == "begin":
-            result = str(begin(repository, args.entry, args.request))
+            result = str(begin(repository, args.entry, args.request, feature=args.feature))
         elif args.command == 'context':
-            result = context(repository, args.entry)
+            result = context(repository, args.entry, feature=args.feature)
         elif args.command == "review":
-            result = review(repository, args.entry)
+            result = review(repository, args.entry, feature=args.feature)
         elif args.command == "confirm":
-            result = confirm(repository, args.entry, args.review_sha256, args.confirmation_source, args.confirmation_text)
+            result = confirm(repository, args.entry, args.review_sha256, args.confirmation_source, args.confirmation_text, feature=args.feature)
         elif args.command == "check":
-            result = check(repository, args.entry)
+            result = check(repository, args.entry, feature=args.feature)
         else:
             result = check_spec(repository, inside(repository, args.spec))
         print(json.dumps(result, ensure_ascii=False))

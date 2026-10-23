@@ -2,18 +2,25 @@
 
 Run `scripts/specification_intake.py` from the installed governance extension, with the consumer as
 the working directory (or pass `--repository`). Evidence lives outside the not-yet-created feature
-directory, at `.program-kit/specification-intake/<roadmap-ID>/`.
+directory. New feature evidence lives at
+`.program-kit/specification-intake/features/<feature-ID>/`; the roadmap epic is a separate relationship.
+Legacy v1 evidence remains at `.program-kit/specification-intake/<roadmap-ID>/` unchanged.
 
-`begin --entry SPC-001 --request "<current request>"` reads available authoring context and creates `brief.json`
+`begin --entry EPIC-001 --feature invoice-export --request "<current request>"` reads the selected
+canonical candidate's seed and relevant architecture, then creates a feature-owned `brief.json`
 only if absent. On resume, read it, compare the new request, and update affected scope/decisions.
-It never overwrites answers. Use the configured roadmap's stable ID, not a generated branch name.
+It never overwrites answers. Use stable canonical feature and roadmap IDs, not a generated branch name.
+Several features can share one epic without sharing a brief or confirmation. Source thought, boundary
+rationale and unresolved questions remain in the draft's seed context. Seed fields can prefill the
+brief but do not confirm it; an incomplete seed is a legitimate starting point.
 
 Edit the brief with these fields; strings describe the actual feature, not template placeholders:
 
 ```json
 {
-  "schemaVersion": 1,
-  "roadmapEntry": "SPC-001",
+  "schemaVersion": 2,
+  "featureId": "invoice-export",
+  "roadmapEntry": "EPIC-001",
   "request": "Let account owners export their invoice history",
   "problem": "Owners cannot reconcile invoices outside the application",
   "users": "Authenticated account owners",
@@ -51,9 +58,9 @@ is user-owned after bootstrap; its status is not an intake gate. Clarify unresol
 scope choices without importing bootstrap prerequisite ledgers or asking for renewed approvals.
 
 ```text
-specification_intake.py review --entry SPC-001
-specification_intake.py confirm --entry SPC-001 --review-sha256 <presented-hash> --confirmation-source "<user-message-reference>" --confirmation-text "<actual-user-confirmation>"
-specification_intake.py check --entry SPC-001
+specification_intake.py review --entry EPIC-001 --feature invoice-export
+specification_intake.py confirm --entry EPIC-001 --feature invoice-export --review-sha256 <presented-hash> --confirmation-source "<user-message-reference>" --confirmation-text "<actual-user-confirmation>"
+specification_intake.py check --entry EPIC-001 --feature invoice-export
 specification_intake.py check-spec --spec specs/001-invoice-export/spec.md
 ```
 
@@ -67,3 +74,15 @@ confirmation when tooling, roadmap metadata or document fingerprints change. If 
 review the changed answers with the user. Reference the confirmed brief from the normal spec;
 no per-rule applicability or phase review document is required. Historical hash references remain
 readable, but are not prerequisites for ordinary implementation.
+
+New specs include one `Specification roadmap entry` (parent epic), one `Specification feature ID`,
+the exact `Confirmed intake brief` path and its `Confirmed intake SHA256`. The resolver validates
+the feature, parent and normalized reference together. Ordinary scope/context consumers follow that
+reference instead of guessing a brief path from the epic. Legacy specs keep their v1 identity and
+the `--entry`-only commands. Upgrading tooling never rewrites historical confirmed brief bytes.
+
+Source commitment is disclosed separately from current commissioning. Selecting an exploratory seed
+can begin a draft; the actual reviewed feature confirmation commissions the chosen scope. It does
+not silently promote the source map or require roadmap-status approval. Refining child specifications
+within an epic is normal elaboration; present actual changes to epic outcomes, priority or
+dependencies in the same scoped review. Shared architecture changes retain architecture review.

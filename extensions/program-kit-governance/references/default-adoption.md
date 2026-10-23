@@ -25,8 +25,11 @@ The shared persistence resolver turns `server-relational` plus an absent/`auto` 
 free text. Assessment must translate confirmed durability needs into this declaration. Provider
 selection is distinct from later admission and real-provider behavior evidence.
 
-The register's `first_slice` names source journey IDs, a useful outcome and why that boundary is
-small enough. Each unresolved question declares an owner, kind and due stage. Apply a known
+For new bootstrap the register's `recommended_start` names exact candidate feature IDs, a useful
+starting outcome and its rationale. It recommends where to begin without binding specification
+scope or including every candidate from a source journey. `first_slice` remains a legacy contract
+for preserved consumers; do not create it for a new bootstrap. Each unresolved question declares
+an owner, kind and due stage. Apply a known
 default immediately; only consequential questions without a safe default need human answers.
 Unattended workers must not treat an asynchronous question as answered. Required answers are
 recorded against the exact question at the native handoff, then the user resumes the workflow.

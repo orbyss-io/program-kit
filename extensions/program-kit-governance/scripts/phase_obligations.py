@@ -46,12 +46,15 @@ def intent(root, feature, phase='implementation', affected_paths=()):
 def retained_proofs(root, feature, phase):
     """Keep actual executed prerequisites separate from reviewed plan decisions."""
     from feature_context import feature_scope
-    from bootstrap_lifecycle import current_compatibility_evidence, TRIGGER_PHASE, PHASE_ORDER, verification_kind
-    entry = feature_scope(root, feature)['entry']
+    from bootstrap_lifecycle import current_compatibility_evidence, TRIGGER_PHASE, PHASE_ORDER, verification_kind, applies_to, validate_feature_scope
+    scoped = feature_scope(root, feature)
+    entry = scoped['entry']
     if entry is None:
         return []
     items = read(root / 'docs/architecture/bootstrap-prerequisites.json', {}).get('prerequisites', [])
-    selected = [i for i in items if entry in i.get('affected_slices', []) and i.get('status') != 'closed'
+    for item in items:
+        validate_feature_scope(root, item)
+    selected = [i for i in items if applies_to(i, entry, scoped.get('featureId')) and i.get('status') != 'closed'
                 and not (i.get('disposition') == 'feature' and i.get('trigger') == 'feature-plan'
                          and verification_kind(i) == 'decision')]
     if not selected:
@@ -59,13 +62,13 @@ def retained_proofs(root, feature, phase):
     from governance_state import roadmap_records
     roadmap = root / 'docs/architecture/specification-roadmap.md'
     records = roadmap_records(roadmap) if roadmap.is_file() else []
-    brief = read(root / '.program-kit/specification-intake' / entry / 'brief.json', {})
+    brief = scoped['brief']
     answered = {d.get('bootstrapPrerequisite') for d in brief.get('decisions', [])
                 if d.get('disposition') in {'answered', 'default'}}
     if answered:
         from specification_intake import check
         try:
-            check(root, entry, later=True)
+            check(root, entry, later=True, feature=scoped.get('featureId'))
         except (ValueError, OSError):
             answered = set()
 

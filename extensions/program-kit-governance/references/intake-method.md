@@ -16,9 +16,11 @@ through repeated failing exports. Broad implementation discovery is still unnece
 ## Question policy
 
 Use [functional-discovery.md](functional-discovery.md) for the visible discovery areas, relevant
-knowledge, worked journeys and connected functional handoff. Architectural readiness includes a
-coherent functional baseline for the first useful outcome. A technically defaulted stack does not
-establish that baseline. Preserve later feature detail at its legitimate specification trigger.
+knowledge, worked journeys and connected functional handoff. Architectural readiness includes
+coherent understanding of architecture-significant relationships across the supplied vision.
+A technically defaulted stack does not establish that understanding. Preserve detailed future input
+as feature seeds; deepen further feature detail at its specification trigger unless it changes
+shared boundaries or delivery dependencies.
 
 Architecture owns physical placement planning, including exact project/package/shell paths and
 target IDs. Do not ask product users for those filenames or move that bookkeeping into intake.
@@ -109,11 +111,11 @@ Classify it as external, research-required, or project-owned design and ask only
 project must supply. Defer questions that become material only at a named lifecycle trigger.
 
 Completion accounts for every bootstrap-relevant branch and the functional discovery areas,
-not every future implementation choice. Walk the first journey's success and material alternative
-paths using the current concepts, lifecycle, policies/conditions and user-visible experience.
+not every future implementation choice. Challenge representative success and material alternative
+paths across the supplied areas using their concepts, lifecycles, policies and observable outcomes.
 Business outcomes, semantic ownership, and architecture-significant trust, data, or consistency
 boundaries need enough evidence now to prepare a coherent map and founding candidates. Feature
-fields, detailed business rules, and implementation choices can remain assigned to the first
+fields, detailed business rules, and implementation choices can remain assigned to their receiving
 feature specification when they do not change those boundaries. Record the closing artifact or
 owner/next action and trigger. Unanswered human decisions that block intake remain open; assigning
 them to someone does not make the intake ready to confirm.

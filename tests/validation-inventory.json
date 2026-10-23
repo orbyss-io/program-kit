@@ -53,6 +53,21 @@
       "dependsOn": [],
       "reviewOnly": true
     },
+    "intake": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/intake_authoring.py",
+        "extensions/program-kit-governance/scripts/specification_intake.py",
+        "extensions/program-kit-governance/references/architecture-map.schema.json",
+        "extensions/program-kit-governance/references/bootstrap-intake.schema.json"
+      ],
+      "dependsOn": []
+    },
+    "capability-adoption": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/capability_adoption.py"
+      ],
+      "dependsOn": []
+    },
     "schema": {
       "inputs": [
         "extensions/program-kit-governance/scripts/json_schema.py",
@@ -2095,7 +2110,7 @@
       ],
       "kind": "unit",
       "capabilities": [
-        "bootstrap"
+        "capability-adoption"
       ],
       "inputs": [
         "tests/validate_capability_proof.py"
@@ -2105,7 +2120,7 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_learning_metrics",
@@ -2220,7 +2235,7 @@
       ],
       "kind": "unit",
       "capabilities": [
-        "bootstrap"
+        "intake"
       ],
       "inputs": [
         "tests/validate_specification_intake.py"
@@ -2233,7 +2248,7 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_sync_live_fixtures",
@@ -2527,17 +2542,19 @@
       ],
       "kind": "unit",
       "capabilities": [
-        "web"
+        "intake"
       ],
       "inputs": [
         "tests/validate_intake_authoring.py"
       ],
       "needs": [],
-      "prerequisites": [],
+      "prerequisites": [
+        "runtime:json-schema"
+      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_orbyss_building_blocks",

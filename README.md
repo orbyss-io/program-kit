@@ -411,8 +411,8 @@ orchestrating setup itself.
   `speckit.implement`, after `speckit.tasks`, and before and after constitution drafting to prevent
   unauthorized specification, regenerate the current ratification packet, and detect architecture drift.
 
-Before every `speckit.specify`, Program Kit checks governance and automatically runs feature grilling
-for the selected roadmap entry. The interview reuses settled facts, resolves material questions and
+Before every `speckit.specify`, Program Kit checks applicable architecture and automatically runs feature grilling
+for the selected feature within its roadmap epic. The interview reuses its preserved seed and settled facts, resolves material questions and
 pauses for your confirmation of one concise feature brief before specification setup begins. Small
 features can have a short review; uncertain features receive deeper questioning. Saved interviews
 resume, and changes reopen affected decisions. The spec uses the confirmed brief and retains its
@@ -427,6 +427,14 @@ Bootstrap grilling supplies context but does not replace feature confirmation. A
 0.11.0, active specs need this intake before their next gated step: existing requirements can seed
 the draft, but approval is never fabricated during upgrade. See the
 [feature-intake contract](extensions/program-kit-governance/references/specification-intake.md).
+
+Bootstrap understands the supplied vision across architectural boundaries and creates roadmap epics
+with agreed outcomes and priorities. Each epic can lead to several feature specifications. Detailed
+user proposals survive as feature seeds, including boundary rationale, rules, examples and open
+questions; sparse ideas can retain sparse seeds. Intended work and exploratory options remain
+distinct. A recommended starting outcome does not automatically become the first specification's
+complete scope. Feature intake reuses that seed, clarifies its useful delivery boundary and records
+an independent feature confirmation, so another feature in the same epic cannot overwrite it.
 
 The preset appends governance to constitution, specification and plan templates. It replaces
 `speckit.tasks`, `tasks-template` and `speckit.implement` together so task generation and execution
@@ -451,8 +459,10 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 - Generic engineering guardrails apply by default and are revalidated against current primary sources and project context during every bootstrap.
 - The reusable software language is `Identity + Intent + Context -> Policies -> Decision -> Transition -> Effects -> Admission -> Outcome`.
 - Required admission and optional observation are separate contracts. Invisible fire-and-forget behavior and ambiguous empty policy results are forbidden.
-- `docs/architecture/specification-roadmap.md` is the governed portfolio of candidate feature
-  specifications, not application work. After bootstrap, the user maintains it; its status does not gate `speckit.specify`.
+- `docs/architecture/specification-roadmap.md` records epic outcomes, completion conditions,
+  priorities and linked feature seeds. Domains, epics and specifications have distinct identities.
+  An epic is delivered against its agreed outcomes; completing one feature is progress toward it.
+  After bootstrap, the user maintains the roadmap; its status does not gate `speckit.specify`.
 - Design tasks resolve architecture gaps and unlock roadmap entries; they do not enter
   `speckit.implement` as feature work.
 

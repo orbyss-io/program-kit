@@ -591,7 +591,7 @@ def compact_authority(name: str, payload: dict) -> dict:
             for key in (
                 "schema_version", "default_profile", "selected_profiles", "dotnet", "web",
                 "toolchain", "persistence", "unresolved", "deferred",
-                "identity", "first_slice",
+                "identity", "first_slice", "recommended_start",
             )
             if key in payload
         }
@@ -1082,7 +1082,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "Read required_full_reads once; routed optional references are diagnostic sources only.",
                 "Write all three assessment outputs once, then run the supplied validation batch once.",
                 "The assessment batch intentionally does not require tooling-evaluation.md; research owns that later prerequisite.",
-                "Treat resolved_defaults as executable policy, preserve explicit intake selections and record their structured overrides. Select first_slice.journey_ids, outcome and rationale in the decision register. Future journeys remain a portfolio, not detailed first-slice requirements.",
+                "Treat resolved_defaults as executable policy, preserve explicit intake selections and record their structured overrides. Record recommended_start.candidate_ids, outcome and rationale using exact canonical feature IDs. This is a non-binding starting recommendation, never the scope of specification one. Preserve supplied whole-vision architecture and detailed feature seeds. Do not author first_slice for new work; existing historical first_slice remains unchanged.",
                 "Each unresolved item needs owner, due_stage and kind (user-answer or design-decision). Use a default when available. Required human answers use the durable handoff, never unattended asynchronous questions.",
             ],
             "terminal_condition": terminal,
@@ -1164,6 +1164,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         from architecture_map import candidate_journeys
         from governance_state import REQUIRED_RECORD_FIELDS
         first = authorities.get('assessment_decisions', {}).get('first_slice')
+        recommendation = authorities.get('assessment_decisions', {}).get('recommended_start')
         model = load_json(project_root / 'docs/architecture/architecture-map.json')
         strategic = model.get('strategic_model', {})
         journeys = {j['id'] for j in strategic.get('journeys', [])
@@ -1171,7 +1172,10 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         return {
             'mode': 'bounded-generation',
             'entry_template': '### RM-01: <outcome>\n\n' + '\n'.join(
-                f'- **{field}**: <value>' for field in sorted(REQUIRED_RECORD_FIELDS)),
+                f'- **{field}**: <value>' for field in sorted(REQUIRED_RECORD_FIELDS)) + ('\n- **Type**: Epic\n- **Completion criteria**: <agreed outcomes>\n- **Feature seeds**: <comma-separated exact candidate IDs, or None>\n- **Intent**: Intended' if recommendation else ''),
+            'recommended_start': recommendation,
+            'feature_seeds': [{key: candidate[key] for key in ('id', 'epic', 'commitment') if key in candidate}
+                             for candidate in strategic.get('candidate_slices', [])] if recommendation else [],
             'prerequisite_scope': [{k: i[k] for k in ('id', 'affected_slices', 'trigger', 'status')}
                 for i in load_json(project_root / 'docs/architecture/bootstrap-prerequisites.json').get('prerequisites', [])]
                 if (project_root / 'docs/architecture/bootstrap-prerequisites.json').is_file() else [],
@@ -1181,7 +1185,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                                   if candidate_journeys(c) & journeys],
                 'rule': 'Exactly one roadmap entry Scope covers these canonical candidate IDs and no future candidate. Supporting journeys in an approved combined first slice belong to that one specification, not separate entries linked only by prose.',
             } if first else None,
-            'rules': ['Preserve the approved first specification boundary; keep other journeys as separate portfolio entries.',
+            'rules': [*(['Create outcome-oriented epics with agreed scope, non-goals, completion conditions and priority rationale. Link exact Feature seeds to their canonical epic; detailed exploratory seeds stay visible with explicit intent and decision trigger. A source journey, domain or epic never mechanically defines a specification boundary.',
+                         'Preserve canonical feature dependency contracts. Distinguish actual prerequisites from preferred sequencing and unresolved questions. A claim-calculation feature can depend on policy terms without waiting for every policy-management feature. Recommend a start without commissioning siblings; feature intake settles one exact useful boundary.'] if recommendation else ['Preserve the approved historical first specification boundary; keep other journeys as separate portfolio entries.']),
                       'Use entry_template exact heading/field syntax. Assign every prerequisite_scope item to actual roadmap IDs; preserve its source binding and due phase. Dependencies link to ledger IDs without repeating open/closed state.',
                       'before-implementation proofs do not block Ready for specification. Run the terminal batch before handing off to closure.'],
             'terminal_condition': terminal,
@@ -1191,6 +1196,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             'mode': 'maintained-proof-planning',
             'provider_inputs': __import__('bootstrap_provider_context').project(project_root, authorities.get('assessment_decisions', {})),
             'first_slice': authorities.get('assessment_decisions', {}).get('first_slice'),
+            'recommended_start': authorities.get('assessment_decisions', {}).get('recommended_start'),
             'source_hashes': __import__('bootstrap_lifecycle').source_paths(project_root),
             'source_binding_status': __import__('bootstrap_lifecycle').source_binding_status(project_root),
             'source_status_command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_lifecycle.py source-status',
@@ -1522,7 +1528,7 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
             raise ContextError(str(error)) from error
         checks.append('consumer-quality-case-mapping')
     decision_path = project_root / 'docs/architecture/bootstrap-decisions.json'
-    if stage in {'assessment', 'research'} and decision_path.is_file() and load_json(decision_path).get('first_slice'):
+    if stage in {'assessment', 'research'} and decision_path.is_file() and any(load_json(decision_path).get(key) for key in ('first_slice', 'recommended_start')):
         from bootstrap_defaults import apply
         apply(project_root)
         checks.append('resolved-defaults')
@@ -1540,7 +1546,7 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     if stage == 'assessment' and workflow_path.is_file() and 'require-research-handoff' in workflow_path.read_text(encoding='utf-8'):
         from bootstrap_handoff import require
         require(project_root, run_id, 'assessment')
-        checks.append('first-slice-and-default-handoff')
+        checks.append('starting-outcome-and-default-handoff')
     governance_script = (
         ".specify/extensions/program-kit-governance/scripts/governance_state.py"
     )
@@ -1752,10 +1758,12 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     if first_ids and stage != 'assessment':
         projection = payload['intake']
         if 'journeys' in projection:
-            projection['future_portfolio'] = [{k: j[k] for k in ('id', 'name', 'outcome') if k in j}
-                                               for j in intake['journeys'] if j['id'] not in first_ids]
+            projection['future_portfolio'] = [dict(j) for j in intake['journeys'] if j['id'] not in first_ids]
             projection['journeys'] = [j for j in intake['journeys'] if j['id'] in first_ids]
         payload['stage_plan']['first_slice'] = decisions['first_slice']
+    if decisions.get('recommended_start'):
+        payload['stage_plan']['recommended_start'] = decisions['recommended_start']
+        payload['stage_plan']['scope_policy'] = 'All supplied journeys remain architectural input. The starting recommendation does not filter the vision or commission the containing epic.'
     if (project_root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json').is_file():
         effective = effective_dependencies(project_root)
         payload['dependency_context'] = {key: effective[key] for key in

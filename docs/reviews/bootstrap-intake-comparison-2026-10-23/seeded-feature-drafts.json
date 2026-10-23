@@ -1,0 +1,28 @@
+[
+  {
+    "feature": "admit-service-job",
+    "path": ".program-kit\\specification-intake\\features\\admit-service-job\\brief.json",
+    "schemaVersion": 2,
+    "parent": "EPIC-001",
+    "prefilled_fields": [
+      "users",
+      "outcome",
+      "scope"
+    ],
+    "seed_detail_characters": 1759,
+    "confirmed": false
+  },
+  {
+    "feature": "manage-repair-agreement",
+    "path": ".program-kit\\specification-intake\\features\\manage-repair-agreement\\brief.json",
+    "schemaVersion": 2,
+    "parent": "EPIC-001",
+    "prefilled_fields": [
+      "users",
+      "outcome",
+      "scope"
+    ],
+    "seed_detail_characters": 3852,
+    "confirmed": false
+  }
+]

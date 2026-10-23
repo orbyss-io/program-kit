@@ -78,6 +78,51 @@ class CapabilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'open declared roadmap'):
             validate_adoption(self.root, self.feature, 'after-plan', set())
 
+    def same_epic_future(self):
+        brief = '.program-kit/specification-intake/features/policy-terms/brief.json'
+        self.write(self.root / brief, {'schemaVersion': 2, 'roadmapEntry': 'SPEC-001', 'featureId': 'policy-terms'})
+        (self.feature / 'spec.md').write_text('- **Specification roadmap entry**: SPEC-001\n'
+            '- **Specification feature ID**: policy-terms\n- **Confirmed intake brief**: ' + brief + '\n', encoding='utf-8')
+        record = self.adoption['instances'][0]
+        record.update(disposition='future-feature', roadmapEntry='SPEC-001', featureId='renew-policy',
+                      duePhase='implementation', authority='docs/architecture/specification-roadmap.md')
+        self.write(self.feature / 'capability-adoption.json', self.adoption)
+        path = self.root / record['authority']
+        path.write_text(roadmap(status='Candidate'), encoding='utf-8')
+        self.write(self.root / 'docs/architecture/architecture-map.json', {'strategic_model': {
+            'candidate_slices': [{'id': 'policy-terms', 'epic': 'SPEC-001'}, {'id': 'renew-policy', 'epic': 'SPEC-001'}]}})
+        return record
+
+    def test_future_capability_can_belong_to_exact_sibling_in_same_epic(self):
+        record = self.same_epic_future()
+        validate_adoption(self.root, self.feature, 'after-plan', set())
+        # A durable v2 intake also supplies exact parent authority when a seed was
+        # introduced by later feature discovery rather than bootstrap.
+        (self.root / 'docs/architecture/architecture-map.json').unlink()
+        self.write(self.root / '.program-kit/specification-intake/features/renew-policy/brief.json',
+                   {'schemaVersion': 2, 'roadmapEntry': 'SPEC-001', 'featureId': 'renew-policy'})
+        validate_adoption(self.root, self.feature, 'after-plan', set())
+
+    def test_same_epic_deferral_rejects_self_ambiguity_unknown_and_wrong_parent(self):
+        record = self.same_epic_future()
+        original = copy.deepcopy(record)
+        preserved = (self.feature / 'spec.md').read_bytes()
+        for field, value, expected in [('featureId', 'policy-terms', 'same feature'),
+                                        ('featureId', None, 'exact target featureId'),
+                                        ('featureId', 'unknown-feature', 'parent authority'),
+                                        ('roadmapEntry', 'SPEC-002', 'different parent epic')]:
+            with self.subTest(field=field, value=value):
+                record.clear()
+                record.update(original)
+                if value is None:
+                    record.pop(field)
+                else:
+                    record[field] = value
+                self.write(self.feature / 'capability-adoption.json', self.adoption)
+                with self.assertRaisesRegex(ValueError, expected):
+                    validate_adoption(self.root, self.feature, 'after-plan', set())
+        self.assertEqual(preserved, (self.feature / 'spec.md').read_bytes())
+
 
 if __name__ == '__main__':
     unittest.main()
