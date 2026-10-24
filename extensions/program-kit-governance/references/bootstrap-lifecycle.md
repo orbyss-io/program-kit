@@ -228,6 +228,13 @@ stops the phase. Registry credentials never enter the paid worker environment. R
 overrides that need a different scratch configuration require the corresponding explicit handoff;
 the helper must not silently select a different version.
 
+For .NET targets, managed setup also writes version 1 standalone `Directory.Build.props`
+and `Directory.Build.targets` at the scratch root before any SDK evaluation. This stops upward
+consumer build imports and preserves explicit fixture package versions; setting an import flag
+inside an SDK project body is too late. Application analyzer/build policy remains in force for
+application projects. A conflicting fixture-authored boundary requires a distinct reviewed pickup,
+which preserves its original bytes and aligns only the new draft with managed scratch setup.
+
 Fixtures contain only inputs actually consumed at runtime. Do not copy cataloged ADRs into
 fixtures: their Proposed-to-Accepted promotion changes raw bytes at approval. Preflight rejects
 these declarations before restore/execution. Preserve ADR authority through the canonical
@@ -247,6 +254,11 @@ explicitly prepared conditional Ready transitions. A failed probe stops the work
 receipt preserved. Explicit recovery reuses current successful proofs and renews failed work.
 An empty plan explicitly records that no scratch proof is required. Final approval reviews
 scope, dispositions and evidence after execution; it never substitutes for a failed probe.
+
+Both read-only plan validation and execution inspect every planned contract's current fixture
+inputs before invalidating eligibility or provisioning any probe. A stale later fixture therefore
+blocks earlier provisioning too. The bounded diagnostic names its contract and the supported
+`fixture_readiness.py` preview/apply route; it does not renew fixtures or replay providers itself.
 
 For a selected first slice, closure validation requires every open architecture prerequisite to
 have a probe and a complete conditional Ready transition, unless the entry is already Ready.

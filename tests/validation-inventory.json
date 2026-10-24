@@ -6417,6 +6417,36 @@
       "purpose": "Fresh-process neutral runtime, standalone engineering mirrors and current/historical carrier selection; no device acquisition."
     },
     {
+      "id": "validate_intake_install",
+      "purpose": "Actual native intake install from exact release-builder archives, all installed component bytes and bundle ownership; no worker.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_intake_install.py", "--assets-dir", "artifacts"],
+      "kind": "integration",
+      "capabilities": ["bootstrap", "release"],
+      "inputs": ["tests/validate_intake_install.py"],
+      "needs": ["build-release"],
+      "prerequisites": ["tool:specify", "tool:git", "module:yaml", "module:specify_cli"],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_fixture_isolation",
+      "purpose": "Offline native MSBuild ancestor import failure, shared scratch preparation, exact pins and preserved pickup sources.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_fixture_isolation.py"],
+      "kind": "integration",
+      "capabilities": ["bootstrap"],
+      "inputs": ["tests/validate_fixture_isolation.py"],
+      "needs": [],
+      "prerequisites": ["tool:dotnet"],
+      "suites": [],
+      "budgetSeconds": 90,
+      "timeoutSeconds": 150,
+      "manualOnly": false
+    },
+    {
       "id": "validate_consumer_repair_contracts",
       "purpose": "Synthetic promotion/tamper, planned topology, publisher activation, phase and bounded guidance regressions.",
       "platforms": [

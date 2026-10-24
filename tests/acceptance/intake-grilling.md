@@ -26,8 +26,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-IntakeSe
 
 The launcher creates a new temporary Git consumer outside this repository, installs all candidate
 Program Kit components, asks for a product idea, and opens the installed skill in foreground Codex.
-Setup uses a short-lived loopback catalog of the current source packages and the real bundle
-installer, then validates installation coherence and removes the temporary catalog registrations.
+Setup runs the release builder and uses those exact archives through a short-lived loopback
+catalog and the real workflow/bundle installers. It validates installation coherence and removes
+the temporary catalog registrations. `-AssetsDirectory <directory>` instead consumes existing
+same-version release artifacts, verifies `SHA256SUMS` and records their hashes in
+`installation-inputs.json`; neither route links a contributor development directory. Locally built
+archives exercise the release packaging route but do not establish public release acceptance.
 Use your existing Codex login and configured model, or pass `-Model <model>` explicitly. Normal
 model usage applies. No Release receipt is needed and no bootstrap workflow is run. Exit with
 `/quit` to save evidence and return to PowerShell. `-KeepWorkspace` retains the live directory;

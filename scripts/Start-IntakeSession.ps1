@@ -3,6 +3,7 @@ param(
     [string]$Model = '',
     [string]$IdeaFile = '',
     [string]$AcceptanceContracts = '',
+    [string]$AssetsDirectory = '',
     [switch]$KeepWorkspace,
     [switch]$PrepareOnly
 )
@@ -30,6 +31,7 @@ try {
     $prepareArguments = @($helper, 'prepare', '--record', $record)
     if ($IdeaFile) { $prepareArguments += @('--idea-file', (Resolve-Path -LiteralPath $IdeaFile).Path) }
     if ($AcceptanceContracts) { $prepareArguments += @('--acceptance-contracts', (Resolve-Path -LiteralPath $AcceptanceContracts).Path) }
+    if ($AssetsDirectory) { $prepareArguments += @('--assets-dir', (Resolve-Path -LiteralPath $AssetsDirectory).Path) }
     & $python @prepareArguments
     if ($LASTEXITCODE -ne 0) { throw "Intake setup failed. Evidence: $record" }
     $state = Get-Content -Raw -LiteralPath (Join-Path $record 'session.json') | ConvertFrom-Json

@@ -155,6 +155,23 @@ def execute(root: Path, *, validate_only=False, recovery_source=None):
         raise LifecycleError('Bootstrap proof plan violates its schema: ' + str(result['errors']))
     if set(plan) - {'$schema'} != {'schemaVersion', 'probes', 'readyWhenProven'} or plan['schemaVersion'] != 1:
         raise LifecycleError('Bootstrap proof plan requires schemaVersion 1, probes and readyWhenProven')
+    # Check every fixture before invalidation or any earlier probe's provider
+    # provisioning. The same gate applies to producer validation and execution.
+    from fixture_readiness import stale_inputs
+    stale = []
+    for probe in plan['probes']:
+        _, contract_path, contract, _ = validate_recipe(root, probe['id'], probe['recipe'])
+        if contract.get('dependencyTargets'):
+            changed = stale_inputs(root, contract)
+            if changed:
+                stale.append(probe['id'] + ' (' + contract_path.relative_to(root).as_posix()
+                             + '): ' + ', '.join(changed))
+    if stale:
+        detail = '; '.join(stale)
+        raise LifecycleError('Managed recipe authority is stale: ' + detail[:2400]
+                             + '. Use fixture_readiness.py preview/apply with each existing contract '
+                             'and a new recipe identity, then validate the updated plan. '
+                             'No probes or provider provisioning started; original proofs remain historical.')
     ledger = load(root / LEDGER)
     if recovery_source is not None:
         require_recovery_execution(root, recovery_source)

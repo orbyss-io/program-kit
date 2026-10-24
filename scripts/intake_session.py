@@ -73,9 +73,45 @@ def run(command: list[str], workspace: Path, log: Path) -> int:
     return result.returncode
 
 
+def release_assets(record: Path, supplied: Path | None = None) -> Path:
+    """Use complete release-builder bytes; never package a second intake payload."""
+    built = supplied is None
+    if supplied is None:
+        supplied = ROOT / 'artifacts/intake-packages' / uuid.uuid4().hex
+        command = [sys.executable, str(ROOT / 'scripts/build_release.py'),
+                   '--output', supplied.relative_to(ROOT).as_posix()]
+        if run(command, ROOT, record / 'setup.log'):
+            raise RuntimeError('Intake package build failed; see setup.log. No consumer was installed.')
+    supplied = supplied.resolve(strict=True)
+    from build_release import validate_distribution_archive
+    version = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
+    checksums = {}
+    for line in (supplied / 'SHA256SUMS').read_text(encoding='utf-8').splitlines():
+        expected, name = line.split(maxsplit=1)
+        name = name.lstrip('*')
+        if len(expected) != 64 or Path(name).name != name or name in checksums:
+            raise ValueError('Invalid or duplicate release checksum entry')
+        checksums[name] = expected
+    names = [f'{name}-{version}.zip' for name in (
+        'program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet',
+        'program-kit-governance-preset', 'program-kit-bootstrap', 'program-kit')]
+    for name in names:
+        path = supplied / name
+        if checksums.get(name) != digest(path):
+            raise ValueError('Release asset is missing or differs from SHA256SUMS: ' + name)
+        validate_distribution_archive(path)
+    save(record / 'installation-inputs.json', {
+        'schemaVersion': 1, 'version': version, 'origin': 'local-release-build' if built else 'supplied-assets',
+        'assetsDirectory': str(supplied), 'sha256': {name: checksums[name] for name in names},
+        'scope': 'Local package installation; no public release or consumer acceptance claim'})
+    return supplied
+
+
 @contextmanager
-def candidate_catalogs(record: Path):
-    """Serve only candidate archives, on loopback, for the real bundle installer."""
+def candidate_catalogs(record: Path, assets: Path | None = None):
+    """Serve exact release archives through the normal native catalog installers."""
+    assets = release_assets(record, assets)
+    version = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
     directory = record / 'candidate-catalogs'
     directory.mkdir()
     class Handler(CatalogHandler):
@@ -95,11 +131,29 @@ def candidate_catalogs(record: Path):
             catalog = json.loads((ROOT / f'catalogs/{kind}.json').read_text(encoding='utf-8'))
             catalog['catalog_url'] = f'{base}/{kind}.json'
             for name in names:
-                source = ROOT / kind / name
-                candidate_archive(source, directory / f'{name}.zip')
+                shutil.copyfile(assets / f'{name}-{version}.zip', directory / f'{name}.zip')
                 catalog[kind][name]['download_url'] = f'{base}/{name}.zip'
                 catalog[kind][name]['sha256'] = digest(directory / f'{name}.zip')
             save(directory / f'{kind}.json', catalog)
+        # Native workflow downloads support release archives as well as YAML.
+        # Exercise the archive itself, with its exact published checksum.
+        shutil.copyfile(assets / f'program-kit-bootstrap-{version}.zip', directory / 'program-kit-bootstrap.zip')
+        workflow = json.loads((ROOT / 'catalogs/workflows.json').read_text(encoding='utf-8'))
+        workflow['catalog_url'] = f'{base}/workflows.json'
+        workflow['workflows']['program-kit-bootstrap']['url'] = f'{base}/program-kit-bootstrap.zip'
+        workflow['workflows']['program-kit-bootstrap']['sha256'] = digest(directory / 'program-kit-bootstrap.zip')
+        save(directory / 'workflows.json', workflow)
+        shutil.copyfile(assets / f'program-kit-{version}.zip', directory / 'program-kit.zip')
+        bundle = json.loads((ROOT / 'catalogs/bundles.json').read_text(encoding='utf-8'))
+        bundle['catalog_url'] = f'{base}/bundles.json'
+        bundle['bundles']['program-kit']['download_url'] = f'{base}/program-kit.zip'
+        bundle['bundles']['program-kit']['sha256'] = digest(directory / 'program-kit.zip')
+        save(directory / 'bundles.json', bundle)
+        expected = json.loads((record / 'installation-inputs.json').read_text(encoding='utf-8'))['sha256']
+        for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet',
+                     'program-kit-governance-preset', 'program-kit-bootstrap', 'program-kit'):
+            if digest(directory / f'{name}.zip') != expected[f'{name}-{version}.zip']:
+                raise ValueError('Release asset changed during transport preparation: ' + name)
         if os.name == 'nt':
             # Windows archive transfers need the same isolated server process used by live setup.
             port = server.server_port
@@ -138,15 +192,7 @@ def candidate_catalogs(record: Path):
             server_log.close()
 
 
-def candidate_archive(source: Path, destination: Path) -> None:
-    # Keep the intake's strict reparse guard, then share the actual release payload
-    # rules. Local builds must not silently become consumer distribution inputs.
-    checked_files(source)
-    from build_release import deterministic_zip
-    deterministic_zip(source, destination)
-
-
-def install_components(specify: str, git: str, workspace: Path, record: Path) -> None:
+def install_components(specify: str, git: str, workspace: Path, record: Path, assets: Path | None = None) -> None:
     launcher = [specify]
     if os.name == 'nt':
         # Reuse the existing uv/OpenSSL compatibility bridge, only for these owned
@@ -156,21 +202,26 @@ def install_components(specify: str, git: str, workspace: Path, record: Path) ->
         if environment is not None:
             launcher = [sys.executable, str(ROOT / 'scripts/invoke_specify.py'),
                         '--site-packages', str(environment[1]), '--loopback-http-only', '--']
-    with candidate_catalogs(record) as base:
+    with candidate_catalogs(record, assets) as base:
         steps = [
             [git, 'init', '.'],
             [specify, 'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py', '--ignore-agent-tools'],
             [specify, 'extension', 'catalog', 'add', f'{base}/extensions.json', '--name', 'intake-candidate', '--priority', '1', '--install-allowed'],
             [specify, 'preset', 'catalog', 'add', f'{base}/presets.json', '--name', 'intake-candidate', '--priority', '1', '--install-allowed'],
+            [specify, 'workflow', 'catalog', 'add', f'{base}/workflows.json', '--name', 'intake-candidate'],
+            [specify, 'bundle', 'catalog', 'add', f'{base}/bundles.json', '--id', 'intake-candidate', '--policy', 'install-allowed'],
             # Spec Kit requires workflow preinstallation. Let the bundle contribute the other
             # components itself: preinstalling everything omits their bundle provenance.
-            [specify, 'workflow', 'add', str(ROOT / 'workflows/program-kit-bootstrap'), '--dev'],
-            [specify, 'bundle', 'install', str(ROOT / 'bundle.yml'), '--integration', 'codex'],
+            [specify, 'workflow', 'add', 'program-kit-bootstrap'],
+            [specify, 'bundle', 'install', 'program-kit', '--integration', 'codex'],
+            [specify, 'workflow', 'catalog', 'remove', '0'],
+            [specify, 'bundle', 'catalog', 'remove', 'intake-candidate'],
             [specify, 'extension', 'catalog', 'remove', 'intake-candidate'],
             [specify, 'preset', 'catalog', 'remove', 'intake-candidate'],
         ]
         for index, command in enumerate(steps, 1):
             print(f'Installing consumer components ({index}/{len(steps)})...', flush=True)
+            bundle_install = command[1:3] == ['bundle', 'install']
             if command[0] == specify:
                 command = launcher + command[1:]
             log = record / 'setup.log'
@@ -182,13 +233,13 @@ def install_components(specify: str, git: str, workspace: Path, record: Path) ->
                 code = run(command, workspace, log)
                 if code == 0:
                     break
-                if index != 6 or not log.is_file():
+                if not bundle_install or not log.is_file():
                     raise RuntimeError(f'Installation failed at step {index}; see {log}')
                 with log.open('rb') as stream:
                     stream.seek(offset)
                     diagnostic = stream.read().decode('utf-8', errors='replace')
                 transient = ('[WinError 10054]' in diagnostic or 'timed out' in diagnostic)
-                rolled_back_download = (index == 6 and 'Failed to install bundle' in diagnostic
+                rolled_back_download = ('Failed to install bundle' in diagnostic
                                         and 'No changes were recorded' in diagnostic and transient)
                 if not rolled_back_download or attempt == 2:
                     raise RuntimeError(f'Installation failed at step {index}; see {log}')
@@ -235,7 +286,8 @@ Set-Acl -LiteralPath $path -AclObject $acl
     return 'creator-only inherited Modify on new disposable root'
 
 
-def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: Path | None = None) -> None:
+def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: Path | None = None,
+            assets: Path | None = None) -> None:
     if idea_file is not None and (not idea_file.is_file() or not idea_file.read_text(encoding='utf-8').strip()):
         raise ValueError('The supplied idea file must contain the initial product request.')
     if acceptance_contracts is not None:
@@ -272,7 +324,10 @@ def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: P
     for name in ('speckit.program-kit-governance.bootstrap.md', 'speckit.program-kit-governance.grilling.md'):
         shutil.copy2(source_commands / name, record / name)
     save(record / 'session.json', state)
-    install_components(specify, git, workspace, record)
+    if assets is None:
+        install_components(specify, git, workspace, record)
+    else:
+        install_components(specify, git, workspace, record, assets)
     # Native init may create its initial Git commit. Supplied consumer material
     # must not exist in that repository until installation has finished.
     if idea_file is not None:
@@ -493,11 +548,13 @@ def main() -> int:
     parser.add_argument('--prepare-only', action='store_true')
     parser.add_argument('--idea-file', type=Path)
     parser.add_argument('--acceptance-contracts', type=Path)
+    parser.add_argument('--assets-dir', type=Path, help='Exact same-version release-builder assets with SHA256SUMS; defaults to a fresh local release build')
     args = parser.parse_args()
     try:
         if args.action == 'prepare':
             prepare(args.record.resolve(), args.idea_file.resolve() if args.idea_file else None,
-                    args.acceptance_contracts.resolve() if args.acceptance_contracts else None)
+                    args.acceptance_contracts.resolve() if args.acceptance_contracts else None,
+                    args.assets_dir.resolve() if args.assets_dir else None)
         else:
             finish(args.record.resolve(), args.exit_code, args.keep_workspace, args.prepare_only)
         return 0
