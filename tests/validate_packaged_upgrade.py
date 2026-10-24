@@ -89,7 +89,7 @@ def scenario(*, inactive=False):
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
     import schema_runtime
     version = (ROOT / 'VERSION').read_text().strip()
-    archive = ROOT / 'artifacts' / f'program-kit-{version}.zip'
+    archive = ROOT / 'artifacts' / f'program-kit-tooling-{version}.zip'
     if not archive.is_file():
         raise AssertionError('Build the actual candidate archives before the upgrade fixture')
     runtime = schema_runtime.runtime_path(ROOT)

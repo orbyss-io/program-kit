@@ -55,6 +55,19 @@ class TrialTests(unittest.TestCase):
         self.assertFalse(value['releaseValidationPassed'])
         self.assertEqual(len(digest),64)
 
+    def test_complete_tooling_archive_is_bound_and_cannot_be_omitted(self):
+        name = 'artifacts/program-kit-tooling-0.12.0.zip'
+        self.assertIn(name, {row['path'] for row in self.value['artifacts']})
+        changed = copy.deepcopy(self.value)
+        changed['artifacts'] = [row for row in changed['artifacts'] if row['path'] != name]
+        atomic_write_json(self.path, changed)
+        with self.assertRaisesRegex(LiveContractError, 'ARTIFACT_INVENTORY_MISMATCH'):
+            trial.validate_trial_receipt(self.root, self.path, SCHEMAS)
+        atomic_write_json(self.path, self.value)
+        (self.root / name).write_bytes(b'changed complete tooling')
+        with self.assertRaisesRegex(LiveContractError, 'EVIDENCE_CHANGED'):
+            trial.validate_trial_receipt(self.root, self.path, SCHEMAS)
+
     def test_trial_is_rejected_by_release_schema_and_default_loader(self):
         for action in (lambda:validate_release_receipt(self.root,self.path,load_object(SCHEMAS/'release-receipt.schema.json')),
                        lambda:validate_candidate_receipt(self.root,self.path,SCHEMAS)):

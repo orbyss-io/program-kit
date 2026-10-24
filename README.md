@@ -203,7 +203,7 @@ Normal feature intake/planning scans relevant migrations without creating a feat
 or approval dossier. Application builds remain independent of toolkit coordination.
 The local sanitized evidence export sends nothing automatically.
 
-Download and verify the full `program-kit-<version>.zip` release asset, extract it **outside the
+Download and verify the full `program-kit-tooling-<version>.zip` release asset, extract it **outside the
 consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
@@ -592,9 +592,11 @@ review must explicitly address applicable coverage and harness limitations.
 
 ## Release assets
 
-- `program-kit-<version>.zip`: Program Kit's catalog-backed, pinned bundle manifest.
-  It also contains `scripts/upgrade_program_kit.py`, the supported sequential offline/local-release
-  updater for existing installations.
+- `program-kit-<version>.zip`: small catalog-backed, pinned native composition manifest.
+- `program-kit-tooling-<version>.zip`: complete tooling and source-recovery payload, including
+  `scripts/upgrade_program_kit.py` for supported sequential offline/local-release upgrades.
+  Verify this archive through the same release checksums. Earlier releases carried these inputs
+  in their composite bundle; retain those original archives for historical recovery.
 - `program-kit-governance-<version>.zip`: standalone governance extension package.
 - `program-kit-building-blocks-<version>.zip`: standalone building-block selection extension.
 - `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.

@@ -56,7 +56,7 @@ def scenario(archives):
 
     try:
         version = (ROOT / 'VERSION').read_text().strip()
-        archive = archives / ('program-kit-' + version + '.zip')
+        archive = archives / ('program-kit-tooling-' + version + '.zip')
         assert archive.is_file(), 'Build actual local archives first; this fixture never fabricates installed capability'
         result['archive'] = {'path': str(archive), 'sha256': hashlib.sha256(archive.read_bytes()).hexdigest()}
         release = review / 'release'

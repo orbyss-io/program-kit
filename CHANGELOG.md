@@ -2,6 +2,10 @@
 
 ## 0.14.3 - 2026-10-22 (candidate)
 
+- Separate the native composition bundle from the complete tooling/recovery archive; retain existing component identities and historical source readers.
+- Give shared Python/JavaScript/filesystem/result helpers a stack-neutral owner and generate standalone consumer copies with parity checks.
+- Consolidate repeated canonical scope/lookup prose and bound assembled phase briefs without truncating mandatory duties.
+
 - Carry complete bounded canonical coding constraints into planning/tasks and require concrete operation decisions before affected source work.
 - Bind current source/behavior evidence and independent effect, trust and lifetime review to the actual owners.
 - Register existing-source conformance prerequisites before dependent continuation while retaining task identity, original baselines, failures and accepted decisions.

@@ -14568,5 +14568,9 @@
       ],
       "route": "manual-edit"
     }
-  ]
+  ],
+  "contextBudgets": {
+    "phaseTextUtf8Bytes": 196608,
+    "focusedTextUtf8Bytes": 98304
+  }
 }

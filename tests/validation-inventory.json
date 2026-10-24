@@ -380,7 +380,8 @@
         "extensions/program-kit-governance/scripts/compatibility_process.py"
       ],
       "dependsOn": [
-        "schema"
+        "schema",
+        "shared-runtime"
       ]
     },
     "coding-realization": {
@@ -466,6 +467,15 @@
         "knowledge",
         "source-quality"
       ]
+    },
+    "shared-runtime": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/program_kit_runtime/**",
+        "scripts/sync_shared_runtime.py",
+        "extensions/program-kit-governance/scripts/package_execution.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py"
+      ],
+      "dependsOn": []
     }
   },
   "checks": [
@@ -1513,7 +1523,8 @@
         "maintenance"
       ],
       "inputs": [
-        "tests/validate_dependency_profiles.py"
+        "tests/validate_dependency_profiles.py",
+        "tests/historical_package_fixture.py"
       ],
       "needs": [],
       "prerequisites": [],
@@ -4935,7 +4946,7 @@
     },
     {
       "id": "validate_asset_sources",
-      "purpose": "Actual native installed compacted source/UI/public SDK preparation and rehashed customization rejection within unchanged 512-entry native bundle bound. CI consumes verified imported publication payload without rebuilding.",
+      "purpose": "Actual complete tooling source/UI/preparation/witness retention and customized source rejection; unchanged native 512-entry bound and predecessor packed readers. No agent/provider dispatch.",
       "platforms": [
         "Windows",
         "Linux"
@@ -6372,6 +6383,34 @@
       "suites": [],
       "budgetSeconds": 30,
       "timeoutSeconds": 90
+    },
+    {
+      "id": "validate_internal_modularity",
+      "command": [
+        "{python}",
+        "tests/validate_internal_modularity.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "shared-runtime",
+        "release",
+        "diagnostics"
+      ],
+      "inputs": [
+        "tests/validate_internal_modularity.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60,
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Fresh-process neutral runtime, standalone engineering mirrors and current/historical carrier selection; no device acquisition."
     }
   ]
 }

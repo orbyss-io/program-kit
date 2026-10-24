@@ -92,6 +92,11 @@ def scenario(directory):
         browser_command = [*base, '--feature-dir', 'specs/002-browser']
         api_before = run('01-api-before', api_command)
         browser_before = run('02-browser-before', browser_command)
+        results['assembledContextUtf8Bytes'] = {'apiPlanning': len(api_before.encode('utf-8')),
+                                                'browserPlanning': len(browser_before.encode('utf-8'))}
+        for size in results['assembledContextUtf8Bytes'].values():
+            if size > catalog['contextBudgets']['phaseTextUtf8Bytes']:
+                raise AssertionError('Installed assembled phase brief exceeds the maintained aggregate budget')
         if 'ALLOWED_ROLE_REFERENCES' not in api_before or 'ALLOWED_ROLE_REFERENCES' in browser_before:
             raise AssertionError('The actual task briefs did not distinguish API/native from frontend-only scope')
 

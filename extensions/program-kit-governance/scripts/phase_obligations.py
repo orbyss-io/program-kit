@@ -17,7 +17,7 @@ from knowledge_sources import resolve
 
 from dotnet_adapter import bootstrap
 _engineering = bootstrap()
-from test_results import test_results, require, text
+from program_kit_runtime.test_results import test_results, require, text
 from repository_architecture import validate_planned, lifecycle_findings
 
 def inside(root, relative):
@@ -276,6 +276,20 @@ def render(value, phase, detailed=False):
     return '\n'.join(lines)
 
 
+def bounded_render(value, phase, detailed=False):
+    """Bound the assembled text, including wrappers and observed context; never truncate duties."""
+    output = render(value, phase, detailed)
+    budgets = catalog()['contextBudgets']
+    limit = budgets['focusedTextUtf8Bytes' if detailed else 'phaseTextUtf8Bytes']
+    size = len(output.encode('utf-8'))
+    if size > limit:
+        raise ValueError(f'PKC026 assembled {phase} guidance is {size} UTF-8 bytes; bound is {limit}. '
+                         'Narrow the actual operation/affected owner paths before preparation, or use --only <applicable-id> '
+                         'for a concrete decision. Mandatory guidance was not truncated. '
+                         'The explicit JSON discovery view retains complete data for diagnosing this scope; do not concatenate it into an ordinary brief.')
+    return output
+
+
 def check(root, feature, phase, affected_paths=(), operation=None, repair=False, configuration='Debug', framework=None, coding_stage='source'):
     graph_checked, execution = None, None
     from consumer_upgrade import scan, request_scope
@@ -474,7 +488,7 @@ def main():
                 if not units:
                     raise ValueError('PKC013 coding unit is not selected in this scope: ' + args.unit)
                 result['coding']['skills'] = units
-            print(json.dumps(result, indent=2) if args.format == 'json' else render(result, 'implementation')
+            print(json.dumps(result, indent=2) if args.format == 'json' else bounded_render(result, 'implementation')
                   if result['coding']['canProceed'] else 'Coding preparation blocked: ' + json.dumps(result['coding']['blockers']))
             return 0 if result['coding']['canProceed'] else 2
         result = (finish(root, feature, args.handoff, args.configuration, args.framework) if args.command == 'finish' else
@@ -485,7 +499,7 @@ def main():
             result['requirements'] = [r for r in result['requirements'] if r['id'] == args.only]
             if not result['requirements']:
                 raise ValueError('Requested obligation is not applicable in this phase')
-        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else render(result, args.phase, bool(args.only)))
+        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else bounded_render(result, args.phase, bool(args.only)))
         return 2 if result.get('coding', {}).get('canProceed') is False or result.get('status') == 'needs-attention' else 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(str(error))

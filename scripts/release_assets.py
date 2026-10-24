@@ -54,6 +54,7 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
         f"program-kit-governance-preset-{version}.zip",
         f"program-kit-bootstrap-{version}.zip",
         f"program-kit-{version}.zip",
+        f"program-kit-tooling-{version}.zip",
         f"Initialize-ProgramKit-{version}.cmd",
         f"Initialize-ProgramKit-{version}.sh",
         "SHA256SUMS",
@@ -104,3 +105,21 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
     if any(sha256(artifacts / name) != value for name, value in checksums.items()):
         raise RuntimeError('Release artifact differs from its checksum')
     return [{"path": f"artifacts/{path.name}", "sha256": sha256(path), "size": path.stat().st_size} for path in files]
+
+
+def tooling_archive(directory: Path, version: str) -> Path:
+    """Select complete inputs, accepting the predecessor composite only if complete.
+
+    New candidate inventories always require the separately named tooling archive.
+    Historical fixtures may retain a composite predating that split.
+    """
+    current = directory / f'program-kit-tooling-{version}.zip'
+    if current.is_file():
+        return current
+    import zipfile
+    previous = directory / f'program-kit-{version}.zip'
+    if previous.is_file():
+        with zipfile.ZipFile(previous) as archive:
+            if 'scripts/upgrade_program_kit.py' in archive.namelist():
+                return previous
+    raise FileNotFoundError(f'Missing complete tooling archive: {current.name}; the composition bundle is not an updater source')

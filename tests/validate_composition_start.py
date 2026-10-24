@@ -241,13 +241,13 @@ def install_native_tooling(root, directory):
         script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); from release_candidate import read,source,verify_payload; verify_payload(read(Path(sys.argv[1])),Path.cwd()/'artifacts',source())"
         command([sys.executable, '-c', script, imported], ROOT, directory / 'imported-payload-verification')
     else:
-        script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); import build_release; build_release.build_bundle_from_source(Path.cwd(),Path(sys.argv[1]))"
+        script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); import build_release; build_release.build_tooling_from_source(Path.cwd(),Path(sys.argv[1]))"
         command([sys.executable, '-c', script, str(directory)], ROOT, directory / 'current-bundle-build')
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
     from owned_scratch import filesystem_path
     release = Path(filesystem_path(directory / 'release')); release.mkdir()
     version = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
-    bundle = (ROOT / 'artifacts' if imported else directory) / ('program-kit-' + version + '.zip')
+    bundle = (ROOT / 'artifacts' if imported else directory) / ('program-kit-tooling-' + version + '.zip')
     with zipfile.ZipFile(bundle) as archive:
         for name in archive.namelist():
             path = (release / name).resolve()

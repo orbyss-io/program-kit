@@ -12,6 +12,11 @@ Use the returned phase actions and canonical decision constraints before choosin
 Their conditions, prohibitions and exceptions are binding guidance, not optional explanation.
 Scoped accepted targets and feature ownership inform routing before a plan or project exists.
 Resolve reported associations/conflicts; repository-wide adoption does not select every owner's mechanisms.
+Repeated applicability is labelled with `scope-N`; each label applies only to the canonical rules marked with it.
+The assembled text brief has a maintained UTF-8 byte budget, including observed context and wrappers.
+`PKC026` reports overflow without truncating duties: narrow the actual operation/owner paths, or inspect
+a concrete responsibility with `--only`. JSON is an explicit diagnostic/deep lookup view; do not append
+the whole JSON view to an ordinary brief or concatenate every focused section.
 Use focused section lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
 for a focused follow-up. Apply their conditions to concrete design/code choices;
 record decisions, exceptions and actual required tests in the existing plan and tasks.

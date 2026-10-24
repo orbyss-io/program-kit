@@ -116,7 +116,7 @@ def journey(session, workspace, promotion, previous):
     authored = upgrade/'authored-consumer.txt'
     authored.write_text('Consumer-owned content must survive the public upgrade.\n',encoding='utf-8')
     before = authored.read_bytes()
-    bundle = f'program-kit-{version}.zip'
+    bundle = f'program-kit-tooling-{version}.zip'
     session.download(base+bundle,workspace/bundle,by_name[bundle])
     release = workspace/'public downloaded release'
     extract(workspace/bundle,release)

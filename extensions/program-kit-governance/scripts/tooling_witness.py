@@ -39,7 +39,7 @@ def encoded(value):
 
 def filesystem(path):
     # Load the current shipped helper only, never a helper in retained source.
-    helper = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+    helper = Path(__file__).with_name('program_kit_runtime') / 'owned_scratch.py'
     require(helper.is_file(), 'current shared filesystem adapter is missing')
     spec = importlib.util.spec_from_file_location('tooling_witness_owned_paths', helper)
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
