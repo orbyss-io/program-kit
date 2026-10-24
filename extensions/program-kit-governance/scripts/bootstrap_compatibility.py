@@ -27,6 +27,9 @@ def configuration(root: Path, *, dotnet: bool, npm: bool):
         raise ValueError('Compatibility requires an accepted JavaScript toolchain before npm provisioning')
     files = (['global.json', 'NuGet.config'] if dotnet else []) + (['.nvmrc', '.npm-version'] if npm else [])
     content = {name: (template / name).read_bytes() for name in files}
+    if dotnet:
+        from runtime_fixture import standalone_build_files
+        content.update(standalone_build_files())
     decisions = load(root / 'docs/architecture/bootstrap-decisions.json', {})
     authority = decisions.get('toolchain', {})
     override = authority.get('source') == 'override'
@@ -118,7 +121,11 @@ def prepare(root: Path, scratch: Path, contract: dict):
     pins, content = configuration(root, dotnet=dotnet, npm=npm)
     for relative, payload in content.items():
         if relative.casefold() in {name.casefold() for name in fixtures}:
-            raise ValueError('Toolchain/source overrides belong to accepted setup authority, not fixture files')
+            from runtime_fixture import standalone_build_files
+            if relative not in standalone_build_files() or (scratch / relative).read_bytes() != payload:
+                raise ValueError('Managed scratch configuration differs from fixture input: ' + relative
+                                 + '; use fixture_readiness.py preview/apply with a new recipe identity. '
+                                 'Toolchain/source overrides belong to accepted setup authority.')
         (scratch / relative).write_bytes(payload)
     write(scratch / '.program-kit/sync/compatibility-pins.json', pins)
     plan = {'schemaVersion': 1, 'targets': dependencies, 'registryRequirements': []}

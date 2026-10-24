@@ -92,7 +92,7 @@ provides:
       description: "Create a context-sensitive tooling and quality-gate proposal."
     - name: "speckit.program-kit-governance.roadmap"
       file: "commands/speckit.program-kit-governance.roadmap.md"
-      description: "Create the governed portfolio of candidate feature specifications."
+      description: "Create roadmap epics with agreed outcomes, priorities and linked feature seeds."
     - name: "speckit.program-kit-governance.readiness"
       file: "commands/speckit.program-kit-governance.readiness.md"
       description: "Evaluate whether architecture bootstrap is ready for specifications."

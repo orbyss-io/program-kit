@@ -59,9 +59,9 @@ class MigratedTooling(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(dir=scratch); self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.graph = two_apps(ROOT)
-        self.graph['resources']['product-identity']['theme']['branding']['displayName'] = 'Claim Evaluator'
+        self.graph['resources']['product-identity']['theme']['branding']['displayName'] = 'Harbor Workspace'
         branding = model.default_branding()
-        branding['locales']['en-GB'].update(title='Claim Evaluator', purpose='Consumer-owned claims',
+        branding['locales']['en-GB'].update(title='Harbor Workspace', purpose='Consumer-owned room schedules',
             loadingText='Loading claims.', failureText='Claims could not be loaded.')
         self.graph['resources']['policy-web']['branding'] = branding
         (self.root / 'proposal.json').write_text(json.dumps(self.graph))
@@ -177,7 +177,7 @@ class MigratedTooling(unittest.TestCase):
         graph = model.load(self.root)
         self.assertEqual(self.graph['resources']['policy-web']['branding'], graph['resources']['policy-web']['branding'])
         realm = json.loads((self.root / 'deploy/keycloak/product-identity/program-kit-realm.json').read_text())
-        self.assertEqual('Claim Evaluator', realm['displayName'])
+        self.assertEqual('Harbor Workspace', realm['displayName'])
         provider = ET.parse(self.root / 'src/Application.PostgreSql/Application.PostgreSql.csproj')
         self.assertEqual('false', provider.findtext('PropertyGroup/FoundationComposeForOpenApi'))
         self.assertIn('AddFoundationPostgreSql', (self.root / 'src/Application.PostgreSql/ProviderFeature.cs').read_text())

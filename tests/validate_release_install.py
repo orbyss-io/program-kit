@@ -69,6 +69,7 @@ def main() -> int:
     preset_zip = assets / f"program-kit-governance-preset-{version}.zip"
     workflow_zip = assets / f"program-kit-bootstrap-{version}.zip"
     bundle_zip = assets / f"program-kit-{version}.zip"
+    tooling_zip = assets / f"program-kit-tooling-{version}.zip"
     initializers = {
         suffix: assets / f"Initialize-ProgramKit-{version}.{suffix}"
         for suffix in ("cmd", "sh")
@@ -82,6 +83,7 @@ def main() -> int:
             preset_zip,
             workflow_zip,
             bundle_zip,
+            tooling_zip,
             *initializers.values(),
         )
     ):
@@ -95,7 +97,7 @@ def main() -> int:
                 f"Versioned {suffix} consumer initializer differs from the root template"
             )
 
-    for release_zip in (extension_zip, building_blocks_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip):
+    for release_zip in (extension_zip, building_blocks_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip, tooling_zip):
         with zipfile.ZipFile(release_zip, "r") as archive:
             forbidden_entries = []
             for name in archive.namelist():
@@ -127,6 +129,10 @@ def main() -> int:
             raise AssertionError(
                 f"Program Kit install bundle contains repository-only source: {leaked[:10]}"
             )
+        if set(names) != {"LICENSE", "README.md", "THIRD-PARTY-NOTICES.md", "VERSION", "bundle.yml"}:
+            raise AssertionError("Composition archive must contain only native manifest and metadata")
+    with zipfile.ZipFile(tooling_zip, "r") as archive:
+        names = archive.namelist()
         required_runtime = {
             "scripts/record_local_bundle.py",
             "scripts/consumer_upgrade_workspace.py",
@@ -581,6 +587,7 @@ def main() -> int:
         # public-catalog test validates catalog-backed bundle installation.
         with zipfile.ZipFile(bundle_zip, "r") as archive:
             packaged_bundle = yaml.safe_load(archive.read("bundle.yml"))
+        with zipfile.ZipFile(tooling_zip, "r") as archive:
             if "scripts/upgrade_program_kit.py" not in archive.namelist():
                 raise AssertionError("Full Program Kit release is missing the offline/local updater")
             if "scripts/invoke_specify.py" not in archive.namelist():

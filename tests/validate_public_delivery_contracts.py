@@ -37,7 +37,7 @@ class DeliveryTests(unittest.TestCase):
         session = SimpleNamespace(run=lambda name,command,cwd:commands.append((name,list(map(str,command)),cwd)),
                                   download=lambda url,path,record:downloads.append((url,path,record)))
         assets = [{'name':'Initialize-ProgramKit-1.0.0.sh','sha256':'a'*64,'size':10},
-                  {'name':'program-kit-1.0.0.zip','sha256':'b'*64,'size':20}]
+                  {'name':'program-kit-tooling-1.0.0.zip','sha256':'b'*64,'size':20}]
         promotion = {'source':{'version':'1.0.0'},'assets':assets}
         with patch.object(delivery,'installed_versions',side_effect=[{'all':'1.0.0'},{'all':'0.9.0'},{'all':'1.0.0'}]), patch.object(delivery,'replace_catalogs') as catalogs, patch.object(delivery,'extract'):
             delivery.journey(session,self.root,promotion,'v0.9.0')
@@ -48,6 +48,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertTrue(upgrade[1].endswith('public downloaded release/scripts/upgrade_program_kit.py') or upgrade[1].endswith('public downloaded release\\scripts\\upgrade_program_kit.py'))
         self.assertNotIn('--offline',upgrade)
         self.assertEqual(assets,[record for _,_,record in downloads])
+        self.assertTrue(downloads[-1][0].endswith('/program-kit-tooling-1.0.0.zip'))
         self.assertTrue(catalogs.call_args.args[1].endswith('/v0.9.0/catalogs'))
         names = [name for name, _, _ in commands]
         preparation = ['prepare-prior-utf8', 'prepare-prior-schema', 'record-prior-schema',
@@ -71,7 +72,7 @@ class DeliveryTests(unittest.TestCase):
                 raise ValueError('SCHEMA_TOOLS_LOCALLY_EDITED')
         session = SimpleNamespace(run=execute, download=lambda *args: None)
         promotion = {'source': {'version': '1.0.0'}, 'assets': [
-            {'name': 'Initialize-ProgramKit-1.0.0.sh'}, {'name': 'program-kit-1.0.0.zip'}]}
+            {'name': 'Initialize-ProgramKit-1.0.0.sh'}, {'name': 'program-kit-tooling-1.0.0.zip'}]}
         with patch.object(delivery, 'installed_versions', side_effect=[{'all': '1.0.0'}, {'all': '0.9.0'}]), \
                 patch.object(delivery, 'replace_catalogs'):
             with self.assertRaisesRegex(ValueError, 'LOCALLY_EDITED'):

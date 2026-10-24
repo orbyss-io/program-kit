@@ -269,13 +269,21 @@ def current_files(root, contract):
         helper = maintained_support('program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
         files['owned_scratch.py'] = helper.read_bytes()
         sources[helper.relative_to(root).as_posix()] = sha(files['owned_scratch.py'])
+    # A prior consumer-authored import boundary is preserved in its original
+    # recipe/archive; a new pickup aligns only the new draft with managed setup.
+    if any(Path(path).suffix == '.csproj' for path in contract.get('dependencyTargets', [])):
+        from runtime_fixture import standalone_build_files
+        for name, payload in standalone_build_files().items():
+            if name in files:
+                files[name] = payload
     return files, sources
 
 
 def stale_inputs(root, contract):
     files, _ = current_files(root, contract)
     stale = [source for relative, source in contract.get('fixtures', {}).items()
-            if Path(relative).suffix == '.csproj' or Path(relative).name == 'package.json' or relative == 'runtime-inputs.json'
+            if Path(relative).suffix == '.csproj' or Path(relative).name == 'package.json'
+            or relative in {'runtime-inputs.json', 'Directory.Build.props', 'Directory.Build.targets'}
             if files[relative] != contained(root, source).read_bytes()]
     return stale + [relative + ' (required maintained support missing)' for relative in files if relative not in contract.get('fixtures', {})]
 

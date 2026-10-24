@@ -145,7 +145,7 @@ class GuidanceTests(unittest.TestCase):
             manifest = json.loads(assets[0].read_text())
             self.assertEqual(published,{profile['id'] for profile in manifest['profiles']})
             required = [f'program-kit{suffix}-0.12.6.zip' for suffix in
-                ('', '-governance', '-building-blocks', '-dotnet', '-governance-preset', '-bootstrap')]
+                ('', '-tooling', '-governance', '-building-blocks', '-dotnet', '-governance-preset', '-bootstrap')]
             required += ['Initialize-ProgramKit-0.12.6.cmd', 'Initialize-ProgramKit-0.12.6.sh',
                 'RELEASE-NOTES-0.12.6.md', 'MIGRATIONS-0.12.6.md', 'migration-0.12.6.md']
             for file in required: (root / file).write_text('candidate')
@@ -153,6 +153,12 @@ class GuidanceTests(unittest.TestCase):
             files = [p for p in root.iterdir() if p.name != 'SHA256SUMS']
             (root / 'SHA256SUMS').write_text(''.join(f'{sha256(p)}  {p.name}\n' for p in files))
             self.assertEqual({p.name for p in root.iterdir()}, {Path(p['path']).name for p in artifact_records(root, '0.12.6')})
+            tooling = root / 'program-kit-tooling-0.12.6.zip'
+            original_tooling = tooling.read_bytes()
+            tooling.unlink()
+            with self.assertRaisesRegex(RuntimeError, 'Missing candidate artifacts'):
+                artifact_records(root, '0.12.6')
+            tooling.write_bytes(original_tooling)
             proof = assets[-1]
             original = proof.read_bytes()
             proof.write_bytes(original + b'\n')

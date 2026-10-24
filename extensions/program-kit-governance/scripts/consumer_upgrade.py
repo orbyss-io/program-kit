@@ -678,7 +678,7 @@ def request_scope(root, brief=None, feature=None):
         paths = (brief or {}).get('affectedPaths', [])
     brief = brief or {}
     from feature_knowledge import project
-    projection = project(root, brief.get('architectureScope')) if brief.get('architectureScope') else None
+    projection = project(root, brief.get('architectureScope'), feature_id=brief.get('featureId')) if brief.get('architectureScope') else None
     contracts = brief.get('contracts', [])
     owners = brief.get('architectureScope', [])
     if projection:

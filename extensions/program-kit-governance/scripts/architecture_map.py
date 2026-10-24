@@ -718,7 +718,7 @@ def _validate_strategic_model(
             "id", "name", "journey", "actor_or_trigger", "outcome", "contexts", "status",
             "evidence", "decision_refs",
         }
-        if not isinstance(item, dict) or set(item) - {'supporting_journeys'} != fields:
+        if not isinstance(item, dict) or set(item) - {'supporting_journeys', 'epic', 'commitment', 'seed', 'dependencies'} != fields:
             raise ArchitectureMapError(f"{label} has an invalid shape")
         slice_id = _id(item.get("id"), f"{label}.id")
         if slice_id in slice_ids:
@@ -733,9 +733,47 @@ def _validate_strategic_model(
                 raise ArchitectureMapError(f"{label}.supporting_journeys repeats the primary journey")
         _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
         _text(item.get("outcome"), f"{label}.outcome")
+        if 'epic' in item and (not isinstance(item['epic'], str) or not re.fullmatch(r'[A-Z][A-Z0-9-]+', item['epic'])):
+            raise ArchitectureMapError(f'{label}.epic must name an exact roadmap entry ID')
+        if 'commitment' in item and (not isinstance(item['commitment'], str) or item['commitment'] not in {'intended', 'exploratory'}):
+            raise ArchitectureMapError(f'{label}.commitment must be intended or exploratory')
+        if 'seed' in item:
+            validate_feature_seed(item['seed'], f'{label}.seed')
         _semantic_ids(item.get("contexts"), f"{label}.contexts", context_ids, require_one=True)
         _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
         _semantic_status(item, label, decision_ids, decision_statuses)
+
+    dependencies = {}
+    for item in slices:
+        label = f"Candidate {item['id']}.dependencies"
+        records = item.get('dependencies', [])
+        if not isinstance(records, list):
+            raise ArchitectureMapError(f'{label} must be a list')
+        targets = []
+        for dependency in records:
+            if not isinstance(dependency, dict) or not {'feature', 'rationale'} <= dependency.keys() or dependency.keys() - {'feature', 'contract', 'rationale'}:
+                raise ArchitectureMapError(f'{label} has an invalid shape')
+            target = _id(dependency['feature'], label + '.feature')
+            if target not in slice_ids or target == item['id'] or target in targets:
+                raise ArchitectureMapError(f'{label} has a missing, self or duplicate feature reference: {target}')
+            targets.append(target)
+            _seed_text(dependency['rationale'], label + '.rationale')
+            if 'contract' in dependency and _id(dependency['contract'], label + '.contract') not in contract_ids:
+                raise ArchitectureMapError(f'{label}.contract references a missing contract')
+        dependencies[item['id']] = targets
+    visited, active = set(), set()
+    def visit_feature(identity):
+        if identity in active:
+            raise ArchitectureMapError('Candidate feature dependencies contain a cycle')
+        if identity in visited:
+            return
+        active.add(identity)
+        for parent in dependencies[identity]:
+            visit_feature(parent)
+        active.remove(identity)
+        visited.add(identity)
+    for identity in dependencies:
+        visit_feature(identity)
 
     required_view_types = {
         "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
@@ -764,6 +802,38 @@ def _validate_strategic_model(
         raise ArchitectureMapError(
             "Every strategic module or bridge must be visible in a context-decomposition view"
         )
+
+
+def _seed_text(value, label):
+    # Rich source detail has no summary-sized limit; preserve the supplied text.
+    if not isinstance(value, str) or not value.strip():
+        raise ArchitectureMapError(f'{label} must be nonempty text')
+
+
+def validate_feature_seed(seed: dict, label='seed') -> None:
+    texts = {'details', 'boundaryRationale', 'decisionTrigger'}
+    notes = {'assumptions', 'openQuestions', 'boundaryChanges'}
+    if not isinstance(seed, dict) or not seed or seed.keys() - (texts | notes | {'brief', 'evidence'}):
+        raise ArchitectureMapError(f'{label} has an invalid shape')
+    for key in texts & seed.keys():
+        _seed_text(seed[key], f'{label}.{key}')
+    for key in notes & seed.keys():
+        if not isinstance(seed[key], list):
+            raise ArchitectureMapError(f'{label}.{key} must be a list')
+        for note in seed[key]:
+            _seed_text(note, f'{label}.{key}')
+    if 'evidence' in seed:
+        _semantic_ids(seed['evidence'], f'{label}.evidence')
+    if 'brief' in seed:
+        brief = seed['brief']
+        fields = {'request', 'problem', 'users', 'outcome', 'scope', 'nonGoals', 'journeys', 'failureCases', 'dependencies', 'acceptanceCriteria'}
+        if not isinstance(brief, dict) or brief.keys() - (fields | {'decisions'}):
+            raise ArchitectureMapError(f'{label}.brief has an invalid shape')
+        for key in fields & brief.keys():
+            if not isinstance(brief[key], str):
+                raise ArchitectureMapError(f'{label}.brief.{key} must be text')
+        if 'decisions' in brief and (not isinstance(brief['decisions'], list) or any(not isinstance(item, dict) or not item for item in brief['decisions'])):
+            raise ArchitectureMapError(f'{label}.brief.decisions must contain draft decision objects')
 
 
 def project_domain_analysis(model: dict) -> dict:
@@ -925,6 +995,8 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     ):
         for item in strategic[collection]:
             semantic_evidence.update(item["evidence"])
+            if collection == 'candidate_slices':
+                semantic_evidence.update(item.get('seed', {}).get('evidence', []))
     if not semantic_evidence.issubset(evidence_ids):
         raise ArchitectureMapError("Strategic architecture references unknown intake evidence")
 
@@ -1249,9 +1321,10 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
                 if animated_id not in element_ids and animated_id not in relationship_ids:
                     raise ArchitectureMapError(f"View {key} animation references missing identity {animated_id}")
         _properties(view.get("properties"), f"{label}.properties")
-    if not {
-        "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
-    }.issubset(view_types):
+    required_types = {"system-context", "domain-landscape", "context-map", "context-decomposition"}
+    if any(not item.get('discovery') for item in model.get('strategic_model', {}).get('journeys', [])):
+        required_types.add('dynamic')
+    if not required_types.issubset(view_types):
         raise ArchitectureMapError("Architecture map 1.1 requires the full strategic view set")
 
     _validate_strategic_model(

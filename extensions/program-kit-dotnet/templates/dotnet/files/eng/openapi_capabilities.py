@@ -254,7 +254,7 @@ def check_registered(repository, feature=None, stage='planning'):
         if not path.is_relative_to(repository.resolve()): raise ValueError('PKO220 OpenAPI path escapes repository')
         if not path.is_file(): raise ValueError('PKO221 unresolved ' + str(path) + ': supply the proposed single OpenAPI document, then regenerate it from the earliest endpoint scaffold; planning is not runtime evidence')
         import shell_composition
-        shells = shell_composition.compose(repository)['CShells']['Shells']
+        shells = shell_composition.compose(repository, planning=stage == 'planning')['CShells']['Shells']
         shell = shells.get(config.get('shell'))
         if not shell: raise ValueError('PKO220 unresolved exact contract shell binding ' + str(config.get('shell')))
         profiles = shell.get('Configuration', {}).get('Foundation', {}).get('Json', {}).get('Profiles', {})

@@ -6,6 +6,11 @@ Name the domain owner, affected boundaries, contracts and important quality requ
 Reference confirmed intake and relevant architectural decisions when present. Clarify material
 product ambiguity; unchanged intake does not need another approval because tooling changed.
 The roadmap is a user-owned planning aid, not a prerequisite ledger for specification work.
+One roadmap epic may have several specifications. For new feature intake, record the parent
+`Specification roadmap entry`, independent `Specification feature ID`, exact `Confirmed intake brief`
+path and its `Confirmed intake SHA256`. Reuse the preserved feature seed and supplied boundary
+rationale, rules and examples; resolve consequential gaps without restarting whole-product discovery.
+Legacy specifications retain their existing entry-only identity and confirmed brief.
 
 Describe the User-visible vertical outcome and Explicit non-goals in the normal specification.
 

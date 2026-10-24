@@ -75,6 +75,7 @@ def main():
             if os.name == 'nt':
                 assert record['probe']['writesVerified'] and record['probe']['codingAgentStarted'] is False
                 assert record['probe']['sandboxReadbackVerified'] and record['probe']['cleanupVerified']
+                assert record['probe']['supervisorArtifactReadability'].startswith('verified after atomic')
             assert not list(root.rglob('.program-kit-write-probe-*'))
             assert not (root / 'docs').exists(), 'Only probe-created empty directories should be removed'
 
@@ -84,6 +85,14 @@ def main():
                 return subprocess.CompletedProcess(args[0], 0, 'PROGRAM_KIT_WRITE_PROBE_OK', '')
 
             if os.name == 'nt':
+                original_read = Path.read_text
+                def unreadable_artifact(path, *args, **kwargs):
+                    if path.name.startswith('.program-kit-write-probe-'):
+                        raise PermissionError('synthetic cross-account artifact denial')
+                    return original_read(path, *args, **kwargs)
+                with patch.object(Path, 'read_text', unreadable_artifact):
+                    expect_block(lambda: policy.verify_windows_write(root, inspect(), runner=sandbox_fixture),
+                                 'human workflow account')
                 def blocked_scope():
                     with policy.worker_environment(root, 'codex', runner=no_writes):
                         raise AssertionError('Dispatch was reached without write access')

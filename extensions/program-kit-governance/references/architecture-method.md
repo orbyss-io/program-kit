@@ -7,7 +7,7 @@
 2. Confirmed bootstrap intake: user intent, classified gaps, and starting assumptions interpreted under the constitution.
 3. Canonical architecture map and architecture baseline: the current coherent model, views, constraints, quality scenarios, risks, and ADR links.
 4. ADRs: history and authority for significant project-specific choices.
-5. Specification roadmap: governed portfolio of candidate feature specifications.
+5. Specification roadmap: epic outcomes, priorities, dependencies and linked candidate features.
 6. Feature specifications: implementable vertical behavior slices constrained by the earlier authority.
 7. Plans and tasks: delivery design and work decomposition.
 8. Implementation and verification evidence.
@@ -33,9 +33,12 @@ The constitution is not an ordinary feature specification and never enters the f
 specification/plan/task/implement lifecycle. Drafting revokes stale ratification evidence. Only a
 dedicated human gate followed by hash-bound validation makes the constitution authoritative.
 
-The specification roadmap is also not an implementable specification. It owns sequencing and
-readiness of candidate specifications. A roadmap entry cannot become Ready while a required ADR is
-unresolved.
+The specification roadmap owns intended epic outcomes, completion conditions, priorities and linked
+feature seeds. An epic can have several independently scoped feature specifications; a domain can
+support several epics. The roadmap recommends a start while specification intake settles the exact
+feature commission. Distinguish intended work from exploratory options. Readiness concerns the
+actual affected work and due decisions; epic membership alone creates no dependency on every sibling.
+Legacy specification-oriented entries remain readable with their original meaning.
 <!-- /program-kit:knowledge-rule -->
 
 ## Design tasks before feature slices

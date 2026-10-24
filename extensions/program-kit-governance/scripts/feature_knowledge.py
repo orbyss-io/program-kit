@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 
-def project(root: Path, scope=None):
+def project(root: Path, scope=None, feature_id=None):
     path = root / 'docs/architecture/architecture-map.json'
     if not path.is_file():
         return None
@@ -23,6 +23,8 @@ def project(root: Path, scope=None):
             break
         expanded |= children
     strategic = model.get('strategic_model', {})
+    candidates = strategic.get('candidate_slices', [])
+    selected_feature = next((item for item in candidates if item['id'] == feature_id), None)
     owned = set(expanded)
     while True:
         parents = {item.get('parent') for item in elements if item['id'] in owned and item.get('parent')}
@@ -39,6 +41,30 @@ def project(root: Path, scope=None):
     contract_ids = {item.get('contract') for item in edges} | {identity for item in modules for identity in item.get('contracts', [])}
     subdomains = {identity for item in contexts for identity in item.get('subdomains', [])}
     selected_relationships = {item['id'] for item in relationships}
+    scoped_candidates = [item for item in candidates if set(item.get('contexts', [])) & relevant
+                         and (feature_id is not None or any(key in item for key in ('epic', 'commitment', 'seed', 'dependencies')))]
+    if feature_id is not None:
+        # Neighbor boundaries matter, while their unselected detailed proposals
+        # must not become part of this feature's commission or confirmation basis.
+        neighbor_ids = {edge['feature'] for item in scoped_candidates for edge in item.get('dependencies', [])}
+        neighbor_ids |= {edge['feature'] for edge in (selected_feature or {}).get('dependencies', [])}
+        # A provider's boundary must retain its future consumers as well as its
+        # prerequisites: those consumers explain historical and lifecycle seams.
+        incoming = [item for item in candidates
+                    if any(edge['feature'] == feature_id for edge in item.get('dependencies', []))]
+        neighbor_ids |= {item['id'] for item in incoming}
+        scoped_candidates = [item for item in candidates if item in scoped_candidates or item['id'] in neighbor_ids or item['id'] == feature_id]
+        projected_candidates = [item if item['id'] == feature_id else
+                                {key: value for key, value in item.items() if key in
+                                 {'id', 'name', 'epic', 'commitment', 'journey', 'supporting_journeys', 'outcome', 'contexts', 'dependencies'}}
+                                for item in scoped_candidates]
+        contract_ids |= {edge['contract'] for edge in (selected_feature or {}).get('dependencies', []) if edge.get('contract')}
+        contract_ids |= {edge['contract'] for item in incoming for edge in item.get('dependencies', [])
+                         if edge['feature'] == feature_id and edge.get('contract')}
+    else:
+        projected_candidates = scoped_candidates
+    candidate_journeys = {identity for item in scoped_candidates
+                          for identity in [item.get('journey'), *item.get('supporting_journeys', [])]}
     result = {
         'source': 'docs/architecture/architecture-map.json', 'scope': sorted(selected),
         'scopeMode': 'explicit' if scope is not None else 'whole-model-fallback',
@@ -54,16 +80,22 @@ def project(root: Path, scope=None):
             'capability_bindings': [item for item in strategic.get('capability_bindings', [])
                                     if {item.get('module'), item.get('semantic_owner'), item.get('integration_owner')} & expanded],
             'journeys': [item for item in strategic.get('journeys', [])
-                         if any(step.get('relationship') in selected_relationships for step in item.get('steps', []))],
+                         if any(step.get('relationship') in selected_relationships for step in item.get('steps', []))
+                         or item.get('id') in candidate_journeys],
             'founding_decisions': [item for item in strategic.get('founding_decisions', [])
                                   if set(item.get('affected_elements', [])) & boundary
                                   or set(item.get('affected_relationships', [])) & selected_relationships],
         },
     }
+    if projected_candidates:
+        result['strategic_model']['candidate_slices'] = projected_candidates
 
     def decision_ids(value):
         if isinstance(value, dict):
-            return set(value.get('decision_refs', [])) | set().union(*(decision_ids(item) for key, item in value.items() if key != 'decision_refs'))
+            # Seed decision objects are preserved user input, not canonical
+            # architecture records; their arbitrary metadata has no ADR authority.
+            return set(value.get('decision_refs', [])) | set().union(*(decision_ids(item) for key, item in value.items()
+                                                                        if key not in {'decision_refs', 'seed', 'bootstrapSeed'}))
         if isinstance(value, list):
             return set().union(*(decision_ids(item) for item in value))
         return set()

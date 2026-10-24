@@ -18,6 +18,25 @@ class CanonicalSourcesTests(unittest.TestCase):
     def setUp(self):
         self.catalog = load()
 
+    def test_scope_labels_preserve_exact_conditions_once_and_assembled_overflow_is_visible(self):
+        from feature_context import applicable_requirements
+        from phase_obligations import bounded_render
+        requirements = applicable_requirements(self.catalog, {'all', 'dotnet', 'api', 'web', 'typescript'}, 'planning')
+        output = '\n'.join(text for rows in constraints(self.catalog, requirements, ROOT / 'extensions').values() for text in rows)
+        condition = 'Selected managed authenticated BFF/SPA contract.'
+        self.assertEqual(1, output.count(condition))
+        self.assertIn('[scope-', output)
+        assert_complete_required_text(self, self.catalog, requirements, output, ROOT / 'extensions')
+        ordinary = {'requirements': requirements}
+        complete = bounded_render(ordinary, 'planning')
+        self.assertIn('Canonical principle.typed-admission', complete)
+        ordinary['context'] = {'diagnostics': ['Observed owned scope is too large. ' * 10000]}
+        with self.assertRaisesRegex(ValueError, 'PKC026 assembled planning guidance'):
+            bounded_render(ordinary, 'planning')
+        # No source or model truncation occurs; the explicit diagnostic view
+        # remains available to split the actual decision/operation scope.
+        self.assertEqual(10000, ordinary['context']['diagnostics'][0].count('Observed owned scope'))
+
     def test_actual_native_roles_and_prose_are_complementary(self):
         native = resolve(self.catalog, 'native.allowed-role-references', extensions=ROOT / 'extensions')
         self.assertIn('"core": {"core"}', native['text'])

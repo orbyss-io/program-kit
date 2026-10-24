@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 STAGES = {
-    'assessment': {'requires': ['confirmed-intent'], 'resolves': ['first-slice', 'defaults', 'capability-dependencies'], 'later': ['feature-design', 'production-operations'], 'next_owner': 'research', 'restart': 'prepare-assessment-context'},
-    'research': {'requires': ['first-slice', 'defaults'], 'resolves': ['provider-findings-or-owned-unknowns', 'source-evidence', 'applicable-managed-pins'], 'later': ['feature-behavior'], 'next_owner': 'architecture', 'restart': 'prepare-research-context'},
+    'assessment': {'requires': ['confirmed-intent'], 'resolves': ['recommended-start', 'defaults', 'capability-dependencies'], 'later': ['feature-design', 'production-operations'], 'next_owner': 'research', 'restart': 'prepare-assessment-context'},
+    'research': {'requires': ['recommended-start', 'defaults'], 'resolves': ['provider-findings-or-owned-unknowns', 'source-evidence', 'applicable-managed-pins'], 'later': ['feature-behavior'], 'next_owner': 'architecture', 'restart': 'prepare-research-context'},
     'architecture': {'requires': ['provider-findings-or-owned-unknowns', 'applicable-managed-pins'], 'resolves': ['composition', 'ownership', 'architecture-risks'], 'later': ['feature-types', 'future-journey-details'], 'next_owner': 'tooling', 'restart': 'prepare-architecture-context'},
     'tooling': {'requires': ['composition', 'ownership'], 'resolves': ['enforcement-tools', 'verification-due-phases'], 'later': ['application-scaffolding'], 'next_owner': 'roadmap', 'restart': 'prepare-tooling-context'},
-    'roadmap': {'requires': ['first-slice', 'architecture-risks'], 'resolves': ['first-entry', 'future-portfolio'], 'later': ['future-specifications'], 'next_owner': 'closure', 'restart': 'prepare-roadmap-context'},
-    'closure': {'requires': ['candidate-entries', 'provider-findings-or-owned-unknowns'], 'resolves': ['first-slice-design-review', 'executable-proof-plan', 'owned-deferrals'], 'later': ['feature-behavior', 'production-approval'], 'next_owner': 'execute-compatibility-proofs', 'restart': 'prepare-closure-context'},
+    'roadmap': {'requires': ['recommended-start', 'architecture-risks'], 'resolves': ['epic-outcomes', 'feature-seeds', 'delivery-dependencies'], 'later': ['feature-boundary-confirmation'], 'next_owner': 'closure', 'restart': 'prepare-roadmap-context'},
+    'closure': {'requires': ['candidate-entries', 'provider-findings-or-owned-unknowns'], 'resolves': ['baseline-design-review', 'executable-proof-plan', 'owned-deferrals'], 'later': ['feature-behavior', 'production-approval'], 'next_owner': 'execute-compatibility-proofs', 'restart': 'prepare-closure-context'},
     'readiness': {'requires': ['reviewed-baseline', 'owned-open-obligations'], 'resolves': ['initialized-baseline-and-phase-eligibility'], 'later': ['ready-to-code', 'ready-to-deliver'], 'next_owner': 'specification-intake', 'restart': 'prepare-readiness-context'},
 }
 
@@ -89,9 +89,9 @@ STAGE_FULL_READS = {
 STAGE_FOCUS = {
     "assessment": "Project confirmed intake into a proportional decision baseline without reopening accepted choices.",
     "research": "Verify only selected technologies and capabilities; excluded surfaces are out of scope.",
-    "architecture": "Define the smallest governed architecture that realizes the confirmed intake journeys.",
+    "architecture": "Define the governed architectural baseline across the supplied vision, consequential relationships and evolution; preserve feature seeds at their supplied depth.",
     "tooling": "Adopt only controls required by selected capabilities and accepted boundaries.",
-    "roadmap": "Create outcome-oriented specification entries from confirmed journeys and accepted decisions.",
+    "roadmap": "Agree outcome-oriented epics, scoped feature seeds and actual delivery prerequisites; recommend a start without binding specification one.",
     "readiness": "Validate baseline initialization and report each slice's phase eligibility and owned open work.",
 }
 
@@ -269,7 +269,7 @@ STAGE_ARTIFACTS['closure'] = (
     'docs/architecture/traceability.md',
 )
 STAGE_FULL_READS['closure'] = ('.specify/memory/constitution.md', 'docs/architecture/bootstrap-prerequisites.json')
-STAGE_FOCUS['closure'] = 'Review the first-slice design against confirmed outcomes and owned verification before approval; resolve substantive findings through existing questions and prerequisites, and select maintained compatibility checks.'
+STAGE_FOCUS['closure'] = 'Review the architectural baseline and epic outcomes against the whole supplied vision and owned verification before approval; resolve substantive findings through existing questions and prerequisites, and select maintained compatibility checks. The starting recommendation does not commission a feature.'
 INTAKE_STAGE_FIELDS['closure'] = ('actors', 'journeys', 'quality_requirements', 'candidate_slice_signals', 'open_items', 'routing')
 # The first-feature handoff identifies the exact slice scope. Deeper design and
 # quality sources are indexed above rather than duplicating the whole portfolio.

@@ -49,6 +49,13 @@ Each prerequisite has these fields, with optional `verification` (`compatibility
 
 Every unresolved/deferred register ID must appear in source_ids. Split a broad prerequisite across
 actual affected slices when necessary; use distinct IDs and preserve the common source ID.
+For an epic with several features, optionally add `affected_features: ["feature-id", ...]` to
+restrict the condition to exact named children. Keep their parent epic in `affected_slices`.
+Each child must have explicit canonical `epic` membership or a durable v2 intake proving that parent;
+unknown, unparented or mismatched IDs reject. Omit `affected_features` for a truly shared epic-wide
+condition, preserving historical behavior. A renewal-specific condition must not block independent
+policy maintenance simply because both belong to the same epic. Without a selected feature,
+eligibility reports a conservative aggregate; it does not waive child conditions.
 Architecture/before-implementation items gate affected implementation, not specification. Architecture/before-specification items gate specification. Legacy before-bootstrap-completion obligations conservatively gate specification; do not silently waive them.
 Feature/feature-plan items identify ordinary specification/planning decisions inside accepted
 boundaries. Later/production and later/later-release items retain later policy triggers. Their
@@ -221,6 +228,13 @@ stops the phase. Registry credentials never enter the paid worker environment. R
 overrides that need a different scratch configuration require the corresponding explicit handoff;
 the helper must not silently select a different version.
 
+For .NET targets, managed setup also writes version 1 standalone `Directory.Build.props`
+and `Directory.Build.targets` at the scratch root before any SDK evaluation. This stops upward
+consumer build imports and preserves explicit fixture package versions; setting an import flag
+inside an SDK project body is too late. Application analyzer/build policy remains in force for
+application projects. A conflicting fixture-authored boundary requires a distinct reviewed pickup,
+which preserves its original bytes and aligns only the new draft with managed scratch setup.
+
 Fixtures contain only inputs actually consumed at runtime. Do not copy cataloged ADRs into
 fixtures: their Proposed-to-Accepted promotion changes raw bytes at approval. Preflight rejects
 these declarations before restore/execution. Preserve ADR authority through the canonical
@@ -240,6 +254,11 @@ explicitly prepared conditional Ready transitions. A failed probe stops the work
 receipt preserved. Explicit recovery reuses current successful proofs and renews failed work.
 An empty plan explicitly records that no scratch proof is required. Final approval reviews
 scope, dispositions and evidence after execution; it never substitutes for a failed probe.
+
+Both read-only plan validation and execution inspect every planned contract's current fixture
+inputs before invalidating eligibility or provisioning any probe. A stale later fixture therefore
+blocks earlier provisioning too. The bounded diagnostic names its contract and the supported
+`fixture_readiness.py` preview/apply route; it does not renew fixtures or replay providers itself.
 
 For a selected first slice, closure validation requires every open architecture prerequisite to
 have a probe and a complete conditional Ready transition, unless the entry is already Ready.
@@ -261,7 +280,7 @@ The native renderer produces INITIALIZED when the reviewed baseline validates, e
 obligations. It lists candidate phase eligibility. Broken hashes, missing required artifacts and
 contradictory accepted records still prevent acceptance. Artifact conflicts pause their owning stage;
 ordinary unresolved intent/design is carried into the existing ledger, never answered by assumption.
-Use `bootstrap_handoff.py eligibility --entry <ID> --phase specification|planning|implementation|delivery|production`
+Use `bootstrap_handoff.py eligibility --entry <ID> --feature <feature-ID> --phase specification|planning|implementation|delivery|production`
 to inspect a slice. Resolve the named obligation through existing research/design, ADR review or
 compatibility recipes, reconcile source bindings and review changed authority. Then resume the
 affected feature phase. A consumer-owned technology uses this same evidence route; it does not

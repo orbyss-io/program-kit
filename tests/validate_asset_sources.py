@@ -91,7 +91,10 @@ class NativePackTests(unittest.TestCase):
             archive=asset_directory/('program-kit-'+(ROOT/'VERSION').read_text().strip()+'.zip')
             with zipfile.ZipFile(archive) as contents:
                 result['bundleEntries']=len(contents.namelist());self.assertLessEqual(result['bundleEntries'],512)
+            tooling=asset_directory/('program-kit-tooling-'+(ROOT/'VERSION').read_text().strip()+'.zip')
+            with zipfile.ZipFile(tooling) as contents:
                 contents.extractall(release)
+            result['toolingSha256']=hashlib.sha256(tooling.read_bytes()).hexdigest()
             result['bundleSha256']=hashlib.sha256(archive.read_bytes()).hexdigest()
             for component,roots in {'program-kit-governance':['examples','templates/ui-experience'],
                                     'program-kit-dotnet':['references/examples']}.items():
@@ -104,7 +107,8 @@ class NativePackTests(unittest.TestCase):
             run('init',[*cli,'init','.','--force','--non-interactive','--integration','codex','--script','py','--ignore-agent-tools'])
             for component in ('program-kit-governance','program-kit-building-blocks','program-kit-dotnet'):
                 run(component,[*cli,'extension','add',native_path(release/'extensions'/component),'--dev'])
-            self.assertTrue((consumer/'.specify/extensions/program-kit-governance'/assets.PACK).is_file())
+            self.assertFalse((consumer/'.specify/extensions/program-kit-governance'/assets.PACK).exists())
+            self.assertTrue((consumer/'.specify/extensions/program-kit-governance/templates/ui-experience/acceptance/package.json').is_file())
             ui=consumer/'.specify/extensions/program-kit-governance/scripts/ui_profile.py'
             for action in ('init','build','check'):run('ui-'+action,[sys.executable,native_path(ui),action,'--target',native_path(consumer)])
             profile=json.loads((consumer/'.program-kit/ui/profile.json').read_text())
@@ -151,13 +155,15 @@ class NativePackTests(unittest.TestCase):
             native=json.loads((consumer/receipt).read_text())
             self.assertEqual('passed',native['status']);self.assertEqual(0,native['providerCalls'])
             result['nativeAdapterReceipt']={'path':native_path(consumer/receipt),'sha256':hashlib.sha256((consumer/receipt).read_bytes()).hexdigest()}
-            pack=consumer/'.specify/extensions/program-kit-dotnet'/assets.PACK;original=pack.read_bytes()
-            values=assets.packed(pack.parent);key=next(iter(values));values[key]+=b'\nconsumer customization\n'
-            pack.write_bytes(assets.encoded(values))
+            source=consumer/'.specify/extensions/program-kit-dotnet/references/examples/snapshot-query/README.md'
+            if not source.is_file():
+                source=next((consumer/'.specify/extensions/program-kit-dotnet/references/examples').rglob('*.cs'))
+            original=source.read_bytes()
+            source.write_bytes(original+b'\nconsumer customization\n')
             with self.assertRaisesRegex(native_phase_ownership.OwnershipError,'customized installed Program Kit source'):
                 native_phase_ownership.preflight(consumer,ROOT)
-            self.assertNotEqual(original,pack.read_bytes(),'Guard must preserve the consumer change')
-            pack.write_bytes(original)
+            self.assertNotEqual(original,source.read_bytes(),'Guard must preserve the consumer change')
+            source.write_bytes(original)
             import tooling_witness
             import upgrade_program_kit
             packaged_witness=json.loads((release/tooling_witness.PACKAGED).read_bytes())
@@ -177,8 +183,8 @@ class NativePackTests(unittest.TestCase):
             self.assertEqual(original_receipt,witness_receipt.read_bytes())
             result['sourceWitness']={'binding':binding,'laterProcess':retained,'historicalReceiptUnchanged':True}
             result.update(status='passed',uiFilesCompared=len(expected),ownership=ownership,
-                          cases=['exact-loose-packed-source-parity','native-hidden-pack-installed','actual-installed-ui-output-parity',
-                                 'actual-installed-public-SDK-recording-preparation','rehashed-virtual-source-edit-refused-without-overwrite',
+                          cases=['exact-original-source-parity','native-loose-source-installed','actual-installed-ui-output-parity',
+                                 'actual-installed-public-SDK-recording-preparation','customized-source-edit-refused-without-overwrite',
                                  'installed-current-case-inventory-through-toolkit-adapter',
                                  'complete-packaged-component-witness','installed-later-session-without-original-staging'])
         finally:
@@ -186,7 +192,7 @@ class NativePackTests(unittest.TestCase):
                 from release_candidate import read,source,verify_payload
                 verify_payload(read(Path(os.environ['PROGRAM_KIT_IMPORTED_PACKAGES'])),ROOT/'artifacts',source())
             (evidence/'results.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
-            print('Retained packed-source proof: '+str(evidence/'results.json'))
+            print('Retained distribution/source proof: '+str(evidence/'results.json'))
 
 
 if __name__=='__main__':unittest.main()

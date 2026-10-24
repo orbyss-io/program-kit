@@ -13,9 +13,7 @@ def device_preflight(root: Path) -> None:
 
 
 def contract():
-    from dotnet_adapter import bootstrap
-    bootstrap()
-    import python_runtime_contract
+    from program_kit_runtime import python_runtime_contract
     return python_runtime_contract
 
 

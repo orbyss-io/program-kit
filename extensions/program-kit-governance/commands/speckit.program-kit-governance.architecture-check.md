@@ -12,6 +12,13 @@ each declared project's `responsibilities`. Correct confirmed structural violati
 For example, a persistence-calling NotesService is runtime even when its project was called Core.
 Reconcile its responsibility and capability inventory with the plan and relevant ADRs; do not merely
 repeat role labels. A passing declared graph is structural evidence and never a semantic PASS.
+Before declaring the architectural review complete, compare accepted context/module ownership
+with physical projects, packages and namespaces in the ordinary plan. State the compiler roles
+and allowed dependencies, including provider/bridge/helper placement. For .NET consult the focused
+Modular DDD topology in `program-kit-dotnet/references/technology-profiles/dotnet.md`.
+ADR semantic examples are not physical project names. Helpers require actual reusable duties;
+do not invent empty projects or one Core per module. Report structural results separately from
+this comparison and retain unresolved semantic conflicts even when the declared graph passes.
 Address material `lifecycleFindings` with their concrete owner/source evidence. Retire C#
 composition-preset projects through explicit responsibility repair: selection belongs to shell/deployment
 configuration; services, tasks and provider preparation belong to their owning features. Apply the

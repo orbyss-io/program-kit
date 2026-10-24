@@ -104,18 +104,17 @@ def frontend_packages(root, prose, affected_paths=()):
 
 def feature_scope(root, feature):
     """Resolve existing feature identity, without promoting a draft or changing intake."""
-    from specification_intake import spec_entries
+    from specification_intake import spec_entries, resolve_spec_brief
     spec = feature / 'spec.md'
     entries = spec_entries(spec.read_text(encoding='utf-8')) if spec.is_file() else []
     if len(entries) > 1:
         raise ValueError('Feature must identify exactly one specification roadmap entry')
     entry = entries[0] if entries else None
-    path = root / '.program-kit/specification-intake' / str(entry) / 'brief.json'
-    brief = json.loads(path.read_text(encoding='utf-8')) if entry and path.is_file() else {}
+    path, brief = resolve_spec_brief(root, spec)
     scope = brief.get('architectureScope')
     from feature_knowledge import project
-    projection = project(root, scope) if scope is not None else None
-    return {'entry': entry, 'brief': brief, 'briefPath': path, 'projection': projection}
+    projection = project(root, scope, feature_id=brief.get('featureId')) if scope is not None else None
+    return {'entry': entry, 'featureId': brief.get('featureId'), 'brief': brief, 'briefPath': path, 'projection': projection}
 
 
 def adopted_context(root, feature, selected_paths=()):

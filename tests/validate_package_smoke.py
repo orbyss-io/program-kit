@@ -55,7 +55,7 @@ def main():
     version = (ROOT / 'VERSION').read_text().strip()
     components = ('program-kit-dotnet','program-kit-building-blocks','program-kit-governance',
                   'program-kit-governance-preset','program-kit-bootstrap')
-    for name in (*components, 'program-kit'):
+    for name in (*components, 'program-kit', 'program-kit-tooling'):
         require((assets / f'{name}-{version}.zip').is_file(), 'Build the actual candidate archives before this smoke')
     import specify_cli
     site_packages = Path(specify_cli.__file__).parent.parent
@@ -70,13 +70,19 @@ def main():
         project = fixture / 'clean consumer with spaces'
         project.mkdir()
         expanded = fixture / 'packages'
-        for name in (*components, 'program-kit'):
+        for name in (*components, 'program-kit', 'program-kit-tooling'):
             extract(assets / f'{name}-{version}.zip', expanded / name)
-        require((expanded / 'program-kit/scripts/install_local_extension.py').is_file(),
+        from specify_cli.bundles.sources import _local_manifest_source
+        from specify_cli.bundles.manifest import BundleManifest
+        from specify_cli._download_security import safe_extract_archive
+        safe_extract_archive(assets / f'program-kit-{version}.zip', fixture / 'native-bounded-composition')
+        require(_local_manifest_source(str(assets / f'program-kit-{version}.zip')) ==
+                BundleManifest.from_dict(yaml.safe_load((ROOT / 'bundle.yml').read_text())),
+                'Native archive parser changed the composition contract')
+        require((expanded / 'program-kit-tooling/scripts/install_local_extension.py').is_file(),
                 'Install bundle lacks its native release-copy adapter')
-        # Exercise the actual compact bundle's reader, not only loose component
-        # archives. Read default lifecycle facts and a historical publisher fact.
-        bundled = expanded / 'program-kit/extensions/program-kit-building-blocks'
+        # Exercise complete tooling sources: current lifecycle and historical facts.
+        bundled = expanded / 'program-kit-tooling/extensions/program-kit-building-blocks'
         index = json.loads((bundled / 'references/dependency-profiles/index.json').read_text())
         historical = next(identity for identity, entry in index['profiles'].items()
                           if identity != index['default'] and entry.get('qualificationRecipe'))
@@ -95,7 +101,7 @@ def main():
         component_sources = {('extensions',name):expanded/name for name in components[:3]}
         component_sources[('presets',components[3])] = expanded/components[3]
         component_sources[('workflows',components[4])] = expanded/components[4]
-        install_local_bundle(project, expanded/'program-kit', bridge,
+        install_local_bundle(project, expanded/'program-kit-tooling', bridge,
                              lambda label,argv:execute(argv,project), component_sources=component_sources, integration='copilot')
         records = json.loads((project/'.specify/bundle-records.json').read_text(encoding='utf-8'))
         record = next(item for item in records['bundles'] if item['bundle_id']=='program-kit')
@@ -137,7 +143,7 @@ def main():
             instance.write_text(json.dumps(value))
             result = execute([sys.executable,validator,'validate','--schema',schema,'--input',instance],project,expected)
             require(json.loads(result.stdout)['valid'] is (expected==0),'Installed validator gave inconsistent result')
-        verify_release_copies(project, expanded / 'program-kit')
+        verify_release_copies(project, expanded / 'program-kit-tooling')
     elapsed = time.monotonic()-started
     print(f'Package installation/entrypoint smoke passed in {elapsed:.3f}s; no agent, build or application acceptance claimed.')
     return 0

@@ -86,7 +86,7 @@ validator after writing and use a specific diagnostic only if repair is needed.
   "schema_version": "1.0",
   "default_profile": { "id": "program-kit-standard", "version": "<installed-version>" },
   "selected_profiles": ["dotnet", "typescript-web"],
-  "first_slice": {"journey_ids": ["<source-journey-id>"], "outcome": "Useful first outcome", "rationale": "Why this boundary is independently useful"},
+  "recommended_start": {"candidate_ids": ["<candidate-feature-id>"], "outcome": "Recommended useful starting outcome", "rationale": "Why this starting point is valuable; feature intake will settle its exact scope"},
   "dotnet": {
     "host_runtime": "Orbyss.Foundation.Host",
     "host_source": "program-kit-default",
@@ -129,6 +129,13 @@ Allowed choice sources are `explicit-intake`, `program-kit-default`, `derived-de
 `override`. Use empty arrays when a category has no entries. Every object in the remaining lists
 uses the schema fields shown. Declare provider/durability intent in the existing per-owner persistence records. The deterministic resolver supplies absent profile, host, local identity and toolchain defaults before approval. Unresolved and deferred entries name
 the affected roadmap item or lifecycle trigger rather than becoming global blockers.
+
+For new bootstrap, use `recommended_start` to reference exact intended candidate feature IDs without
+binding their final specification scope. Preserve the whole epic portfolio, supplied seed detail and
+known feature prerequisites. Multiple candidates from one source journey need not ship together.
+Do not create a new `first_slice` selection; its source-journey contract remains a legacy reader for
+existing accepted consumers. An exploratory option is not an intended recommendation until the user
+selects it as intended work. A recommendation supplies context, not feature confirmation.
 
 Audit inherited open items against the action they actually block. Unspecified cost, hosting or
 provider constraints do not prevent applicable local defaults. Do not schedule a generic unanswered

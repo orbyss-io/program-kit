@@ -17,7 +17,7 @@ from knowledge_sources import resolve
 
 from dotnet_adapter import bootstrap
 _engineering = bootstrap()
-from test_results import test_results, require, text
+from program_kit_runtime.test_results import test_results, require, text
 from repository_architecture import validate_planned, lifecycle_findings
 
 def inside(root, relative):
@@ -46,12 +46,15 @@ def intent(root, feature, phase='implementation', affected_paths=()):
 def retained_proofs(root, feature, phase):
     """Keep actual executed prerequisites separate from reviewed plan decisions."""
     from feature_context import feature_scope
-    from bootstrap_lifecycle import current_compatibility_evidence, TRIGGER_PHASE, PHASE_ORDER, verification_kind
-    entry = feature_scope(root, feature)['entry']
+    from bootstrap_lifecycle import current_compatibility_evidence, TRIGGER_PHASE, PHASE_ORDER, verification_kind, applies_to, validate_feature_scope
+    scoped = feature_scope(root, feature)
+    entry = scoped['entry']
     if entry is None:
         return []
     items = read(root / 'docs/architecture/bootstrap-prerequisites.json', {}).get('prerequisites', [])
-    selected = [i for i in items if entry in i.get('affected_slices', []) and i.get('status') != 'closed'
+    for item in items:
+        validate_feature_scope(root, item)
+    selected = [i for i in items if applies_to(i, entry, scoped.get('featureId')) and i.get('status') != 'closed'
                 and not (i.get('disposition') == 'feature' and i.get('trigger') == 'feature-plan'
                          and verification_kind(i) == 'decision')]
     if not selected:
@@ -59,13 +62,13 @@ def retained_proofs(root, feature, phase):
     from governance_state import roadmap_records
     roadmap = root / 'docs/architecture/specification-roadmap.md'
     records = roadmap_records(roadmap) if roadmap.is_file() else []
-    brief = read(root / '.program-kit/specification-intake' / entry / 'brief.json', {})
+    brief = scoped['brief']
     answered = {d.get('bootstrapPrerequisite') for d in brief.get('decisions', [])
                 if d.get('disposition') in {'answered', 'default'}}
     if answered:
         from specification_intake import check
         try:
-            check(root, entry, later=True)
+            check(root, entry, later=True, feature=scoped.get('featureId'))
         except (ValueError, OSError):
             answered = set()
 
@@ -204,6 +207,7 @@ def render(value, phase, detailed=False):
              'Conditional guidance applies only when its stated conditions hold.',
              'Canonical decision constraints below apply before choosing a design. Use focused lookup for an unresolved mechanism; this is not a reading checklist.',
              'Use --only <id> for its example, diagnostics and focused reference sections.', '']
+    lines += ['Applicable responsibilities: ' + ', '.join(rule['id'] for rule in value['requirements']) + '.', '']
     lines += [canonical_rules(['phase-action.' + phase])[0]['text'], '']
     if value.get('coding'):
         coding = value['coding']
@@ -271,6 +275,38 @@ def render(value, phase, detailed=False):
             lines.append('Focused lookup: ' + source + ': ' + '; '.join(sections))
         lines.append('')
     return '\n'.join(lines)
+
+
+def bounded_render(value, phase, detailed=False):
+    """Bound the assembled text, including wrappers and observed context; never truncate duties."""
+    output = render(value, phase, detailed)
+    budgets = catalog()['contextBudgets']
+    limit = budgets['focusedTextUtf8Bytes' if detailed else 'phaseTextUtf8Bytes']
+    size = len(output.encode('utf-8'))
+    if size > limit:
+        raise ValueError(f'PKC026 assembled {phase} guidance is {size} UTF-8 bytes; bound is {limit}. '
+                         'Narrow the actual operation/affected owner paths before preparation, or use --only <applicable-id> '
+                         'for a concrete decision. Mandatory guidance was not truncated. '
+                         'The explicit JSON discovery view retains complete data for diagnosing this scope; do not concatenate it into an ordinary brief.')
+    return output
+
+
+def text_page(output, page=1, limit=10000):
+    """Bound transport output as well as assembled guidance; preserve every character."""
+    pages, current, size = [], [], 0
+    for character in output:
+        width = len(character.encode('utf-8'))
+        if size + width > limit:
+            pages.append(''.join(current)); current, size = [], 0
+        current.append(character); size += width
+    pages.append(''.join(current))
+    if page < 1 or page > len(pages):
+        raise ValueError('PKC026 guidance page must be between 1 and ' + str(len(pages)))
+    header = f'Guidance page {page}/{len(pages)}. '
+    if page < len(pages):
+        header += f'Continue the same command with --page {page + 1}; this page is not the complete guidance. '
+    header += 'Use --only <id> for the concrete decision; do not concatenate full JSON inventories.\n'
+    return header + pages[page - 1]
 
 
 def check(root, feature, phase, affected_paths=(), operation=None, repair=False, configuration='Debug', framework=None, coding_stage='source'):
@@ -447,6 +483,7 @@ def main():
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phase', default='planning', choices=('planning','after-plan','tasks','after-tasks','implementation','delivery'))
     parser.add_argument('--only', help='Return one applicable obligation for a focused follow-up')
+    parser.add_argument('--page', type=int, default=1, help='Bounded text page; focused lookup preserves complete guidance')
     parser.add_argument('--affected-path', action='append', default=[], help='Focus implementation source lookup on these paths')
     parser.add_argument('--scope', choices=('Acceptance','Affected'), default='Acceptance')
     parser.add_argument('--changed-from', help='Git baseline for Affected verification including worktree and untracked changes')
@@ -471,7 +508,7 @@ def main():
                 if not units:
                     raise ValueError('PKC013 coding unit is not selected in this scope: ' + args.unit)
                 result['coding']['skills'] = units
-            print(json.dumps(result, indent=2) if args.format == 'json' else render(result, 'implementation')
+            print(json.dumps(result, indent=2) if args.format == 'json' else text_page(bounded_render(result, 'implementation'), args.page)
                   if result['coding']['canProceed'] else 'Coding preparation blocked: ' + json.dumps(result['coding']['blockers']))
             return 0 if result['coding']['canProceed'] else 2
         result = (finish(root, feature, args.handoff, args.configuration, args.framework) if args.command == 'finish' else
@@ -482,7 +519,7 @@ def main():
             result['requirements'] = [r for r in result['requirements'] if r['id'] == args.only]
             if not result['requirements']:
                 raise ValueError('Requested obligation is not applicable in this phase')
-        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else render(result, args.phase, bool(args.only)))
+        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else text_page(bounded_render(result, args.phase, bool(args.only)), args.page))
         return 2 if result.get('coding', {}).get('canProceed') is False or result.get('status') == 'needs-attention' else 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(str(error))

@@ -21,7 +21,7 @@ def main():
     version = (ROOT / 'VERSION').read_text().strip()
     previous = next(row['previous'] for row in flow.read(ROOT / 'releases/history.json')['entries']
                     if row['version'] == version)
-    archive = ROOT / 'artifacts' / f'program-kit-{version}.zip'
+    archive = ROOT / 'artifacts' / f'program-kit-tooling-{version}.zip'
     with FixtureDirectory() as name, ExitStack() as context:
         base = Path(name)
         scratch = base / 'tmp'

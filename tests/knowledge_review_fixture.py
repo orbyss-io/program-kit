@@ -66,6 +66,17 @@ def scenario(directory):
         if result.returncode != expected:
             raise AssertionError(name + ': expected exit ' + str(expected) + ', got ' + str(result.returncode)
                                  + '; inspect retained stdout/stderr')
+        if expected == 0 and '--page' not in arguments and result.stdout.startswith('Guidance page 1/'):
+            count = int(result.stdout.splitlines()[0].split()[2].rstrip('.').split('/')[1])
+            pages = [result.stdout.removesuffix('\n').split('\n', 1)[1]]
+            if len(result.stdout.encode('utf-8')) > 10500:
+                raise AssertionError('Guidance transport exceeds its bounded response size')
+            for page in range(2, count + 1):
+                output = run(name + '-page-' + str(page), [*arguments, '--page', str(page)], cwd=cwd)
+                if len(output.encode('utf-8')) > 10500 or not output.startswith(f'Guidance page {page}/{count}.'):
+                    raise AssertionError('Guidance continuation differs or exceeds its transport budget')
+                pages.append(output.removesuffix('\n').split('\n', 1)[1])
+            return ''.join(pages)
         return result.stdout
 
     try:
@@ -92,6 +103,11 @@ def scenario(directory):
         browser_command = [*base, '--feature-dir', 'specs/002-browser']
         api_before = run('01-api-before', api_command)
         browser_before = run('02-browser-before', browser_command)
+        results['assembledContextUtf8Bytes'] = {'apiPlanning': len(api_before.encode('utf-8')),
+                                                'browserPlanning': len(browser_before.encode('utf-8'))}
+        for size in results['assembledContextUtf8Bytes'].values():
+            if size > catalog['contextBudgets']['phaseTextUtf8Bytes']:
+                raise AssertionError('Installed assembled phase brief exceeds the maintained aggregate budget')
         if 'ALLOWED_ROLE_REFERENCES' not in api_before or 'ALLOWED_ROLE_REFERENCES' in browser_before:
             raise AssertionError('The actual task briefs did not distinguish API/native from frontend-only scope')
 

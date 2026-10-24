@@ -140,7 +140,8 @@ does not apply; do not invent filler records.
 `schema_version`, `model_id`, `title`, `sources`, `decisions`, `documentation`, `constraints`,
 `elements`, `relationships`, `views`, `configuration`, `extensions`, and `strategic_model`.
 
-Use schema version `1.1`. All IDs use lowercase letters, digits, and hyphens. Status values for map
+Use schema version `1.1`. Canonical map IDs use lowercase letters, digits, and hyphens; a candidate's
+optional `epic` references the roadmap's uppercase entry identity. Status values for map
 facts are `explicit`, `derived`, `proposed`, `unresolved`, and `accepted`; intake-created domain
 boundaries remain `proposed` or `unresolved`.
 
@@ -166,6 +167,20 @@ boundaries remain `proposed` or `unresolved`.
 `journeys`, and `candidate_slices`. Use the descriptor for exact nested fields before authoring. Every module is
 visibly contained in a context; every cross-context dependency is typed; every journey has one
 ordered dynamic view; every candidate context is supported by a founding decision candidate.
+
+Candidate slices are potential feature boundaries, not automatically one specification per source
+journey. Optional `epic` records their roadmap parent and `commitment` is `intended` or `exploratory`.
+Optional `seed` preserves rich user input: `details`, `boundaryRationale`, partial `brief` fields,
+`assumptions`, `openQuestions`, `boundaryChanges`, `decisionTrigger` and existing evidence references.
+Read the schema-derived `candidate_slice` and seed descriptors for exact shapes. Supplied thought
+can be extensive or sparse; do not invent omitted feature fields or truncate detail to match a
+summary. Capture changes to a proposed boundary with rationale. Seed capture is not feature confirmation.
+
+Optional `dependencies` records exact candidate `feature` IDs, a `rationale` and optional canonical
+`contract`. These are known feature prerequisites, not epic membership or preferred sequence. Keep
+unknown prerequisites as questions. Reference validation rejects missing IDs, self-dependencies and
+cycles while preserving existing outputs. Use the authoring source once; the builder preserves
+seed semantics in map and DSL projections rather than requiring a second registry.
 
 Element types are `person`, `software-system`, `external-system`, `container`, `component`,
 `domain-capability`, `bounded-context`, `data-store`, `deployment-node`, `infrastructure-node`,

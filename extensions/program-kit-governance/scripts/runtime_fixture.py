@@ -7,6 +7,18 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 
+def standalone_build_files():
+    """Versioned MSBuild import boundary, evaluated before SDK project bodies.
+
+    Project-body ImportDirectoryBuildProps=false is too late to prevent an
+    ancestor's items. These files belong only to standalone proof scratch roots.
+    """
+    return {
+        'Directory.Build.props': b'<Project><PropertyGroup><ProgramKitStandaloneFixtureVersion>1</ProgramKitStandaloneFixtureVersion><ImportDirectoryBuildProps>false</ImportDirectoryBuildProps><ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally></PropertyGroup></Project>\n',
+        'Directory.Build.targets': b'<Project />\n',
+    }
+
+
 def write(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
 

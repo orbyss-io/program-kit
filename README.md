@@ -203,7 +203,7 @@ Normal feature intake/planning scans relevant migrations without creating a feat
 or approval dossier. Application builds remain independent of toolkit coordination.
 The local sanitized evidence export sends nothing automatically.
 
-Download and verify the full `program-kit-<version>.zip` release asset, extract it **outside the
+Download and verify the full `program-kit-tooling-<version>.zip` release asset, extract it **outside the
 consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
@@ -411,8 +411,8 @@ orchestrating setup itself.
   `speckit.implement`, after `speckit.tasks`, and before and after constitution drafting to prevent
   unauthorized specification, regenerate the current ratification packet, and detect architecture drift.
 
-Before every `speckit.specify`, Program Kit checks governance and automatically runs feature grilling
-for the selected roadmap entry. The interview reuses settled facts, resolves material questions and
+Before every `speckit.specify`, Program Kit checks applicable architecture and automatically runs feature grilling
+for the selected feature within its roadmap epic. The interview reuses its preserved seed and settled facts, resolves material questions and
 pauses for your confirmation of one concise feature brief before specification setup begins. Small
 features can have a short review; uncertain features receive deeper questioning. Saved interviews
 resume, and changes reopen affected decisions. The spec uses the confirmed brief and retains its
@@ -427,6 +427,14 @@ Bootstrap grilling supplies context but does not replace feature confirmation. A
 0.11.0, active specs need this intake before their next gated step: existing requirements can seed
 the draft, but approval is never fabricated during upgrade. See the
 [feature-intake contract](extensions/program-kit-governance/references/specification-intake.md).
+
+Bootstrap understands the supplied vision across architectural boundaries and creates roadmap epics
+with agreed outcomes and priorities. Each epic can lead to several feature specifications. Detailed
+user proposals survive as feature seeds, including boundary rationale, rules, examples and open
+questions; sparse ideas can retain sparse seeds. Intended work and exploratory options remain
+distinct. A recommended starting outcome does not automatically become the first specification's
+complete scope. Feature intake reuses that seed, clarifies its useful delivery boundary and records
+an independent feature confirmation, so another feature in the same epic cannot overwrite it.
 
 The preset appends governance to constitution, specification and plan templates. It replaces
 `speckit.tasks`, `tasks-template` and `speckit.implement` together so task generation and execution
@@ -451,8 +459,10 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 - Generic engineering guardrails apply by default and are revalidated against current primary sources and project context during every bootstrap.
 - The reusable software language is `Identity + Intent + Context -> Policies -> Decision -> Transition -> Effects -> Admission -> Outcome`.
 - Required admission and optional observation are separate contracts. Invisible fire-and-forget behavior and ambiguous empty policy results are forbidden.
-- `docs/architecture/specification-roadmap.md` is the governed portfolio of candidate feature
-  specifications, not application work. After bootstrap, the user maintains it; its status does not gate `speckit.specify`.
+- `docs/architecture/specification-roadmap.md` records epic outcomes, completion conditions,
+  priorities and linked feature seeds. Domains, epics and specifications have distinct identities.
+  An epic is delivered against its agreed outcomes; completing one feature is progress toward it.
+  After bootstrap, the user maintains the roadmap; its status does not gate `speckit.specify`.
 - Design tasks resolve architecture gaps and unlock roadmap entries; they do not enter
   `speckit.implement` as feature work.
 
@@ -582,9 +592,11 @@ review must explicitly address applicable coverage and harness limitations.
 
 ## Release assets
 
-- `program-kit-<version>.zip`: Program Kit's catalog-backed, pinned bundle manifest.
-  It also contains `scripts/upgrade_program_kit.py`, the supported sequential offline/local-release
-  updater for existing installations.
+- `program-kit-<version>.zip`: small catalog-backed, pinned native composition manifest.
+- `program-kit-tooling-<version>.zip`: complete tooling and source-recovery payload, including
+  `scripts/upgrade_program_kit.py` for supported sequential offline/local-release upgrades.
+  Verify this archive through the same release checksums. Earlier releases carried these inputs
+  in their composite bundle; retain those original archives for historical recovery.
 - `program-kit-governance-<version>.zip`: standalone governance extension package.
 - `program-kit-building-blocks-<version>.zip`: standalone building-block selection extension.
 - `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.

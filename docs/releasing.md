@@ -90,3 +90,21 @@ Every actual paid phase still requires its exact unexpired one-use authorization
 checkpoint under the live harness. Development trials retain their separately labeled
 trial receipts. Historical live evidence remains read-only; no run means no AI
 acceptance claim. Do not copy supervisor credential handling into consumer bootstrap.
+
+## Composition and complete tooling carriers
+
+The package build emits `program-kit-<version>.zip` as a small native composition
+manifest and `program-kit-tooling-<version>.zip` as the complete local/offline
+updater and recovery source. Both belong to the exact same candidate inventory
+and `SHA256SUMS`; publication must include both. Native catalogs retain the
+composition name and existing component IDs/URLs. Use the tooling archive when
+an operation needs scripts, templates or retained publisher inputs. Historical
+release composites remain original recovery inputs; never rewrite their storage.
+
+The builder checks native carriers at 512 entries, complete tooling at 8,192,
+and each carrier at 10 MiB per member / 128 MiB total uncompressed, with canonical
+paths, case-insensitive collision refusal and CRC verification. These engineering
+ceilings bound the current distribution mechanisms; they do not create a pack ABI.
+The complete payload now keeps loose original sources rather than aggregating
+historical facts/examples solely to satisfy the native entry ceiling. Historical
+packed-source readers remain supported and independently tested.

@@ -115,7 +115,8 @@ def inspect_adapter():
 
 def verify_windows_write(root: Path, argv: list[str], *, runner=subprocess.run) -> dict:
     """Use the selected executable and config profile for a model-free write test."""
-    directories = [root, root / 'docs/architecture', root / '.specify/memory', root / '.specify/governance']
+    directories = [root, root / 'docs/architecture', root / '.specify/memory', root / '.specify/governance',
+                   root / '.specify/workflows/runs', root / '.program-kit']
     created = []
     nonce = uuid.uuid4().hex
     targets = []
@@ -131,10 +132,14 @@ def verify_windows_write(root: Path, argv: list[str], *, runner=subprocess.run) 
                 directory.mkdir(parents=True)
                 created.extend(reversed(missing))
             targets.append(directory / f'.program-kit-write-probe-{nonce}')
-        code = ('import pathlib,sys; '
-                '[(pathlib.Path(p).write_text(sys.argv[1],encoding="utf-8")) for p in sys.argv[2:]]; '
-                'assert all(pathlib.Path(p).read_text(encoding="utf-8")==sys.argv[1] for p in sys.argv[2:]); '
-                '[pathlib.Path(p).unlink() for p in sys.argv[2:]]; '
+        for target in targets:
+            target.write_text('supervisor-owned', encoding='utf-8')
+        code = ('import pathlib,sys,os\n'
+                'for name in sys.argv[2:]:\n'
+                ' p=pathlib.Path(name); sibling=p.with_suffix(".replacement")\n'
+                ' sibling.write_text(sys.argv[1],encoding="utf-8"); os.replace(sibling,p)\n'
+                ' child=p.with_suffix(".child"); child.mkdir(); (child/"artifact").write_text(sys.argv[1],encoding="utf-8")\n'
+                ' assert p.read_text(encoding="utf-8")==sys.argv[1]\n'
                 'print("PROGRAM_KIT_WRITE_PROBE_OK:"+sys.argv[1])')
         # Forward the profile and approved config options used by exec. This
         # native sandbox CLI requires a named profile; explicitly include
@@ -163,20 +168,27 @@ def verify_windows_write(root: Path, argv: list[str], *, runner=subprocess.run) 
                             encoding='utf-8', errors='replace', timeout=60, check=False)
         except (OSError, subprocess.SubprocessError) as error:
             raise WorkerPolicyError(diagnostic('the native Codex sandbox write probe could not complete; no coding agent was started')) from error
-        # A new sandbox-created file can have a DACL readable only by that
-        # identity. Verify readback and delete inside the same native process,
-        # then require its nonce-bound marker and no leftover files. This probe
-        # proves sandbox writes, not supervisor readability of future artifacts.
-        cleaned = all(not path.exists() for path in targets)
         marker = 'PROGRAM_KIT_WRITE_PROBE_OK:' + nonce
-        if result.returncode or marker not in result.stdout.splitlines() or not cleaned:
+        if result.returncode or marker not in result.stdout.splitlines():
             from compatibility_diagnostics import sanitize
             detail = sanitize((result.stderr or result.stdout or 'no sandbox diagnostic').strip())[-1600:]
             raise WorkerPolicyError(diagnostic(f'native sandbox write probe failed (exit {result.returncode}): {detail}'))
+        try:
+            for target in targets:
+                for path in (target, target.with_suffix('.child') / 'artifact'):
+                    if path.read_text(encoding='utf-8') != nonce:
+                        raise ValueError('probe content differs')
+                    path.write_text(nonce + '-supervisor', encoding='utf-8')
+        except (OSError, ValueError) as error:
+            raise WorkerPolicyError(diagnostic(
+                'sandbox output is not readable/writable by the human workflow account after replacement or child creation. '
+                'From the human terminal inspect inherited permissions on the reported consumer directories and grant only '
+                'that account inherited Modify access where required; then rerun this preflight. '
+                'No permissions were changed and no coding agent was started.')) from error
         return {'kind': 'native-sandbox-write-probe', 'codingAgentStarted': False,
                 'directories': [path.relative_to(root).as_posix() for path in directories],
                 'writesVerified': True, 'sandboxReadbackVerified': True, 'cleanupVerified': True,
-                'supervisorArtifactReadability': 'not established by this sandbox write probe',
+                'supervisorArtifactReadability': 'verified after atomic replacement and new child creation',
                 'exitCode': result.returncode}
     finally:
         active_error = sys.exc_info()[1]
@@ -184,6 +196,11 @@ def verify_windows_write(root: Path, argv: list[str], *, runner=subprocess.run) 
         for path in targets:
             try:
                 path.unlink(missing_ok=True)
+                path.with_suffix('.replacement').unlink(missing_ok=True)
+                child = path.with_suffix('.child')
+                if child.exists():
+                    (child / 'artifact').unlink(missing_ok=True)
+                    child.rmdir()
             except OSError:
                 cleanup_errors.append(str(path))
         for directory in reversed(created):

@@ -13,6 +13,30 @@ from validate_governance_state import roadmap
 
 
 class ProofPlanTests(unittest.TestCase):
+    def test_all_stale_fixtures_reject_before_invalidation_or_any_probe(self):
+        from unittest.mock import patch
+        for name in ('first', 'second'):
+            recipe = self.recipe.with_name(name + '.py')
+            recipe.write_bytes(self.recipe.read_bytes())
+            project = recipe.with_suffix('.csproj'); project.write_text('<Project />')
+            contract = load(self.recipe.with_suffix('.contract.json'))
+            contract.update(fixtures={'Probe.csproj': project.relative_to(self.root).as_posix()},
+                            dependencyTargets=['Probe.csproj'])
+            write(recipe.with_suffix('.contract.json'), contract)
+        self.plan['probes'] = [{'id': name, 'recipe': 'docs/architecture/' + name + '.py', 'timeout': 10}
+                               for name in ('first', 'second')]
+        write(self.root / PLAN, self.plan)
+        original = (self.root / LEDGER).read_bytes()
+        for validate_only in (True, False):
+            with patch('fixture_readiness.stale_inputs', side_effect=[[], ['stale-project.csproj']]) as current, \
+                 patch('bootstrap_proof_plan.invalidate_changed_recipes') as invalidate, \
+                 patch('bootstrap_proof_plan.run_proof') as probe:
+                with self.assertRaisesRegex(ValueError, 'second.*fixture_readiness.py'):
+                    execute(self.root, validate_only=validate_only)
+                self.assertEqual(2, current.call_count)
+                invalidate.assert_not_called(); probe.assert_not_called()
+                self.assertEqual(original, (self.root / LEDGER).read_bytes())
+
     def test_scoped_proof_survives_unrelated_profile_change_but_rejects_changed_runtime_and_missing_scope(self):
         import copy
         from validate_building_blocks import accepted_fixture, load_module, RESOLVER, CATALOG

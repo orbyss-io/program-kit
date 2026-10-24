@@ -119,7 +119,8 @@ def scenario(mode):
         version = (ROOT / 'VERSION').read_text().strip()
         archives = {p.name: sha(p) for p in destination.glob('*.zip')}
         result['archives'] = archives
-        extract(destination / ('program-kit-' + version + '.zip'), release)
+        from release_assets import tooling_archive
+        extract(tooling_archive(destination, version), release)
         from zipfile import ZipFile
         with ZipFile(destination / ('program-kit-' + version + '.zip')) as archive:
             result['bundleEntries'] = len(archive.namelist())

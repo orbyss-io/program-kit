@@ -253,11 +253,11 @@ class CodingContextTests(unittest.TestCase):
             feature = root / 'specs/001-core'
             feature.mkdir(parents=True)
             (feature / 'spec.md').write_text('C# policy with owned invariants.')
-            (feature / 'plan.md').write_text('Use src/Core/Core.csproj.')
-            (feature / 'tasks.md').write_text('- [ ] T001 Materialize src/Core/Core.csproj and implement src/Core/Policy.cs.\n')
+            (feature / 'plan.md').write_text('Use src/Example.Core/Example.Core.csproj.')
+            (feature / 'tasks.md').write_text('- [ ] T001 Materialize src/Example.Core/Example.Core.csproj and implement src/Example.Core/Policy.cs.\n')
             (root / 'eng').mkdir()
             (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
-                {'path': 'src/Core/Core.csproj', 'role': 'core', 'projectReferences': [],
+                {'path': 'src/Example.Core/Example.Core.csproj', 'role': 'core', 'projectReferences': [],
                  'responsibilities': [{'name': 'Policy', 'kind': 'pure-policy', 'effects': []}]}], 'bindings': []}}))
             source = prepare(root, feature)
             self.assertFalse(source['coding']['canProceed'])

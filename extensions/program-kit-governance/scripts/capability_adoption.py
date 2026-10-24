@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from phase_obligations import inside, read, require, text
+import re
 
 MECHANISMS = {
     'forms_immutable_release': {'public-release-production', 'trusted-release-admission', 'supported-form-renderer'},
@@ -18,9 +19,13 @@ def validate_adoption(root, feature, phase, available_checks):
     adoption = read(feature / 'capability-adoption.json')
     records = adoption.get('instances', [])
     actual = {r.get('id'): r for r in records}
-    from specification_intake import spec_entries
-    current = spec_entries((feature / 'spec.md').read_text(encoding='utf-8'))
+    from specification_intake import spec_entries, resolve_spec_brief, directory, validate_identity
+    spec_text = (feature / 'spec.md').read_text(encoding='utf-8')
+    current = spec_entries(spec_text)
     require(len(current) == 1, 'Capability adoption needs exactly one current roadmap entry')
+    _, current_brief = resolve_spec_brief(root, feature / 'spec.md')
+    declared_features = re.findall(r'^\s*- \*\*Specification feature ID\*\*:\s*(\S+)\s*$', spec_text, re.MULTILINE)
+    current_feature = current_brief.get('featureId') or (declared_features[0] if declared_features else None)
     require(len(actual) == len(records) and set(actual) == set(instances), 'Disposition every selected capability instance exactly once')
     for identity, instance in instances.items():
         record = actual[identity]
@@ -28,7 +33,24 @@ def validate_adoption(root, feature, phase, available_checks):
         if record.get('disposition') == 'future-feature':
             require(text(record.get('roadmapEntry')) and text(record.get('duePhase')), 'Future capability needs an explicit roadmap owner and due phase')
             authority = inside(root, record.get('authority', ''))
-            require(record['roadmapEntry'] != current[0], 'Current capability cannot defer itself to the same feature')
+            target_feature = record.get('featureId')
+            if target_feature is not None:
+                target_path = directory(root, record['roadmapEntry'], target_feature) / 'brief.json'
+                require(target_feature != current_feature, 'Current capability cannot defer itself to the same feature')
+                require(record['roadmapEntry'] != current[0] or current_feature is not None,
+                        'Same-epic capability deferral needs explicit current and target feature identities')
+                model = read(root / 'docs/architecture/architecture-map.json', {})
+                candidates = [item for item in model.get('strategic_model', {}).get('candidate_slices', []) if item['id'] == target_feature]
+                require(len(candidates) <= 1, 'Future capability target feature identity is ambiguous')
+                if candidates and candidates[0].get('epic'):
+                    require(candidates[0]['epic'] == record['roadmapEntry'], 'Future capability target feature has a different parent epic')
+                target_brief = read(target_path, {})
+                if target_brief:
+                    validate_identity(target_brief, record['roadmapEntry'], target_feature)
+                require(bool(candidates and candidates[0].get('epic') == record['roadmapEntry']) or bool(target_brief),
+                        'Future capability target feature needs canonical or durable intake parent authority')
+            else:
+                require(record['roadmapEntry'] != current[0], 'Same-epic capability deferral needs an exact target featureId; current capability cannot defer itself')
             from governance_state import roadmap_records, GovernanceStateError
             try:
                 future = [item for item in roadmap_records(authority) if item['id'] == record['roadmapEntry']]

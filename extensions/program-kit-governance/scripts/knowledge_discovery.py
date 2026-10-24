@@ -316,6 +316,10 @@ def validate_source_partition(catalog, source, extensions):
 
 
 def validate(catalog, extensions, repository=None):
+    budgets = catalog.get('contextBudgets', {})
+    if (set(budgets) != {'phaseTextUtf8Bytes', 'focusedTextUtf8Bytes'}
+            or any(type(value) is not int or value <= 0 for value in budgets.values())):
+        raise ValueError('Canonical context budgets must name positive phase/focused UTF-8 byte bounds')
     source_ids = [row['id'] for row in catalog['sources']]
     if len(set(source_ids)) != len(source_ids):
         raise ValueError('Duplicated canonical source identity')

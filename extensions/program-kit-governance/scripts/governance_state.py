@@ -823,7 +823,9 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
         result = validate_value(value['persistence'], persistence_schema, schema_path)
         if not result['valid']:
             raise GovernanceStateError(f"Bootstrap persistence violates its schema: {result['errors']}")
-    for name in ('identity', 'first_slice', 'unresolved'):
+    if value.get('first_slice') and value.get('recommended_start'):
+        raise GovernanceStateError('Historical first_slice and new recommended_start have different semantics; use one')
+    for name in ('identity', 'first_slice', 'recommended_start', 'unresolved'):
         if name in value:
             from json_schema import validate_value
             field_schema = {'$schema': schema['$schema'], '$defs': schema['$defs'], **schema['properties'][name]}
@@ -1182,10 +1184,11 @@ def write_review(stage: str) -> None:
     decisions = None if stage == 'constitution' else validate_bootstrap_decisions()
     decision_summary = []
     if decisions is not None:
-        first = decisions.get('first_slice', {})
+        first = decisions.get('recommended_start', decisions.get('first_slice', {}))
         decision_summary = [
-            '## First useful outcome', '', first.get('outcome', 'See the canonical roadmap.'),
+            '## Recommended starting outcome' if decisions.get('recommended_start') else '## First useful outcome', '', first.get('outcome', 'See the canonical roadmap.'),
             '', first.get('rationale', ''),
+            *(['', 'This recommendation does not commission a feature or its siblings. Specification intake settles the selected feature boundary.'] if decisions.get('recommended_start') else []),
             '', '## Choices and consequences', '',
             *[f"- {item['decision']} ({item['source']}): {item['rationale']}" for item in decisions['choices']],
             '', '## Owned deferrals', '',
@@ -1757,7 +1760,9 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
         mutable_paths += [project_path(Path('docs/architecture') / name) for name in lifecycle_module().NARRATIVES]
     if selection.is_file():
         mutable_paths.append(selection)
-    originals = {path: path.read_bytes() for path in mutable_paths}
+        profile = project_path(Path('.program-kit/dependency-profile.json'))
+        mutable_paths.append(profile)
+    originals = {path: path.read_bytes() if path.is_file() else None for path in mutable_paths}
     try:
         accepted_founding_adrs = accept_founding_adrs(founding_adrs, existing_accepted=True)
         if selection.is_file():
@@ -1790,7 +1795,10 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
         validate_bootstrap(False, False)
     except Exception:
         for path, content in originals.items():
-            path.write_bytes(content)
+            if content is None:
+                path.unlink(missing_ok=True)
+            else:
+                path.write_bytes(content)
         raise
     artifacts = bootstrap_artifacts()
     write_json(
@@ -1979,8 +1987,51 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
             raise GovernanceStateError(
                 f"Roadmap record {match.group(1)} has invalid status: {status}"
             )
+        if fields.get('Type') == 'Epic':
+            missing = {'Completion criteria', 'Feature seeds', 'Intent'} - fields.keys()
+            if missing:
+                raise GovernanceStateError(f"Epic {match.group(1)} is missing: {', '.join(sorted(missing))}")
+            if fields['Intent'] not in {'Intended', 'Exploratory'}:
+                raise GovernanceStateError(f"Epic {match.group(1)} has invalid Intent")
+            if fields['Intent'] == 'Exploratory' and status in {'Ready', 'Active', 'Delivered'}:
+                raise GovernanceStateError(f"Exploratory epic {match.group(1)} cannot claim delivery commitment/status {status}")
+        elif 'Type' in fields:
+            raise GovernanceStateError(f"Roadmap record {match.group(1)} has unsupported Type: {fields['Type']}")
         records.append({"id": match.group(1), "title": match.group(2), **fields})
+    if len({r['id'] for r in records}) != len(records):
+        raise GovernanceStateError('Roadmap entry IDs must be unique')
     return records
+
+
+def epic_feature_ids(record: dict) -> list[str]:
+    """Exact IDs, rather than prose matches or shared journey inference."""
+    value = record.get('Feature seeds', 'None')
+    if value == 'None':
+        return []
+    identities = [part.strip().strip('`') for part in value.split(',')]
+    if any(not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,63}', identity) for identity in identities) or len(set(identities)) != len(identities):
+        raise GovernanceStateError(f"{record['id']} Feature seeds must be comma-separated exact candidate IDs or None")
+    return identities
+
+
+def validate_epic_features(records: list[dict]) -> None:
+    path = project_path(ARCHITECTURE_MAP)
+    model = read_json(path) if path.is_file() else {}
+    candidates = {c['id']: c for c in model.get('strategic_model', {}).get('candidate_slices', [])}
+    epics = {r['id']: r for r in records if r.get('Type') == 'Epic'}
+    assigned = {}
+    for record in epics.values():
+        for identity in epic_feature_ids(record):
+            if identity not in candidates:
+                raise GovernanceStateError(f"{record['id']} references unknown feature seed {identity}")
+            if identity in assigned or candidates[identity].get('epic') != record['id']:
+                raise GovernanceStateError(f"Feature seed {identity} needs one matching canonical epic")
+            if candidates[identity].get('commitment') == 'intended' and record['Intent'] == 'Exploratory':
+                raise GovernanceStateError(f"Intended feature {identity} cannot belong to exploratory epic {record['id']}")
+            assigned[identity] = record['id']
+    for identity, candidate in candidates.items():
+        if candidate.get('epic') and assigned.get(identity) != candidate['epic']:
+            raise GovernanceStateError(f"Feature seed {identity} is missing from its canonical epic {candidate['epic']}")
 
 
 def validate_roadmap(require_ready: bool, *, verify_delivery: bool = False) -> list[dict[str, str]]:
@@ -1990,6 +2041,7 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = False) -> l
     evidence audits; ordinary validation must not restore that retired gate.
     """
     records = roadmap_records(project_path(ROADMAP))
+    validate_epic_features(records)
     lifecycle_call("validate_prerequisites", records)
     pending_review: set[str] | None = None
     for record in records:
@@ -2021,6 +2073,11 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = False) -> l
                 features.setdefault(identity, []).append(path.parent)
         for record in records:
             if record['Status'] != 'Delivered':
+                continue
+            if record.get('Type') == 'Epic':
+                # This opt-in historical dossier audit describes legacy
+                # one-entry/one-feature evidence. Epic acceptance belongs to
+                # its agreed completion outcomes, never child feature count.
                 continue
             matches = features.get(record['id'], [])
             if len(matches) != 1:
@@ -2068,6 +2125,10 @@ def validate_roadmap_architecture_scope(records: list[dict]) -> None:
             continue
         # Scope must explicitly name a canonical candidate; do not infer it from
         # a shared context or make unrelated future proposals block this entry.
+        # Epic readiness is architectural baseline readiness. A sibling's later
+        # discovery is owned by its feature intake, not a whole-domain blocker.
+        if record.get('Type') == 'Epic':
+            continue
         candidates = [item for item in strategic.get('candidate_slices', [])
                       if re.search(r'(?<![\w-])' + re.escape(item['id']) + r'(?![\w-])', record['Scope'])]
         missing = set()
@@ -2102,12 +2163,34 @@ def _roadmap_view(records: list[dict[str, str]], roadmap_path: Path | None = Non
             f"`{(roadmap_path or ROADMAP).as_posix()}` is the authoritative source for roadmap-entry status."
         ),
         "",
-        "| Roadmap entry | Title | Authoritative status |",
-        "| --- | --- | --- |",
+        "| Roadmap entry | Title | Authoritative status | Feature seeds |",
+        "| --- | --- | --- | --- |",
     ]
     for record in records:
         title = record["title"].replace("|", "\\|").replace("`", "'")
-        lines.append(f"| `{record['id']}` | {title} | `{record['Status']}` |")
+        seeds = ', '.join(f'`{identity}`' for identity in epic_feature_ids(record)) if record.get('Type') == 'Epic' else 'Legacy entry'
+        lines.append(f"| `{record['id']}` | {title} | `{record['Status']}` | {seeds or 'Not yet decomposed'} |")
+    epics = [record for record in records if record.get('Type') == 'Epic']
+    if epics:
+        lines += ['', 'Epic membership does not imply a dependency on every sibling feature. Completion follows the agreed epic outcomes, not the number of completed children.',
+                  '', '```mermaid', 'flowchart TD']
+        map_path = project_path(ARCHITECTURE_MAP)
+        model = read_json(map_path) if map_path.is_file() else {}
+        candidates = {c['id']: c for c in model.get('strategic_model', {}).get('candidate_slices', [])}
+        for record in epics:
+            node = record['id'].replace('-', '_')
+            title = record['title'].replace('"', "'").replace('<', '').replace('>', '')
+            lines.append(f'  epic_{node}["{record["id"]}: {title}"]')
+            for identity in epic_feature_ids(record):
+                child = identity.replace('-', '_')
+                lines.append(f'  epic_{node} -. contains .-> feature_{child}["{identity}"]')
+        for identity, candidate in candidates.items():
+            if candidate.get('epic') not in {r['id'] for r in epics}:
+                continue
+            for dependency in candidate.get('dependencies', []):
+                label = dependency.get('contract', 'feature prerequisite').replace('"', "'")
+                lines.append(f'  feature_{dependency["feature"].replace("-", "_")} -->|"{label}"| feature_{identity.replace("-", "_")}')
+        lines += ['```', '', 'Feature prerequisite edges use canonical declared contracts. Priority and preferred sequencing remain in the epic records; missing edges are not proof of independence.']
     lines.extend([ROADMAP_VIEW_END, ""])
     return "\n".join(lines)
 
@@ -2269,7 +2352,12 @@ def render_readiness(run_id: str = '') -> dict:
     if not blockers:
         lines.append('Bootstrap baseline validates. Open decisions remain owned; phase eligibility is evaluated separately.')
         if handoff:
-            lines += ['', f"First candidate: {handoff['roadmapEntry']}. {handoff['outcome']}"]
+            if handoff.get('kind') == 'recommended-start':
+                features = ', '.join(item['featureId'] for item in handoff['features'])
+                lines += ['', f"Recommended start: {handoff['outcome']} ({features}).",
+                          'Specification intake settles the selected feature boundary; this recommendation commissions no sibling features.']
+            else:
+                lines += ['', f"First candidate: {handoff['roadmapEntry']}. {handoff['outcome']}"]
         records = roadmap_records(project_path(ROADMAP))
         satisfied = set()
         for record in records:

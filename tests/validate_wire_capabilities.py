@@ -186,5 +186,29 @@ class WireCapabilities(unittest.TestCase):
                 self.assertEqual(1, producer.call_count)
                 client.assert_not_called()
 
+    def test_registered_planning_contract_without_runtime_files(self):
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
+        import composition_model
+        with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as name:
+            root = Path(name)
+            (root / 'eng').mkdir()
+            graph = composition_model.from_legacy(json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json').read_text()))
+            (root / 'eng/foundation-composition.json').write_text(json.dumps(graph))
+            (root / 'eng/openapi-contracts.json').write_text(json.dumps({'contracts': ['contract.json']}))
+            (root / 'contract.json').write_text(json.dumps({'identity': 'catalog', 'features': [], 'artifact': 'proposed.json', 'shell': 'default'}))
+            document = self.document()
+            (root / 'proposed.json').write_text(json.dumps(document))
+            with patch.object(admission, 'selected', return_value=self.capabilities):
+                results = admission.check_registered(root, stage='planning')
+                self.assertTrue(results[0]['admitted'])
+                self.assertFalse(results[0]['runtimeEvidence'])
+                with self.assertRaisesRegex(ValueError, 'PKC001'):
+                    admission.check_registered(root, stage='producer')
+                document['paths'] = {}
+                (root / 'proposed.json').write_text(json.dumps(document))
+                with self.assertRaisesRegex(ValueError, 'PKO22'):
+                    admission.check_registered(root, stage='planning')
+            self.assertFalse((root / 'shells.json').exists())
+
 
 if __name__ == '__main__': unittest.main(verbosity=2)

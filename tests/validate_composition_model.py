@@ -346,7 +346,7 @@ class ResourceModel(unittest.TestCase):
     def test_legacy_migration_preserves_identity_branding_and_archive(self):
         import composition_migrate as migration
         value = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json').read_text())
-        value['theme']['branding'] = {'displayName': 'Claim Evaluator', 'accentColor': '#0088aa'}
+        value['theme']['branding'] = {'displayName': 'Harbor Workspace', 'accentColor': '#0088aa'}
         scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=scratch) as temporary:
             root = Path(temporary); (root / 'eng').mkdir()
@@ -366,13 +366,13 @@ class ResourceModel(unittest.TestCase):
         import composition_render as renderer
         graph = two_apps(ROOT)
         graph['resources']['product-identity']['theme']['branding'] = {
-            'displayName': 'Claim Evaluator', 'accentColor': '#0088aa'}
+            'displayName': 'Harbor Workspace', 'accentColor': '#0088aa'}
         branding = model.default_branding()
         branding['theme'] = 'green'
-        branding['locales']['en-GB'].update(title='Claim Evaluator', purpose='Your private policies and evaluations.',
+        branding['locales']['en-GB'].update(title='Harbor Workspace', purpose='Your team schedules and rooms.',
             loadingText='Opening your workspace.', failureText='Your workspace is unavailable. Please try again.',
-            noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Claim Evaluator')
-        branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Claimbeoordelaar'}
+            noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Harbor Workspace')
+        branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Havenwerkplek'}
         graph['resources']['policy-web']['branding'] = branding
         scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=scratch) as temporary:
@@ -389,7 +389,7 @@ class ResourceModel(unittest.TestCase):
             self.assertNotIn('branding', converted['resources']['assessment-web'])
             files = renderer.materialize(root, converted, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
             realm = json.loads(files['deploy/keycloak/product-identity/program-kit-realm.json'][0])
-            self.assertEqual(realm['displayName'], 'Claim Evaluator')
+            self.assertEqual(realm['displayName'], 'Harbor Workspace')
             css = files['deploy/keycloak/product-identity/themes/program-kit/login/resources/css/program-kit.css'][0]
             self.assertIn(b'--program-kit-brand-accent: #0088aa', css)
             self.assertFalse(any(path.startswith('tests/') for path in files))

@@ -100,9 +100,30 @@ def selected_packages(graph, shell_id, admitted=None):
     for activation in (admitted or {}).get('activations', []):
         if activation['path'] == shell['source'] and activation['shell'] == shell['name']:
             key = activation['packageKey']
-            require(key.startswith('nuget:Orbyss.Foundation.'), 'selected publisher activation requires its qualified composition adapter: ' + key)
-            packages.append(key.removeprefix('nuget:'))
+            # Foundation owns this settings adapter. Other qualified publishers
+            # retain their native package/activation/configuration contributions.
+            if key.startswith('nuget:Orbyss.Foundation.'):
+                packages.append(key.removeprefix('nuget:'))
     return list(dict.fromkeys(packages))
+
+
+def selected_publisher_activations(graph, shell_id, admitted):
+    shell = graph['resources'][shell_id]
+    result = {}
+    for activation in (admitted or {}).get('activations', []):
+        if activation['path'] != shell['source'] or activation['shell'] != shell['name']:
+            continue
+        key = activation['packageKey']
+        if key.startswith('nuget:Orbyss.Foundation.'):
+            continue
+        # The resolver already admitted this exact catalog/profile/placement.
+        # Require the corresponding native package output instead of inventing
+        # settings contracts or admitting arbitrary prefix-matching packages.
+        packages = [p for target in admitted['targets'] for p in target.get('packages', []) if p['packageKey'] == key]
+        require(packages and len({p['version'] for p in packages}) == 1,
+                'selected activation has no exact native package binding: ' + key)
+        result[activation['featureIdentity']] = {'packageId': packages[0]['packageId'], 'version': packages[0]['version']}
+    return result
 
 
 def accepted_selection(repository):
@@ -346,6 +367,12 @@ def materialize(repository, graph, template, env_name=None):
                  selected_packages(graph, shell_id, admitted),
                  presentation=graph['resources'][shell_id].get('presentation'),
                  presentation_defaults=presentation_branding(graph, shell_id)) for shell_id in model.resources(graph, 'shell')}
+    for shell_id, contract in contracts.items():
+        publishers = selected_publisher_activations(graph, shell_id, admitted)
+        contract['selectedPublisherActivations'] = publishers
+        contract['activations'] = sorted(set(contract['activations']) | set(publishers))
+        for package in publishers.values():
+            contract['packages'][package['packageId']] = package['version']
     packages = {}
     for contract in contracts.values():
         for name, version in contract['packages'].items():
@@ -434,8 +461,9 @@ def materialize(repository, graph, template, env_name=None):
         selected = contracts[shell_id]
         native_project = next((row for row in (admitted or {}).get('targets', []) if row['path'] == project['path']), {})
         native_packages = {row['packageId'] for row in native_project.get('packages', []) if row['ecosystem'] == 'nuget'}
+        publisher_packages = {row['packageId'] for row in selected.get('selectedPublisherActivations', {}).values()}
         project['capabilityPackages'] = sorted(set(project['capabilityPackages']) | {
-            package for package in native_packages if package.startswith('Orbyss.Foundation.')})
+            package for package in native_packages if package.startswith('Orbyss.Foundation.') or package in publisher_packages})
         project['admittedCapabilityPackages'] = sorted(native_packages)
         if admitted:
             selected = deepcopy(selected)

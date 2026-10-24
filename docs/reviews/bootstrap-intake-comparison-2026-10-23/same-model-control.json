@@ -1,0 +1,111 @@
+{
+  "before": {
+    "mode": "bounded-generation",
+    "entry_template": "### RM-01: <outcome>\n\n- **Dependencies**: <value>\n- **Non-goals**: <value>\n- **Owned data**: <value>\n- **Owned lifecycle portions**: <value>\n- **Owned public contracts**: <value>\n- **Quality scenarios**: <value>\n- **Recommended sequence**: <value>\n- **Required Accepted ADRs**: <value>\n- **Scope**: <value>\n- **Status**: <value>\n- **User-visible outcome**: <value>\n- **Verification responsibility**: <value>",
+    "prerequisite_scope": [],
+    "first_entry": {
+      "journey_ids": [
+        "vision-repair"
+      ],
+      "candidate_ids": [
+        "schedule-job",
+        "perform-repair",
+        "issue-report"
+      ],
+      "rule": "Exactly one roadmap entry Scope covers these canonical candidate IDs and no future candidate. Supporting journeys in an approved combined first slice belong to that one specification, not separate entries linked only by prose."
+    },
+    "rules": [
+      "Preserve the approved first specification boundary; keep other journeys as separate portfolio entries.",
+      "Use entry_template exact heading/field syntax. Assign every prerequisite_scope item to actual roadmap IDs; preserve its source binding and due phase. Dependencies link to ledger IDs without repeating open/closed state.",
+      "before-implementation proofs do not block Ready for specification. Run the terminal batch before handing off to closure."
+    ],
+    "terminal_condition": {
+      "command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-stage --stage roadmap --run-id comparison-control",
+      "on_success": "Stop immediately. Do not read another file, inspect a diff, measure output again, or run another command; report only artifact paths, byte counts, and validation counts.",
+      "on_failure": "Repair only the named diagnostic, rerun this same batch once, and stop when it passes."
+    }
+  },
+  "after": {
+    "mode": "bounded-generation",
+    "entry_template": "### RM-01: <outcome>\n\n- **Dependencies**: <value>\n- **Non-goals**: <value>\n- **Owned data**: <value>\n- **Owned lifecycle portions**: <value>\n- **Owned public contracts**: <value>\n- **Quality scenarios**: <value>\n- **Recommended sequence**: <value>\n- **Required Accepted ADRs**: <value>\n- **Scope**: <value>\n- **Status**: <value>\n- **User-visible outcome**: <value>\n- **Verification responsibility**: <value>\n- **Type**: Epic\n- **Completion criteria**: <agreed outcomes>\n- **Feature seeds**: <comma-separated exact candidate IDs, or None>\n- **Intent**: Intended",
+    "recommended_start": {
+      "candidate_ids": [
+        "perform-repair"
+      ],
+      "outcome": "Perform an authorized repair.",
+      "rationale": "Comparison control."
+    },
+    "feature_seeds": [
+      {
+        "id": "identify-job"
+      },
+      {
+        "id": "record-diagnosis"
+      },
+      {
+        "id": "issue-quote"
+      },
+      {
+        "id": "record-response"
+      },
+      {
+        "id": "catalog-and-stock"
+      },
+      {
+        "id": "reserve-parts"
+      },
+      {
+        "id": "manual-procurement"
+      },
+      {
+        "id": "schedule-job"
+      },
+      {
+        "id": "perform-repair"
+      },
+      {
+        "id": "issue-report"
+      },
+      {
+        "id": "release-equipment"
+      },
+      {
+        "id": "accounting-reference"
+      },
+      {
+        "id": "accounting-export"
+      },
+      {
+        "id": "equipment-history"
+      },
+      {
+        "id": "warranty-case"
+      },
+      {
+        "id": "recurring-service"
+      },
+      {
+        "id": "staff-scope"
+      },
+      {
+        "id": "customer-portal"
+      },
+      {
+        "id": "supplier-portal"
+      }
+    ],
+    "prerequisite_scope": [],
+    "first_entry": null,
+    "rules": [
+      "Create outcome-oriented epics with agreed scope, non-goals, completion conditions and priority rationale. Link exact Feature seeds to their canonical epic; detailed exploratory seeds stay visible with explicit intent and decision trigger. A source journey, domain or epic never mechanically defines a specification boundary.",
+      "Preserve canonical feature dependency contracts. Distinguish actual prerequisites from preferred sequencing and unresolved questions. A claim-calculation feature can depend on policy terms without waiting for every policy-management feature. Recommend a start without commissioning siblings; feature intake settles one exact useful boundary.",
+      "Use entry_template exact heading/field syntax. Assign every prerequisite_scope item to actual roadmap IDs; preserve its source binding and due phase. Dependencies link to ledger IDs without repeating open/closed state.",
+      "before-implementation proofs do not block Ready for specification. Run the terminal batch before handing off to closure."
+    ],
+    "terminal_condition": {
+      "command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-stage --stage roadmap --run-id comparison-control",
+      "on_success": "Stop immediately. Do not read another file, inspect a diff, measure output again, or run another command; report only artifact paths, byte counts, and validation counts.",
+      "on_failure": "Repair only the named diagnostic, rerun this same batch once, and stop when it passes."
+    }
+  }
+}

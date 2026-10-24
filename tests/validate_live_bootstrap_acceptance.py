@@ -244,7 +244,7 @@ def main() -> int:
         candidate_names = {
             "program-kit-governance-9.9.9.zip", "program-kit-building-blocks-9.9.9.zip",
             "program-kit-dotnet-9.9.9.zip", "program-kit-governance-preset-9.9.9.zip",
-            "program-kit-bootstrap-9.9.9.zip", "program-kit-9.9.9.zip",
+            "program-kit-bootstrap-9.9.9.zip", "program-kit-9.9.9.zip", "program-kit-tooling-9.9.9.zip",
             "Initialize-ProgramKit-9.9.9.cmd", "Initialize-ProgramKit-9.9.9.sh", "SHA256SUMS",
             "RELEASE-NOTES-9.9.9.md", "MIGRATIONS-9.9.9.md",
             "migration-index-9.9.9.json", "migration-9.9.9.md",
