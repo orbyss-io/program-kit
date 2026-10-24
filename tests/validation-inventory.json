@@ -48,7 +48,8 @@
         "AGENTS.md",
         "releases/**",
         ".gitignore",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md",
+        "tests/acceptance/*.md"
       ],
       "dependsOn": [],
       "reviewOnly": true
@@ -155,7 +156,9 @@
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy*.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.readiness.md",
         "extensions/program-kit-governance/examples/bootstrap-runtime/**",
-        "extensions/program-kit-governance/examples/bootstrap-identity/**"
+        "extensions/program-kit-governance/examples/bootstrap-identity/**",
+        "scripts/intake_session.py",
+        "extensions/program-kit-governance/scripts/codex_worker_policy.py"
       ],
       "dependsOn": [
         "shared-governance"
@@ -295,7 +298,8 @@
       "inputs": [
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/runtime_closure.py"
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/runtime_closure.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/shell_composition.py"
       ],
       "dependsOn": []
     },
@@ -1798,7 +1802,7 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_proxy_intake",
@@ -2488,7 +2492,7 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_discovery_fixture",
@@ -6411,6 +6415,34 @@
         "Linux"
       ],
       "purpose": "Fresh-process neutral runtime, standalone engineering mirrors and current/historical carrier selection; no device acquisition."
+    },
+    {
+      "id": "validate_consumer_repair_contracts",
+      "purpose": "Synthetic promotion/tamper, planned topology, publisher activation, phase and bounded guidance regressions.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_consumer_repair_contracts.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "bootstrap",
+        "architecture",
+        "composition-runtime",
+        "knowledge"
+      ],
+      "inputs": [
+        "tests/validate_consumer_repair_contracts.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60,
+      "manualOnly": false
     }
   ]
 }

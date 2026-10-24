@@ -66,6 +66,17 @@ def scenario(directory):
         if result.returncode != expected:
             raise AssertionError(name + ': expected exit ' + str(expected) + ', got ' + str(result.returncode)
                                  + '; inspect retained stdout/stderr')
+        if expected == 0 and '--page' not in arguments and result.stdout.startswith('Guidance page 1/'):
+            count = int(result.stdout.splitlines()[0].split()[2].rstrip('.').split('/')[1])
+            pages = [result.stdout.removesuffix('\n').split('\n', 1)[1]]
+            if len(result.stdout.encode('utf-8')) > 10500:
+                raise AssertionError('Guidance transport exceeds its bounded response size')
+            for page in range(2, count + 1):
+                output = run(name + '-page-' + str(page), [*arguments, '--page', str(page)], cwd=cwd)
+                if len(output.encode('utf-8')) > 10500 or not output.startswith(f'Guidance page {page}/{count}.'):
+                    raise AssertionError('Guidance continuation differs or exceeds its transport budget')
+                pages.append(output.removesuffix('\n').split('\n', 1)[1])
+            return ''.join(pages)
         return result.stdout
 
     try:

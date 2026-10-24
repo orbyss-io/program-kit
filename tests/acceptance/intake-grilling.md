@@ -38,13 +38,19 @@ After confirming Codex has exited, recover/finalize such a run from the candidat
 `python scripts/intake_session.py finish --record <evidence-directory> --exit-code 130`.
 This preserves the interrupted workspace as well as its review artifacts.
 
-Evidence lives under `artifacts/intake-sessions/<id>/`: `REVIEW.md`, `session.json`, the readable
+Evidence lives outside the checkout under `~/ProgramKitTrials/evidence/<id>/`: `REVIEW.md`, `session.json`, the readable
 conversation and exact matching Codex rollout when available, intake artifacts, validation logs,
 and a full `consumer.zip`. Return to the development conversation with the printed `REVIEW.md`
 path for evaluation. Local Codex history formats can change; missing history is explicitly reported,
 not inferred from the agent's summary. Nothing reads unrelated conversation bodies or copies Codex
 authentication/configuration files. These local ignored artifacts may contain private product
-information and raw tool output: do not publish them. `-PrepareOnly` exercises installation,
+information and raw tool output: do not publish them. Windows workspaces default to the short
+`~/ProgramKitTrials/workspaces` root. An unusually long user profile can select a shorter owned
+directory using process-local `PROGRAM_KIT_TRIAL_ROOT`; retain that value for finish/cleanup.
+Human preparation grants the creator inheritable Modify only on the newly created empty root,
+so sandbox replacements remain accessible. Agent preparation defers this to human-terminal setup;
+the model-free workflow preflight checks both identities' access before dispatch.
+`-PrepareOnly` exercises installation,
 archiving and cleanup without asking questions or launching Codex; it is not interview acceptance.
 
 Run this exercise with a human in a fresh initialized consumer using the candidate Program Kit
@@ -127,7 +133,7 @@ The authoring helper and its worked example are exercised by `tests/validate_int
 To replay a preserved interview's final draft without any coding agent or edits to the evidence:
 
 ```powershell
-python tests/validate_intake_authoring.py --session-evidence artifacts/intake-sessions/<id>
+python tests/validate_intake_authoring.py --session-evidence <printed-evidence-directory>
 ```
 
 This checks regeneration and preservation of strategic decisions and source journeys in a temporary

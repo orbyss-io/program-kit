@@ -292,6 +292,14 @@ enforcement location.
 Resolve the decision backlog through focused design tasks before implementation depends on those answers. A design task produces evidence, alternatives, consequences, a proposed ADR, updated views, and follow-on specification slices. It does not implement application behavior.
 
 Architecture documents must clearly distinguish facts confirmed by intake evidence, derived constraints, proposals, accepted decisions, and unresolved questions.
+Before selecting physical .NET targets, consult the Modular DDD topology in the selected technology
+profile. Map contexts/modules and actual compiler responsibilities to coherent application/context
+project, package and namespace names. Semantic examples in a decision are illustrative; they do not
+authorize copying short labels into physical targets. Keep Core purity, providers, bridges and
+optional helpers distinct without creating empty projects. Reuse this mapping in later planning.
+Before handoff run `bootstrap_context.py validate-output --stage architecture --project-root .`
+through the installed governance scripts. Resolve authored-byte budget and source-registration
+failures now; preserve unique decisions and link canonical details instead of repeating them.
 
 When .NET is selected without the recorded opt-out, the architecture, technology radar, and
 bootstrap-baseline decision must adopt the application-neutral `Orbyss.Foundation.Host` and application-bundle release model as

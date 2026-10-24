@@ -24,7 +24,7 @@ def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
     """Retain receipts while reopening only changed execution inputs before acceptance."""
     import copy
     import uuid
-    from bootstrap_lifecycle import digest, design_digest, local, proof_tooling
+    from bootstrap_lifecycle import digest, design_digest, local, proof_tooling, lifecycle_inputs_current
     from governance_state import ROADMAP, roadmap_records
     updated = copy.deepcopy(ledger)
     planned = {p['id']: p for p in plan['probes']}
@@ -64,7 +64,7 @@ def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
                     raise LifecycleError('Preserved proof diagnostics changed; restore their integrity before retry')
             recipe, contract, _, _ = validate_recipe(root, item['id'], planned[item['id']]['recipe'])
             required = {(p.relative_to(root).as_posix(), digest(p)) for p in (recipe, contract)}
-            changed = bool(changed_design) or not required <= {(b['path'], b['sha256']) for b in proof.get('inputs', [])} or proof.get('tooling_sources') != proof_tooling(scoped) or any(
+            changed = not lifecycle_inputs_current(root, proof, path) or bool(changed_design) or not required <= {(b['path'], b['sha256']) for b in proof.get('inputs', [])} or proof.get('tooling_sources') != proof_tooling(scoped) or any(
                 not local(root, b['path']).is_file() or digest(local(root, b['path'])) != b['sha256'] for b in proof.get('inputs', []))
             if scoped:
                 from compatibility_scope import proof_bindings

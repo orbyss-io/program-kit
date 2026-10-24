@@ -460,6 +460,8 @@ def scaffold_project(project, contract):
     for package in sorted(consumed):
         deps.extend(feature['identity'] for feature in contract.get('featureDescriptors', {}).get(package, {}).get('features', [])
                     if feature['identity'] in contract.get('activations', []))
+        deps.extend(identity for identity, owner in contract.get('selectedPublisherActivations', {}).items()
+                    if owner['packageId'] == package)
     deps = list(dict.fromkeys(deps))
     packages = ['CShells.Abstractions'] + (['CShells.AspNetCore.Abstractions'] if http else [])
     packages += [p for p in deps if p in contract['packages']]

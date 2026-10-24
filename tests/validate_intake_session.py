@@ -23,6 +23,58 @@ spec.loader.exec_module(module)
 
 
 class IntakeSessionTests(unittest.TestCase):
+    def test_supplied_material_is_absent_during_native_repository_initialization(self):
+        idea = self.record / 'idea.md'; idea.write_text('Synthetic room booking idea')
+        contracts = self.record / 'contracts'; contracts.mkdir()
+        (contracts / 'scope.md').write_text('Synthetic selected acceptance scope')
+        observed = []
+        def install(specify, git, workspace, record):
+            self.assertFalse((workspace / 'product-idea.md').exists())
+            self.assertFalse((workspace / 'acceptance').exists())
+            observed.append(workspace)
+            skill = workspace / module.SKILL; skill.parent.mkdir(parents=True)
+            skill.write_text(module.GRILLING.as_posix())
+            grilling = workspace / module.GRILLING; grilling.parent.mkdir(parents=True)
+            shutil.copyfile(module.ROOT / 'extensions/program-kit-governance/commands' / module.GRILLING.name, grilling)
+        with patch.object(module, 'workspace_parent', return_value=self.record / 'workspaces'), \
+             patch.object(module, 'require_short_workspace_parent'), \
+             patch.object(module, 'initialize_owner_access', return_value='synthetic fixture'), \
+             patch.object(module.shutil, 'which', return_value='fixture-executable'), \
+             patch.object(module.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='fixture')), \
+             patch.object(module, 'install_components', side_effect=install), patch.object(module, 'run', return_value=0):
+            module.prepare(self.record / 'prepared', idea, contracts)
+        self.assertEqual(1, len(observed))
+        self.assertEqual(idea.read_bytes(), (observed[0] / 'product-idea.md').read_bytes())
+        self.assertEqual((contracts / 'scope.md').read_bytes(), (observed[0] / 'acceptance/scope.md').read_bytes())
+
+    def test_short_root_cleanup_keeps_parent_and_owner_guards(self):
+        state = dict(self.state, workspaceParentKind='short-trial-root')
+        with patch.object(module, 'workspace_parent', return_value=self.workspace.parent):
+            self.assertEqual(self.workspace, module.owned_workspace(state))
+        with patch.object(module, 'workspace_parent', return_value=self.record):
+            with self.assertRaises(RuntimeError): module.owned_workspace(state)
+
+    def test_agent_preparation_does_not_grant_its_identity_persistent_permissions(self):
+        with patch.dict(module.os.environ, {'CODEX_THREAD_ID': 'synthetic-worker'}), \
+             patch.object(module.subprocess, 'run') as run:
+            result = module.initialize_owner_access(self.workspace)
+            self.assertIn(result, ('not-required', 'human-terminal-required; workflow preflight verifies cross-account access'))
+            run.assert_not_called()
+
+    def test_owner_access_initialization_is_limited_to_new_empty_windows_root(self):
+        if module.os.name != 'nt':
+            self.skipTest('Windows creator ACL initialization')
+        with patch.dict(module.os.environ, {}, clear=True), \
+             patch.object(module.subprocess, 'run', return_value=SimpleNamespace(returncode=0)) as run:
+            self.assertIn('creator-only', module.initialize_owner_access(self.workspace))
+            self.assertEqual(str(self.workspace), run.call_args.kwargs['env']['PROGRAM_KIT_NEW_TRIAL_ROOT'])
+            self.assertIn('GetCurrent().User', run.call_args.args[0][-1])
+            (self.workspace / 'existing-data.txt').write_text('preserve')
+            run.reset_mock()
+            with self.assertRaisesRegex(RuntimeError, 'new empty owned workspace'):
+                module.initialize_owner_access(self.workspace)
+            run.assert_not_called()
+
     def test_persistent_guidance_routes_stages_without_repeating_intake(self):
         self.assertIn('This is intake only', module.INSTRUCTIONS)
         self.assertNotIn('This is intake only', module.CONSUMER_INSTRUCTIONS)

@@ -8,6 +8,7 @@ import argparse
 import difflib
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -190,9 +191,19 @@ def scenario(directory):
         assert 'browser-experience' not in skills
         store = next(p for p in before['coding']['projects'] if p['path'].endswith('Notes.Store.csproj'))
         assert {'id': 'Npgsql', 'version': '10.0.0'} in store['packages'], 'Imported conditional package was not evaluated'
-        brief = run('02-bounded-brief', [script, 'prepare', '--repository', consumer, '--feature-dir', 'specs/001-notes', '--operation', 'list', '--stage', 'setup'])
+        brief_command = [script, 'prepare', '--repository', consumer, '--feature-dir', 'specs/001-notes', '--operation', 'list', '--stage', 'setup']
+        brief = run('02-bounded-brief', brief_command)
         result['ordinaryBriefBytes'] = len(brief.encode('utf-8'))
-        assert result['ordinaryBriefBytes'] < BRIEF_LIMITS['mixed'], 'Ordinary scoped brief must preserve complete canonical atoms within its reviewed scope budget'
+        assert result['ordinaryBriefBytes'] <= 10500, 'A tool response must fit the guidance transport budget'
+        count = int(re.match(r'Guidance page 1/(\d+)\.', brief).group(1))
+        pages = [brief.removesuffix('\n').split('\n', 1)[1]]
+        for page in range(2, count + 1):
+            output = run('02-bounded-brief-page-' + str(page), [*brief_command, '--page', str(page)])
+            assert len(output.encode('utf-8')) <= 10500
+            pages.append(output.removesuffix('\n').split('\n', 1)[1])
+        brief = ''.join(pages)
+        result['completeGuidanceBytes'] = len(brief.encode('utf-8'))
+        assert result['completeGuidanceBytes'] < BRIEF_LIMITS['mixed']
         # This is the installed copy used by the actual command above.
         selected_catalog = json.loads((script.parent.parent / 'references/phase-obligations.json').read_text(encoding='utf-8'))
         assert_complete_required_text(TestCase(), selected_catalog, before['requirements'], brief, consumer / '.specify/extensions')

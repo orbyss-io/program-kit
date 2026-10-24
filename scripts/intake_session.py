@@ -198,6 +198,43 @@ def install_components(specify: str, git: str, workspace: Path, record: Path) ->
                 print(message, flush=True)
 
 
+def workspace_parent() -> Path:
+    # Reserve room for native compiler cwd and nested compatibility fixtures.
+    # A long-path-aware Python runtime cannot remove native process cwd limits.
+    default = Path.home() / 'ProgramKitTrials/workspaces' if os.name == 'nt' else Path(tempfile.gettempdir())
+    return Path(os.environ.get('PROGRAM_KIT_TRIAL_ROOT', str(default))).expanduser().resolve()
+
+
+def require_short_workspace_parent(parent: Path) -> None:
+    if os.name == 'nt' and len(str(parent).encode('utf-16-le')) // 2 > 90:
+        raise RuntimeError('INTAKE_PATH_TOO_DEEP: set PROGRAM_KIT_TRIAL_ROOT to a shorter user-owned directory '
+                           'before installation, and retain it for finish/cleanup; no worker started.')
+
+
+def initialize_owner_access(workspace: Path) -> str:
+    """A human-created disposable root explicitly retains its creator after worker replacements."""
+    if os.name != 'nt':
+        return 'not-required'
+    if os.environ.get('CODEX_THREAD_ID') or os.environ.get('CI'):
+        return 'human-terminal-required; workflow preflight verifies cross-account access'
+    if workspace.is_symlink() or list(workspace.iterdir()) != [workspace / '.intake-session-owner']:
+        raise RuntimeError('INTAKE_ACCESS_SCOPE: permission initialization requires the new empty owned workspace.')
+    script = '''$ErrorActionPreference='Stop'
+$path=$env:PROGRAM_KIT_NEW_TRIAL_ROOT
+$acl=Get-Acl -LiteralPath $path
+$sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User
+$rule=[System.Security.AccessControl.FileSystemAccessRule]::new($sid,'Modify','ContainerInherit,ObjectInherit','None','Allow')
+$acl.AddAccessRule($rule)
+Set-Acl -LiteralPath $path -AclObject $acl
+'''
+    result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
+        env={**os.environ, 'PROGRAM_KIT_NEW_TRIAL_ROOT': str(workspace)}, capture_output=True, text=True, timeout=30)
+    if result.returncode:
+        raise RuntimeError('INTAKE_ACCESS_SCOPE: could not retain the human creator on the new disposable root; '
+                           'inspect its permissions before continuing. No worker started.')
+    return 'creator-only inherited Modify on new disposable root'
+
+
 def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: Path | None = None) -> None:
     if idea_file is not None and (not idea_file.is_file() or not idea_file.read_text(encoding='utf-8').strip()):
         raise ValueError('The supplied idea file must contain the initial product request.')
@@ -211,19 +248,18 @@ def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: P
     if not specify or not git:
         raise RuntimeError('INTAKE_TOOL_MISSING: specify and git must be on PATH; no global configuration is changed.')
     record.mkdir(parents=True, exist_ok=False)
-    workspace = Path(tempfile.mkdtemp(prefix='program-kit-intake-')).resolve()
+    parent = workspace_parent()
+    require_short_workspace_parent(parent)
+    parent.mkdir(parents=True, exist_ok=True)
+    workspace = Path(tempfile.mkdtemp(prefix='program-kit-intake-', dir=parent)).resolve()
     nonce = uuid.uuid4().hex
     (workspace / '.intake-session-owner').write_text(nonce, encoding='utf-8')
     state = {'schemaVersion': 1, 'id': record.name, 'workspace': str(workspace),
-             'tempParent': str(workspace.parent), 'owner': nonce, 'source': str(ROOT),
+             'tempParent': str(workspace.parent), 'workspaceParentKind': 'short-trial-root', 'owner': nonce, 'source': str(ROOT),
              'startedAt': datetime.now(timezone.utc).isoformat(), 'status': 'preparing',
              'codexHome': str(Path(os.environ.get('CODEX_HOME', str(Path.home() / '.codex'))).resolve())}
-    if idea_file is not None:
-        shutil.copyfile(idea_file, workspace / 'product-idea.md')
-        state['initialIdea'] = {'source': str(idea_file.resolve()), 'sha256': digest(workspace / 'product-idea.md')}
-    if acceptance_contracts is not None:
-        shutil.copytree(acceptance_contracts, workspace / 'acceptance')
-        state['acceptanceContracts'] = {p.relative_to(acceptance_contracts).as_posix(): digest(p) for p in checked_files(acceptance_contracts)}
+    save(record / 'session.json', state)
+    state['ownerAccess'] = initialize_owner_access(workspace)
     save(record / 'session.json', state)
     print(f'Isolated consumer: {workspace}\nReview evidence: {record}', flush=True)
     source_git = [git, '-c', f'safe.directory={ROOT.as_posix()}', '-c', 'core.excludesFile=' if os.name == 'nt' else 'core.excludesFile=/dev/null']
@@ -237,6 +273,15 @@ def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: P
         shutil.copy2(source_commands / name, record / name)
     save(record / 'session.json', state)
     install_components(specify, git, workspace, record)
+    # Native init may create its initial Git commit. Supplied consumer material
+    # must not exist in that repository until installation has finished.
+    if idea_file is not None:
+        shutil.copyfile(idea_file, workspace / 'product-idea.md')
+        state['initialIdea'] = {'source': str(idea_file.resolve()), 'sha256': digest(workspace / 'product-idea.md')}
+    if acceptance_contracts is not None:
+        shutil.copytree(acceptance_contracts, workspace / 'acceptance')
+        state['acceptanceContracts'] = {p.relative_to(acceptance_contracts).as_posix(): digest(p) for p in checked_files(acceptance_contracts)}
+    save(record / 'session.json', state)
     runtime = workspace / '.specify/extensions/program-kit-governance/scripts/schema_runtime.py'
     for action in ('setup', 'record-copy'):
         if run([sys.executable, str(runtime), action], workspace, record / 'setup.log'):
@@ -282,7 +327,8 @@ def owned_workspace(state: dict) -> Path:
     workspace = Path(state['workspace'])
     if (workspace.is_symlink() or workspace.resolve() != workspace or
             workspace.parent != Path(state['tempParent']) or
-            workspace.parent != Path(tempfile.gettempdir()).resolve() or
+            workspace.parent != (workspace_parent() if state.get('workspaceParentKind') == 'short-trial-root'
+                                 else Path(tempfile.gettempdir()).resolve()) or
             not workspace.name.startswith('program-kit-intake-')):
         raise RuntimeError('Refusing unexpected cleanup target.')
     if (workspace / '.intake-session-owner').read_text(encoding='utf-8') != state['owner']:

@@ -1,5 +1,12 @@
 # Dependency maintenance
 
+Publisher source capture uses the maintained `PUBLISHER_GUIDANCE` allowlist in
+`scripts/update_dependency_profiles.py`, together with package-owned sources and exported
+package facts. Add new canonical usage guides deliberately; contributor plans, validation
+journals and consumer feedback are not automatically product knowledge. This affects future
+captures only. Preserve frozen profiles, source/package hashes and existing consumer locks;
+any historical privacy remediation needs an explicit separate disposition.
+
 Dependency discovery, upgrades and profile qualification are deliberate maintenance;
 release preparation does not require upgrading every active dependency. A candidate
 uses its declared qualified dependency set and passes applicable security checks.

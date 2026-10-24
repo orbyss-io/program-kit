@@ -71,6 +71,78 @@ def design_digest(path: Path, scoped: bool = False) -> str:
     return source_digest(path)
 
 
+LIFECYCLE_INPUT_FIELDS = {
+    'docs/architecture/building-block-selection.json': ('status', 'draftSuggestions'),
+    '.program-kit/dependency-profile.json': ('authority',),
+}
+
+
+def lifecycle_input_digest(relative: str, payload: bytes) -> str:
+    """Bind executed configuration, excluding only known promotion metadata."""
+    value = json.loads(payload)
+    if relative not in LIFECYCLE_INPUT_FIELDS or not isinstance(value, dict):
+        raise LifecycleError('Unsupported lifecycle proof input')
+    allowed = {'Draft', 'Accepted'} if relative.endswith('building-block-selection.json') else {
+        'retained Draft dependency suggestions; no acceptance or compatibility approval',
+        'retained accepted selection; no new compatibility claim'}
+    field = 'status' if relative.endswith('building-block-selection.json') else 'authority'
+    if value.get(field) not in allowed:
+        raise LifecycleError('Unsupported lifecycle proof metadata: ' + relative)
+    for field in LIFECYCLE_INPUT_FIELDS[relative]:
+        value.pop(field, None)
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def capture_lifecycle_inputs(root: Path, attempt: Path, inputs: list[dict], records: list[dict]) -> list[dict]:
+    captured = []
+    for bound in inputs:
+        relative = bound['path']
+        if relative not in LIFECYCLE_INPUT_FIELDS:
+            captured.append(bound)
+            continue
+        payload = local(root, relative).read_bytes()
+        if hashlib.sha256(payload).hexdigest() != bound['sha256']:
+            raise LifecycleError('Lifecycle proof input changed during preparation')
+        semantic = lifecycle_input_digest(relative, payload)
+        snapshot = attempt / 'executed-inputs' / Path(relative).name
+        snapshot.parent.mkdir(parents=True, exist_ok=True)
+        with snapshot.open('xb') as stream:
+            stream.write(payload)
+        name = snapshot.relative_to(root).as_posix()
+        captured.append({'path': name, 'sha256': bound['sha256']})
+        records.append({'sourcePath': relative, 'snapshotPath': name, 'semanticSha256': semantic})
+    return captured
+
+
+def lifecycle_inputs_current(root: Path, proof: dict, receipt: Path) -> bool:
+    """Historical receipts retain raw binding; new snapshots require exact provenance."""
+    records = proof.get('lifecycle_inputs', [])
+    if not isinstance(records, list):
+        raise LifecycleError('Malformed lifecycle proof bindings')
+    snapshots = {b['path'] for b in proof.get('inputs', [])
+                 if local(root, b['path']).parent == receipt.parent / 'executed-inputs'}
+    if snapshots != {r.get('snapshotPath') for r in records if isinstance(r, dict)}:
+        raise LifecycleError('Lifecycle snapshots need complete source bindings')
+    seen, current = set(), True
+    for record in records:
+        if not isinstance(record, dict) or set(record) != {'sourcePath', 'snapshotPath', 'semanticSha256'}:
+            raise LifecycleError('Malformed lifecycle proof binding')
+        source = record['sourcePath']
+        if source not in LIFECYCLE_INPUT_FIELDS or source in seen:
+            raise LifecycleError('Unsupported or duplicate lifecycle proof source')
+        seen.add(source)
+        snapshot = local(root, record['snapshotPath'])
+        if snapshot != receipt.parent / 'executed-inputs' / Path(source).name:
+            raise LifecycleError('Lifecycle snapshot escaped its attempt')
+        if {'path': record['snapshotPath'], 'sha256': digest(snapshot)} not in proof.get('inputs', []):
+            raise LifecycleError('Executed lifecycle bytes changed')
+        if lifecycle_input_digest(source, snapshot.read_bytes()) != record['semanticSha256']:
+            raise LifecycleError('Executed lifecycle semantics changed')
+        path = local(root, source)
+        current = (path.is_file() and lifecycle_input_digest(source, path.read_bytes()) == record['semanticSha256']) and current
+    return current
+
+
 def source_paths(root: Path) -> list[str]:
     paths = ['docs/architecture/bootstrap-decisions.json']
     model_path = root / 'docs/architecture/architecture-map.json'
@@ -195,6 +267,8 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 scoped = proof['schema_version'] == '1.2'
                 if proof.get('tooling_sources') != proof_tooling(scoped):
                     raise LifecycleError(f'{identity} compatibility tooling changed; renew the proof')
+                if not lifecycle_inputs_current(root, proof, path):
+                    raise LifecycleError(f'{identity} compatibility execution input semantics changed')
                 for bound in proof.get('inputs', []) + proof.get('streams', []) + [proof['test_result']]:
                     bound_path = local(root, bound['path'])
                     if not bound_path.is_file() or digest(bound_path) != bound['sha256']:
@@ -552,6 +626,15 @@ def compatibility_scratch(attempt: Path):
         shutil.rmtree(cleanup)
 
 
+def require_native_scratch(path: Path, platform=None):
+    if (platform or os.name) == 'nt':
+        from windows_workflow_path import path_length
+        if path_length(str(path)) + 32 >= 260:
+            raise LifecycleError('PKL024 native compatibility working directory is too deep; '
+                                 'use a short consumer root before retrying. Python extended paths do not '
+                                 'remove compiler process cwd limits. Failed attempt evidence is retained.')
+
+
 def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     """Execute a reviewed Python compatibility recipe in a fresh isolated scratch directory."""
     import tempfile
@@ -565,6 +648,7 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     inputs = [{'path': recipe, 'sha256': digest(recipe_path)},
               {'path': contract_path.relative_to(root).as_posix(), 'sha256': digest(contract_path)}]
     test_record = None
+    lifecycle_inputs = []
     from compatibility_scope import bindings
     dependency_bindings = bindings(root, contract)
     scoped = dependency_bindings is not None
@@ -578,9 +662,11 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     with compatibility_scratch(attempt) as directory:
         with (attempt / 'stdout.txt').open('wb') as stdout, (attempt / 'stderr.txt').open('wb') as stderr:
             try:
+                if any(str(target).endswith('.csproj') for target in contract.get('dependencyTargets', [])):
+                    require_native_scratch(Path(directory))
                 from bootstrap_compatibility import prepare, restore
                 fixture_inputs, dependency_plan = prepare(root, Path(directory), contract)
-                inputs.extend(fixture_inputs)
+                inputs.extend(capture_lifecycle_inputs(root, attempt, fixture_inputs, lifecycle_inputs))
                 if dependency_plan:
                     failure_category = 'needs-provisioning'
                     provisioning = restore(root, Path(directory), timeout=max(timeout, 120), stdout=stdout, stderr=stderr)
@@ -623,7 +709,7 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
              'provisioning': provisioning, 'tooling_sources': proof_tooling(scoped),
              'failure_category': failure_category, 'diagnostic_artifacts': diagnostic_artifacts,
              'command': command, 'python': sys.version, 'inputs': inputs, 'streams': streams,
-             'design_sources': design_sources}
+             'design_sources': design_sources, 'lifecycle_inputs': lifecycle_inputs}
     if scoped:
         value['dependency_scope'] = {'contractPath': contract_path.relative_to(root).as_posix(), 'bindings': dependency_bindings}
     receipt = attempt / 'proof.json'
@@ -660,6 +746,8 @@ def receipt_invalidation_preview(root, changed_paths):
                              'proposedInvalidations': {value: 'receipt has no proved current closure' for value in changes}})
                 continue
             proof = load(path)
+            if not lifecycle_inputs_current(root, proof, path):
+                findings.append('executed lifecycle input semantics changed')
             if proof.get('exit_code') != 0:
                 findings.append('latest attempt failed')
             bound = {row['path']: row['sha256'] for row in proof.get('inputs', []) + proof.get('streams', [])

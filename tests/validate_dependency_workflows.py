@@ -21,6 +21,16 @@ import dependency_maintenance as maintenance
 
 
 class ProfilePreparationTests(unittest.TestCase):
+    def test_publisher_capture_keeps_usage_and_excludes_private_work_journals(self):
+        for path in ('README.md', 'docs/authentication.md', 'docs/hosted-application-pages.md',
+                     'src/Orbyss.Foundation.Json/JsonOptions.cs'):
+            self.assertTrue(profiles.publisher_document_selected(path, ['Orbyss.Foundation.Json'], True), path)
+        for path in ('docs/validation-private-example.md', 'docs/plans/repository-investigation.md',
+                     'docs/reviews/consumer-feedback.md', 'artifacts/interview.md',
+                     'src/Other.Package/PrivateNotes.md'):
+            self.assertFalse(profiles.publisher_document_selected(path, ['Orbyss.Foundation.Json'], True), path)
+        self.assertFalse(profiles.publisher_document_selected('docs/authentication.md', [], False))
+
     """Prepare isolated candidates; no public qualification or adoption is claimed."""
     def setUp(self):
         from owned_fixture import FixtureDirectory

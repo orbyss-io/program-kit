@@ -89,14 +89,25 @@ def merge_value(baseline: object, overlay: object) -> object:
     return result
 
 
-def compose(repository: Path, include_frontend_admission: bool = True) -> dict:
+def compose(repository: Path, include_frontend_admission: bool = True, *, planning: bool = False) -> dict:
     repository = repository.resolve()
     profile = load(repository / PROFILE_SHELLS, required=False)
     consumers, managed, selected = selected_sources(repository)
+    graph = resource_model(repository)
+    proposed = {}
+    if planning and graph:
+        import composition_model
+        for row in composition_model.resources(graph, 'shell').values():
+            proposed.setdefault(Path(row['source']), set()).add(row['name'])
     consumer: dict = {}
     building_blocks: dict = {}
     for source, companion in zip(consumers, managed, strict=True):
-        value = load(repository / source, required=True)
+        value = load(repository / source, required=source not in proposed)
+        if not value:
+            # Only a validated typed resource can supply a not-yet-materialized
+            # planning shell. Existing files are still parsed and checked.
+            value = {'CShells': {'Shells': {name: {'Features': {}, 'Configuration': {}}
+                                          for name in sorted(proposed[source])}}}
         names = set(value["CShells"]["Shells"])
         if selected and names != selected[source]:
             raise ValueError("PKC007 selected shell source must match its Accepted identities")
@@ -130,8 +141,7 @@ def compose(repository: Path, include_frontend_admission: bool = True) -> dict:
     shells = effective.get("CShells", {}).get("Shells")
     if not isinstance(shells, dict) or not shells:
         raise ValueError("PKC005 effective shell composition contains no named shells")
-    graph = resource_model(repository)
-    if graph and include_frontend_admission:
+    if graph and include_frontend_admission and not planning:
         import composition_model
         import prepare_hosted_pages
         for row in composition_model.bindings(graph, 'frontend'):

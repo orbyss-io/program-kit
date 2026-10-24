@@ -277,6 +277,16 @@ def validate_cycles(projects, edges):
 def validate_planned(root, manifest, require_responsibilities=False):
     projects = validate_manifest(root, manifest)
     validate_responsibilities(projects, manifest['runtimeComposition'].get('bindings', []), require_responsibilities)
+    for path, project in projects.items():
+        if not (require_responsibilities is True or path in (require_responsibilities or ())):
+            continue  # Unrelated retained declarations keep their existing scope.
+        name = Path(path).stem
+        require(project['role'] != 'core' or name.endswith('.Core'),
+                'PKA023 planned Core project requires its .Core identity: ' + path)
+        require('feature' not in name.casefold().split('.'),
+                'PKA023 use domain/provider language instead of a generic .Feature project segment: ' + path)
+        if 'packageId' in project:
+            require(project['packageId'] == name, 'PKA023 planned project/package identity differs: ' + path)
     required_contracts = {p: test_compile_contracts(row) for p, row in projects.items()
                           if test_compile_contracts(row)}
     if required_contracts:

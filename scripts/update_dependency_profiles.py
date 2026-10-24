@@ -179,6 +179,21 @@ def publisher_archive_facts(archive):
     return facts, files
 
 
+PUBLISHER_GUIDANCE = frozenset({
+    'README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'src/Orbyss.Foundation.Host/NOTICE.md',
+    'docs/authentication.md', 'docs/foundation-contracts-adoption.md',
+    'docs/host-transport-budgets.md', 'docs/hosted-application-pages.md',
+    'docs/json-canonicalization-decision.md', 'docs/package-loader-qualification.md',
+})
+
+
+def publisher_document_selected(relative, identities, runtime_commit):
+    """Capture maintained usage guidance, never a publisher's arbitrary work journal."""
+    source = any(relative.startswith('src/' + identity + '/') for identity in identities) and relative.endswith(
+        ('.cs', '.json', '.md', '.targets', '.props', '.mjs', '.mts', '.css'))
+    return source or runtime_commit and relative in PUBLISHER_GUIDANCE
+
+
 def publisher_knowledge(directory,native,profile,host):
     """Copy exact public package facts and frozen source docs, with per-file hashes."""
     destination=directory/'knowledge'; destination.mkdir(exist_ok=False)
@@ -221,9 +236,7 @@ def publisher_knowledge(directory,native,profile,host):
         if tree.get('truncated'): raise ValueError('Publisher guidance inventory is incomplete')
         for item in tree['tree']:
             relative=item['path']
-            source=any(relative.startswith('src/'+identity+'/') for identity in identities) and relative.endswith(('.cs','.json','.md','.targets','.props','.mjs','.mts','.css'))
-            guide=source_commit==commit and (relative in {'README.md','LICENSE','THIRD-PARTY-NOTICES.md','src/Orbyss.Foundation.Host/NOTICE.md'} or relative.startswith('docs/') and relative.endswith('.md'))
-            if item['type']!='blob' or not (guide or source): continue
+            if item['type']!='blob' or not publisher_document_selected(relative,identities,source_commit==commit): continue
             url='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+source_commit+'/'+relative
             with urllib.request.urlopen(url,timeout=30) as response: data=response.read(1_048_577)
             if len(data)>1_048_576: raise ValueError('Publisher guidance exceeds one MiB')

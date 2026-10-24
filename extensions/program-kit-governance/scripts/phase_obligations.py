@@ -207,6 +207,7 @@ def render(value, phase, detailed=False):
              'Conditional guidance applies only when its stated conditions hold.',
              'Canonical decision constraints below apply before choosing a design. Use focused lookup for an unresolved mechanism; this is not a reading checklist.',
              'Use --only <id> for its example, diagnostics and focused reference sections.', '']
+    lines += ['Applicable responsibilities: ' + ', '.join(rule['id'] for rule in value['requirements']) + '.', '']
     lines += [canonical_rules(['phase-action.' + phase])[0]['text'], '']
     if value.get('coding'):
         coding = value['coding']
@@ -288,6 +289,24 @@ def bounded_render(value, phase, detailed=False):
                          'for a concrete decision. Mandatory guidance was not truncated. '
                          'The explicit JSON discovery view retains complete data for diagnosing this scope; do not concatenate it into an ordinary brief.')
     return output
+
+
+def text_page(output, page=1, limit=10000):
+    """Bound transport output as well as assembled guidance; preserve every character."""
+    pages, current, size = [], [], 0
+    for character in output:
+        width = len(character.encode('utf-8'))
+        if size + width > limit:
+            pages.append(''.join(current)); current, size = [], 0
+        current.append(character); size += width
+    pages.append(''.join(current))
+    if page < 1 or page > len(pages):
+        raise ValueError('PKC026 guidance page must be between 1 and ' + str(len(pages)))
+    header = f'Guidance page {page}/{len(pages)}. '
+    if page < len(pages):
+        header += f'Continue the same command with --page {page + 1}; this page is not the complete guidance. '
+    header += 'Use --only <id> for the concrete decision; do not concatenate full JSON inventories.\n'
+    return header + pages[page - 1]
 
 
 def check(root, feature, phase, affected_paths=(), operation=None, repair=False, configuration='Debug', framework=None, coding_stage='source'):
@@ -464,6 +483,7 @@ def main():
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phase', default='planning', choices=('planning','after-plan','tasks','after-tasks','implementation','delivery'))
     parser.add_argument('--only', help='Return one applicable obligation for a focused follow-up')
+    parser.add_argument('--page', type=int, default=1, help='Bounded text page; focused lookup preserves complete guidance')
     parser.add_argument('--affected-path', action='append', default=[], help='Focus implementation source lookup on these paths')
     parser.add_argument('--scope', choices=('Acceptance','Affected'), default='Acceptance')
     parser.add_argument('--changed-from', help='Git baseline for Affected verification including worktree and untracked changes')
@@ -488,7 +508,7 @@ def main():
                 if not units:
                     raise ValueError('PKC013 coding unit is not selected in this scope: ' + args.unit)
                 result['coding']['skills'] = units
-            print(json.dumps(result, indent=2) if args.format == 'json' else bounded_render(result, 'implementation')
+            print(json.dumps(result, indent=2) if args.format == 'json' else text_page(bounded_render(result, 'implementation'), args.page)
                   if result['coding']['canProceed'] else 'Coding preparation blocked: ' + json.dumps(result['coding']['blockers']))
             return 0 if result['coding']['canProceed'] else 2
         result = (finish(root, feature, args.handoff, args.configuration, args.framework) if args.command == 'finish' else
@@ -499,7 +519,7 @@ def main():
             result['requirements'] = [r for r in result['requirements'] if r['id'] == args.only]
             if not result['requirements']:
                 raise ValueError('Requested obligation is not applicable in this phase')
-        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else bounded_render(result, args.phase, bool(args.only)))
+        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else text_page(bounded_render(result, args.phase, bool(args.only)), args.page))
         return 2 if result.get('coding', {}).get('canProceed') is False or result.get('status') == 'needs-attention' else 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(str(error))

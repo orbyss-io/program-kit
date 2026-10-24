@@ -97,10 +97,10 @@ class HostedFrontendUpdateTests(unittest.TestCase):
             # Consumer-supplied branding reaches the actual producer unchanged.
             branding = composition_model.default_branding()
             branding['theme'] = 'green'
-            branding['locales']['en-GB'].update(title='Claim Evaluator', purpose='Your private policies and evaluations.',
+            branding['locales']['en-GB'].update(title='Harbor Workspace', purpose='Your team schedules and rooms.',
                 loadingText='Opening your workspace.', failureText='Your workspace is unavailable. Please try again.',
-                noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Claim Evaluator')
-            branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Claimbeoordelaar'}
+                noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Harbor Workspace')
+            branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Havenwerkplek'}
             frontend['branding'] = branding
             with self.assertRaisesRegex(ValueError, 'PKC110 frontend inputs changed'):
                 prepare_hosted_pages.admission(root, graph, 'policy-web')

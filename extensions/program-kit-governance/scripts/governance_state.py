@@ -1760,7 +1760,9 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
         mutable_paths += [project_path(Path('docs/architecture') / name) for name in lifecycle_module().NARRATIVES]
     if selection.is_file():
         mutable_paths.append(selection)
-    originals = {path: path.read_bytes() for path in mutable_paths}
+        profile = project_path(Path('.program-kit/dependency-profile.json'))
+        mutable_paths.append(profile)
+    originals = {path: path.read_bytes() if path.is_file() else None for path in mutable_paths}
     try:
         accepted_founding_adrs = accept_founding_adrs(founding_adrs, existing_accepted=True)
         if selection.is_file():
@@ -1793,7 +1795,10 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
         validate_bootstrap(False, False)
     except Exception:
         for path, content in originals.items():
-            path.write_bytes(content)
+            if content is None:
+                path.unlink(missing_ok=True)
+            else:
+                path.write_bytes(content)
         raise
     artifacts = bootstrap_artifacts()
     write_json(

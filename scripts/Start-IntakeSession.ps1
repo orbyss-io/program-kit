@@ -13,7 +13,7 @@ if (-not $PrepareOnly -and ($env:CODEX_THREAD_ID -or $env:CI -or
     throw 'INTAKE_INTERACTIVE_TERMINAL_REQUIRED: run this yourself in a fresh PowerShell console.'
 }
 $sourceRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$record = Join-Path $sourceRoot ('artifacts\intake-sessions\' + [Guid]::NewGuid().ToString('N'))
+$record = Join-Path ([Environment]::GetFolderPath('UserProfile')) ('ProgramKitTrials\evidence\' + [Guid]::NewGuid().ToString('N'))
 $helper = Join-Path $PSScriptRoot 'intake_session.py'
 $python = (Get-Command python -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $codex = if (-not $PrepareOnly) {
