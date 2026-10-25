@@ -18,9 +18,9 @@ class CanonicalSourcesTests(unittest.TestCase):
     def setUp(self):
         self.catalog = load()
 
-    def test_scope_labels_preserve_exact_conditions_once_and_assembled_overflow_is_visible(self):
+    def test_scope_labels_preserve_conditions_and_focused_text_pages_without_loss(self):
         from feature_context import applicable_requirements
-        from phase_obligations import bounded_render
+        from phase_obligations import bounded_render, text_page
         requirements = applicable_requirements(self.catalog, {'all', 'dotnet', 'api', 'web', 'typescript'}, 'planning')
         output = '\n'.join(text for rows in constraints(self.catalog, requirements, ROOT / 'extensions').values() for text in rows)
         condition = 'Selected managed authenticated BFF/SPA contract.'
@@ -29,13 +29,20 @@ class CanonicalSourcesTests(unittest.TestCase):
         assert_complete_required_text(self, self.catalog, requirements, output, ROOT / 'extensions')
         ordinary = {'requirements': requirements}
         complete = bounded_render(ordinary, 'planning')
-        self.assertIn('Canonical principle.typed-admission', complete)
+        self.assertIn('Focused lookup: --only ', complete)
+        focused = bounded_render(ordinary, 'planning', detailed=True)
+        self.assertIn('Canonical principle.typed-admission', focused)
         ordinary['context'] = {'diagnostics': ['Observed owned scope is too large. ' * 10000]}
-        with self.assertRaisesRegex(ValueError, 'PKC026 assembled planning guidance'):
-            bounded_render(ordinary, 'planning')
-        # No source or model truncation occurs; the explicit diagnostic view
-        # remains available to split the actual decision/operation scope.
-        self.assertEqual(10000, ordinary['context']['diagnostics'][0].count('Observed owned scope'))
+        large = bounded_render(ordinary, 'planning')
+        pages = []
+        index = 1
+        while True:
+            page = text_page(large, index)
+            pages.append(page.split('\n', 1)[1])
+            if 'Continue the same command' not in page.split('\n', 1)[0]: break
+            index += 1
+        self.assertEqual(large, ''.join(pages))
+        self.assertEqual(10000, large.count('Observed owned scope'))
 
     def test_actual_native_roles_and_prose_are_complementary(self):
         native = resolve(self.catalog, 'native.allowed-role-references', extensions=ROOT / 'extensions')
@@ -71,22 +78,6 @@ class CanonicalSourcesTests(unittest.TestCase):
             self.assertTrue(any(row.get('symbol') == 'guidance' for row in result['candidates']))
             self.assertNotIn('NEVER_EXPOSE_SECRET', json.dumps(result))
             self.assertNotIn('active', result)
-
-    def test_expected_upgrade_failure_preserves_deep_diagnostics(self):
-        from unittest.mock import patch
-        import validate_consumer_upgrade_install as fixture
-        from owned_fixture import filesystem_path
-        with FixtureDirectory(native=True) as directory:
-            root = Path(directory)
-            relative = Path('artifacts/program-kit/consumer-upgrade') / ('nested-baseline-' * 7) / ('retained-input-' * 5) / 'witness.txt'
-            original = Path(filesystem_path(root / relative))
-            original.parent.mkdir(parents=True)
-            original.write_text('Retain expected failure evidence.', encoding='utf-8')
-            destination = root / 'review-diagnostics'
-            with patch.object(fixture, 'RUN', destination):
-                fixture.run([sys.executable, '-c', 'raise SystemExit(2)'], root, expected_exit=2)
-            copied = Path(filesystem_path(destination / '0-local-state/consumer-upgrade' / relative.relative_to('artifacts/program-kit/consumer-upgrade')))
-            self.assertEqual('Retain expected failure evidence.', copied.read_text(encoding='utf-8'))
 
     def test_json_schema_references_remain_part_of_selected_declaration(self):
         source = {'rule': {'$ref': '#/$defs/value'}, '$defs': {'value': {'minimum': 3}}, 'unrelated': 1}
@@ -157,20 +148,16 @@ class CanonicalSourcesTests(unittest.TestCase):
             requirement['requirement'] = 'FORGED RETIRED POLICY'
             requirement['guidance'] = {'planning': 'FORGED RETIRED POLICY'}
         import phase_obligations
-        output = phase_obligations.render({'requirements': requirements}, 'planning')
+        output = phase_obligations.render({'requirements': requirements}, 'planning', detailed=True)
         self.assertNotIn('FORGED RETIRED POLICY', output)
         self.assertIn('canonical permission', output)
         self.assertIn('ALLOWED_ROLE_REFERENCES', output)
 
-    def test_bootstrap_keeps_its_canonical_group_adapter(self):
-        from unittest.mock import patch
-        import bootstrap_context
-        with patch.object(bootstrap_context, 'routed_references', return_value=(
-                '.specify/extensions/program-kit-dotnet/references/technology-profiles/dotnet.md',)):
-            rows = bootstrap_context.decision_constraints({}, 'architecture')
-        result = next(row for row in rows if row['id'] == 'compilation-responsibilities')
-        self.assertIn('Core owns stable contracts', result['constraint'])
-        self.assertNotIn('<!-- program-kit:knowledge-rule', result['constraint'])
+    def test_selected_phase_resolves_the_real_canonical_group_without_workflow_adapter(self):
+        from phase_obligations import canonical_rules
+        rows = canonical_rules(['principle.compilation-boundaries'])
+        self.assertIn('Core owns stable contracts', rows[0]['text'])
+        self.assertNotIn('<!-- program-kit:knowledge-rule', rows[0]['text'])
 
     def test_dotnet_precode_atoms_survive_bounded_ordinary_brief(self):
         # The former 180-character preview lost the invocation restrictions and
@@ -217,7 +204,7 @@ class CanonicalSourcesTests(unittest.TestCase):
             'extensions/program-kit-governance/scripts/knowledge_sources.py'])
         identities = {row['id'] for row in checks}
         self.assertIn('validate_knowledge_sources', identities)
-        self.assertIn('validate_task_generation', identities)
+        self.assertIn('validate_native_phases', identities)
         self.assertFalse(gaps)
         unrelated, _, _ = run_validation.select_affected(definition, ['docs/knowledge-discovery.md'])
         self.assertNotIn('validate_knowledge_sources', {row['id'] for row in unrelated})
@@ -328,96 +315,48 @@ class CanonicalSourcesTests(unittest.TestCase):
             with self.subTest(fields=fields), self.assertRaisesRegex(ValueError, 'Unknown canonical.*(adapter|facet)'):
                 validate(broken, ROOT / 'extensions', ROOT)
 
-    def test_actual_owned_profile_facts_keep_brief_duties_and_units_in_one_scope(self):
+    def test_owned_profile_instances_keep_canonical_guidance_and_recipe_facts_in_one_scope(self):
         from feature_context import context, applicable_requirements
         from coding_context import compose, evaluation_duties
         with FixtureDirectory() as name:
-            root = Path(name)
-            feature = root / 'specs/001-scope'; feature.mkdir(parents=True)
-            (feature / 'spec.md').write_text('- **Specification roadmap entry**: RM-01\nHTTP browser in web/package.json.\n')
-            (feature / 'plan.md').write_text('HTTP browser in web/package.json.')
-            brief = root / '.program-kit/specification-intake/RM-01/brief.json'; brief.parent.mkdir(parents=True)
-            brief.write_text(json.dumps({'architectureScope': ['owner']}))
+            root = Path(name); feature = root / 'specs/001-scope'; feature.mkdir(parents=True)
+            (feature / 'spec.md').write_text('**Architecture scope**: owner\nHTTP browser in web/package.json.\n')
             web = root / 'web'; web.mkdir(); (web / 'package.json').write_text('{"devDependencies":{"typescript":"5.9.0"}}')
-            (web / 'policy.ts').write_text('export const result = 1;')
             architecture = root / 'docs/architecture'; architecture.mkdir(parents=True)
-            (architecture / 'architecture-map.json').write_text(json.dumps({'elements': [
-                {'id': 'owner', 'type': 'component', 'technology': '.NET browser'},
-                {'id': 'neighbor', 'type': 'component'}], 'decisions': []}))
-            selection = {'status': 'Accepted', 'targets': [{'id': 'owned', 'kind': 'dotnet-project', 'placement': {'owner': 'owner'}}],
-                'instances': [{'composition': 'browser_bff', 'targetBindings': {'runtime': 'owned'}}]}
-            path = architecture / 'building-block-selection.json'
-            decisions = architecture / 'bootstrap-decisions.json'
+            (architecture / 'architecture-map.json').write_text(json.dumps({'elements':[
+                {'id':'owner','type':'component','technology':'.NET browser'},
+                {'id':'neighbor','type':'component'}], 'decisions':[]}))
+            (architecture / 'bootstrap-decisions.json').write_bytes(b'\xff stale 0.x receipt must not be read')
+            selection = {'status':'Accepted','targets':[{'id':'owned','kind':'dotnet-project','placement':{'owner':'owner'}}]}
             data = copy.deepcopy(self.catalog)
             bff, spa = 'principle.bff-selected-browser-contract', 'principle.spa-selected-browser-contract'
-            host = 'principle.shell-feature-lifecycle-contract'
-            data['codingUnits'] = [{'id': 'explicit-profile-unit', 'ruleIds': [bff, spa, host], 'route': 'manual-edit'}]
-            for profile, composition, expected in (
-                    ('bff-cookie-v1', 'browser_bff', {bff}), ('spa-pkce-v1', 'browser_spa_pkce', {spa}),
-                    ('none-v1', None, set())):
-                selection['instances'] = [{'composition': composition, 'targetBindings': {'runtime': 'owned'}}] if composition else []
-                path.write_text(json.dumps(selection))
-                decisions.write_text(json.dumps({'selected_profiles': ['dotnet', 'typescript-web'],
-                    'web': {'secure_profile': profile}, 'dotnet': {'program_kit_host_opt_out': True,
-                    'opt_out_reason': 'Fictional explicit conventional-host fixture', 'host_runtime': 'conventional'}}))
+            data['codingUnits'] = [{'id':'explicit-profile-unit','ruleIds':[bff,spa],'route':'manual-edit'}]
+            for composition, selected, excluded in (('browser_bff',bff,spa),('browser_spa_pkce',spa,bff)):
+                selection['instances'] = [{'composition':composition,'targetBindings':{'runtime':'owned'}}]
+                (architecture / 'building-block-selection.json').write_text(json.dumps(selection))
                 tags = context(root, feature, 'implementation')
-                requirements = applicable_requirements(data, tags)
-                ids = {i for r in requirements for i in r['ruleIds']}
-                self.assertEqual(expected, ids & {bff, spa})
-                self.assertNotIn(host, ids)
-                auth = {'principle.secure-shell-configuration', 'principle.secure-shell-settings',
-                    'principle.canonical-auth-permission-contract', 'principle.authentication-presentation-contract',
-                    'principle.auth-human-interaction-budget', 'principle.logout-publisher-compatibility'}
-                if profile == 'none-v1':
-                    self.assertFalse(auth & ids)
-                    self.assertIn('principle.http-telemetry-contract', ids)
-                else:
-                    self.assertTrue(auth <= ids)
-                output = '\n'.join(v for rows in constraints(data, requirements, ROOT / 'extensions').values() for v in rows)
-                self.assertTrue(all(('Canonical ' + i) in output for i in expected))
-                self.assertLess(len(output.encode('utf-8')), BRIEF_LIMITS['mixed'])
-                assert_complete_required_text(self, data, requirements, output, ROOT / 'extensions')
-                units, _, blockers = compose(data, requirements, tags, {}, ROOT / 'extensions')
+                requirements = applicable_requirements(data,tags)
+                identities = {identity for row in requirements for identity in row['ruleIds']}
+                self.assertIn(selected,identities); self.assertNotIn(excluded,identities)
+                focused = '\n'.join(text for rows in constraints(data,requirements,ROOT/'extensions',detailed=True).values() for text in rows)
+                self.assertIn(resolve(data,selected,extensions=ROOT/'extensions')['text'],focused)
+                units,_,blockers = compose(data,requirements,tags,{},ROOT/'extensions')
                 self.assertFalse(blockers)
-                actual = {r['id'] for unit in units for r in unit['rules']}
-                self.assertEqual(expected, actual)
-                duties = evaluation_duties(data, requirements, units, root, ROOT / 'extensions', [])
-                self.assertEqual(expected, {d['rule'] for d in duties} & {bff, spa, host})
-            # A separately selected machine/outbound contract survives a
-            # browser's explicit anonymous profile.
-            selection['instances'] = [{'composition': 'service_to_service', 'targetBindings': {'runtime': 'owned'}}]
-            path.write_text(json.dumps(selection))
-            tags = context(root, feature, 'implementation')
-            ids = {i for r in applicable_requirements(data, tags) for i in r['ruleIds']}
-            self.assertIn('principle.neutral-auth-capabilities', ids)
-            self.assertFalse({bff, spa} & ids)
-            # An unrelated accepted target and a malformed/unknown profile cannot
-            # turn repository-wide facts into an exemption for the owned scope.
-            selection['targets'][0]['placement']['owner'] = 'neighbor'
-            selection['instances'] = [{'composition': 'browser_bff', 'targetBindings': {'runtime': 'owned'}}]
-            path.write_text(json.dumps(selection))
-            tags = context(root, feature, 'implementation')
-            self.assertFalse(any(t.startswith('secure-web:') for t in tags))
-            ids = {i for r in applicable_requirements(data, tags) for i in r['ruleIds']}
-            self.assertTrue({bff, spa} <= ids)
-            selection['targets'][0]['placement']['owner'] = 'owner'; selection['instances'] = []
-            path.write_text(json.dumps(selection)); decisions.write_text(json.dumps({'web': {'secure_profile': 'unrecognized'}, 'dotnet': {'program_kit_host_opt_out': True, 'opt_out_reason': 7}}))
-            tags = context(root, feature, 'implementation')
-            ids = {i for r in applicable_requirements(data, tags) for i in r['ruleIds']}
-            self.assertTrue({bff, spa, host} <= ids)
-            # Technology-neutral clauses remain selected for a real TS-only owner.
-            tags = {'all', 'typescript', 'web'}
-            ids = {i for r in applicable_requirements(data, tags) for i in r['ruleIds']}
-            self.assertTrue({'principle.proportional-context-design', 'principle.cross-context-admissibility',
-                'principle.consumer-meaning-ownership', 'principle.domain-integration-delivery'} <= ids)
+                self.assertEqual({selected},{rule['id'] for unit in units for rule in unit['rules']})
+                duties = evaluation_duties(data,requirements,units,root,ROOT/'extensions',[])
+                self.assertEqual({selected},{row['rule'] for row in duties}&{bff,spa})
+            selection['targets'][0]['placement']['owner']='neighbor'
+            (architecture / 'building-block-selection.json').write_text(json.dumps(selection))
+            tags=context(root,feature,'implementation')
+            self.assertFalse(any(tag.startswith('secure-web:') for tag in tags))
+            ids={identity for row in applicable_requirements(data,tags) for identity in row['ruleIds']}
+            self.assertTrue({bff,spa}<=ids,'Unknown applicability must remain visible rather than inventing an exemption')
 
     def test_two_owned_profile_targets_narrow_to_actual_task_project_paths(self):
         from feature_context import context, applicable_requirements
         with FixtureDirectory() as name:
             root = Path(name); feature = root / 'specs/001-owners'; feature.mkdir(parents=True)
-            (feature / 'spec.md').write_text('- **Specification roadmap entry**: RM-01\n')
-            brief = root / '.program-kit/specification-intake/RM-01/brief.json'; brief.parent.mkdir(parents=True)
-            brief.write_text(json.dumps({'architectureScope': ['bff', 'spa']}))
+            (feature / 'spec.md').write_text('**Architecture scope**: bff, spa\n')
             architecture = root / 'docs/architecture'; architecture.mkdir(parents=True)
             (architecture / 'architecture-map.json').write_text(json.dumps({'elements': [
                 {'id': 'bff', 'type': 'component', 'technology': '.NET HTTP browser'},
@@ -455,7 +394,8 @@ class CanonicalSourcesTests(unittest.TestCase):
             value = phase.project(root, feature, 'planning')
             output = phase.render(value, 'planning')
             self.assertLess(len(output.encode('utf-8')), BRIEF_LIMITS['unknown-dotnet'])
-            assert_complete_required_text(self, self.catalog, value['requirements'], output, ROOT / 'extensions')
+            focused = phase.render(value, 'planning', detailed=True)
+            assert_complete_required_text(self, self.catalog, value['requirements'], focused, ROOT / 'extensions')
 
     def test_sources_routes_and_rule_owners_resolve(self):
         validate(self.catalog, ROOT / 'extensions', ROOT)
@@ -480,13 +420,9 @@ class CanonicalSourcesTests(unittest.TestCase):
         self.assertNotIn('native.allowed-role-references', browser)
 
 
-class ReviewFixtureTests(unittest.TestCase):
-    def test_installed_canonical_walkthrough_and_failures(self):
-        from knowledge_review_fixture import scenario
-        with FixtureDirectory() as directory:
-            result = scenario(directory)
-            self.assertEqual('passed', result['status'])
 
+# Actual installed native phase/knowledge consumption is covered by
+# validate_native_phases.NativePhaseTests and KnowledgeTests.
 
 if __name__ == '__main__':
     unittest.main()

@@ -22,8 +22,9 @@ class ReadinessTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.restore = sync.provider('program-kit-building-blocks/scripts/restore_dependencies.py')
         self.feature = 'specs/RM01'
-        sync.write(self.root / self.feature / 'artifact-ownership.json', {
-            'profiles':['typescript-vite'], 'artifacts':[{'path':'web/package.json'}]})
+        feature_path = self.root / self.feature
+        feature_path.mkdir(parents=True)
+        (feature_path / 'tasks.md').write_text('- [ ] T001 Implement web/package.json and web/src/app.ts\n', encoding='utf-8')
         self.setup = {'phase':'implementation', 'feature':self.feature,
                       'targets':[], 'javascript':True, 'dotnet':False}
         sync.write(self.root / 'web/package.json', {'dependencies':{'react':'19.2.8'}})
@@ -63,6 +64,45 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual([target['path'] for target in self.lock['targets']], ['web/package.json'])
         self.assertEqual(self.lock, readiness.dependencies(self.root, self.setup, {}))
         self.assertEqual(len(self.lock['planDigest']), 64)
+
+    def test_normal_tasks_discover_nearest_package_without_ownership_json(self):
+        tasks = self.root / self.feature / 'tasks.md'
+        tasks.write_text('- [ ] T001 Implement web/src/app.ts\n', encoding='utf-8')
+        sync.write(self.root / 'web/src/app.ts', {})
+        sync.write(self.root / 'unrelated/package.json', {})
+        self.assertEqual(['web/package.json'], readiness.owned_targets(self.root, self.feature, []))
+        self.assertFalse((tasks.parent / 'artifact-ownership.json').exists())
+
+    def test_selected_graph_is_required_for_normal_javascript_feature(self):
+        errors = readiness.blockers(self.root, {**self.setup, 'phase':'after-plan'}, [], self.restore)
+        self.assertTrue(any('npm planning evidence' in error for error in errors))
+
+    def test_actual_graph_proof_cannot_substitute_an_unrelated_manifest(self):
+        path = self.root / 'web/package.json'
+        lock = {'name': 'synthetic resolved peer graph'}
+        proof = {'satisfied': True, 'packageJson': 'web/package.json',
+                 'packageJsonSha256': readiness.hashlib.sha256(path.read_bytes()).hexdigest(),
+                 'lockfile': lock, 'lockfileSha256': sync.package_execution.canonical_hash(lock),
+                 'executionContext': {'contextDigest': 'synthetic selected context'}}
+        evidence = self.root / 'artifacts/program-kit/npm-graph.json'
+        sync.write(evidence, proof)
+        with patch.object(readiness.package_execution, 'context_proof', return_value=proof['executionContext']):
+            self.assertEqual([], readiness.graph_errors(self.root, self.setup))
+            sync.write(self.root / 'future/package.json', {'dependencies': {'react': '19.2.8'}})
+            proof['packageJson'] = 'future/package.json'
+            proof['packageJsonSha256'] = readiness.hashlib.sha256((self.root / proof['packageJson']).read_bytes()).hexdigest()
+            sync.write(evidence, proof)
+            self.assertIn('another package', readiness.graph_errors(self.root, self.setup)[0])
+
+    def test_python_task_does_not_inherit_root_javascript_owner(self):
+        sync.write(self.root / 'package.json', {'devDependencies': {'typescript': '5.9.3'}})
+        (self.root / self.feature / 'tasks.md').write_text('- [ ] T001 Implement src/service.py\n')
+        self.assertEqual([], readiness.owned_targets(self.root, self.feature, [{'path':'package.json'}]))
+
+    def test_plain_task_escape_is_rejected_before_dependency_selection(self):
+        (self.root / self.feature / 'tasks.md').write_text('- [ ] T001 Edit ../outside/package.json\n', encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'escapes repository'):
+            readiness.owned_targets(self.root, self.feature, [])
 
     def test_planning_does_not_require_application_skeleton_but_setup_does(self):
         (self.root / 'web/package.json').unlink()

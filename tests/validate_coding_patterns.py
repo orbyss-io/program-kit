@@ -1,6 +1,8 @@
 """F3 independent admission, evidence invalidation and canonical producer tests."""
 from pathlib import Path
 import copy
+import contextlib
+import io
 import json
 import subprocess
 import sys
@@ -197,7 +199,7 @@ class PatternTests(unittest.TestCase):
             read = Path.read_bytes
             def changed(path):
                 value = read(path)
-                return value.replace(b'Make design decisions', b'Changed canonical decisions') if path == source else value
+                return value.replace(b'Describe the intended outcome', b'Changed canonical decisions') if path == source else value
             before = canonical_rules(['phase-action.planning'])[0]
             with patch.object(Path, 'read_bytes', changed):
                 after = canonical_rules(['phase-action.planning'])[0]
@@ -205,18 +207,22 @@ class PatternTests(unittest.TestCase):
             self.assertIn('Changed canonical decisions', after['text'])
             self.assertEqual(original, source.read_text())
 
-    def test_installed_review_fixture(self):
-        from pattern_review_fixture import scenario
+    def test_custom_stack_inspection_needs_no_native_evaluation_or_consumer_qualification(self):
         with FixtureDirectory(native=True) as directory:
-            result = scenario(directory)
-            self.assertEqual('passed', result['status'])
-            self.assertTrue(result['workingInputsUnchanged'])
-            if result.get('sourceCompletion') == 'blocked-publication-dependency':
-                self.assertTrue(any(b['code'] == 'PKC024' for b in result['sourceBlockers']))
-                self.assertTrue(any(c['name'] == '04-independent-invalid-implementation' and c['actualExit'] == 2 for c in result['commands']))
-                self.assertTrue(any(c['name'] == '04c-independent-browser-remains-available' and c['actualExit'] == 0 for c in result['commands']))
-            else:
-                self.assertTrue(any(c['name'] == '23-restored-qualified-context' and c['actualExit'] == 0 for c in result['commands']))
+            root = Path(directory)
+            feature = root / 'specs/request'; feature.mkdir(parents=True)
+            (feature / 'spec.md').write_text('# Request registration\nA requester registers a request.\n')
+            (feature / 'plan.md').write_text('Use a local Rust pattern with ordinary cargo checks; no managed generator.\n')
+            before = {p.relative_to(root):p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            output = io.StringIO()
+            with patch.object(sys, 'argv', ['coding_patterns.py', 'inspect', '--repository', str(root), '--feature-dir', 'specs/request']), \
+                    patch.object(patterns.subprocess, 'run', side_effect=AssertionError('Inspection ran engineering')), \
+                    contextlib.redirect_stdout(output):
+                self.assertEqual(0, patterns.main())
+            value = json.loads(output.getvalue())
+            self.assertIn('no toolkit qualification', value['manualAlternative'])
+            self.assertIn('specs/request/plan.md', value['projectChoices'])
+            self.assertEqual(before, {p.relative_to(root):p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
 
 if __name__ == '__main__':

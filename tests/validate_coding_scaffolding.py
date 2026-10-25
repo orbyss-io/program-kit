@@ -16,6 +16,49 @@ import typed_operation
 
 
 class ScaffoldTests(unittest.TestCase):
+    def test_native_preview_needs_real_recipe_inputs_without_lifecycle_or_pattern_receipts(self):
+        with FixtureDirectory(native=True) as directory:
+            root = Path(directory)
+            (root / '.program-kit').mkdir()
+            (root / '.program-kit/managed.json').write_bytes(b'{"files":{}}\n')
+            eng = root / 'eng'; eng.mkdir()
+            roles = {'core':'core', 'runtime':'implementation', 'api':'implementation', 'provider':'provider', 'test':'test'}
+            kinds = {'core':'pure-policy', 'runtime':'runtime', 'api':'http', 'provider':'persistence', 'test':'test'}
+            declarations = []
+            for key, role in roles.items():
+                project = root / self.owners[key]
+                project.parent.mkdir(parents=True)
+                refs = [] if key == 'core' else [self.owners['core']]
+                if key == 'test':
+                    refs.append(self.owners['runtime'])
+                packages = {'api':['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'],
+                            'provider':['Orbyss.Foundation.PostgreSql']}.get(key, [])
+                items = ''.join(f'<PackageReference Include="{name}" Version="0.3.7"/>' for name in packages)
+                items += ''.join(f'<ProjectReference Include="{os.path.relpath(root / ref, project.parent)}"/>' for ref in refs)
+                project.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework>'
+                    '</PropertyGroup><ItemGroup>' + items + '</ItemGroup></Project>', encoding='utf-8')
+                declarations.append({'path':self.owners[key], 'role':role, 'projectReferences':refs,
+                    'responsibilities':[{'name':key, 'kind':kinds[key], 'effects':[]}]})
+            (eng / 'architecture.json').write_text(json.dumps({'runtimeComposition':{'projects':declarations}}))
+            frontend = root / self.owners['frontend']; frontend.mkdir(parents=True)
+            (frontend / 'package.json').write_text('{"private":true}\n')
+            (eng / 'openapi-contracts.json').write_text('{"contracts":["eng/labels-api.json"]}\n')
+            contract = {'generator':{'generatedTypes':self.owners['generatedTypes']},
+                        'application':{'directory':self.owners['frontend']}}
+            (eng / 'labels-api.json').write_text(json.dumps(contract))
+            before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            plan, outputs = scaffold.preview(root, root / 'specs/001-label', 'typed-label', self.owners)
+            self.assertTrue(outputs and all(row['kind']=='create' for row in plan['actions']))
+            self.assertFalse(plan['conflicts'])
+            self.assertEqual(before, {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()})
+            self.assertFalse((root / 'docs/architecture').exists(), 'No consumer qualification/approval files are needed')
+            api = root / self.owners['api']
+            api.write_text(api.read_text().replace('Version="0.3.7"', 'Version="0.3.5"'))
+            rejected = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            with self.assertRaisesRegex(ValueError, 'public problem contract'):
+                scaffold.preview(root, root / 'specs/001-label', 'typed-label', self.owners)
+            self.assertEqual(rejected, {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()})
+
     def test_emitted_csharp_readability_and_independent_syntax_negatives(self):
         from csharp_readability_check import check
         self.assertEqual(0, check())

@@ -11,7 +11,6 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
-import bootstrap_compatibility as compatibility
 from runtime_fixture import standalone_build_files
 
 
@@ -67,21 +66,15 @@ class FixtureIsolationTests(unittest.TestCase):
             broken = run('restore', 'Probe.csproj', '--configfile', 'NuGet.config', '--verbosity', 'quiet')
             self.assertNotEqual(0, broken.returncode)
             self.assertIn('NU1015', broken.stdout + broken.stderr)
-            contract = {'fixtures': {'Probe.csproj': 'probe.csproj', 'Program.cs': 'Program.cs'}, 'dependencyTargets': ['Probe.csproj']}
             offline = b'<configuration><packageSources><clear /></packageSources></configuration>'
-            # Use real shared preparation/configuration; only external selection
-            # is fictional. No restore, SDK or MSBuild operation is mocked.
-            original_configuration = compatibility.configuration
-            def configuration(*args, **kwargs):
-                pins, files = original_configuration(*args, **kwargs)
-                files['NuGet.config'] = offline
-                return pins, files
-            with patch.object(compatibility, 'context', return_value={'toolchainPins': {}}), \
-                 patch('fixture_readiness.stale_inputs', return_value=[]), \
-                 patch.object(compatibility, 'configuration', side_effect=configuration):
-                _, plan = compatibility.prepare(root, scratch, contract)
-            self.assertEqual('nuget-project', plan['targets'][0]['packages'][0]['materializationKind'])
+            # Exercise the current standalone boundary directly. The retired
+            # bootstrap proof runner is not part of consumer installation.
+            scratch.mkdir(parents=True, exist_ok=True)
+            (scratch / 'Probe.csproj').write_bytes(source.read_bytes())
+            (scratch / 'Program.cs').write_bytes((root / 'Program.cs').read_bytes())
+            (scratch / 'NuGet.config').write_bytes(offline)
             for name, payload in standalone_build_files().items():
+                (scratch / name).write_bytes(payload)
                 self.assertEqual(payload, (scratch / name).read_bytes())
             # Both root and nested targets must stop before ancestor imports.
             nested = scratch / 'Nested'; nested.mkdir()

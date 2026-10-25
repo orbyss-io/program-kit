@@ -1,128 +1,65 @@
 ---
-description: Found or resume a Program Kit product from a rough idea or an existing design, establish shared product and architectural understanding, and continue directly to first feature intake.
-scripts:
-  py: scripts/product_intake.py
+description: Understand or resume a product, record human decisions in readable documents, and continue directly to native feature specification.
 ---
 
-# Product intake and founding
+# Product intake
 
-Use this skill for a new product or a substantive correction to its founding baseline. Accept
-anything from a rough idea to a designed application. Preserve supplied decisions, examples,
-constraints and open questions; do not make a rich design repeat a generic questionnaire.
-Ordinary feature work uses specification-intake. No workflow engine or authoring worker is needed.
+Use this skill from a rough idea through a thoroughly designed application. Reuse supplied design,
+existing architecture files and settled answers. Treat 0.x documents as useful inputs to deliberate
+re-onboarding, never converted workflow authority. Resume from current intent, consequential ADRs,
+constitution, roadmap and the current unanswered frontier rather than replaying old stage briefs.
 
-## Resume from durable intent
+## Understand and challenge
 
-Treat `$ARGUMENTS` and the current message as intent or corrections. Read the existing
-`docs/architecture/project-intent.md`, confirmed intake and canonical map when present. Run
-`python .specify/extensions/program-kit-governance/scripts/bootstrap_intake.py changes --json`
-to identify bound-source drift. If a skill-led approval exists, first use `product_intake.py status`
-to validate its durable settled scope. Expected ADR/status promotion and unrelated later feature/map
-additions do not invalidate product meaning or require a new founding. Explain consequential changes and review them before replacing
-accepted meaning. Saved workflow runs, receipts, consumer locks and prior decisions are evidence;
-never restart, complete or convert an old workflow automatically.
+Read references/intake-method.md, references/functional-discovery.md and the shipped grilling skill
+as relevant. Investigate business meaning and consequential external facts. Establish purpose,
+actors, success, real journeys and important domain concepts, entities, roles, lifecycles, policies,
+invariants, ownership and trust. Use concrete examples to expose contradictions. Ask consequential
+questions in dependency order; do not repeat answers or frontload exhaustive future design.
+Deepen future behavior vertically when its feature is selected.
 
-Keep the current settled intent, named decisions, provisional assumptions, unanswered frontier,
-next action and due obligations in the existing intent/map/ADRs/roadmap. Do not add a session
-ledger, transcript, assessment, research report, decision backlog or closure dossier. Resume the
-next meaningful action from those artifacts; a missing workflow status is irrelevant.
+Distinguish explicit human decisions, disclosed defaults, researched conclusions, proposals and
+unknowns. Preserve their rationale and sources. Curated technology/capability knowledge is a
+convenient researched default. The consumer can select another language, stack or pattern; research
+its actual contracts and state automation limits without requiring consumer qualification receipts.
+Tools never choose consumer business policies or taste.
 
-## Understand the product
+## Preserve connected intent
 
-Read `references/intake-method.md`, `references/functional-discovery.md`, and the shipped
-`speckit.program-kit-governance.grilling` command. Use its dependency-aware frontier questions
-in this conversation. Read `references/capability-index.json`, then only the knowledge relevant
-to actual needs. Reuse already supplied answers and current research. Research existing business
-meaning and current external facts where consequential, preserving sources and uncertainty.
-Do not turn research into a mandatory separate authoring stage.
+Use a few ordinary authored files, proportional to the actual product:
 
-Reflect purpose, actors and observable success. Walk through meaningful journeys in the user's
-language. Establish important concepts/entities, identity, roles, relationships, lifecycles,
-policies, invariants, ownership, trust, consistency and history broadly enough to understand
-shared boundaries. Use examples to expose contradictions. Resolve uncertainty now when its
-answer changes the foundation or what should be specified. Deepen future detailed behavior at
-its feature intake; preserve supplied detail and rationale as candidate feature seeds.
+- docs/architecture/project-intent.md: purpose, journeys, scope/non-goals, settled decisions with
+  provenance, relevant domain meaning, assumptions, unanswered questions with owner/trigger and next action.
+- .specify/memory/constitution.md: substantive principles, testing/review policy and amendment process.
+  Use native speckit.constitution when helpful. Ratification is an explicit human decision in this document.
+- consequential ADRs: alternatives, rationale, consequences and individual Proposed/Accepted/etc status.
+- a small language-neutral docs/architecture/architecture-map.json for domain/C4 identities and relations.
+  Use references/architecture-map-minimal.json as a starting example and architecture-map-v2.schema.json.
+  Keep optional domain detail readable and add it only when useful. Architecture documents and local
+  alternatives remain valid; do not create a map merely to unlock another phase.
+- technology choices and outcome roadmap, in the intent or separate short documents when useful.
+  Use qualified Foundation capabilities/shells when selected; explain planned ownership and actual
+  helper limitations. An independent stack requires its own real checks, not Program Kit qualification.
 
-Apply supported technical defaults transparently when clearly applicable. Distinguish explicit
-user decisions, Program Kit defaults, derived conclusions, proposals and unknowns. Tools do not
-define consumer policies, product meaning or taste. Preserve exclusions. Explain unmatched needs
-as lacking a declared managed capability, without claiming the product cannot support them.
-For each actual capability preserve mechanism coverage, consumer semantic ownership/profile,
-integration ownership, provider selection and decision state.
+No assessment, acceptance-scope file, authoring JSON, review packet, confirmation receipt, hash basis,
+workflow completion, backlog dossier or installed runtime proof is required for intake. Optional
+architecture_map.py validate/export checks actual map shape and relationships; product_intake.py
+inspect reports present context. Neither records acceptance. Read references/product-founding.md
+for focused helper commands. Existing locks and published dependency knowledge retain their owners.
 
-Classify identified subdomains as Core, Supporting or Generic. Propose bounded contexts only
-where language, ownership, lifecycle, policy or consistency justify a boundary. Challenge suspicious
-cross-cutting boundaries. Preserve responsibilities/non-responsibilities, important language,
-owned data, invariants, lifecycles, separation rationale and split triggers. Do not invent exhaustive
-future entities, endpoints, providers or runtime resources merely to fill a template.
+## Confirm meaning and continue
 
-## Author one connected foundation
+Present the connected understanding, consequential choices and alternatives, disclosed defaults,
+assumptions, unresolved frontier and recommended first useful outcome. Obtain explicit human
+confirmation of product meaning and record the actual answer/context in project-intent.md.
+Constitution ratification and each Accepted ADR are distinct decisions: obtain and record those
+actually settled, preserving other proposals. Silence, generated files and successful checks are
+not consent. Reopen substantive changed meaning; formatting and unrelated additions do not
+revoke a human decision. A simulated proxy supplies no human acceptance.
 
-Read `references/intake-artifacts.md` and its worked example when ready to author. Use the
-schema-derived descriptors for unfamiliar records, then `intake_authoring.py build-draft` to
-produce the intake, map and DSL from `docs/architecture/intake-authoring.json`. Keep the linked
-functional understanding and stable evidence IDs in `project-intent.md`. Use
-`Intake status: see bootstrap-intake.json status`; don't duplicate transient state in prose.
-Draft boundaries and candidate decisions remain proposed until explicitly accepted.
-
-Produce together, refining contradictions across them:
-
-- product intent, important journeys and candidate features with preserved detail and provenance;
-- a constitution governing the product and ordinary delivery;
-- consequential named ADRs, with real alternatives, rationale and consequences;
-- the canonical domain/C4 map and generated `workspace.dsl`, including source journeys and owned
-  context/module relationships;
-- `docs/architecture/architecture.md`, a concise explanation of the chosen boundaries and their
-  important policies/lifecycles, with references to the canonical map and decisions;
-- `docs/architecture/technology-radar.md`, identifying adopted tools/profiles, justified overrides,
-  proposals and the relevant evidence;
-- `docs/architecture/specification-roadmap.md`, with epic outcomes, candidate feature seeds and
-  actual prerequisites. Recommend a first useful outcome without commissioning siblings;
-- relevant qualified Foundation capability/shell selections, with explicit consumer ownership,
-  decision references and planned placements. Missing greenfield files are planned placements;
-  don't scaffold or restore merely to write their paths.
-
-Read `references/product-founding.md` for exact focused commands, acceptance boundaries and
-engineering handoff. Reuse `bootstrap-decisions.json` only for supported machine-readable profile,
-provider and toolchain choices used by focused setup owners; it is not an assessment approval.
-Run `product_intake.py defaults` after supplying the intended selected profiles and overrides.
-Do not invent an alternative configuration registry. Existing qualified profiles, native ownership
-baselines and accepted locks remain owned by their normal tools.
-
-## Review and acceptance
-
-Before human review, validate the draft intake and actual map/selection/reference contracts.
-Present the shared understanding, domain/context challenges, named decisions and alternatives,
-applied defaults and consequences, first outcome, provisional assumptions and due questions.
-Resolve immediate contradictions; retain genuinely later obligations with an owner and trigger.
-Intake confirmation establishes the accuracy of its synthesis, not ADR acceptance. After explicit
-confirmation set only intake status to `confirmed` and run `bootstrap_intake.py validate --json`.
-Do not refresh changed source hashes to disguise drift.
-
-Draft and ratify the constitution through its existing begin/review/ratify commands, after explicit
-human ratification. Then run `product_intake.py review`. Show its exact named artifacts and map
-scope. Only after the human explicitly accepts that foundation run
-`product_intake.py accept --verdict approve`, then `product_intake.py validate`.
-If scope extends beyond the founding candidates, use the existing acceptance-scope contract to
-name the additional decision IDs and affected map elements/relationships. A proposal outside
-that scope stays provisional. Never infer acceptance from silence, a hash, successful execution,
-or an intake confirmation. Proxy answers remain fictional and cannot supply authority.
-
-Acceptance promotes only the reviewed ADR/map scope and qualified Draft selection. It preserves
-original intake provenance. No runtime compatibility, feature implementation or delivery result
-follows from acceptance. Don't create a completion receipt or call native workflow completion.
-
-## Continue directly to a feature
-
-After acceptance, offer the recommended outcome and invoke the shipped
-`speckit.program-kit-governance.specification-intake` skill in this session for the user's selected
-first feature. A missing or non-Ready roadmap entry does not prohibit useful feature intake.
-Do not interpose assessment/research/backlog/closure stages, runtime proof matrices, repository
-restore or fresh authoring workers. Carry relevant unanswered questions to their owning feature
-and actual action. A pre-spec feasibility experiment is justified only if its answer changes what
-should be specified; state that question and evidence limit first.
-
-At planning, implementation, restore, provider use or delivery, run the checks the actual action
-requires through existing phase, repository-sync, composition and engineering owners. Failures,
-unavailable prerequisites and stale evidence stay visible. A reviewed founding artifact is never
-proof that those checks passed.
+Continue directly to speckit.program-kit-governance.specification-intake for the selected feature,
+then ordinary native speckit.specify/clarify/plan/tasks/implement. No roadmap ID or Ready status is
+an eligibility gate. Carry relevant questions into that feature's normal spec/plan; irrelevant
+future detail stays deferred. Run environment, restore, provider or application checks only when
+the actual action needs them. A pre-spec experiment is justified only when its answer changes
+what should be specified. Preserve failures and evidence limits honestly.

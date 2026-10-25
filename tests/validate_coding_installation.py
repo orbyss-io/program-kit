@@ -11,7 +11,6 @@ sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'scripts'),
                str(ROOT / 'extensions/program-kit-governance/scripts')]
 from owned_fixture import FixtureDirectory
 import asset_sources
-import release_guidance
 
 
 def require_original_witnesses(original, current):
@@ -33,9 +32,8 @@ class InstallationContracts(unittest.TestCase):
         rendered = phase_obligations.render({'requirements': value['requirements']}, 'planning', detailed=True)
         self.assertIn('ALLOWED_ROLE_REFERENCES', rendered)
         self.assertNotIn('Retained illustrative example', rendered)
-        import historical_phase_evidence
-        with self.assertRaisesRegex(ValueError, 'Historical projection/renewal is retired'):
-            historical_phase_evidence.catalog()
+        for retired in ('task_draft.py', 'historical_phase_evidence.py', 'conformance_repair.py', 'feature_plan_decisions.py'):
+            self.assertFalse((ROOT / 'extensions/program-kit-governance/scripts' / retired).exists())
 
     def test_original_witness_rows_and_exact_fixture_catalog_remain_unchanged(self):
         commit = '4b90dc7ea6458fc2fbd6a5ae7e35c552426ad9e8'
@@ -62,7 +60,7 @@ class InstallationContracts(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, 'missing or changed'):
             require_original_witnesses([first, second], [first, changed])
 
-    def test_packed_generated_guides_keep_independent_original_checksum_authority(self):
+    def test_current_guides_match_release_source_and_packed_data_rejects_corruption_or_code(self):
         from build_release_guidance import build
         with FixtureDirectory() as directory:
             component = Path(directory)
@@ -72,16 +70,17 @@ class InstallationContracts(unittest.TestCase):
             for p in guides.iterdir(): p.unlink()
             pack = component / asset_sources.PACK
             pack.write_bytes(asset_sources.encoded(original))
-            index = release_guidance.load_index(guides, (ROOT / 'VERSION').read_text().strip())
+            self.assertEqual({'references/release-guidance/RELEASE-NOTES.md',
+                              'references/release-guidance/COMPATIBILITY.md'}, set(original))
             self.assertEqual(original, asset_sources.packed(component))
-            # Independently change guide content and recompute its pack hash.
-            # The unchanged release index must still reject that semantic source.
-            name = 'references/release-guidance/' + index['entries'][-1]['guide']
-            changed = {**original, name: original[name] + b'\nIncorrect changed guide.\n'}
-            pack.write_bytes(asset_sources.encoded(changed))
-            self.assertEqual(hashlib.sha256(changed[name]).hexdigest(), json.loads(pack.read_bytes())['files'][name]['sha256'])
-            with self.assertRaisesRegex(ValueError, 'release guide hash differs'):
-                release_guidance.load_index(guides, (ROOT / 'VERSION').read_text().strip())
+            name = 'references/release-guidance/RELEASE-NOTES.md'
+            self.assertEqual((ROOT / 'releases/preview.md').read_bytes().replace(b'\r\n', b'\n'),
+                             asset_sources.read(component / name))
+            data = json.loads(pack.read_bytes())
+            data['files'][name]['sha256'] = '0' * 64
+            pack.write_text(json.dumps(data), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'source asset bytes differ'):
+                asset_sources.read(component / name)
             # Packs remain data; they cannot replace the executable validator.
             pack.write_bytes(asset_sources.encoded({'scripts/release_guidance.py': b'forged'}))
             with self.assertRaisesRegex(ValueError, 'executable owner scripts'):

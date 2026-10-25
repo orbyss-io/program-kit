@@ -378,9 +378,9 @@ def main() -> int:
         valid = viewer.validate_projection(project)
         if (
             not valid["projection_current"]
-            or valid["intake_binding"] != "draft-intake"
-            or valid["review_mode"] != "draft-intake-review"
-            or valid["intake_status"] != "draft"
+            or valid["intake_binding"] != "not-required"
+            or valid["review_mode"] != "authored-map-review"
+            or valid["intake_status"] != "not-required"
         ):
             raise AssertionError(f"Current draft projection was not accepted for review: {valid}")
         if valid["confirmation_performed"] or valid["architecture_acceptance_performed"]:
@@ -446,7 +446,7 @@ def main() -> int:
         draft_before_start = snapshot(project)
         try:
             started = viewer.start_session(project, "auto", None, None, True, True)
-            if started["review_mode"] != "draft-intake-review" or not opened:
+            if started["review_mode"] != "authored-map-review" or not opened:
                 raise AssertionError("Current draft intake did not open in read-only review mode")
             assert started["diagram_available"] and started["browser_opened"]
             assert started["visual_review_performed"] is False
@@ -691,12 +691,9 @@ def main() -> int:
         dsl_path = project / "docs/architecture/workspace.dsl"
         original_dsl = dsl_path.read_text(encoding="utf-8")
         intake_path = project / "docs/architecture/bootstrap-intake.json"
-        registered = json.loads(intake_path.read_text(encoding="utf-8"))
-        registered["artifacts"]["c4_projection"]["sha256"] = "0" * 64
-        write(intake_path, json.dumps(registered, indent=2) + "\n")
-        expect_failure(lambda: viewer.validate_projection(project), "Draft bootstrap intake hashes do not match")
-        registered["artifacts"]["c4_projection"]["sha256"] = digest(dsl_path)
-        write(intake_path, json.dumps(registered, indent=2) + "\n")
+        # Preserved old authoring metadata is not viewer authority.
+        write(intake_path, "{malformed historical metadata")
+        viewer.validate_projection(project)
 
         for expected_style in ("background #2563EB", "ProgramKitStatus:proposed", "routing Orthogonal"):
             if expected_style not in original_dsl:
@@ -710,33 +707,15 @@ def main() -> int:
         expect_failure(lambda: viewer.validate_projection(project), "C4 projection is missing")
         write(dsl_path, original_dsl)
 
-        registered = json.loads(intake_path.read_text(encoding="utf-8"))
-        write(intake_path, "{\n")
-        expect_failure(lambda: viewer.validate_projection(project), "Cannot read bootstrap intake")
-        write(intake_path, json.dumps(registered, indent=2) + "\n")
-        registered["status"] = "pending"
-        write(intake_path, json.dumps(registered, indent=2) + "\n")
-        expect_failure(lambda: viewer.validate_projection(project), "status must be draft or confirmed")
-        registered["status"] = "confirmed"
-        write(intake_path, json.dumps(registered, indent=2) + "\n")
-        confirmed = viewer.validate_projection(project)
+        # Viewing a fictional draft conveys no acceptance and needs no authoring receipt.
         marker = project / '.specify/proxy-intake.json'
         write(marker, '{}')
-        expect_failure(lambda: viewer.validate_projection(project), 'PROXY_INTAKE_NON_AUTHORIZING')
+        assert viewer.validate_projection(project)['architecture_acceptance_performed'] is False
         marker.unlink()
-        if confirmed["review_mode"] != "confirmed-baseline-review" or confirmed["intake_binding"] != "confirmed-intake":
-            raise AssertionError(f"Confirmed intake review regressed: {confirmed}")
-
         value["title"] = "Evolved review system"
         write(project / "docs/architecture/architecture-map.json", json.dumps(value, indent=2) + "\n")
         write(dsl_path, architecture.StructurizrDslExporter().export(value))
-        evolved = viewer.validate_projection(project)
-        if evolved["intake_binding"] != "evolved-together-from-confirmed-intake":
-            raise AssertionError("A current generated pair did not report its older intake binding")
-        registered["artifacts"]["architecture_map"]["sha256"] = digest(project / "docs/architecture/architecture-map.json")
-        registered["artifacts"]["architecture_map"]["bytes"] = (project / "docs/architecture/architecture-map.json").stat().st_size
-        write(intake_path, json.dumps(registered, indent=2) + "\n")
-        expect_failure(lambda: viewer.validate_projection(project), "partial architecture drift")
+        assert viewer.validate_projection(project)['projection_current']
 
         create_project(project, architecture, semantic, semantic.semantic_model(project / "docs/architecture/project-intent.md"))
         state = {

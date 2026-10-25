@@ -144,7 +144,11 @@ class WorkflowTests(unittest.TestCase):
         updater = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(updater)
         text = (ROOT / 'README.md').read_text()
-        updated = updater.update_text(text, '0.13.1')
+        # Stable example replacement is tested independently of today's preview
+        # installation instructions. A stable badge update must preserve them.
+        examples = text + '\nhttps://github.com/orbyss-io/program-kit/releases/download/v0.12.9/Initialize-ProgramKit-0.12.9.cmd\nprogram-kit-0.12.9.zip\nHistorical dependency profile v0.12.5\n'
+        updated = updater.update_text(examples, '0.13.1')
+        self.assertIn('Initialize-ProgramKit-1.0.0-preview.1.cmd', updated)
         self.assertIn('Latest available release: **[v0.13.1]', updated)
         self.assertIn('releases/download/v0.13.1/Initialize-ProgramKit-0.13.1.cmd', updated)
         self.assertIn('program-kit-0.13.1.zip', updated)

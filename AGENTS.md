@@ -22,8 +22,8 @@ timeouts and overruns are not success. Every check owns only the prerequisites i
 Do not install device toolchains from an agent or substitute local runtime copies.
 
 The six representative mechanical families establish an initial baseline with
-`--suite Baseline`. They cover installation, phases, knowledge, founding intake, upgrade and
-scaffolding, with explicit limits. Expensive native, database, browser and Host checks
+`--suite Baseline`. They cover installation, native phases, scoped knowledge, product intake, preview toolkit updates and
+optional scaffolding, with explicit limits. Expensive native, database, browser and Host checks
 need a concrete affected contract; broad scenario investigations require `--check` and
 `--reason`. Do not rerun broad matrices simply because composition or a shared SDK changed.
 Use representative mechanisms and expand coverage when an observed regression warrants it.
@@ -53,6 +53,12 @@ individually user-authorized; the release-readiness skill grants no paid-worker 
 publication authority. No trial run means no AI acceptance claim. Installation, interactive
 launcher startup and provider account/authority initialization remain human-terminal-owned.
 The installed product-intake skill authors and reviews the baseline in the consumer conversation.
+Native Spec Kit phases own delivery. Preserve user-agreed human review points in ordinary
+plans/tasks and pause for actual decisions; do not add approval fingerprints, hidden checkpoint
+ledgers or a parallel lifecycle engine. Optional engineering helpers enforce only the
+contracts of their selected operation. Using knowledge does not require those helpers.
+The 0.x-to-1.0.0-preview.1 boundary uses fresh intake with existing architecture as input;
+old workflow state is not migrated. Subsequent previews preserve authored work.
 `Start-IntakeSession.ps1 -PrepareOnly` starts no coding agent or workflow. Release
 trial preparation verifies candidate packages and actual local prerequisites in a
 disposable consumer; it does not create additional release qualification.

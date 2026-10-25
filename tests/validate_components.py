@@ -12,13 +12,14 @@ from specify_cli.extensions import ExtensionManifest
 from specify_cli.presets import PresetManifest
 
 EXPECTED_HOOKS = {
-    'before_constitution', 'after_constitution', 'before_specify', 'after_specify',
+    'before_specify', 'after_specify',
     'before_plan', 'after_plan', 'before_tasks', 'after_tasks',
     'before_implement', 'after_implement',
 }
 RETIRED_COMMANDS = {
     'assessment', 'research', 'tooling', 'roadmap', 'bootstrap-closure',
-    'bootstrap-recovery', 'proxy-bootstrap',
+    'bootstrap-recovery', 'proxy-bootstrap', 'bootstrap',
+    'constitution-begin', 'constitution-review', 'constitution-ratify',
 }
 
 
@@ -78,8 +79,7 @@ def main():
 
     governance = components['program-kit-governance']
     registered = {item['name'] for item in governance['provides']['commands']}
-    required = {'product-intake', 'bootstrap', 'grilling', 'specification-intake',
-                'constitution-begin', 'constitution-review', 'constitution-ratify',
+    required = {'product-intake', 'grilling', 'specification-intake',
                 'architecture', 'architecture-check', 'readiness', 'implementation-check',
                 'phase-context', 'sync', 'upgrade', 'repair-request', 'view-c4'}
     require({'speckit.program-kit-governance.' + name for name in required} <= registered,
@@ -98,10 +98,6 @@ def main():
                     'Required hook was weakened: ' + event)
             require(declaration['command'] in registered or declaration['command'] in {'speckit.clarify', 'speckit.analyze'},
                     'Hook names an unavailable command: ' + event)
-    require(hooks['before_constitution']['command'].endswith('.constitution-begin')
-            and hooks['after_constitution']['command'].endswith('.constitution-review'),
-            'Constitution draft/review ownership changed')
-
     preset_root = root / 'presets/program-kit-governance-preset'
     PresetManifest(preset_root / 'preset.yml')
     preset = yaml.safe_load((preset_root / 'preset.yml').read_text(encoding='utf-8'))
@@ -111,16 +107,15 @@ def main():
     require(set(templates) == {'constitution-template', 'spec-template', 'plan-template', 'tasks-template'},
             'Governance preset lost an ordinary lifecycle template')
     for name, item in templates.items():
-        require(item.get('strategy') == ('replace' if name == 'tasks-template' else 'append'),
+        require(item.get('strategy') == 'append',
                 'Template composition strategy changed: ' + name)
     commands = {item['name']: item for item in entries if item['type'] == 'command'}
     require(set(commands) == {'speckit.tasks', 'speckit.implement', 'speckit.analyze'},
             'Native governance command contribution changed')
     for name, item in commands.items():
-        require(item.get('strategy') == ('append' if name == 'speckit.analyze' else 'replace'),
+        require(item.get('strategy') == 'append',
                 'Native command composition strategy changed: ' + name)
-        if name != 'speckit.analyze':
-            require(item.get('replaces') == name, 'Native command replacement ownership changed: ' + name)
+        require(not item.get('replaces'), 'Knowledge contribution must preserve the native command: ' + name)
     for entry in entries:
         source_file(preset_root, entry['file'])
 
@@ -141,18 +136,18 @@ def main():
     require(not workflows.get('workflows'), 'Retired workflow is still advertised for installation')
 
     owner = root / 'extensions/program-kit-governance'
-    for relative in ('scripts/product_intake.py', 'scripts/bootstrap_intake.py', 'scripts/intake_authoring.py',
+    for relative in ('scripts/product_intake.py', 'scripts/specification_intake.py',
                      'scripts/architecture_map.py', 'scripts/c4_view.py', 'scripts/governance_state.py',
                      'references/product-founding.md', 'references/intake-artifacts.md',
                      'references/intake-method.md', 'references/functional-discovery.md'):
         source_file(owner, relative)
-    for filename in ('bootstrap-intake.schema.json', 'architecture-map.schema.json', 'bootstrap-decisions.schema.json'):
+    for filename in ('architecture-map.schema.json', 'architecture-map-v2.schema.json'):
         schema = json.loads(source_file(owner, 'references/' + filename).read_text(encoding='utf-8'))
         require(schema.get('$schema') == 'https://json-schema.org/draft/2020-12/schema',
                 'Founding schema dialect changed: ' + filename)
-    intake = json.loads((owner / 'references/bootstrap-intake.schema.json').read_text(encoding='utf-8'))
-    require(intake['properties']['status'] == {'enum': ['draft', 'confirmed']},
-            'Intake no longer distinguishes draft synthesis from human confirmation')
+    minimal = json.loads((owner / 'references/architecture-map-minimal.json').read_text(encoding='utf-8'))
+    require(minimal.get('schema_version') == '2.0' and minimal.get('elements'),
+            'Small language-neutral architecture example is missing')
     viewer = json.loads((owner / 'references/c4-viewer-tool.json').read_text(encoding='utf-8'))['selected']
     require(viewer.get('docker_image') == 'structurizr/structurizr:' + viewer.get('version', '')
             and re.fullmatch(r'sha256:[0-9a-f]{64}', viewer.get('docker_digest', '')),

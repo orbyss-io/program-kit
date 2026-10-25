@@ -9,21 +9,16 @@ rerunning init alone does not repair an existing ownership/DACL problem. Preserv
 reviewed clean-start guidance below if affected.
 
 After installation, invoke `$speckit-program-kit-governance-product-intake` inside the current
-Codex conversation. It understands the product, authors connected founding artifacts, preserves
-provenance and frontier questions, and obtains explicit constitution/ADR review through focused
-scripts. It then continues directly to the selected first feature intake. It does not start an
-outer workflow or another coding worker. See [focused product founding](../extensions/program-kit-governance/references/product-founding.md).
+Codex conversation. Review product intent, constitution, consequential ADRs, selected technologies,
+domain/C4 content, journeys and roadmap with the human, then begin feature intake and native
+Spec Kit work. Existing architecture documents can be supplied as input. Agreed human review
+points remain visible in ordinary plans/tasks; no approval fingerprint or hidden checkpoint is
+required to use the knowledge.
 
-The former bootstrap workflow is retired. Old run/resume/reopen launchers return an actionable
-product-intake diagnostic. Saved workflow records and proof bytes remain historical evidence;
-an unfinished run is never marked complete or automatically converted. Upgrade removes only
-owned active workflow files/registration and refuses consumer customizations until reconciled.
-
-Interpreter selection and schema dependencies retain their focused setup owners. Prepare the
-exact schema runtime only when a validator needs it; missing dependencies remain explicit errors.
-Native toolchains, provider accounts and runtime compatibility are checked at the action that
-actually requires them, not by founding status. Never copy credentials or loosen sandbox access
-as a setup workaround.
+The 0.x line requires fresh intake in a clean preview installation. Preserve the previous working
+copy and authored files. Old workflow records remain historical input; they are not converted into
+new authority. Subsequent preview toolkit updates preserve ongoing authored work and refuse
+customized toolkit outputs rather than silently replacing them.
 
 ## Clean start after agent-owned initialization
 

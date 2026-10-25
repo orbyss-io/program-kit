@@ -59,12 +59,12 @@ package run, checksums and validation limitations in the run summary. The `publi
 environment then pauses for your native GitHub approval. That single decision accepts
 the developer-reported validation and limitations and authorizes tag creation and
 publication. After approval the workflow rechecks source, inspected package digest and
-security freshness, creates the stable tag and promotes the original bytes. It neither
+security freshness, creates the inspected version tag and promotes the original bytes. It neither
 rebuilds packages nor reruns deterministic acceptance. An expired scan requires fresh
 security before approval/publication; unchanged packages do not require rebuilding.
 
 A green source implementation check is not a successful release. Tell consumers the
-version is available only after public bytes and the supported installation/upgrade
+version is available only after public bytes and the supported installation
 path are verified. Program Kit consumes already-public Foundation packages; it does
 not republish Foundation from a Program Kit tag.
 
@@ -108,3 +108,32 @@ ceilings bound the current distribution mechanisms; they do not create a pack AB
 The complete payload now keeps loose original sources rather than aggregating
 historical facts/examples solely to satisfy the native entry ceiling. Historical
 packed-source readers remain supported and independently tested.
+
+## Preview channel and re-onboarding
+
+Product release identities support `1.0.0-preview.1`, `1.0.0-preview.2`, and later numeric previews.
+All current manifests, archive names, checksums, initializer tags and catalog URLs must agree.
+External software/profile versions retain their separate owners. The GitHub publisher marks previews
+as prereleases with `--latest=false`; both creation and same-byte retries preserve that channel.
+The stable published-release README block continues to describe the actual latest stable release.
+
+Choose a preview explicitly through its tagged initializer URL. The first 1.0 preview deliberately
+refuses in-place 0.x migration before writing files. Keep the original checkout and re-onboard in a
+fresh checkout, using useful authored product/architecture documents as intake inputs. Historical
+workflow state and approval receipts are not translated. No cumulative migration dossier is shipped
+or required for this boundary. The release assets carry concise release notes and compatibility text.
+
+Later optional toolkit refreshes use the downloaded complete new and previous preview sources:
+
+```powershell
+python <new-tooling>/scripts/upgrade_program_kit.py --release-root <new-tooling> --previous-release-root <previous-tooling> --target . --plan
+python <new-tooling>/scripts/upgrade_program_kit.py --release-root <new-tooling> --previous-release-root <previous-tooling> --target .
+```
+
+This is native toolkit replacement, separate from authoring and application dependency migration.
+It preserves authored documents, specifications, application code and native dependency locks.
+Customized/unknown toolkit sources, generated native outputs, aliases or multiple native integration
+owners are refused for explicit owner reconciliation. A failed native refresh rolls back its bounded
+local toolkit/output changes. Exact-source package CI and native publication approval remain required.
+Postpublication delivery verifies the actual tagged initializer and installed entrypoints; the first
+preview does not pretend to demonstrate a semantic upgrade from 0.x.

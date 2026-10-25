@@ -110,16 +110,20 @@ class MigratedTooling(unittest.TestCase):
         self.assertEqual('1.33.0', contract['compatibility']['oasdiffVersion'])
         self.assertEqual('artifacts/runtime/only/packages', contract['packageClosure'])
         self.assertEqual('1.29.1', json.loads((self.root / 'eng/openapi-defaults.json').read_text())['compatibility']['version'])
-        sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
-        import artifact_ownership
-        feature = self.root / 'specs/003-openapi'; feature.mkdir(parents=True)
-        (feature / 'plan.md').write_text('OpenAPI Application.Api is exported from its unique host stage.')
-        with patch.object(artifact_ownership, 'repository_root', return_value=self.root):
-            artifact_ownership.validate_openapi_pipeline(feature, {'profiles': ['dotnet']}, False)
-            contract['packageClosure'] = 'artifacts/release-bundle/packages'
-            (self.root / 'contracts/openapi/only.contract.json').write_text(json.dumps(contract))
-            with self.assertRaisesRegex(ValueError, 'validated host closure'):
-                artifact_ownership.validate_openapi_pipeline(feature, {'profiles': ['dotnet']}, False)
+        manifest = json.loads((self.root / 'eng/.config/dotnet-tools.json').read_text())
+        exporter = manifest['tools']['orbyss.foundation.openapi.exporter']['version']
+        contract_path = self.root / 'contracts/openapi/only.contract.json'
+        validated, paths = pipeline.validate_contract(self.root, contract_path, exporter, '1.33.0')
+        self.assertEqual(contract, validated)
+        self.assertEqual(self.root / 'artifacts/runtime/only/packages', paths['packages'])
+        self.assertEqual(self.root / 'artifacts/composition/closures/application-host.json',
+                         paths['closureEvidence'])
+        contract['packageClosure'] = 'artifacts/release-bundle/packages'
+        contract_path.write_text(json.dumps(contract))
+        with self.assertRaisesRegex(ValueError, 'PKO204 packageClosure must be the exact validated stage'):
+            pipeline.validate_contract(self.root, contract_path, exporter, '1.33.0')
+        for name, payload in self.retained.items():
+            self.assertEqual(payload, (self.root / name).read_bytes())
 
     def test_typed_persona_script_loads_migrated_realm_and_rejects_extra_users(self):
         suite = self.root / 'eng/web'

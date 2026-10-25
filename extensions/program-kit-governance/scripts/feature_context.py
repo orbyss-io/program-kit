@@ -214,20 +214,6 @@ def adopted_context(root, feature, selected_paths=()):
             continue
         technology = element.get('technology', '').lower()
         tags.update(tag for tag, pattern in CAPABILITIES.items() if re.search(pattern, technology))
-    register_path = root / 'docs/architecture/bootstrap-decisions.json'
-    register = json.loads(register_path.read_text(encoding='utf-8')) if register_path.is_file() else {}
-    if 'web' in tags and 'typescript-web' in register.get('selected_profiles', []):
-        tags.add('typescript')
-        sources.append({'path': 'docs/architecture/bootstrap-decisions.json', 'profile': 'typescript-web'})
-    if 'dotnet' in tags and 'dotnet' in register.get('selected_profiles', []):
-        sources.append({'path': 'docs/architecture/bootstrap-decisions.json', 'profile': 'dotnet'})
-    # Retained scoped persistence owners are a stronger signal than feature wording.
-    for owner in register.get('persistence', []):
-        if isinstance(owner, dict) and owner.get('owner') in owned_targets and owner.get('profile') != 'none':
-            tags.add('persistence')
-            sources.append({'path': 'docs/architecture/bootstrap-decisions.json',
-                            'owner': owner['owner'], 'profile': owner.get('profile'),
-                            'status': owner.get('status', 'proposed')})
     # Profile facets come only from the accepted owned projection above. A root
     # profile or an unrelated instance never narrows another feature's duties.
     if targets and selection.get('status') == 'Accepted':
@@ -239,16 +225,6 @@ def adopted_context(root, feature, selected_paths=()):
                            'service_to_service': 'service_to_service'}.get(instance.get('composition'))
                 if profile:
                     tags.add('secure-web:' + profile)
-        web = register.get('web', {})
-        if ('web' in tags and not any(t.startswith('secure-web:') for t in tags)
-                and isinstance(web, dict) and web.get('secure_profile') in ('bff-cookie-v1', 'spa-pkce-v1', 'none-v1')):
-            tags.add('secure-web:' + web['secure_profile'])
-        dotnet = register.get('dotnet', {})
-        if 'dotnet' in tags and isinstance(dotnet, dict):
-            if dotnet.get('program_kit_host_opt_out') is True and isinstance(dotnet.get('opt_out_reason'), str) and dotnet['opt_out_reason'].strip():
-                tags.add('dotnet-host:conventional')
-            elif dotnet.get('program_kit_host_opt_out') is False and dotnet.get('host_runtime') == 'Orbyss.Foundation.Host':
-                tags.add('dotnet-host:foundation')
     return {'tags': tags, 'sources': sources, 'diagnostics': diagnostics}
 MECHANISMS = {
     'async': r'\b(?:async|await|task|valuetask|cancellation|deadline)\b',
@@ -262,10 +238,7 @@ MECHANISMS = {
 
 def responsibility_tags():
     """Vocabulary supplied by this detector, not a second extension registry."""
-    from dotnet_adapter import bootstrap
-    bootstrap()
-    from architecture_rules import RUNTIME_PROJECT_ROLES
-    return {'project-role:' + role for role in RUNTIME_PROJECT_ROLES} | set(CAPABILITIES) | {'all', 'http-api', 'source-production', 'evaluated-dotnet',
+    return {'project-role:' + role for role in ('core', 'helper', 'implementation', 'provider', 'bridge', 'test')} | set(CAPABILITIES) | {'all', 'http-api', 'source-production', 'evaluated-dotnet',
         'secure-web:bff-cookie-v1', 'secure-web:spa-pkce-v1', 'secure-web:none-v1', 'secure-web:service_to_service',
         'dotnet-host:foundation', 'dotnet-host:conventional'} | {'dotnet-' + name for name in MECHANISMS}
 
@@ -298,7 +271,10 @@ def applicable_requirements(catalog, tags, phase='implementation'):
 def affirmative(text):
     """Exclude explicit non-goals from prose inference, never actual package evidence."""
     # Retained task/approval history is not current affirmative feature intent.
-    from operation_readiness import DECISIONS, PLAN_COLUMNS
+    # These are ordinary optional Markdown labels, not a required plan protocol.
+    PLAN_COLUMNS = ['Operation', 'Decision', 'Resolution', 'Source']
+    DECISIONS = {'ownership', 'results', 'limits', 'cancellation-deadline', 'cleanup-uncertainty',
+                 'transactions-replay', 'admission', 'bounds', 'concurrency', 'configuration-time', 'activation-drain'}
     text = re.sub(r'<!--.*?-->', '', text, flags=re.S)
     excluded_depth = None
     lines = []
@@ -411,12 +387,7 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
     # A backend/CLI login operation alone does not establish a browser surface.
     if re.search(identity + r'[^\n]{0,100}' + presentation + '|' + presentation + r'[^\n]{0,100}' + identity, prose, re.I):
         tags.add('web')
-    register = root / 'docs/architecture/bootstrap-decisions.json'
-    if 'web' in tags and register.is_file() and 'typescript-web' in json.loads(
-            register.read_text(encoding='utf-8')).get('selected_profiles', []):
-        tags.add('typescript')
-    if selected or (not frontend_only and not feature_scope(root, feature)['projection']
-                    and (root / 'global.json').is_file()):
+    if selected:
         tags.add('dotnet')
     packages = '\n'.join(engineering).lower()
     # Qualified identity is stronger evidence than wording in the plan.
@@ -439,3 +410,43 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
         mechanisms.add('lifetime')
     tags.update('dotnet-' + name for name in mechanisms if 'dotnet' in tags)
     return tags
+
+
+def markdown_table(content, heading, width):
+    """Read an optional ordinary task table without coding/delivery state."""
+    from knowledge_sources import markdown_headings
+    headings = markdown_headings(content)
+    start = next((index for index, _, title in headings if title == heading), None)
+    if start is None:
+        return []
+    end = next((index for index, _, _ in headings if index > start), len(content.splitlines()))
+    rows = []
+    for line in content.splitlines()[start + 1:end]:
+        if not line.strip().startswith('|'):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
+        if len(cells) != width:
+            raise ValueError('Malformed optional task table: ' + heading)
+        if all(re.fullmatch(r':?-+:?', cell) for cell in cells):
+            continue
+        rows.append(cells)
+    return rows[1:] if rows else []
+
+
+def task_scope(feature, operation=None, task_ids=None, feature_wide=False):
+    """Optional recipe scope from visible task IDs/table, never hidden checkpoints."""
+    content = (feature / 'tasks.md').read_text(encoding='utf-8') if (feature / 'tasks.md').is_file() else ''
+    tasks = [line for line in content.splitlines() if re.match(r'^\s*- \[[ xX]\] T\d+\b', line)]
+    all_ids = set(re.findall(r'^\s*- \[[ xX]\] (T\d+)\b', content, re.M))
+    operation = None if task_ids is not None or feature_wide else operation
+    # Explicit callers can select an operation only when its authored mapping exists.
+    ids = {row[0] for row in markdown_table(content, 'Task dependency map', 5) if row[1] == operation} if operation else all_ids
+    if operation and not ids:
+        raise ValueError('Unknown operation in the optional Task dependency map: ' + operation)
+    if task_ids is not None:
+        ids = set(task_ids)
+        if not ids <= all_ids:
+            raise ValueError('Recipe scope names unknown task IDs')
+    selected = [line for line in tasks if any(re.match(r'^\s*- \[[ xX]\] ' + re.escape(identity) + r'\b', line) for identity in ids)]
+    return {'operation': operation, 'taskIds': sorted(ids), 'tasks': selected,
+            'baseline': None, 'mode': 'tasks' if task_ids is not None else 'operation' if operation else 'feature'}

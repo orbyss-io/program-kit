@@ -112,6 +112,13 @@ def main():
         config = yaml.safe_load((project/'.specify/extensions.yml').read_text(encoding='utf-8'))
         require(set(components[:3]) <= set(config['installed']), 'Missing installed extension registration')
         require(config['settings']['auto_execute_hooks'] is True, 'Installed required hooks are disabled')
+        require(set(config['hooks']) == {'before_specify', 'after_specify', 'before_plan', 'after_plan',
+                    'before_tasks', 'after_tasks', 'before_implement', 'after_implement'},
+                'Package reintroduced a constitution receipt hook or lost a native phase hook')
+        for name in ('bootstrap', 'constitution-begin', 'constitution-review', 'constitution-ratify'):
+            require(not (project / f'.github/skills/speckit-program-kit-governance-{name}').exists(),
+                    'Package registered a retired workflow/receipt entrypoint: ' + name)
+
         for event, declarations in yaml.safe_load((expanded/'program-kit-governance/extension.yml').read_text(encoding='utf-8'))['hooks'].items():
             declarations = declarations if isinstance(declarations,list) else [declarations]
             expected = [d['command'] for d in sorted(declarations,key=lambda d:d.get('priority',10))]
@@ -136,8 +143,10 @@ def main():
         intake = project/'.specify/extensions/program-kit-governance/scripts/product_intake.py'
         execute([sys.executable,intake,'--help'],project)
         workflow_before = {str(p.relative_to(project)):p.read_bytes() for p in (project/'.specify/workflows').rglob('*') if p.is_file()}
-        status = execute([sys.executable,intake,'status'],project,1)
-        require('next_action' in status.stdout, 'Installed intake status lacks an actionable next step')
+        status = execute([sys.executable,intake,'status'],project)
+        inspected = json.loads(status.stdout)
+        require(inspected.get('status') == 'NO RECORDED CONTEXT' and inspected.get('next_action')
+                and 'eligible' not in inspected, 'Installed inspection lacks truthful non-authorizing context')
         require(workflow_before == {str(p.relative_to(project)):p.read_bytes() for p in (project/'.specify/workflows').rglob('*') if p.is_file()}, 'Product intake mutated retired workflow history')
         schema = project/'smoke.schema.json'
         schema.write_text(json.dumps({'$schema':'https://json-schema.org/draft/2020-12/schema',

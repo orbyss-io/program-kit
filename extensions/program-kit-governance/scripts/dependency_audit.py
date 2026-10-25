@@ -115,9 +115,13 @@ def evidence_inputs(root):
     proofs = [e for item in ledger.get('prerequisites', []) if item.get('status') == 'closed'
               for e in item.get('evidence', []) if e.get('kind') == 'compatibility']
     if proofs:
-        from bootstrap_lifecycle import proof_tooling
         from phase_obligations import test_results
-        current = set(proof_tooling())
+        # Frozen historical producer identities; classification never executes or
+        # imports the retired bootstrap engine and establishes no current authority.
+        current = set(SCOPED_TOOLING_0_12_9) | {
+            'program-kit-governance/scripts/fixture_readiness.py',
+            'program-kit-building-blocks/references/orbyss-building-blocks.json',
+        }
         legacy = current - {
             'program-kit-governance/scripts/managed_provider_probes.py',
             'program-kit-governance/scripts/bootstrap_provider_context.py',
@@ -139,7 +143,8 @@ def evidence_inputs(root):
                 tooling = proof.get('tooling_sources', {})
                 preparation_helper = {'program-kit-governance/scripts/fixture_readiness.py'}
                 allowed = ((legacy, current, legacy - preparation_helper, current - preparation_helper) if schema == '1.1'
-                           else (SCOPED_TOOLING_0_12_9, SCOPED_TOOLING_0_12_11, set(proof_tooling(True))))
+                           else (SCOPED_TOOLING_0_12_9, SCOPED_TOOLING_0_12_11,
+                                 SCOPED_TOOLING_0_12_11 | preparation_helper))
                 if (schema not in {'1.1', '1.2'} or proof.get('prerequisite') != item['id'] or proof.get('exit_code') != 0
                         or not proof.get('command') or not proof.get('inputs') or len(proof.get('streams', [])) != 2
                         or set(tooling) not in allowed or any(not re.fullmatch('[a-f0-9]{64}', str(value)) for value in tooling.values())):
@@ -159,10 +164,8 @@ def evidence_inputs(root):
                 if not all(cases.values()) or not all(cases.get(name) is True for name in proof['checks']):
                     raise ValueError('Retained compatibility proof lacks passing required checks')
                 result.update(inside(root, entry['path']) for entry in proof['inputs'])
-        # Tooling/design drift still invalidates current closure in
-        # bootstrap_lifecycle.validate_prerequisites. It cannot turn an unchanged
-        # historical scratch project into an application dependency. The caller
-        # rejects any active project, import or solution reference to these inputs.
+        # Historical scratch classification supplies no current closure or
+        # application dependency. Active references to these inputs still fail.
     graph = read(root / 'artifacts/program-kit/npm-graph.json', {})
     if graph:
         from sync_readiness import graph_errors

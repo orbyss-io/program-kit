@@ -22,18 +22,18 @@ When .NET is detected, evaluate and normally enforce:
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule context.dotnet-adopted-baseline-context -->
-Explicit intake selections and the versioned Program Kit .NET defaults are adopted through the
-bootstrap assessment gate. Choices outside that reviewed baseline remain Proposed until accepted by
-ADR. ORM, serializer, and test-framework details use the baseline defaults when available rather
-than becoming mandatory human questions.
+Offer the versioned Program Kit .NET defaults transparently when suitable. Preserve explicit
+technology choices and explain consequential alternatives in normal plan/ADR discussion. A local
+ORM, serializer or test framework needs its actual contracts and tests, not a bootstrap assessment
+or consumer qualification ceremony. Routine compatible defaults need no new approval packet.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule context.dotnet-managed-sdk-authority -->
-The exact SDK in the selected Program Kit profile's managed `global.json` is authoritative even
-when `dotnet --version` reports an older or different local SDK. Treat that mismatch as an actionable
-install/upgrade requirement and urge exact, side-by-side remediation. Keep the local SDK as project
-truth only after the user explicitly approves the `managed-toolchain-version` override recorded by
-the bootstrap decision contract; current-version research alone is not an override.
+For the selected managed engineering route, its `global.json` owns the actual SDK requirement even
+when the device reports another version. Provide the matching human preparation script and verify
+the fresh device selection before dependent execution. A project using a different supported route
+can own its own reviewed SDK policy; no bootstrap override receipt is needed. Do not silently alter
+managed pins or retained locks to conceal a mismatch or claim unexecuted compatibility.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule context.device-toolchain-recovery -->
@@ -137,9 +137,9 @@ ADR. Name it for the business language it owns rather than `Shared`.
 When .NET is selected, adopt the application-neutral `Orbyss.Foundation.Host` and its CShells/Nuplane composition model as the
 automatic Program Kit default unless intake explicitly opts out. This default uses CShells as the
 runtime composition mechanism; it does not imply that shells are tenants or bounded contexts.
-Record the independently pinned building-block packages, their third-party dependencies, and package
-sources as a material acknowledgement in the assessment review packet. Do not download or restore
-them merely by approving architecture.
+Disclose independently pinned packages, third-party dependencies and sources as consequential
+technical defaults in the normal plan. Preserve an explicit custom host choice. Architecture review
+alone does not execute restore or establish runtime compatibility; selected actions own those checks.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule principle.package-source-routing -->

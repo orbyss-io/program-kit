@@ -2,11 +2,42 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+
+
+def uv_windows_specify_environment(command: list[str]) -> tuple[Path, Path] | None:
+    if os.name != "nt" or len(command) != 1:
+        return None
+    launcher = Path(command[0])
+    if launcher.suffix.lower() != ".exe" or not launcher.is_file():
+        return None
+    try:
+        payload = launcher.read_bytes()
+        marker = payload.rfind(b"#!")
+        if marker < 0:
+            return None
+        shebang = payload[marker + 2 :].splitlines()[0].decode("utf-8").strip().strip('"')
+        interpreter = Path(shebang)
+        environment = interpreter.parent.parent
+        configuration = (environment / "pyvenv.cfg").read_text(encoding="utf-8")
+        site_packages = environment / "Lib/site-packages"
+    except (OSError, UnicodeDecodeError, IndexError):
+        return None
+    if (
+        not interpreter.is_absolute()
+        or not interpreter.is_file()
+        or not re.search(r"(?m)^uv\s*=\s*\S+\s*$", configuration)
+        or not (site_packages / "specify_cli/__init__.py").is_file()
+        or b"from specify_cli import main" not in payload[marker:]
+    ):
+        return None
+    return interpreter.resolve(), site_packages.resolve()
 
 
 def launcher_site_packages(launcher: Path) -> Path:

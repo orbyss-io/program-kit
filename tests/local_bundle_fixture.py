@@ -51,38 +51,28 @@ def install_local_bundle(project, release, bridge, run, component_sources=None, 
 
 def verify_release_copies(project, release):
     """Actual copied registrations still reject consumer edits and native aliases."""
-    spec = importlib.util.spec_from_file_location('release_copy_ownership', release / 'scripts/native_phase_ownership.py')
+    sys.path.insert(0, str(release / 'scripts'))
+    spec = importlib.util.spec_from_file_location('preview_copy_ownership', release / 'scripts/upgrade_program_kit.py')
     ownership = importlib.util.module_from_spec(spec); spec.loader.exec_module(ownership)
-    admitted = ownership.preflight(project, release)
-    assert admitted['outputs'] and all(not (project / row['path']).is_symlink() for row in admitted['outputs'])
-    assert not list((project / '.specify/extensions').rglob('.specify-dev'))
-    output = project / next(row['path'] for row in admitted['outputs']
-                            if row['extension'] == 'program-kit-governance' and row['path'].endswith('SKILL.md'))
+    plan = ownership.preflight(project, release, release)
+    assert plan['fromVersion'] == plan['toVersion']
+    from importlib.util import spec_from_file_location, module_from_spec
+    spec = spec_from_file_location('preview_copy_profiles', release / 'extensions/program-kit-governance/scripts/render_profile.py')
+    profiles = module_from_spec(spec); spec.loader.exec_module(profiles)
+    records, _ = profiles.history(project)
+    relative = next(name for row in records for name in row['outputs']
+                    if 'program-kit-governance' in name and name.endswith('SKILL.md'))
+    output = project / relative
     original = output.read_bytes()
     customized = original + b'\nConsumer native-output customization must survive refusal.\n'
     output.write_bytes(customized)
     try:
         try:
-            ownership.preflight(project, release)
-        except ownership.OwnershipError as error:
-            assert 'consumer customization' in str(error)
+            ownership.preflight(project, release, release)
+        except ownership.UpgradeError as error:
+            assert 'customized' in str(error)
         else:
             raise AssertionError('Native copied-output customization was admitted')
         assert output.read_bytes() == customized
     finally:
         output.write_bytes(original)
-    if os.name != 'nt':
-        # Real POSIX symlinks reproduce the mechanism Windows may silently copy.
-        target = project / '.program-kit' / ('alias-probe-' + uuid.uuid4().hex)
-        target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(original)
-        output.unlink(); output.symlink_to(os.path.relpath(target, output.parent))
-        try:
-            try:
-                ownership.preflight(project, release)
-            except ownership.OwnershipError as error:
-                assert 'symlinked' in str(error)
-            else:
-                raise AssertionError('Native aliased output was admitted')
-            assert output.is_symlink() and target.read_bytes() == original
-        finally:
-            output.unlink(); output.write_bytes(original); target.unlink()

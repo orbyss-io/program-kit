@@ -162,33 +162,8 @@ def prepare_path(inherited: str, python: str, *, limit: int = CMD_PATH_LIMIT) ->
 
 
 def main() -> int:
-    """Launch the existing lifecycle with a bounded child environment and its gates."""
-    if len(sys.argv) < 2 or sys.argv[1] not in {'run', 'resume', 'reopen'}:
-        print('Usage: python Start-ProgramKitWorkflow.py run|resume|reopen [lifecycle arguments]', file=sys.stderr)
-        return 2
-    root = Path.cwd()
-    scripts = root / '.specify/extensions/program-kit-governance/scripts'
-    lifecycle = scripts / 'workflow_lifecycle.py'
-    if not lifecycle.is_file():
-        print('Program Kit workflow launcher: run from the installed consumer repository root.', file=sys.stderr)
-        return 2
-    sys.path.insert(0, str(scripts))
-    try:
-        from python_runtime import selected
-        python = selected(root)
-        if not (root / '.specify/python-runtime.json').is_file():
-            python = canonical_python(python)
-        values = dict(os.environ)
-        # Older lifecycle/runtime versions can prepend Python more than once
-        # during engine re-entry. Reserve room without dropping usable tools.
-        limit = CMD_PATH_LIMIT - 4 * (path_length(str(Path(python).parent)) + 1)
-        values['PATH'] = prepare_path(values.get('PATH', ''), python, limit=limit)
-        values['SPECKIT_PYTHON'] = python
-        return subprocess.run([sys.executable, str(lifecycle), *sys.argv[1:]],
-                              cwd=root, env=values, check=False).returncode
-    except (ValueError, OSError) as error:
-        print(f'Program Kit workflow launcher: {error}', file=sys.stderr)
-        return 1
+    print('The workflow launcher is retired. Use the installed product-intake skill and ordinary native Spec Kit phases; saved historical runs remain unchanged.', file=sys.stderr)
+    return 2
 
 
 if __name__ == '__main__':

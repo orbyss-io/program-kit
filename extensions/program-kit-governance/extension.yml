@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.14.3"
+  version: "1.0.0-preview.1"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -16,7 +16,7 @@ provides:
   scripts:
     - name: "product-intake"
       file: "scripts/product_intake.py"
-      description: "Review and accept the connected founding artifacts through existing governance owners."
+      description: "Inspect readable product context without approval receipts or lifecycle authority."
     - name: "coding-scaffold"
       file: "scripts/coding_scaffold.py"
       description: "Preview/apply a finite qualified coding recipe; preserve consumer source and native ownership."
@@ -69,24 +69,12 @@ provides:
     - name: "speckit.program-kit-governance.ui"
       file: "commands/speckit.program-kit-governance.ui.md"
       description: "Adopt or safely generate the versioned UI, branding and discoverability profile."
-    - name: "speckit.program-kit-governance.bootstrap"
-      file: "commands/speckit.program-kit-governance.bootstrap.md"
-      description: "Compatibility alias for product-intake; the founding workflow is retired."
-    - name: "speckit.program-kit-governance.constitution-begin"
-      file: "commands/speckit.program-kit-governance.constitution-begin.md"
-      description: "Revoke stale ratification evidence before constitution drafting."
-    - name: "speckit.program-kit-governance.constitution-ratify"
-      file: "commands/speckit.program-kit-governance.constitution-ratify.md"
-      description: "Validate and hash-bind constitution ratification after the human gate."
-    - name: "speckit.program-kit-governance.constitution-review"
-      file: "commands/speckit.program-kit-governance.constitution-review.md"
-      description: "Validate a drafted constitution and regenerate its current human review packet."
     - name: "speckit.program-kit-governance.architecture"
       file: "commands/speckit.program-kit-governance.architecture.md"
       description: "Create or update the architecture baseline and ADR system."
     - name: "speckit.program-kit-governance.readiness"
       file: "commands/speckit.program-kit-governance.readiness.md"
-      description: "Report exact founding acceptance and the next feature-intake action."
+      description: "Inspect current product context and the next useful action."
     - name: "speckit.program-kit-governance.architecture-check"
       file: "commands/speckit.program-kit-governance.architecture-check.md"
       description: "Check a specification, plan, or implementation for architecture and ADR drift."
@@ -100,16 +88,6 @@ provides:
       required: false
 
 hooks:
-  before_constitution:
-    command: "speckit.program-kit-governance.constitution-begin"
-    priority: 5
-    optional: false
-    description: "Revoke existing ratification before any constitution draft or amendment."
-  after_constitution:
-    command: "speckit.program-kit-governance.constitution-review"
-    priority: 5
-    optional: false
-    description: "Validate the current constitution draft and regenerate its review packet before ratification."
   before_specify:
     - command: "speckit.program-kit-governance.architecture-check"
       priority: 5

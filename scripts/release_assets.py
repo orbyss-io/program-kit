@@ -47,6 +47,7 @@ def git(root: Path, *arguments: str) -> str:
 
 
 def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
+    from product_version import is_preview
     names = {
         f"program-kit-governance-{version}.zip",
         f"program-kit-building-blocks-{version}.zip",
@@ -58,12 +59,13 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
         f"Initialize-ProgramKit-{version}.sh",
         "SHA256SUMS",
         f"RELEASE-NOTES-{version}.md",
-        f"MIGRATIONS-{version}.md",
-        f"migration-index-{version}.json",
         f"dependency-profile-index-{version}.json",
     }
+    current = is_preview(version) or int(version.split('.')[0]) >= 1
+    names.update({f'COMPATIBILITY-{version}.md'} if current else
+                 {f'MIGRATIONS-{version}.md', f'migration-index-{version}.json'})
     files = sorted((artifacts / name for name in names), key=lambda path: path.name.casefold())
-    index = json.loads((artifacts / f'migration-index-{version}.json').read_text(encoding='utf-8'))
+    index = {} if current else json.loads((artifacts / f'migration-index-{version}.json').read_text(encoding='utf-8'))
     if index.get('consumerChanges'):
         semantic = index['consumerChanges']
         if Path(semantic['file']).name != semantic['file']:
@@ -71,7 +73,7 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
         if sha256(artifacts / semantic['file']) != semantic['sha256']:
             raise RuntimeError('Consumer change metadata is missing or changed')
         files.append(artifacts / semantic['file'])
-    for entry in index['entries']:
+    for entry in index.get('entries', []):
         name = entry['guide']
         if Path(name).name != name:
             raise RuntimeError('Release guide must be a basename')

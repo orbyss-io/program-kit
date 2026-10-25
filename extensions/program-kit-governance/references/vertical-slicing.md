@@ -65,13 +65,10 @@ OCR or processing-worker infrastructure. Upload admission still needs its real s
 gates, and evidence processing still needs its provider, lease and recovery prerequisites. Shared
 work can enable several operations without making all future infrastructure a blanket barrier.
 
-Distinguish task-level enabling dependencies from retained roadmap-feature authority gates. An
-approved bootstrap prerequisite due before implementation still blocks that feature's preflight,
-even when an operation is otherwise independent. Expose that retained scope during planning/tasks;
-never change its trigger, affected slices or evidence requirement through operation declarations.
-If its approved scope prevents the desired operation order, resolve that architecture/authority
-choice through normal reviewed design before claiming the operation is ready. A delivery-due proof
-remains mandatory at delivery without becoming an invented global implementation dependency.
+Keep actual product, security, authority and engineering prerequisites visible beside their
+dependent tasks. If an agreed constraint prevents the desired order, resolve the substantive
+choice through normal design review. Old workflow ledgers or missing toolkit status do not create
+new phase gates. A runtime check needed only at delivery does not become a global coding prerequisite.
 <!-- /program-kit:knowledge-rule -->
 
 ## Proportional exceptions

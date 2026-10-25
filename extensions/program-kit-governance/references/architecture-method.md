@@ -66,17 +66,11 @@ those ownership boundaries invisibly.
 ## Status discipline
 
 <!-- program-kit:knowledge-rule context.accepted-design-status -->
-Use `default-adoption.md` during bootstrap. Explicit intake choices, applicable Program Kit
-defaults, and safe derived defaults are adopted together by the hash-bound assessment gate and
-recorded in the Accepted bootstrap-baseline decision. An ordinary default does not require a
-separate approval ceremony.
-
-Choices outside that reviewed baseline begin `Proposed`. Only an Accepted ADR promotes those
-project-specific choices to `Accepted`. Rejected, Deprecated, and Superseded items retain links to
-the decision history.
-
-During bootstrap, the post-architecture approval is that human acceptance event for the explicitly
-enumerated founding ADR bundle. Intake confirmation never is.
+Use `default-adoption.md` to explain applicable technical defaults and preserve explicit choices.
+Record consequential proposed decisions and their actual human acceptance in normal ADRs; keep
+Rejected, Deprecated and Superseded decisions linked to their history. Routine defaults need no
+separate assessment packet. Human agreement remains real; no hash-bound bootstrap gate or toolkit
+receipt is required to remember it, and a representation change alone does not reopen its meaning.
 <!-- /program-kit:knowledge-rule -->
 
 ## Living architecture

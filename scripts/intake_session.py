@@ -231,7 +231,7 @@ def install_components(specify: str, git: str, workspace: Path, record: Path, as
     if os.name == 'nt':
         # Reuse the existing uv/OpenSSL compatibility bridge, only for these owned
         # loopback installation children. Do not change the user's or Codex's environment.
-        from upgrade_program_kit import uv_windows_specify_environment
+        from invoke_specify import uv_windows_specify_environment
         environment = uv_windows_specify_environment([specify])
         if environment is not None:
             launcher = [sys.executable, str(ROOT / 'scripts/invoke_specify.py'),
@@ -480,11 +480,12 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
         for path in files:
             if hashlib.sha256(saved.read(path.relative_to(workspace).as_posix())).hexdigest() != digest(path):
                 raise RuntimeError('Consumer changed during preservation; keeping workspace.')
-    for relative in ('docs/architecture', 'product-idea.md'):
+    for relative in ('docs/architecture', '.specify/memory/constitution.md', 'product-idea.md'):
         path = workspace / relative
         if path.is_dir():
             shutil.copytree(path, record / relative, dirs_exist_ok=True)
         elif path.is_file():
+            (record / relative).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, record / relative)
     state['sessionIds'] = []
     state['transcriptStatus'] = 'not-requested' if prepare_only else 'unavailable'
@@ -495,43 +496,27 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
                 state['transcriptStatus'] = 'captured'
         except (OSError, ValueError) as error:
             state['transcriptError'] = str(error)
-    intake = workspace / 'docs/architecture/bootstrap-intake.json'
+    intent = workspace / 'docs/architecture/project-intent.md'
     state['intakeStatus'] = 'absent'
-    if intake.is_file():
+    for retired in ('observedWorkflows', 'intakeValidation', 'validationError'):
+        state.pop(retired, None)
+    if intent.is_file():
         try:
-            document = json.loads(intake.read_text(encoding='utf-8'))
-            status = document.get('status') if isinstance(document, dict) else None
-            command = 'validate-draft' if status == 'draft' else 'validate'
-            validator = workspace / '.specify/extensions/program-kit-governance/scripts/bootstrap_intake.py'
-            code = run([sys.executable, str(validator), command, '--json'], workspace, record / 'validation.log')
-            state['intakeStatus'] = ('valid-draft' if status == 'draft' else 'valid-confirmed') if code == 0 else 'invalid'
+            state['intakeStatus'] = 'recorded' if intent.read_text(encoding='utf-8').strip() else 'empty'
+        except (OSError, UnicodeError) as error:
+            state['intakeStatus'] = 'unreadable'
+            state['intakeReadError'] = str(error)
+    inspector = workspace / '.specify/extensions/program-kit-governance/scripts/product_intake.py'
+    state['contextInspection'] = 'unavailable'
+    if inspector.is_file():
+        try:
+            code = run([sys.executable, '-B', str(inspector), 'inspect'], workspace, record / 'validation.log')
+            state['contextInspection'] = 'passed' if code == 0 else 'failed'
         except (OSError, ValueError, subprocess.SubprocessError) as error:
-            state['intakeStatus'] = 'validation-error'
-            state['validationError'] = str(error)
+            state['contextInspection'] = 'error'
+            state['inspectionError'] = str(error)
     state['archiveSha256'] = digest(archive)
-    workflows = []
-    for path in sorted((workspace / '.specify/workflows/runs').glob('*/state.json')):
-        value = json.loads(path.read_text(encoding='utf-8'))
-        workflows.append({'runId': value.get('run_id'), 'status': value.get('status'),
-                          'currentStep': value.get('current_step_id')})
-    state['observedWorkflows'] = workflows
-    if state['intakeStatus'] == 'invalid':
-        # A user may finish the intake terminal only after bootstrap has evolved
-        # the map. Do not present that original-hash check as a failed interview.
-        # Preserve the failed check and make no claim about current stage validity.
-        admitted = []
-        for path in sorted((workspace / '.specify/workflows/runs').glob('*/state.json')):
-            value = json.loads(path.read_text(encoding='utf-8'))
-            check = value.get('step_results', {}).get('validate-bootstrap-intake', {})
-            if check.get('status') == 'completed' and check.get('output', {}).get('exit_code') == 0:
-                admitted.append(value['run_id'])
-        if admitted:
-            state['intakeStatus'] = 'downstream-review-required'
-            state['intakeValidation'] = {'originalArtifactCheck': 'failed', 'admittedByRuns': admitted,
-                                         'currentStageValidity': 'not-established'}
-    workflow_note = ('Workflow state was observed: ' + json.dumps(workflows) +
-                     '. Standalone skill completion does not resume or complete that workflow. '
-                     'Intake validation checks original artifact hashes; downstream architecture edits may require stage-specific review.') if workflows else 'No workflow state was observed.'
+    state['historicalWorkflowState'] = 'preserved-in-archive; not-interpreted' if (workspace / '.specify/workflows').exists() else 'absent'
     state['status'] = 'setup-only' if prepare_only else 'needs-human-review'
     save(record / 'session.json', state)
     # All copies and diagnostics must complete before the narrowly scoped deletion.
@@ -544,19 +529,20 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
     report = f"""# Intake session review
 
 - Candidate: {state.get('sourceCommit', 'unavailable')}
-- Intake: {state['intakeStatus']} (schema validity is not interview-quality acceptance)
+- Product intent: {state['intakeStatus']} (document presence supplies no human confirmation or interview-quality acceptance)
+- Optional context inspection: {state['contextInspection']}
 - Conversation: {state['transcriptStatus']}
 - Codex session IDs: {', '.join(state['sessionIds']) or 'unavailable'}
 - CLI exit: {exit_code}
 - Workspace: {workspace}
 - Cleanup: {state['cleanup']}
-- Workflow observations: {workflow_note}
+- Historical workflow files: {state['historicalWorkflowState']} (no current completion or acceptance is inferred)
 
 Return to the Program Kit development conversation and ask to review this folder:
 {record}
 
 Review conversation.md and the matched rollout JSONL (when captured), docs/architecture,
-validation.log (when an intake exists), setup.log, session.json, and consumer.zip.
+the preserved constitution, validation.log (when an installed inspector exists), setup.log, session.json, and consumer.zip.
 The zip preserves the installed candidate and full consumer for recovery; it is not
 a bootstrap checkpoint or a Release/live-acceptance receipt. The intake launcher itself starts no workflow.
 Missing conversation history is a review limitation, not an interview pass.

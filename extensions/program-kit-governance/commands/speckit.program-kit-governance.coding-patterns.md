@@ -1,49 +1,22 @@
 ---
-description: Prepare or inspect a versioned coding pattern through existing coding context.
+description: Inspect optional maintained patterns or prepare a deliberate local/shared contribution.
 ---
 
-Read the user's problem, plain-language/code submission and requested scope. Use
-`scripts/coding_patterns.py draft --repository . --submission <existing-local-file>
---id <identity> --invariant <canonical-rule-id> --output <new-draft.json>`.
-Read its actual missing-proof output. Help the user edit the single draft using
-the versioned contract in `scripts/coding_patterns.py:validate`; do not invent
-semantic applicability or evidence from prose. The draft references supplied
-source without executing it. Existing canonical rules retain their authority.
+Read the current feature's ordinary spec, plan, tasks and local choices. Use
+`python .specify/extensions/program-kit-governance/scripts/coding_patterns.py inspect
+--feature-dir <feature>` when comparing the maintained examples with actual selected dependencies.
+This reports automation limitations; it is not a prerequisite for manual implementation. Choose a
+suitable custom pattern and test its real product, SDK/API and security contracts. No toolkit
+qualification or evidence-binding ceremony is required for a consumer's choice.
 
-For explicit teaching/improvement, prepare one request described in
-`scripts/coding_patterns.py:teach` (problem, new/refine/replace/retire intent, exact prior
-version when applicable, supplied source or known gap, guidance/scaffold/check/
-example and accepted-artifact changes). Run `coding_patterns.py teach --request
-<local-request.json> --output <new-contribution.json>`. Review the single editable
-contribution and missing proof. Empty change categories need an explanation; a
-manual recipe need not invent a generator. Performance claims need actual bounded
-workload/runtime/resource/correctness/adverse-case/counterexample observations.
-Do not infer a universal optimization or run commands from the submitted data.
+For an explicitly requested contribution to the maintained pattern catalog, use the helper's
+`draft`, `teach` or `prepare-shared` command and inspect its normal missing-proof output. Those are
+maintainer tools for versioned declarations/examples and finite automation, not a consumer lifecycle.
+Review canonical invariants, applicability, compatibility, actual checks and limitations. Submitted
+source/data cannot execute a shell command. Keep local source private unless the human explicitly
+selects publishable bytes and authorizes submission. Preparation supplies no publication authority.
 
-Review the draft's semantic identity, invariants, applicability/exclusions,
-compatibility, examples, normal check/review owners and limits. Explicitly merge
-reviewed declarations into `docs/architecture/coding-patterns.json` for private
-local use, or propose a source change to shared `phase-obligations.json` through
-ordinary repository review. No automatic upstream submission or publication.
-
-Use `phase_obligations.py prepare --feature-dir <feature> --format json` for actual
-selection and `coding_patterns.py inspect --feature-dir <feature>` for its pattern
-view. The existing plan's `pattern-choices` block records an exact version and
-contextual reason when alternatives require a choice. Use the existing native or
-named toolkit verification owner explicitly; pattern commands do not dispatch checks.
-After actual checks and ordinary semantic review,
-`coding_patterns.py bind-evidence --feature-dir <feature> --id <local-pattern>`
-appends a local binding. Inspect actual results; binding is not human approval.
-Reprepare/reconcile through the existing implementation and completion routes.
-
-Retain earlier versions, retired declarations and failed/stale evidence. A shared
-lesson requires an explicit selected contribution and ordinary privacy/provenance
-review. For local shared preparation, author a standalone publishable draft and
-explicit file selection, then run `coding_patterns.py prepare-shared --selection
-<selection.json> --output <new-local-directory>`. Review every selected byte;
-this allowlist is not a secret detector. Never export the local registry/inspect
-view, private review or execution history. Consumer evidence cannot transfer;
-rewritten shared paths/context require fresh maintained installed proof and
-ordinary source review before exact version adoption. Preparation never submits
-upstream. Never dispatch agents, provider operations or submitted shell commands
-as part of this command.
+Optional generators name their actual recipe/input constraints and produce inspectable diffs.
+Unsupported automation leaves manual editing available. An example's qualification neither proves
+consumer behavior nor grants human acceptance. Preserve prior versions and failed evidence rather
+than relabeling them as successful current execution.

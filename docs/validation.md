@@ -41,10 +41,10 @@ affected families. The baseline includes shared archive preparation once, then:
 | Family | Concrete operational claim | Important omissions |
 | --- | --- | --- |
 | Installation | Native bundle installation of actual archives in a clean space-path workspace; all component ownership/registrations, installed governance coherence and representative helpers work on Windows/Linux | Other installation routes, restricted permissions, unusual filesystems |
-| Phases | Real task/phase rules reject invalid prerequisites/graphs; interrupted drafting resumes and preserves completed work | Specification quality, agent obedience, every optional phase branch |
+| Phases | Actual native commands remain present; focused appended knowledge works for an independent stack, ordinary tasks remain usable, and agreed human-review instructions are visible | Agent obedience, actual human acceptance and specification quality |
 | Knowledge | API and frontend scopes select correct owners; unrelated decisions stay excluded; missing required binding is rejected | Correctness of upstream guidance, all dependency combinations/runtime compatibility |
-| Founding | Native installed intake skill validates fictional synthesis, constitution ratification and named decision acceptance, rejects stale authority and begins feature intake directly | Conversational quality, actual human approval, runtime compatibility and provider behavior |
-| Upgrade | Actual supported historical source installation advances through the candidate packaged updater; authored files/coherence survive, managed conflicts reject and interrupted profile transactions roll back/retry | Every historical layout, migration combination and filesystem failure |
+| Founding | Native installed intake supports readable product artifacts and a small domain/C4 model, carries real unanswered decisions, and begins feature intake without receipt state | Conversational quality, actual human approval, runtime compatibility and provider behavior |
+| Upgrade | The 0.x boundary refuses before mutation; preview-owned toolkit replacement preserves authored files and rejects customizations | Semantic migration of old workflows, every historical layout and filesystem failure |
 | Scaffolding | Real generator emits coherent relationships and runs lightweight drift validation; invalid selection preserves authored files | Native compilation/startup, services, browsers and deployment |
 
 These are narrow journeys, not a substitute for meaningful cheap regression tests.
@@ -92,8 +92,8 @@ The old Development/Release labels did not describe actual cost. Installation,
 restore/build/pack, Node builds and service execution now have separate entrypoints or
 explicit integration registrations. The default fast suite contains syntax/configuration
 integrity and small admission/selection/publication-safety regressions. Capability
-selection also retains meaningful focused phase, knowledge, wire/schema, composition,
-managed-file and task/closure tests. An old test count is not an acceptance target.
+selection also retains meaningful focused native-phase, knowledge, wire/schema, composition,
+managed-file and agreed-review tests. An old test count is not an acceptance target.
 
 | Previous pattern | Maintained treatment |
 | --- | --- |
@@ -106,14 +106,11 @@ managed-file and task/closure tests. An old test count is not an acceptance targ
 | Bootstrap/task/recovery fixtures | Small real operational journeys with fictional authoring; broader lifecycle, host and provider combinations remain selectable for concrete risks |
 | Native/runtime integrations | Retained where they detect a distinct failure: PostgreSQL, API/client, authentication/session, host activation, standalone handoff, public compatibility and dependency qualification |
 
-The representative upgrade installs immutable sources for the immediate predecessor
-declared in release history through native bundle installation, then runs the updater
-extracted from the candidate archive for Copilot. It checks copied native outputs,
-customization/alias refusal, every component/bundle version, preserved authored
-feature/note bytes and native installation coherence/migration completion. Local Git must contain that supported
-historical fixture tag; its resolved commit is recorded. Additional focused cases cover
-profile transitions, managed conflicts and rollback/retry. Other historical layouts and
-owner-fault combinations remain separate investigations.
+The 0.x boundary is explicit re-onboarding. Its check preserves an existing consumer while
+refusing automatic workflow migration. Preview update coverage exercises supported native
+owned-file replacement and preservation; project dependency upgrades retain their own optional
+engineering contracts. Retired workflow/receipt/checkpoint protocols are not requirements for
+the new line, and their old state-format tests do not remain automatic phase acceptance.
 
 Retained investigations have no entitlement to run by their historical suite label.
 Their useful assertions remain callable, and the fixture owns deeper pinned-runtime

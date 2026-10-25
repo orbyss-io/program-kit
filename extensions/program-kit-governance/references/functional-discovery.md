@@ -2,7 +2,7 @@
 
 ## Purpose and depth
 
-Use this guide during bootstrap intake and when deepening an affected feature. Relevant knowledge
+Use this guide during product intake and when deepening an affected feature. Relevant knowledge
 guides questions, examples and consequences before it guides implementation. Explain the discovery
 areas to the human and name the subject of each question group. Reuse supplied answers; explore
 gaps and contradictions. Question count and speed are not completion criteria.
@@ -99,13 +99,11 @@ For a rename journey, identify the subject and actor, the naming policy, ownersh
 conditions, the changed state, visible success, duplicate/conflict rejection and safe recovery.
 Preserve the agreed meaning and evidence; do not invent an operation because an example mentions it.
 
-Record each fact once and cross-reference it. Use existing journey/slice IDs and answer evidence when
-projecting the canonical map and intake. Candidate-slice `epic`, `commitment`, `seed` and `dependencies`
-preserve the feature relationships and supplied thought through the maintained schema; use its
-descriptor for exact shapes. Keep rich source detail and boundary rationale, partial brief fields,
-assumptions and open questions. No separate evidence registry, model dossier or confirmation receipt
-is needed. Specification intake reuses this seed and deepens exact fields, edge cases and acceptance
-criteria while preserving established meaning.
+Record each fact once and cross-reference it. Stable journey/feature names help connect existing
+intent, optional maps and ordinary specifications. Preserve supplied detail, boundary rationale,
+assumptions and open questions in readable artifacts; no authoring schema or ID registry is required.
+Specification intake reuses this context and deepens behavior, edge cases and acceptance examples
+while preserving established meaning. An optional structured helper enforces only its supplied input.
 
 A journey can produce several independently useful features; one feature can need supporting
 journeys. An epic can contain several feature specifications and is complete against its agreed
@@ -129,6 +127,6 @@ production commitments and detailed future features remain at their actual trigg
 functional model, journey/experience proposals and functional gaps in the existing final synthesis;
 reuse its single confirmation gate. Do not add approval after each discovery area.
 
-Assessment and architecture carry the confirmed functional references into ownership and decisions.
+Product intent and architecture carry confirmed functional meaning into ownership and decisions.
 Feature intake reads the relevant model and journeys, reuses settled answers, and deepens only the
 chosen outcome. Package defaults never prove that a business rule or user experience is correct.

@@ -145,7 +145,7 @@ class WireCapabilities(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'no scoped registered'):
                 admission.check_registered(root)
 
-    def test_after_plan_rechecks_single_registered_document_and_preserves_history(self):
+    def test_explicit_registered_wire_check_preserves_history_without_phase_gate(self):
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
         import phase_obligations
         with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as name:
@@ -157,16 +157,13 @@ class WireCapabilities(unittest.TestCase):
             (root / 'baseline.json').write_bytes(b'original immutable compatibility history')
             document = self.document(); document['components']['schemas']['Problem']['properties']['retryMode'] = {'type': 'string'}
             (root / 'openapi.json').write_text(json.dumps(document))
-            import consumer_upgrade
-            with patch.object(consumer_upgrade, 'scan', return_value={'canProceed': True}), \
-                 patch.object(consumer_upgrade, 'request_scope'), \
-                 patch.object(phase_obligations, 'validate_planned_architecture'), \
-                 patch.object(phase_obligations, 'intent', return_value={'api'}), \
-                 patch.object(phase_obligations, 'adopted_context', return_value={'sources': []}), \
-                 patch.object(phase_obligations, 'foundation_applicability', return_value={'wireCapabilities': self.capabilities}), \
-                 patch.object(admission, 'selected', return_value=self.capabilities):
+            # Guidance starts no producer validation. The explicitly selected
+            # wire operation still rejects the concrete unsupported field.
+            with patch.object(admission, 'check_registered', side_effect=AssertionError('Implicit wire check')):
+                phase_obligations.check(root, feature, 'after-plan')
+            with patch.object(admission, 'selected', return_value=self.capabilities):
                 with self.assertRaisesRegex(ValueError, 'Problem/properties/retryMode'):
-                    phase_obligations.check(root, feature, 'after-plan')
+                    admission.check_registered(root, feature)
             self.assertEqual(b'original immutable compatibility history', (root / 'baseline.json').read_bytes())
             self.assertIn('T007 and T012 retained', (feature / 'plan.md').read_text())
 

@@ -218,46 +218,8 @@ def verify_windows_write(root: Path, argv: list[str], *, runner=subprocess.run) 
 
 @contextlib.contextmanager
 def worker_environment(root: Path, requested: str, *, runner=subprocess.run):
-    """Scope explicit least-privilege argv to this human-owned lifecycle call."""
-    from codex_bootstrap_preflight import resolve_integration, is_codex_agent_invocation, diagnostic as boundary_diagnostic
-    if resolve_integration(requested, root) != 'codex':
-        yield
-        return
-    if is_codex_agent_invocation(integration='codex'):
-        raise WorkerPolicyError(boundary_diagnostic())
-    previous = os.environ.get(EXTRA_ARGS)
-    options = parse_extra(previous or '')
-    os.environ[EXTRA_ARGS] = shlex.join([*options, '--sandbox', 'workspace-write'])
-    try:
-        argv = inspect_adapter()
-        # Public Spec Kit remains the supported dispatcher. Native output and
-        # semantic validation steps own artifact acceptance independently.
-        from codex_bootstrap_preflight import evaluate_preflight
-        preflight = evaluate_preflight('codex', root)
-        if preflight['action'] != 'continue':
-            raise WorkerPolicyError(preflight['diagnostic'])
-        # New append-only evidence per invocation; never rewrite historic runs.
-        evidence = root / '.specify/workflows/worker-preflights' / (uuid.uuid4().hex + '.json')
-        evidence.parent.mkdir(parents=True, exist_ok=True)
-        record = {'schemaVersion': 1, 'projectRoot': str(root),
-            'requestedSandbox': 'workspace-write', 'adapterArgv': argv,
-            'workerEffectivePermissions': 'see worker session metadata'}
-        try:
-            record['probe'] = verify_windows_write(root, argv, runner=runner) if os.name == 'nt' else {
-                'kind': 'argv-contract-only', 'codingAgentStarted': False, 'writesVerified': False}
-        except (WorkerPolicyError, OSError) as error:
-            from compatibility_diagnostics import sanitize
-            record['status'] = 'blocked'
-            record['diagnostic'] = sanitize(str(error))
-            evidence.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
-            detail = record['diagnostic'] if isinstance(error, WorkerPolicyError) else diagnostic(record['diagnostic'])
-            raise WorkerPolicyError(f'{detail}\nPreserved preflight evidence: {evidence}') from error
-        record['status'] = 'passed'
-        evidence.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
-        print(f'Program Kit Codex worker preflight: workspace-write; evidence: {evidence}', file=sys.stderr)
-        yield
-    finally:
-        if previous is None:
-            os.environ.pop(EXTRA_ARGS, None)
-        else:
-            os.environ[EXTRA_ARGS] = previous
+    """Reject the retired outer bootstrap dispatcher without weakening worker policy."""
+    raise WorkerPolicyError('The outer bootstrap worker dispatcher is retired. Use product-intake '
+                            'in the current session. Independent adapter inspection and native sandbox '
+                            'write probes retain their explicit sandbox contract; no worker was dispatched.')
+    yield  # Preserve the context-manager API while refusing before any mutation.

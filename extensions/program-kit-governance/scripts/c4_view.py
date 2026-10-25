@@ -29,8 +29,6 @@ sys.dont_write_bytecode = True
 
 ARCHITECTURE_MAP = Path("docs/architecture/architecture-map.json")
 WORKSPACE_DSL = Path("docs/architecture/workspace.dsl")
-BOOTSTRAP_INTAKE = Path("docs/architecture/bootstrap-intake.json")
-PROJECT_INTENT = Path("docs/architecture/project-intent.md")
 PROFILE = Path(__file__).resolve().parents[1] / "references/c4-viewer-tool.json"
 STATE_ENVIRONMENT = "PROGRAM_KIT_C4_STATE_ROOT"
 WAR_ENVIRONMENT = "PROGRAM_KIT_STRUCTURIZR_WAR"
@@ -120,15 +118,6 @@ def architecture_module():
     return module
 
 
-def bootstrap_intake_module():
-    path = Path(__file__).with_name("bootstrap_intake.py")
-    spec = importlib.util.spec_from_file_location("program_kit_c4_bootstrap_intake", path)
-    if spec is None or spec.loader is None:
-        raise C4ViewError(f"Cannot load bootstrap-intake support: {path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 def canonical_project_root(value: str | Path) -> Path:
@@ -138,129 +127,35 @@ def canonical_project_root(value: str | Path) -> Path:
     return root
 
 
-def _artifact_record(intake: dict, key: str, expected: Path) -> dict:
-    artifacts = intake.get("artifacts")
-    record = artifacts.get(key) if isinstance(artifacts, dict) else None
-    if (
-        not isinstance(record, dict)
-        or set(record) != {"path", "sha256", "bytes"}
-        or record.get("path") != expected.as_posix()
-        or not re.fullmatch(r"[0-9a-f]{64}", str(record.get("sha256", "")))
-        or not isinstance(record.get("bytes"), int)
-    ):
-        raise C4ViewError(
-            f"Bootstrap intake has no valid registered {key} hash for {expected.as_posix()}"
-        )
-    return record
 
 
 def validate_projection(project_root: Path) -> dict:
     map_path = project_root / ARCHITECTURE_MAP
     dsl_path = project_root / WORKSPACE_DSL
-    intake_path = project_root / BOOTSTRAP_INTAKE
     if not map_path.is_file():
-        raise C4ViewError(f"Canonical architecture map is missing: {ARCHITECTURE_MAP.as_posix()}")
+        raise C4ViewError('Canonical architecture map is missing: ' + ARCHITECTURE_MAP.as_posix())
     if not dsl_path.is_file():
-        raise C4ViewError(
-            f"C4 projection is missing: {WORKSPACE_DSL.as_posix()}. Regenerate it from the canonical map."
-        )
-
+        raise C4ViewError('C4 projection is missing: ' + WORKSPACE_DSL.as_posix())
     architecture = architecture_module()
     try:
-        model = architecture.load_object(map_path)
-        architecture.validate_model(model, project_root)
-    except (architecture.ArchitectureMapError, OSError, UnicodeError) as exc:
-        raise C4ViewError(f"Canonical architecture map is invalid or has stale source hashes: {exc}") from exc
-    try:
-        actual_text = dsl_path.read_text(encoding="utf-8")
-        architecture.StructurizrDslImporter().import_path(dsl_path, model)
-    except (architecture.ArchitectureMapError, OSError, UnicodeError) as exc:
-        raise C4ViewError(f"Structurizr DSL projection is malformed: {exc}") from exc
-    expected_text = architecture.StructurizrDslExporter().export(model)
-    normalize = lambda value: value.replace("\r\n", "\n").replace("\r", "\n")
-    if normalize(actual_text) != normalize(expected_text):
-        raise C4ViewError(
-            "C4 projection is stale relative to docs/architecture/architecture-map.json; "
-            "regenerate workspace.dsl from the canonical map before review"
-        )
-
-    intake = load_json(intake_path, "bootstrap intake")
-    if intake.get("schema_version") != "1.1":
-        raise C4ViewError("Bootstrap intake must use the current schema_version 1.1")
-    intake_status = intake.get("status")
-    if intake_status not in {"draft", "confirmed"}:
-        raise C4ViewError(
-            f"Bootstrap intake status must be draft or confirmed: {BOOTSTRAP_INTAKE.as_posix()}"
-        )
-    map_record = _artifact_record(intake, "architecture_map", ARCHITECTURE_MAP)
-    dsl_record = _artifact_record(intake, "c4_projection", WORKSPACE_DSL)
-    map_hash = sha256_file(map_path)
-    dsl_hash = sha256_file(dsl_path)
-    map_match = map_record["sha256"] == map_hash and map_record["bytes"] == map_path.stat().st_size
-    dsl_match = dsl_record["sha256"] == dsl_hash and dsl_record["bytes"] == dsl_path.stat().st_size
-    if intake_status == "draft":
-        intent_path = project_root / PROJECT_INTENT
-        intent_record = _artifact_record(intake, "project_intent", PROJECT_INTENT)
-        if not intent_path.is_file():
-            raise C4ViewError(f"Draft intake artifact is missing: {PROJECT_INTENT.as_posix()}")
-        intent_match = (
-            intent_record["sha256"] == sha256_file(intent_path)
-            and intent_record["bytes"] == intent_path.stat().st_size
-        )
-        mismatched = [
-            path.as_posix()
-            for path, matches in (
-                (PROJECT_INTENT, intent_match),
-                (ARCHITECTURE_MAP, map_match),
-                (WORKSPACE_DSL, dsl_match),
-            )
-            if not matches
-        ]
-        if mismatched:
-            raise C4ViewError(
-                "Draft bootstrap intake hashes do not match current artifacts: "
-                + ", ".join(mismatched)
-            )
-        binding = "draft-intake"
-        review_mode = "draft-intake-review"
-    else:
-        if map_match != dsl_match:
-            changed = WORKSPACE_DSL if map_match else ARCHITECTURE_MAP
-            raise C4ViewError(
-                f"Registered intake hashes show partial architecture drift at {changed.as_posix()}; "
-                "refresh the generated pair and its governance evidence before review"
-            )
-        binding = "confirmed-intake" if map_match else "evolved-together-from-confirmed-intake"
-        review_mode = "confirmed-baseline-review"
-    intake_support = bootstrap_intake_module()
-    try:
-        intake_support.validate_intake(
-            project_root,
-            BOOTSTRAP_INTAKE,
-            allow_architecture_evolution=intake_status == "confirmed",
-            allowed_statuses={intake_status},
-        )
-    except (intake_support.IntakeError, OSError, UnicodeError) as exc:
-        raise C4ViewError(f"Bootstrap intake is invalid for visual review: {exc}") from exc
-    view_keys = [view["key"] for view in model["views"]]
-    return {
-        "project_root": str(project_root),
-        "canonical_map": ARCHITECTURE_MAP.as_posix(),
-        "projection": WORKSPACE_DSL.as_posix(),
-        "map_sha256": map_hash,
-        "projection_sha256": dsl_hash,
-        "projection_current": True,
-        "projection_parsed": True,
-        "intake_status": intake_status,
-        "intake_binding": binding,
-        "review_mode": review_mode,
-        "confirmation_performed": False,
-        "architecture_acceptance_performed": False,
-        "registered_map_sha256": map_record["sha256"],
-        "registered_projection_sha256": dsl_record["sha256"],
-        "view_keys": view_keys,
-        "primary_view_key": view_keys[0],
-    }
+        model = architecture.validate_model(architecture.load_object(map_path))
+        actual = dsl_path.read_text(encoding='utf-8')
+        parsed = model.get('schema_version') != '2.0'
+        if parsed:
+            architecture.StructurizrDslImporter().import_path(dsl_path, model)
+        expected = architecture.StructurizrDslExporter().export(model)
+    except (architecture.ArchitectureMapError, OSError, UnicodeError) as error:
+        raise C4ViewError('Canonical map or projection is invalid/malformed: ' + str(error)) from error
+    normalize = lambda value: value.replace('\r\n', '\n').replace('\r', '\n')
+    if normalize(actual) != normalize(expected):
+        raise C4ViewError('C4 projection is stale relative to the canonical map; regenerate workspace.dsl')
+    keys = [view['id' if model.get('schema_version') == '2.0' else 'key'] for view in model.get('views', [])] or ['product-map']
+    return {'project_root': str(project_root), 'canonical_map': ARCHITECTURE_MAP.as_posix(),
+            'projection': WORKSPACE_DSL.as_posix(), 'map_sha256': sha256_file(map_path),
+            'projection_sha256': sha256_file(dsl_path), 'projection_current': True,
+            'projection_parsed': parsed, 'intake_status': 'not-required', 'intake_binding': 'not-required',
+            'review_mode': 'authored-map-review', 'confirmation_performed': False,
+            'architecture_acceptance_performed': False, 'view_keys': keys, 'primary_view_key': keys[0]}
 
 
 def diagram_url(port: int, view_key: str) -> str:

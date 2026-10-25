@@ -1,5 +1,5 @@
 ---
-description: View or preview Program Kit's generated C4/Structurizr workspace projection in a safe localhost viewer. Use when the user asks to view, open, render, preview, or inspect the C4 map, architecture map, Structurizr model, or workspace.dsl, including informed review before bootstrap confirmation; viewing supports review but never performs bootstrap approval, architecture editing, or architecture acceptance.
+description: View or preview Program Kit's generated C4/Structurizr workspace projection in a safe localhost viewer. Use when the user asks to view, open, render, preview, or inspect the C4 map, architecture map, Structurizr model, or workspace.dsl, viewing supports informed review without architecture editing or acceptance.
 ---
 
 ## Purpose
@@ -9,11 +9,9 @@ Read `references/c4-viewing.md` and the managed profile it names. Treat
 `docs/architecture/architecture-map.json` as canonical and `docs/architecture/workspace.dsl` as a
 generated, read-only review projection. Never import viewer or DSL changes into the map.
 
-Inspection may accept either a current `draft` intake for informed pre-confirmation review or a
-`confirmed` intake for baseline review. A draft must match every registered artifact hash exactly.
-Viewing never changes intake status, creates approval evidence, or accepts proposed architecture.
-During bootstrap intake it supports informed review of the proposed contexts, journeys, and founding
-decision candidates; the user approves neither the candidates nor future ADRs by opening the view.
+Inspection accepts the actual canonical map and its current generated projection. Small schema2.0
+and detailed1.1 maps retain their own model/export contracts. No intake status, source-approval
+hash or confirmation receipt is needed. Viewing never edits authored meaning or accepts proposals.
 
 ## View workflow
 
@@ -28,7 +26,7 @@ rewrite intake bindings, search for alternate viewers, or restart repeatedly dur
 After an explicit user-approved prerequisite repair, a new view attempt may begin with a new budget.
 
 Run the deterministic inspection command from `references/c4-viewing.md`. Report missing files,
-invalid JSON or DSL, source-hash failures, intake-binding drift, or a projection that no longer
+invalid JSON/model references or DSL, or a projection that no longer
 matches a fresh export. Do not start a viewer until inspection says the projection is current.
 
 If the pinned Docker image is already local, start the viewer with the documented detached command.
@@ -52,8 +50,8 @@ readiness or a successful browser-launch call alone. If sandbox permissions prev
 localhost access, use the integration's supported permission mechanism once when authorized;
 otherwise report the restriction and the exact command for the user's local terminal, then stop.
 
-If the required local binary is absent, stop and ask for explicit authorization before any exact
-image pull or WAR download. Do not install software, use an unpinned or `latest` artifact, contact an
+If the required local binary/artifact is absent, report the exact prerequisite and provide
+user-terminal preparation. The agent must not install device software or retrieve its viewer runtime; do not use an unpinned or `latest` artifact, contact an
 external service, or upload architecture content. Never use the public Structurizr playground as an
 implicit fallback.
 

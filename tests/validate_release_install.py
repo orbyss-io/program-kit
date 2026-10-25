@@ -15,8 +15,6 @@ from owned_fixture import FixtureDirectory
 
 
 EXPECTED_HOOKS = {
-    "before_constitution",
-    "after_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
@@ -29,7 +27,8 @@ EXPECTED_HOOKS = {
 
 RETIRED_COMMANDS = {
     'assessment', 'research', 'roadmap', 'tooling', 'bootstrap-closure',
-    'bootstrap-recovery', 'proxy-bootstrap',
+    'bootstrap-recovery', 'proxy-bootstrap', 'bootstrap',
+    'constitution-begin', 'constitution-review', 'constitution-ratify',
 }
 
 
@@ -183,13 +182,13 @@ def main() -> int:
         names = archive.namelist()
         required_runtime = {
             "scripts/record_local_bundle.py",
-            "scripts/consumer_upgrade_workspace.py",
+            "scripts/product_version.py",
+            "scripts/initialize_device.py",
+            "scripts/install_local_extension.py",
             "bundle.yml",
             "VERSION",
             "scripts/upgrade_program_kit.py",
-            "scripts/retired_sync_integration.py",
             "scripts/invoke_specify.py",
-            "scripts/openapi_upgrade_reconciliation.py",
         }
         missing_runtime = required_runtime.difference(names)
         if missing_runtime:
@@ -230,12 +229,8 @@ def main() -> int:
                 raise AssertionError(f"Building-block extension release ZIP is missing {path}")
         for path in (
             "scripts/product_intake.py",
-            "scripts/consumer_upgrade.py",
             "commands/speckit.program-kit-governance.upgrade.md",
             "references/consumer-upgrade.md",
-            "references/consumer-migration-recipes.json",
-            "scripts/bootstrap_context.py",
-            "scripts/bootstrap_intake.py",
             "scripts/specification_intake.py",
             "scripts/architecture_map.py",
             "scripts/c4_view.py",
@@ -245,13 +240,13 @@ def main() -> int:
             "commands/speckit.program-kit-governance.specification-intake.md",
             "references/specification-intake.md",
             "commands/speckit.program-kit-governance.view-c4.md",
-            "references/bootstrap-intake.schema.json",
             "references/architecture-map.schema.json",
+            "references/architecture-map-v2.schema.json",
+            "references/architecture-map-minimal.json",
             "references/intake-method.md",
             "references/intake-artifacts.md",
             "references/capability-index.json",
             "references/bootstrap-decisions.schema.json",
-            "references/bootstrap-context.schema.json",
             "references/codex-desktop-windows.md",
             "references/c4-viewing.md",
             "references/c4-viewer-tool.json",
@@ -265,6 +260,12 @@ def main() -> int:
         for name in RETIRED_COMMANDS:
             if (extracted_extension / f'commands/speckit.program-kit-governance.{name}.md').exists():
                 raise AssertionError('Archive still delivers retired command: ' + name)
+        for retired in ('task_draft', 'conformance_repair', 'operation_readiness',
+                        'historical_phase_evidence', 'feature_plan_decisions', 'review_material',
+                        'lifecycle_state', 'artifact_ownership', 'api_proof', 'architecture_proof',
+                        'capability_adoption'):
+            if (extracted_extension / f'scripts/{retired}.py').exists():
+                raise AssertionError('Archive still delivers retired authoring/lifecycle engine: ' + retired)
         packaged_rule_files = list(extracted_extension.rglob("*.rules"))
         if packaged_rule_files:
             raise AssertionError(
@@ -274,7 +275,7 @@ def main() -> int:
             path.read_text(encoding="utf-8")
             for path in (
                 extracted_extension
-                / "commands/speckit.program-kit-governance.bootstrap.md",
+                / "commands/speckit.program-kit-governance.product-intake.md",
                 extracted_extension / "references/codex-desktop-windows.md",
             )
         )
@@ -288,9 +289,6 @@ def main() -> int:
                 raise AssertionError(
                     f"Extension release ZIP reintroduced escalation guidance: {phrase}"
                 )
-        alias = (extracted_extension / 'commands/speckit.program-kit-governance.bootstrap.md').read_text(encoding='utf-8')
-        if 'speckit-program-kit-governance-product-intake' not in alias or 'workflow_lifecycle.py' in alias:
-            raise AssertionError('Compatibility alias must route directly to the installed product-intake skill')
         if 'normal user-owned PowerShell or WSL' not in ' '.join(packaged_guidance.split()):
             raise AssertionError('Packaged Windows guidance lost the human-terminal installation boundary')
         for reference in ("vertical-slicing.md", "modularity-and-contracts.md", "default-adoption.md"):
@@ -411,9 +409,9 @@ def main() -> int:
             ".specify/extensions/program-kit-governance/commands/"
             "speckit.program-kit-governance.grilling.md"
         )
-        if "speckit.program-kit-governance.grilling" not in product_skill.read_text(encoding="utf-8"):
+        if "shipped grilling skill" not in product_skill.read_text(encoding="utf-8"):
             raise AssertionError("Installed intake lost its Program Kit grilling dependency")
-        if grilling_reference not in feature_intake_skill.read_text(encoding="utf-8"):
+        if "shipped grilling skill" not in feature_intake_skill.read_text(encoding="utf-8"):
             raise AssertionError("Installed feature intake lost its Program Kit grilling dependency")
         shipped_grilling = project / grilling_reference
         expected_grilling = extracted_extension / "commands/speckit.program-kit-governance.grilling.md"
@@ -423,11 +421,8 @@ def main() -> int:
         if method_body not in grilling_skill.read_text(encoding="utf-8"):
             raise AssertionError("Standalone grilling and intake do not share the shipped method")
         c4_view_skill_text = c4_view_skill.read_text(encoding="utf-8")
-        if (
-            "including informed review before bootstrap confirmation" not in c4_view_skill_text
-            or "never performs bootstrap approval" not in c4_view_skill_text
-        ):
-            raise AssertionError("Installed C4 viewer skill lost the draft-review approval boundary")
+        if 'generated, read-only review projection' not in c4_view_skill_text:
+            raise AssertionError("Installed C4 viewer skill lost its read-only projection boundary")
         installed_skill_text = product_skill.read_text(encoding="utf-8")
         if 'product_intake.py' not in installed_skill_text:
             raise AssertionError('Installed product-intake skill lost its mechanical entrypoint')
@@ -437,8 +432,8 @@ def main() -> int:
         if functional.read_bytes() != (extracted_extension/'references/functional-discovery.md').read_bytes():
             raise AssertionError('Installed functional discovery differs from the packaged contract')
         specification = (project/'.agents/skills/speckit-program-kit-governance-specification-intake/SKILL.md').read_text(encoding='utf-8')
-        if 'functional-discovery.md' not in specification:
-            raise AssertionError('Installed specification intake cannot carry the functional model forward')
+        if 'product intent' not in specification or 'relevant ADRs' not in specification:
+            raise AssertionError('Installed specification intake cannot carry authored product knowledge forward')
 
         installed_scripts = project / '.specify/extensions/program-kit-governance/scripts'
         installed_check(project, installed_scripts / 'governance_state.py', 'validate-installation')
@@ -473,104 +468,35 @@ def main() -> int:
         installed_check(project, installed_scripts / 'schema_runtime.py', 'record-copy')
         installed_check(project, installed_scripts / 'product_intake.py', '--help')
         before_intake = snapshot(project)
-        status = installed_check(project, installed_scripts / 'product_intake.py', 'status', expected=1)
+        status = installed_check(project, installed_scripts / 'product_intake.py', 'status')
         payload = json.loads(status.stdout)
-        if payload.get('status') != 'NOT READY' or payload.get('eligible') is not False or not payload.get('next_action'):
-            raise AssertionError('Clean installed product-intake did not report an actionable incomplete state')
+        if payload.get('status') != 'NO RECORDED CONTEXT' or not payload.get('next_action') or 'eligible' in payload:
+            raise AssertionError('Clean installed inspection did not report its actual non-authorizing context')
         if snapshot(project) != before_intake:
             raise AssertionError('Installed product-intake status changed the consumer')
 
-        scenario_architecture = (
-            root / "tests/live/scenarios/clean-bootstrap/docs/architecture"
-        )
-        consumer_architecture = project / "docs/architecture"
-        shutil.copytree(scenario_architecture, consumer_architecture, dirs_exist_ok=True)
-        intake_path = consumer_architecture / "bootstrap-intake.json"
-        intake = json.loads(intake_path.read_text(encoding="utf-8"))
-        intake["status"] = "draft"
-        for record in intake["artifacts"].values():
-            artifact = project / record["path"]
-            record["sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
-            record["bytes"] = artifact.stat().st_size
-        intake_path.write_text(
-            json.dumps(intake, indent=2) + "\n", encoding="utf-8", newline="\n"
-        )
-
-        before_draft_review = snapshot(project)
-        installed_viewer = (
-            project
-            / ".specify/extensions/program-kit-governance/scripts/c4_view.py"
-        )
-        draft_review = subprocess.run(
-            [
-                sys.executable,
-                '-B',
-                str(installed_viewer),
-                "inspect",
-                "--project-root",
-                ".",
-                "--json",
-            ],
-            cwd=project,
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        )
-        draft_payload = json.loads(draft_review.stdout)
-        if (
-            draft_payload.get("review_mode") != "draft-intake-review"
-            or draft_payload.get("intake_status") != "draft"
-            or draft_payload.get("repository_writes") is not False
-            or draft_payload.get("confirmation_performed") is not False
-            or draft_payload.get("architecture_acceptance_performed") is not False
-        ):
-            raise AssertionError(f"Packaged draft C4 review reported an unsafe result: {draft_payload}")
-        if snapshot(project) != before_draft_review:
-            raise AssertionError("Packaged draft C4 viewing changed the clean consumer repository")
-        if json.loads(intake_path.read_text(encoding="utf-8"))["status"] != "draft":
-            raise AssertionError("Packaged C4 viewing confirmed the draft intake")
-
-        installed_intake_validator = (
-            project
-            / ".specify/extensions/program-kit-governance/scripts/bootstrap_intake.py"
-        )
-        draft_bootstrap_validation = subprocess.run(
-            [
-                sys.executable,
-                '-B',
-                str(installed_intake_validator),
-                "validate",
-                "--project-root",
-                ".",
-                "--json",
-            ],
-            cwd=project,
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        )
-        if (
-            draft_bootstrap_validation.returncode == 0
-            or "not confirmed" not in draft_bootstrap_validation.stderr
-        ):
-            raise AssertionError("The packaged intake validator accepted a draft intake")
-
-        intake["status"] = "confirmed"
-        intake_path.write_text(
-            json.dumps(intake, indent=2) + "\n", encoding="utf-8", newline="\n"
-        )
-        run(
-            sys.executable,
-            '-B',
-            str(installed_intake_validator),
-            "validate",
-            "--project-root",
-            ".",
-            "--json",
-            cwd=project,
-        )
+        consumer_architecture = project / 'docs/architecture'
+        consumer_architecture.mkdir(parents=True)
+        (consumer_architecture / 'project-intent.md').write_text(
+            '# Request service\nA requester records and follows a request.\n'
+            'Product confirmation remains pending human review.\n', encoding='utf-8')
+        shutil.copyfile(extracted_extension / 'references/architecture-map-minimal.json',
+                        consumer_architecture / 'architecture-map.json')
+        installed_check(project, installed_scripts / 'architecture_map.py', 'export',
+            '--map', 'docs/architecture/architecture-map.json', '--output', 'docs/architecture/workspace.dsl')
+        before_map_review = snapshot(project)
+        result = installed_check(project, installed_scripts / 'c4_view.py', 'inspect',
+            '--project-root', '.', '--json')
+        viewed = json.loads(result.stdout)
+        if (viewed.get('review_mode') != 'authored-map-review'
+                or viewed.get('intake_status') != 'not-required'
+                or viewed.get('repository_writes') is not False
+                or viewed.get('confirmation_performed') is not False
+                or viewed.get('architecture_acceptance_performed') is not False):
+            raise AssertionError('Installed C4 inspection manufactured authoring authority: ' + str(viewed))
+        installed_check(project, installed_scripts / 'product_intake.py', 'inspect')
+        if snapshot(project) != before_map_review:
+            raise AssertionError('Installed read-only context/map review changed authored input')
 
         extension_config = yaml.safe_load(
             (project / ".specify/extensions.yml").read_text(encoding="utf-8")
@@ -627,10 +553,9 @@ def main() -> int:
                                       'without AI, toolkit extensions or governance history'),
             'spec-template': ('## User Scenarios & Testing', '**Independent Test**',
                               '**Given**', '**When**', '**Then**',
-                              'Explicitly request automated behavioral tests'),
-            'tasks-template': ('## Operation dependency map', '## Task dependency map',
-                               'Map test tasks to each user story',
-                               'choose sequencing by risk', 'Story delivery map'),
+                              'Retain applicable tests required by the'),
+            'tasks-template': ('## Phase', '- [ ]', '## Program Kit vertical delivery notes',
+                               'agreed review pauses', 'Do not infer acceptance'),
         }
         for template, markers in expected_templates.items():
             resolved = subprocess.run([sys.executable, '-X', 'utf8', str(python_resolver), template, '--json'],
@@ -640,8 +565,21 @@ def main() -> int:
             content = json.loads(resolved.stdout)['TEMPLATE_CONTENT']
             if any(marker not in content for marker in markers):
                 raise AssertionError(f'Installed {template} lost core structure or engineering guidance')
-        from validate_task_generation import validate_installed_workflow
-        validate_installed_workflow(project)
+        preset_manifest = yaml.safe_load((extracted_preset / 'preset.yml').read_text(encoding='utf-8'))
+        if any(item.get('strategy') != 'append' for item in preset_manifest['provides']['templates']):
+            raise AssertionError('Preset replaced native commands or templates')
+        for name, marker in (('tasks', '## Program Kit task guidance'),
+                             ('implement', '## Program Kit implementation guidance'),
+                             ('analyze', '## Program Kit operation review')):
+            installed = (project / f'.agents/skills/speckit-{name}/SKILL.md').read_text(encoding='utf-8')
+            if installed.count(marker) != 1 or 'task_draft.py' in installed:
+                raise AssertionError('Installed native phase lost appended guidance or retained task-state engine: ' + name)
+            for hook in (f'hooks.before_{name}', f'hooks.after_{name}'):
+                if hook not in installed:
+                    raise AssertionError('Native phase lost configured hook dispatch: ' + hook)
+        implementation = (project / '.agents/skills/speckit-implement/SKILL.md').read_text(encoding='utf-8')
+        if 'Pause dependent product work until actual acceptance' not in implementation:
+            raise AssertionError('Installed implementation lost agreed human review boundary')
         if "program-kit-dotnet" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
         if "program-kit-building-blocks" not in extension_config.get("installed", []):
@@ -668,8 +606,6 @@ def main() -> int:
                 raise AssertionError("Full Program Kit release is missing the offline/local updater")
             if "scripts/invoke_specify.py" not in archive.namelist():
                 raise AssertionError("Full Program Kit release is missing the sandbox-compatible Specify bridge")
-            if "scripts/openapi_upgrade_reconciliation.py" not in archive.namelist():
-                raise AssertionError("Full Program Kit release is missing OpenAPI upgrade reconciliation")
         component_graph = {
             (kind, entry["id"])
             for kind, entries in packaged_bundle["provides"].items()

@@ -23,13 +23,12 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [],
         "routingCoverage": [
-          "tests/validate_story_delivery.py",
-          "tests/validate_task_generation.py"
+          "tests/validate_native_phases.py"
         ],
-        "coverageScope": "Deterministic workflow/state and installed disposable reset contracts; simulated humans establish no real acceptance or delivery-speed claim."
+        "coverageScope": "Native appended guidance and ordinary review/progress notes. No automated human acceptance claim."
       },
       "decisionRules": [],
       "ruleIds": [
@@ -41,8 +40,7 @@
         "principle.vertical-proportional-exceptions",
         "principle.slice-authority-traceability",
         "principle.story-operation-review-boundary"
-      ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+      ]
     },
     {
       "id": "domain-semantics",
@@ -61,11 +59,9 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -99,8 +95,7 @@
         "principle.domain-integration-delivery",
         "principle.architecture-semantic-evidence",
         "principle.vertical-slice-contract"
-      ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+      ]
     },
     {
       "id": "implementation-quality",
@@ -119,11 +114,9 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -163,7 +156,6 @@
         "principle.vertical-cohesion-boundaries",
         "principle.vertical-proportional-exceptions"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "operationDecisions": [
         "ownership",
         "results",
@@ -189,9 +181,7 @@
       "enforcement": {
         "kind": "review",
         "coverage": [],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -222,8 +212,7 @@
         "principle.domain-integration-delivery",
         "principle.architecture-semantic-evidence",
         "principle.dependency-ownership-contract"
-      ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+      ]
     },
     {
       "id": "dotnet-boundaries",
@@ -250,9 +239,7 @@
           "tests/validate_architecture_recipe.py",
           "tests/validate_standalone_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -342,8 +329,7 @@
         "principle.retained-runtime-boundaries",
         "principle.retained-engineering-selections",
         "context.selected-web-runtime-specialization"
-      ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+      ]
     },
     {
       "id": "api-contracts",
@@ -364,14 +350,12 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_default_dependency_profile.py",
           "tests/validate_dotnet_build_contract.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -441,7 +425,6 @@
         "principle.web-threat-project-delta",
         "principle.effects-and-admission-contract"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "admission"
@@ -466,13 +449,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_ui_browser.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -545,7 +526,6 @@
         "principle.retained-engineering-selections",
         "principle.ui-generated-asset-ownership"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "operationDecisions": [
         "admission"
       ]
@@ -569,13 +549,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_default_dependency_profile.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -624,7 +602,6 @@
         "adapter.foundation-settings",
         "adapter.hosted-pages"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "operationDecisions": [
         "activation-drain",
         "cleanup-uncertainty"
@@ -659,9 +636,7 @@
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "mechanism": "dotnet-async",
@@ -677,7 +652,6 @@
         "principle.shell-task-lifetimes",
         "guidance.dotnet-engineering.async-and-shell-owned-work"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "cancellation-deadline"
@@ -704,13 +678,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "mechanism": "dotnet-concurrency",
@@ -719,7 +691,6 @@
         "principle.synchronization-contract",
         "guidance.dotnet-engineering.synchronization-and-collections"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "concurrency"
@@ -746,13 +717,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "mechanism": "dotnet-lifetime",
@@ -765,7 +734,6 @@
         "principle.async-teardown",
         "guidance.dotnet-engineering.resource-and-memory-ownership"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "cleanup-uncertainty"
@@ -793,13 +761,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "decisionRules": [],
@@ -808,8 +774,7 @@
         "principle.deferred-initialization",
         "guidance.dotnet-engineering.type-and-construction-choices",
         "guidance.dotnet-engineering.deferred-initialization"
-      ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+      ]
     },
     {
       "id": "dotnet-queries",
@@ -832,13 +797,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "mechanism": "dotnet-queries",
@@ -847,7 +810,6 @@
         "principle.query-execution",
         "guidance.dotnet-engineering.linq-and-query-boundaries"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "operationDecisions": [
         "bounds"
       ]
@@ -873,13 +835,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "mechanism": "dotnet-io",
@@ -888,7 +848,6 @@
         "principle.runtime-time-and-io",
         "guidance.dotnet-engineering.time-configuration-and-i-o"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "configuration-time",
@@ -920,13 +879,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "mechanism": "dotnet-security",
@@ -947,7 +904,6 @@
         "principle.owned-identifiers-result-bounds",
         "principle.foundation-typed-wire-contract"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "admission",
@@ -998,9 +954,7 @@
         "coverage": [
           "tests/validate_dotnet_engineering.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "decisionRules": [],
@@ -1016,8 +970,7 @@
         "native.analyzer-severity",
         "native.build-warnings",
         "principle.source-file-context"
-      ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof."
+      ]
     },
     {
       "id": "persistence-adoption",
@@ -1035,13 +988,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_persistence_runtime.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -1069,7 +1020,6 @@
         "context.persistence-primary-guidance-context",
         "principle.sql-application-role-recovery"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "transactions-replay",
@@ -1093,13 +1043,11 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_default_dependency_profile.py"
         ],
-        "routingCoverage": [
-          "tests/validate_normal_development.py"
-        ],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -1131,7 +1079,6 @@
         "principle.openapi-producer-client-closure",
         "principle.protected-api-policy-boundary"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "admission",
@@ -1158,7 +1105,7 @@
         "typescript-admission"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_ui_experience.py",
           "tests/validate_dotnet_scaffold.py"
@@ -1188,7 +1135,6 @@
         "principle.typescript-selected-auth-contract",
         "principle.frontend-profile-authority"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "admission"
@@ -1213,7 +1159,7 @@
         "identity-administration"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
+        "kind": "project-checks-and-review",
         "coverage": [
           "tests/validate_default_dependency_profile.py"
         ],
@@ -1242,7 +1188,6 @@
         "principle.identity-portable-capability-selection",
         "principle.identity-provider-selection-boundary"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "independentReview": true,
       "operationDecisions": [
         "admission",
@@ -1266,13 +1211,9 @@
         "delivery"
       ],
       "enforcement": {
-        "kind": "behavior-and-review",
-        "coverage": [
-          "tests/validate_operation_readiness.py"
-        ],
-        "routingCoverage": [
-          "tests/validate_operation_readiness.py"
-        ],
+        "kind": "project-checks-and-review",
+        "coverage": [],
+        "routingCoverage": [],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
       "sections": {
@@ -1308,7 +1249,6 @@
         "principle.untrusted-input-qualification",
         "principle.provider-owned-journey"
       ],
-      "legacyTextDisposition": "Retained for historical reader compatibility only; active rendering resolves ruleIds. Remove only after F8 replacement proof.",
       "operationDecisions": [
         "cancellation-deadline",
         "cleanup-uncertainty",
@@ -1331,20 +1271,16 @@
         "kind": "manual",
         "via": [
           "extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md",
-          "extensions/program-kit-governance/scripts/consumer_upgrade.py",
-          "scripts/consumer_upgrade_workspace.py",
-          "extensions/program-kit-governance/scripts/tooling_witness.py"
+          "scripts/upgrade_program_kit.py"
         ],
         "sections": [
-          "Withdrawn application authority and tooling-only upgrades",
-          "Reviewed repair transport and isolated checkout recovery",
-          "Fresh story-delivery adoption",
-          "Retained exact tooling source",
-          "Required shared regression cases",
-          "Reconcile declared local tooling repairs"
+          "Re-onboarding from 0.x",
+          "Owned preview replacement",
+          "Consumer work and verification",
+          "Local choices and future previews"
         ],
         "requirements": [],
-        "review": "Existing substantive review, scoped recovery and destination activation; no founding bootstrap restart."
+        "review": "Actual owned toolkit replacement; authored consumer work and human dispositions remain preserved."
       },
       "id": "program-kit-governance/references/consumer-upgrade.md",
       "locator": {
@@ -1354,27 +1290,19 @@
       "owner": "program-kit-governance",
       "disposition": "manual",
       "sections": {
-        "Withdrawn application authority and tooling-only upgrades": {
+        "Re-onboarding from 0.x": {
           "disposition": "manual",
           "route": "manual"
         },
-        "Reviewed repair transport and isolated checkout recovery": {
+        "Owned preview replacement": {
           "disposition": "manual",
           "route": "manual"
         },
-        "Fresh story-delivery adoption": {
+        "Consumer work and verification": {
           "disposition": "manual",
           "route": "manual"
         },
-        "Retained exact tooling source": {
-          "disposition": "manual",
-          "route": "manual"
-        },
-        "Required shared regression cases": {
-          "disposition": "manual",
-          "route": "manual"
-        },
-        "Reconcile declared local tooling repairs": {
+        "Local choices and future previews": {
           "disposition": "manual",
           "route": "manual"
         }
@@ -1385,7 +1313,37 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Scoped applicability review and actual consumer tests; installation/graph passes do not prove semantic acceptance."
+      "purpose": "Scoped applicability review and actual consumer tests; installation/graph passes do not prove semantic acceptance.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Preview toolkit replacement"
+          ],
+          [
+            2,
+            "Re-onboarding from 0.x"
+          ],
+          [
+            2,
+            "Owned preview replacement"
+          ],
+          [
+            2,
+            "Consumer work and verification"
+          ],
+          [
+            2,
+            "Local choices and future previews"
+          ]
+        ],
+        "remaining": {
+          "sha256": "87bb8ea2541df61f6bec02332825844a18bfc4e41629e6a86367d2879c6dd7ec",
+          "kind": "context",
+          "owner": "program-kit-governance",
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+        }
+      }
     },
     {
       "path": "program-kit-building-blocks/references/foundation-contracts-development.md",
@@ -2206,7 +2164,8 @@
       "route": {
         "kind": "phase",
         "via": [
-          "extensions/program-kit-governance/scripts/bootstrap_context.py"
+          "extensions/program-kit-governance/scripts/phase_obligations.py",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
         ],
         "sections": [
           "Purpose",
@@ -2224,7 +2183,7 @@
         "requirements": [
           "api-contracts"
         ],
-        "review": "Selected deployed authentication/control behavior; templates do not prove provider outcomes."
+        "review": "Selected technical profile reference; normal project choices and actual adapter contracts, no workflow assessment gate."
       },
       "id": "program-kit-dotnet/references/secure-web-profiles.md",
       "locator": {
@@ -2248,7 +2207,7 @@
           "codingDisposition": {
             "kind": "native",
             "owner": "program-kit-dotnet",
-            "reason": "bootstrap_profiles.py, bootstrap_context.py SECURE_WEB_REFERENCES and assessment command route full selection/alternate-stack/default/anonymous exception. Selecting a profile is not a new unresolved per-operation question."
+            "reason": "Selected optional engineering profile guidance; native configuration and actual tests own its technical checks. No workflow authority or consumer qualification is required."
           }
         },
         "Common contract": {
@@ -2381,10 +2340,10 @@
           ]
         ],
         "remaining": {
-          "sha256": "16f043188a03ded99802056bd36ba23f3061d8fbe19012029a4716d45f84c09b",
+          "sha256": "6c736d45284e8fd8732de9727c56d401f54ddd2bf489c2718ae1ee52aeba4ce9",
           "kind": "context",
           "owner": "program-kit-dotnet",
-          "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
         }
       }
     },
@@ -2538,7 +2497,7 @@
           "sha256": "01b37ebb2c78cfe89fcf1c2c5203211770823c0fa16711f06de0344ecb4fa6ec",
           "kind": "context",
           "owner": "program-kit-dotnet",
-          "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
         }
       }
     },
@@ -2551,9 +2510,10 @@
       ],
       "enforcement": "Selected boundary assumptions, project overrides and negative cases; no security certification.",
       "route": {
-        "kind": "bootstrap",
+        "kind": "phase",
         "via": [
-          "extensions/program-kit-governance/scripts/bootstrap_context.py"
+          "extensions/program-kit-governance/scripts/phase_obligations.py",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
         ],
         "sections": [
           "Assurance claim",
@@ -2568,7 +2528,7 @@
         "requirements": [
           "api-contracts"
         ],
-        "review": "Selected boundary assumptions, project overrides and negative cases; no security certification."
+        "review": "Selected technical profile reference; normal project choices and actual adapter contracts, no workflow assessment gate."
       },
       "id": "program-kit-dotnet/references/web-security-threat-model.md",
       "locator": {
@@ -2617,7 +2577,61 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Selected boundary assumptions, project overrides and negative cases; no security certification."
+      "purpose": "Selected boundary assumptions, project overrides and negative cases; no security certification.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Program Kit web security threat model v1"
+          ],
+          [
+            2,
+            "Assurance claim"
+          ],
+          [
+            2,
+            "Protected assets"
+          ],
+          [
+            2,
+            "Trust boundaries"
+          ],
+          [
+            2,
+            "Attacker capabilities"
+          ],
+          [
+            2,
+            "Threat catalogue"
+          ],
+          [
+            2,
+            "Profile-specific consequences"
+          ],
+          [
+            3,
+            "`bff-cookie-v1`"
+          ],
+          [
+            3,
+            "`spa-pkce-v1`"
+          ],
+          [
+            2,
+            "Assumptions and out-of-scope risks"
+          ],
+          [
+            2,
+            "Project adoption"
+          ]
+        ],
+        "remaining": {
+          "sha256": "4aa4d3c1ceadc08f4557b992a3513c51aa0d2a0c74cef63da15385f3ecf64c3c",
+          "kind": "context",
+          "owner": "program-kit-dotnet",
+          "reason": "Existing threat-model assumptions and source-status context are selected technical reference knowledge. The current phase route makes no workflow eligibility or executed consumer assurance claim."
+        }
+      }
     },
     {
       "path": "program-kit-governance/references/architecture-method.md",
@@ -2711,61 +2725,9 @@
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "kind": "context",
           "owner": "program-kit-governance",
-          "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
         }
       }
-    },
-    {
-      "path": "program-kit-governance/references/bootstrap-lifecycle.md",
-      "phases": [
-        "planning",
-        "implementation",
-        "delivery",
-        "historical evidence"
-      ],
-      "enforcement": "Focused source-bound prerequisite and compatibility evidence at its dependent action; retained historical formats confer no founding completion or runtime acceptance.",
-      "route": {
-        "kind": "manual",
-        "via": [
-          "extensions/program-kit-governance/scripts/bootstrap_lifecycle.py",
-          "extensions/program-kit-governance/scripts/phase_obligations.py"
-        ],
-        "sections": [
-          "Assign conditions before drafting proofs",
-          "Executed compatibility cases",
-          "Current execution boundary"
-        ],
-        "requirements": [],
-        "review": "Focused source-bound prerequisite and compatibility evidence at its dependent action; retained historical formats confer no founding completion or runtime acceptance."
-      },
-      "id": "program-kit-governance/references/bootstrap-lifecycle.md",
-      "locator": {
-        "kind": "extension",
-        "path": "program-kit-governance/references/bootstrap-lifecycle.md"
-      },
-      "owner": "program-kit-governance",
-      "disposition": "conditional",
-      "sections": {
-        "Assign conditions before drafting proofs": {
-          "disposition": "conditional",
-          "route": "manual"
-        },
-        "Executed compatibility cases": {
-          "disposition": "conditional",
-          "route": "manual"
-        },
-        "Current execution boundary": {
-          "disposition": "conditional",
-          "route": "manual"
-        }
-      },
-      "evidence": {
-        "available": true,
-        "selectedRouted": true,
-        "observedConsultation": "unknown",
-        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      },
-      "purpose": "Focused source-bound prerequisite and compatibility evidence at its dependent action; retained historical formats confer no founding completion or runtime acceptance."
     },
     {
       "path": "program-kit-governance/references/c4-viewing.md",
@@ -2922,22 +2884,18 @@
       ],
       "enforcement": "Explicit intent/default/override precedence; defaults do not authorize spending.",
       "route": {
-        "kind": "bootstrap",
+        "kind": "intake",
         "via": [
-          "extensions/program-kit-governance/scripts/bootstrap_defaults.py"
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
         ],
         "sections": [
-          "Executable selection and first use",
-          "Bootstrap promise",
+          "Transparent technical defaults",
           "Decision precedence",
-          "Adoption evidence",
-          "Managed toolchain precedence",
-          ".NET default",
-          "Secure browser default",
-          "Proportional decisions"
+          "Prerequisites at the action that needs them",
+          "Human review and proportional decisions"
         ],
         "requirements": [],
-        "review": "Explicit intent/default/override precedence; defaults do not authorize spending."
+        "review": "Transparent defaults, explicit alternatives and actual selected engineering inputs; no assessment gate."
       },
       "id": "program-kit-governance/references/default-adoption.md",
       "locator": {
@@ -2947,37 +2905,21 @@
       "owner": "program-kit-governance",
       "disposition": "conditional",
       "sections": {
-        "Executable selection and first use": {
-          "disposition": "conditional",
-          "route": "bootstrap"
-        },
-        "Bootstrap promise": {
-          "disposition": "conditional",
-          "route": "bootstrap"
+        "Transparent technical defaults": {
+          "disposition": "manual",
+          "route": "intake"
         },
         "Decision precedence": {
-          "disposition": "conditional",
-          "route": "bootstrap"
+          "disposition": "manual",
+          "route": "intake"
         },
-        "Adoption evidence": {
-          "disposition": "conditional",
-          "route": "bootstrap"
+        "Prerequisites at the action that needs them": {
+          "disposition": "manual",
+          "route": "intake"
         },
-        "Managed toolchain precedence": {
-          "disposition": "conditional",
-          "route": "bootstrap"
-        },
-        ".NET default": {
-          "disposition": "conditional",
-          "route": "bootstrap"
-        },
-        "Secure browser default": {
-          "disposition": "conditional",
-          "route": "bootstrap"
-        },
-        "Proportional decisions": {
-          "disposition": "conditional",
-          "route": "bootstrap"
+        "Human review and proportional decisions": {
+          "disposition": "manual",
+          "route": "intake"
         }
       },
       "evidence": {
@@ -2986,7 +2928,37 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Explicit intent/default/override precedence; defaults do not authorize spending."
+      "purpose": "Explicit intent/default/override precedence; defaults do not authorize spending.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Default adoption"
+          ],
+          [
+            2,
+            "Transparent technical defaults"
+          ],
+          [
+            2,
+            "Decision precedence"
+          ],
+          [
+            2,
+            "Prerequisites at the action that needs them"
+          ],
+          [
+            2,
+            "Human review and proportional decisions"
+          ]
+        ],
+        "remaining": {
+          "sha256": "7d280623086facd5fb20ed482ccf0548d0518746b9b825011c981aebf028e742",
+          "kind": "context",
+          "owner": "program-kit-governance",
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+        }
+      }
     },
     {
       "path": "program-kit-governance/references/intake-artifacts.md",
@@ -3040,7 +3012,37 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Truthful intent and coherent ownership/journey evidence; schema is structural."
+      "purpose": "Truthful intent and coherent ownership/journey evidence; schema is structural.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Intake artifact authoring contract"
+          ],
+          [
+            2,
+            "One authoring source"
+          ],
+          [
+            2,
+            "Bootstrap intake"
+          ],
+          [
+            2,
+            "Canonical architecture map"
+          ],
+          [
+            2,
+            "Write and validate"
+          ]
+        ],
+        "remaining": {
+          "sha256": "f947d69a0ac6a954d078459762184b8980aa8962da2591c6efc968327ba689f8",
+          "kind": "context",
+          "owner": "program-kit-governance",
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+        }
+      }
     },
     {
       "path": "program-kit-governance/references/functional-discovery.md",
@@ -3352,7 +3354,45 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Human interview and exact shared synthesis with explicit provenance; focused validators bind artifacts but cannot certify interview quality or human consent."
+      "purpose": "Human interview and exact shared synthesis with explicit provenance; focused validators bind artifacts but cannot certify interview quality or human consent.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Conversational product intake"
+          ],
+          [
+            2,
+            "Outcome"
+          ],
+          [
+            2,
+            "Question policy"
+          ],
+          [
+            2,
+            "Conversation evidence and final review"
+          ],
+          [
+            2,
+            "Architecture map"
+          ],
+          [
+            2,
+            "Re-analysis"
+          ],
+          [
+            2,
+            "Continue founding in this session"
+          ]
+        ],
+        "remaining": {
+          "sha256": "ace9db20652933a2669476e35aa1d586ba73ba7003609f0238de0574e636ae7f",
+          "kind": "context",
+          "owner": "program-kit-governance",
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+        }
+      }
     },
     {
       "path": "program-kit-governance/references/json-schema-tools.md",
@@ -3597,7 +3637,7 @@
         "tasks",
         "delivery"
       ],
-      "enforcement": "Scoped engineering execution plus normal semantic review; historical evidence is read-only.",
+      "enforcement": "Readable native task/review guidance; actual project checks and agreed human dispositions remain separate.",
       "route": {
         "kind": "phase",
         "via": [
@@ -3606,13 +3646,13 @@
         "sections": [
           "Immediate phase actions",
           "Knowledge and engineering checks",
-          "Reusable foundation proof and operation prerequisites",
-          "Story delivery and human review"
+          "Story delivery and human review",
+          "Reusable foundation proof and operation prerequisites"
         ],
         "requirements": [
           "story-delivery"
         ],
-        "review": "Scoped engineering execution, assigned human story decisions/progression and advisory effort; historical evidence is read-only."
+        "review": "Readable native task/review guidance; actual project checks and agreed human dispositions remain separate."
       },
       "id": "program-kit-governance/references/phase-evidence.md",
       "locator": {
@@ -3622,35 +3662,40 @@
       "owner": "program-kit-governance",
       "disposition": "active",
       "sections": {
+        "Immediate phase actions": {
+          "disposition": "active",
+          "route": "phase",
+          "codingDisposition": {
+            "kind": "context",
+            "owner": "program-kit-governance",
+            "reason": "Read-only reference/review guidance; optional project engineering checks and actual agreed human dispositions remain separate."
+          }
+        },
         "Knowledge and engineering checks": {
           "disposition": "active",
           "route": "phase",
           "codingDisposition": {
-            "kind": "native",
+            "kind": "context",
             "owner": "program-kit-governance",
-            "reason": "Existing preflight/finish/repository verification/interpreter/provider isolation/retained planning-decision owners implement readiness and checks. Context must preserve failure/freshness/no-manufactured-history limits; do not create a second consumer proof dossier."
+            "reason": "Read-only reference/review guidance; optional project engineering checks and actual agreed human dispositions remain separate."
+          }
+        },
+        "Story delivery and human review": {
+          "disposition": "active",
+          "route": "phase",
+          "codingDisposition": {
+            "kind": "context",
+            "owner": "program-kit-governance",
+            "reason": "Read-only reference/review guidance; optional project engineering checks and actual agreed human dispositions remain separate."
           }
         },
         "Reusable foundation proof and operation prerequisites": {
           "disposition": "active",
           "route": "phase",
           "codingDisposition": {
-            "kind": "overlap",
+            "kind": "context",
             "owner": "program-kit-governance",
-            "reason": "Existing exact fixture preparation/setup/invalidation/operation dependency and admission state own executable routing. First proving operation/adverse-case owner, input/currentness, configuration provenance/activation truth and no secrets should remain in current plan/tasks through existing owners, not a universal foundation gate."
-          }
-        },
-        "Story delivery and human review": {
-          "disposition": "active",
-          "route": "phase"
-        },
-        "Immediate phase actions": {
-          "disposition": "active",
-          "route": "phase",
-          "codingDisposition": {
-            "kind": "native",
-            "owner": "program-kit-governance",
-            "reason": "Selected marker IDs are phase-action.planning, phase-action.after-plan, phase-action.tasks, phase-action.after-tasks, phase-action.implementation, phase-action.delivery. Markers are bounded declarations, not evidence that all surrounding prose was selected."
+            "reason": "Read-only reference/review guidance; optional project engineering checks and actual agreed human dispositions remain separate."
           }
         }
       },
@@ -3665,7 +3710,7 @@
         "headings": [
           [
             1,
-            "Engineering and foundation evidence"
+            "Engineering guidance and review"
           ],
           [
             2,
@@ -3677,34 +3722,18 @@
           ],
           [
             2,
-            "Reusable foundation proof and operation prerequisites"
-          ],
-          [
-            2,
             "Story delivery and human review"
           ],
           [
-            3,
-            "Compact state and maintained transitions"
-          ],
-          [
-            3,
-            "Freshness and effort"
-          ],
-          [
-            3,
-            "Optional authenticated GitHub decisions"
-          ],
-          [
-            3,
-            "Fresh-feature adoption"
+            2,
+            "Reusable foundation proof and operation prerequisites"
           ]
         ],
         "remaining": {
-          "sha256": "d2b2f61178d90b61c2021e64c73e660624c39ff20df898d49c6b714510ea1a24",
+          "sha256": "ed3b87b8d3b391fcae543749d891ea01d9dd396d8a3806a01a0333a98c33ea1e",
           "kind": "context",
           "owner": "program-kit-governance",
-          "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
         }
       }
     },
@@ -3907,7 +3936,7 @@
           "extensions/program-kit-governance/scripts/specification_intake.py"
         ],
         "sections": [
-          "Feature grilling evidence"
+          "Feature intake"
         ],
         "requirements": [],
         "review": "Confirmed product intent and affected decision resolution; preserve unchanged human choices."
@@ -3920,8 +3949,8 @@
       "owner": "program-kit-governance",
       "disposition": "conditional",
       "sections": {
-        "Feature grilling evidence": {
-          "disposition": "conditional",
+        "Feature intake": {
+          "disposition": "manual",
           "route": "intake"
         }
       },
@@ -3931,7 +3960,21 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Confirmed product intent and affected decision resolution; preserve unchanged human choices."
+      "purpose": "Confirmed product intent and affected decision resolution; preserve unchanged human choices.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Feature intake"
+          ]
+        ],
+        "remaining": {
+          "sha256": "f0cf0ce9a9b7cd0fe1b4b71285fdb23445d18f3e967c4b878f2ff8542330a255",
+          "kind": "context",
+          "owner": "program-kit-governance",
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+        }
+      }
     },
     {
       "path": "program-kit-governance/references/technology-profiles/typescript.md",
@@ -4278,50 +4321,9 @@
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "kind": "context",
           "owner": "program-kit-governance",
-          "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
         }
       }
-    },
-    {
-      "path": "program-kit-governance/references/workflow-resumption.md",
-      "phases": [
-        "historical evidence",
-        "upgrade",
-        "founding"
-      ],
-      "enforcement": "Retirement and migration guidance plus read-only bound historical completion inspection; run/resume/reopen grant no current founding authority.",
-      "route": {
-        "kind": "manual",
-        "via": [
-          "extensions/program-kit-governance/scripts/workflow_lifecycle.py",
-          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
-        ],
-        "sections": [
-          "Retired founding workflow: historical evidence and migration"
-        ],
-        "requirements": [],
-        "review": "Retirement and migration guidance plus read-only bound historical completion inspection; run/resume/reopen grant no current founding authority."
-      },
-      "id": "program-kit-governance/references/workflow-resumption.md",
-      "locator": {
-        "kind": "extension",
-        "path": "program-kit-governance/references/workflow-resumption.md"
-      },
-      "owner": "program-kit-governance",
-      "disposition": "conditional",
-      "sections": {
-        "Retired founding workflow: historical evidence and migration": {
-          "disposition": "conditional",
-          "route": "manual"
-        }
-      },
-      "evidence": {
-        "available": true,
-        "selectedRouted": true,
-        "observedConsultation": "unknown",
-        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
-      },
-      "purpose": "Retirement and migration guidance plus read-only bound historical completion inspection; run/resume/reopen grant no current founding authority."
     },
     {
       "path": "program-kit-governance/references/component-adoption.md",
@@ -4450,18 +4452,17 @@
         "delivery",
         "upgrade"
       ],
-      "enforcement": "Configured original reset-bound inputs are projected and protected by task preparation, save and delivery. No new product acceptance is created.",
+      "enforcement": "Optional explicit retained-input protection; normal task notes preserve user-authored historical inputs.",
       "route": {
         "kind": "routing",
         "via": [
-          "extensions/program-kit-governance/commands/speckit.program-kit-governance.phase-context.md",
-          "extensions/program-kit-governance/scripts/task_draft.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_inputs.py"
         ],
         "sections": [
           "Document outputs"
         ],
         "requirements": [],
-        "review": "Configured original reset-bound inputs are projected and protected by task preparation, save and delivery. No new product acceptance is created."
+        "review": "Optional explicit retained-input protection; normal task notes preserve user-authored historical inputs."
       },
       "id": "program-kit-dotnet/references/retained-inputs.md",
       "locator": {
@@ -4482,7 +4483,21 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Configured original reset-bound inputs are projected and protected by task preparation, save and delivery. No new product acceptance is created."
+      "purpose": "Configured original reset-bound inputs are projected and protected by task preparation, save and delivery. No new product acceptance is created.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Retained input and document ownership"
+          ]
+        ],
+        "remaining": {
+          "sha256": "f974f10f3353fe999218be728183ef6da1796fecd82c93d69c43945bad889425",
+          "kind": "context",
+          "owner": "program-kit-dotnet",
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+        }
+      }
     },
     {
       "path": "program-kit-dotnet/references/pdf-stream-decoding.md",
@@ -5081,7 +5096,41 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Connected product/founding guidance routes exact intake synthesis, separate human constitution ratification and named ADR/map acceptance through existing owners, then direct feature intake. Scoped validators check content/selection identity; they prove neither human consent nor runtime compatibility."
+      "purpose": "Connected product/founding guidance routes exact intake synthesis, separate human constitution ratification and named ADR/map acceptance through existing owners, then direct feature intake. Scoped validators check content/selection identity; they prove neither human consent nor runtime compatibility.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Focused product founding"
+          ],
+          [
+            2,
+            "Current product and architecture"
+          ],
+          [
+            2,
+            "Constitution and consequential decisions"
+          ],
+          [
+            2,
+            "Technology and qualified capabilities"
+          ],
+          [
+            2,
+            "One review and direct feature handoff"
+          ],
+          [
+            2,
+            "Existing consumers and historical evidence"
+          ]
+        ],
+        "remaining": {
+          "sha256": "332b9fb1d9b858f181872d3456929408fb52be95be6da5c957f3357ae9aa2a85",
+          "kind": "context",
+          "owner": "program-kit-governance",
+          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+        }
+      }
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
@@ -5363,7 +5412,12 @@
           "tests/validate_dotnet_engineering.py"
         ]
       },
-      "withinDecisionRule": "authorization-ownership"
+      "withinDecisionRule": "authorization-ownership",
+      "when": {
+        "all": [
+          "dotnet"
+        ]
+      }
     },
     "principle.authority-conflicts": {
       "purpose": "Authority conflicts",
@@ -6071,16 +6125,12 @@
       ],
       "applicability": "Existing responsibility selection: story-delivery",
       "bindings": {
-        "checks": [
-          "tests/validate_story_delivery.py",
-          "tests/validate_task_generation.py"
-        ]
+        "checks": []
       },
-      "display": "focused-detail",
       "contextDisposition": {
-        "kind": "native",
+        "kind": "context",
         "owner": "program-kit-governance",
-        "reason": "Maintained story-engine transition/storage/review/receipt procedures retain their explicit native workflow and semantic review owners; ordinary coding duties remain in the exact vertical-slice and operation-review atoms."
+        "reason": "Readable agreed review guidance; no story engine, transition or receipt protocol is active."
       }
     },
     "guidance.software-language.policies-and-decisions": {
@@ -9602,7 +9652,7 @@
       "contextDisposition": {
         "kind": "context",
         "owner": "program-kit-governance",
-        "reason": "Dedicated constitution and roadmap human gates remain lifecycle-owned, not ordinary new coding duties. Explicit context coverage only; this span does not create an ordinary mandatory duty or acceptance authority."
+        "reason": "Constitution and roadmap are normal authored decisions. Agreed human review remains real without lifecycle receipts or a new coding gate."
       }
     },
     "principle.focused-architecture-design": {
@@ -10061,6 +10111,11 @@
         "checks": [
           "tests/validate_knowledge_sources.py"
         ]
+      },
+      "when": {
+        "all": [
+          "dotnet"
+        ]
       }
     },
     "context.typed-operation-focused-example": {
@@ -10091,6 +10146,11 @@
         "kind": "context",
         "owner": "program-kit-governance",
         "reason": "Optional concrete native source-export example; mandatory owner/contract obligations retained in adjacent atoms."
+      },
+      "when": {
+        "all": [
+          "dotnet"
+        ]
       }
     },
     "principle.owned-identifiers-result-bounds": {
@@ -11860,7 +11920,7 @@
       "contextDisposition": {
         "kind": "context",
         "owner": "program-kit-dotnet",
-        "reason": "Existing bootstrap assessment authority and safe defaults; ordinary implementation does not reopen approval."
+        "reason": "Transparent optional technical defaults and normal substantive project decisions; no bootstrap assessment gate."
       }
     },
     "context.dotnet-managed-sdk-authority": {
@@ -13470,7 +13530,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/domain-semantics/requirement,guidance,example",
@@ -13491,7 +13553,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/implementation-quality/requirement,guidance,example",
@@ -13512,7 +13576,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/architecture-authority/requirement,guidance,example",
@@ -13531,7 +13597,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-boundaries/requirement,guidance,example",
@@ -13564,7 +13632,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/api-contracts/requirement,guidance,example",
@@ -13586,7 +13656,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/browser-experience/requirement,guidance,example",
@@ -13610,7 +13682,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/capability-adoption/requirement,guidance,example",
@@ -13632,7 +13706,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-async/requirement,guidance,example",
@@ -13653,7 +13729,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-concurrency/requirement,guidance,example",
@@ -13669,7 +13747,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-lifetime/requirement,guidance,example",
@@ -13687,7 +13767,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-construction/requirement,guidance,example",
@@ -13704,7 +13786,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-queries/requirement,guidance,example",
@@ -13720,7 +13804,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-runtime-io/requirement,guidance,example",
@@ -13736,7 +13822,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-runtime-security/requirement,guidance,example",
@@ -13754,7 +13842,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/dotnet-source-quality/requirement,guidance,example",
@@ -13775,7 +13865,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/persistence-adoption/requirement,guidance,example",
@@ -13797,7 +13889,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/http-operation-contracts/requirement,guidance,example",
@@ -13815,7 +13909,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/typescript-boundaries/requirement,guidance,example",
@@ -13840,7 +13936,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase-obligations.json#/requirements/identity-administration/requirement,guidance,example",
@@ -13859,7 +13957,9 @@
         "tests/validate_knowledge_application.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase_obligations.py:foundation_applicability",
@@ -13905,7 +14005,9 @@
         "tests/validate_coding_patterns.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "phase_obligations.py:render phase actions/provider binding strings",
@@ -13947,7 +14049,9 @@
         "tests/validate_coding_patterns.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "eng/source_quality.py:guidance",
@@ -13970,7 +14074,9 @@
         "tests/validate_coding_patterns.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
       "oldLocation": "commands and presets: phase/task guidance",
@@ -13992,7 +14098,9 @@
         "tests/validate_knowledge_sources.py",
         "tests/coding_install_review_fixture.py"
       ],
-      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md."
+      "retirement": "F8 removes redundant active prose after canonical replacement. Original source/reader evidence remains historical; see docs/reviews/coding-system-f8-checkpoint-2026-10-18.md.",
+      "historicalOnly": true,
+      "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     }
   ],
   "discoveryScopes": [

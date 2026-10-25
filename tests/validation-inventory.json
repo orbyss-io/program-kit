@@ -35,7 +35,8 @@
         "extensions/program-kit-governance/scripts/asset_sources.py",
         "extensions/program-kit-governance/scripts/release_guidance.py",
         "scripts/record_local_bundle.py",
-        "scripts/Test-LocalInstall.ps1"
+        "scripts/Test-LocalInstall.ps1",
+        "scripts/product_version.py"
       ],
       "dependsOn": []
     },
@@ -61,7 +62,10 @@
         "extensions/program-kit-governance/scripts/intake_authoring.py",
         "extensions/program-kit-governance/scripts/specification_intake.py",
         "extensions/program-kit-governance/references/architecture-map.schema.json",
-        "extensions/program-kit-governance/references/bootstrap-intake.schema.json"
+        "extensions/program-kit-governance/references/bootstrap-intake.schema.json",
+        "extensions/program-kit-governance/config/**",
+        "extensions/program-kit-governance/scripts/proxy_intake.py",
+        "tests/validate_governance_state.py"
       ],
       "dependsOn": []
     },
@@ -103,7 +107,9 @@
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.roadmap.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md",
         "extensions/program-kit-governance/scripts/implementation_preflight.py",
-        "extensions/program-kit-governance/extension.yml"
+        "extensions/program-kit-governance/extension.yml",
+        "extensions/program-kit-governance/scripts/api_proof.py",
+        "extensions/program-kit-governance/scripts/lifecycle_state.py"
       ],
       "dependsOn": [
         "shared-governance",
@@ -196,7 +202,10 @@
         "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
         "tests/identity_projection_cases.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/.github/workflows/*.yml",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/*.props"
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/*.props",
+        "extensions/program-kit-building-blocks/commands/**",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.sync.md",
+        "extensions/program-kit-governance/scripts/sync_readiness.py"
       ],
       "dependsOn": [
         "profiles"
@@ -564,31 +573,6 @@
       "timeoutSeconds": 240
     },
     {
-      "id": "validate_upgrade_retry",
-      "purpose": "Exact original/target retry admission, real materialization and preserved originals; no worker or publication.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_upgrade_retry.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_upgrade_retry.py",
-        "tests/validate_building_blocks.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
       "id": "validate_web_runtime",
       "purpose": "Installed web runtime child/grandchild propagation, applicable Python dependencies and explicit preparation; verification acquires nothing.",
       "platforms": [
@@ -749,67 +733,6 @@
       "timeoutSeconds": 120
     },
     {
-      "id": "validate_native_phase_baselines",
-      "purpose": "Require a complete exact immediate-predecessor source witness before packaging; reject missing lineage and manifest-only substitutes.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_native_phase_baselines.py"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "release",
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_native_phase_baselines.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:yaml",
-        "tool:git"
-      ],
-      "suites": [],
-      "budgetSeconds": 15,
-      "timeoutSeconds": 30
-    },
-    {
-      "id": "validate_packaged_inactive_upgrade",
-      "purpose": "Actual packaged inactive-history installation, managed-conflict interruption and retry with fresh fictional local repair cases; preserved profiles, authority and scoped verdicts.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_packaged_upgrade.py",
-        "--inactive-history"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_packaged_upgrade.py"
-      ],
-      "needs": [
-        "build-release"
-      ],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml",
-        "tool:git",
-        "runtime:json-schema"
-      ],
-      "suites": [],
-      "budgetSeconds": 150,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
       "id": "validate_native_phase_ownership",
       "purpose": "Exact native extension/preset source and generated output ownership, customization refusal, secondary integrations and immutable archived-source witnesses before upgrade mutation.",
       "platforms": [
@@ -841,36 +764,6 @@
       ]
     },
     {
-      "id": "validate_operation_recovery",
-      "purpose": "Maintained recovery example retains server identity through missing receipts/response loss and admits correction only for owner-defined confirmed no-effect outcomes; validation parity.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_operation_recovery.py"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_operation_recovery.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:node"
-      ],
-      "suites": [],
-      "budgetSeconds": 300,
-      "timeoutSeconds": 600,
-      "manualOnly": true,
-      "reviewInputs": [
-        "tests/validate_operation_recovery.py"
-      ]
-    },
-    {
       "id": "validate_test_dependencies",
       "purpose": "Responsibility-derived selected direct test contracts, pure Core exclusions and reviewed new-project scaffolding with selected-pin admission before source creation.",
       "platforms": [
@@ -893,38 +786,6 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240
-    },
-    {
-      "id": "validate_phase_refresh",
-      "purpose": "Native all-phase integration refresh in four pre-implementation states, secondary integration composition and customization refusal without artifact or authority reset.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_phase_refresh.py"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_phase_refresh.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml",
-        "tool:specify"
-      ],
-      "suites": [],
-      "budgetSeconds": 300,
-      "timeoutSeconds": 600,
-      "manualOnly": true,
-      "reviewInputs": [
-        "tests/validate_phase_refresh.py"
-      ]
     },
     {
       "id": "validate_wire_capabilities",
@@ -1209,63 +1070,6 @@
       ]
     },
     {
-      "id": "validate_inactive_upgrade",
-      "purpose": "Hash-bound inactive history, unchanged active guards, tooling-only apply/idempotence, retained native pins, reviewed repair argument transport/retry and blob-authenticated newline recovery.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_inactive_upgrade.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "upgrade",
-        "scaffolding"
-      ],
-      "inputs": [
-        "tests/validate_inactive_upgrade.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
-      "suites": [],
-      "budgetSeconds": 30,
-      "timeoutSeconds": 120,
-      "manualOnly": false
-    },
-    {
-      "id": "validate_consumer_upgrade",
-      "purpose": "Cumulative consumer semantics, selective phase repair, local migration recovery, sanitized export and owned ignored installation reproduction; no coding agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_consumer_upgrade.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_consumer_upgrade.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
       "id": "validate_effective_dependency_context",
       "purpose": "Selected dependency authority, scaffold continuity, both ownership audits and both actual consumer recipe preparation paths.",
       "platforms": [
@@ -1381,30 +1185,6 @@
       ]
     },
     {
-      "id": "validate_knowledge_application",
-      "purpose": "Scoped adopted knowledge before design, canonical constraints in installed briefs, responsibility contradictions and semantic scope; no coding agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_knowledge_application.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "knowledge"
-      ],
-      "inputs": [
-        "tests/validate_knowledge_application.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
       "id": "validate_standalone_engineering",
       "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
       "platforms": [
@@ -1478,60 +1258,6 @@
       ],
       "inputs": [
         "tests/validate_scoped_verification.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_task_generation",
-      "purpose": "Bounded phase guidance, active reference consistency and interrupted task drafting; no coding agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_task_generation.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_task_generation.py",
-        "tests/exercise_fresh_story_reset.py",
-        "tests/validate_story_delivery.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
-      "id": "validate_maintenance_flow",
-      "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_maintenance_flow.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_maintenance_flow.py"
       ],
       "needs": [],
       "prerequisites": [],
@@ -1690,56 +1416,6 @@
       ],
       "inputs": [
         "tests/validate_json_schema.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_exporter_upgrade",
-      "purpose": "Exporter-only catalog transition, immutable accepted history, exact tool/runtime pins and rejection boundaries; no coding workers.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_exporter_upgrade.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_exporter_upgrade.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_upgrade_boundaries",
-      "purpose": "Offline persistence admission, original retry provenance, CLI runtime discovery and safe staging; no coding agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_upgrade_boundaries.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_upgrade_boundaries.py"
       ],
       "needs": [],
       "prerequisites": [],
@@ -1937,57 +1613,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_phase_obligations",
-      "purpose": "Offline negative controls for missing, stale and incomplete knowledge evidence.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_phase_obligations.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "knowledge",
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_phase_obligations.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "runtime:json-schema"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
-      "id": "validate_api_proof",
-      "purpose": "API ownership gates reject missing, stale and mismatched contract evidence.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_api_proof.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "api-client"
-      ],
-      "inputs": [
-        "tests/validate_api_proof.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
       "id": "validate_persistence_selection",
       "purpose": "Exercise consumer persistence intent, multiple owners and non-destructive shared sync.",
       "platforms": [
@@ -2106,81 +1731,6 @@
         "tests/validate_architecture_recipe.py",
         "tests/build_output_recipe_cases.py",
         "tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_capability_proof",
-      "purpose": "Missing runtime/adoption proof must fail even with a plausible architecture plan.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_capability_proof.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "capability-adoption"
-      ],
-      "inputs": [
-        "tests/validate_capability_proof.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": false
-    },
-    {
-      "id": "validate_learning_metrics",
-      "purpose": "No model calls: usage completeness, cache semantics and avoidability accounting.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_learning_metrics.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_learning_metrics.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_learning_report",
-      "purpose": "Whole-exercise report rejects missing/tampered usage and retains failed attempts.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_learning_report.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_learning_report.py"
       ],
       "needs": [],
       "prerequisites": [],
@@ -2547,33 +2097,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_intake_authoring",
-      "purpose": "Offline authoring regression tests; optional replay of a preserved human intake.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_intake_authoring.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "intake"
-      ],
-      "inputs": [
-        "tests/validate_intake_authoring.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "runtime:json-schema"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": false
-    },
-    {
       "id": "validate_orbyss_building_blocks",
       "purpose": "Orbyss building blocks contract validation.",
       "platforms": [
@@ -2905,31 +2428,6 @@
       "timeoutSeconds": 240
     },
     {
-      "id": "validate_governance_state",
-      "purpose": "Governance state contract validation.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_governance_state.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_governance_state.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
       "id": "validate_runnable_host_pins",
       "purpose": "Offline central-package resolution and fail-closed runnable-host staging regressions.",
       "platforms": [
@@ -3229,42 +2727,6 @@
       "manualOnly": true,
       "reviewInputs": [
         "tests/validate_ui_experience.py"
-      ]
-    },
-    {
-      "id": "validate_local_upgrade",
-      "purpose": "Local upgrade contract validation.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_local_upgrade.py"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_local_upgrade.py",
-        "tests/upgrade_selection_cases.py",
-        "tests/upgrade_fault_matrix.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "tool:dotnet",
-        "tool:node"
-      ],
-      "suites": [],
-      "budgetSeconds": 300,
-      "timeoutSeconds": 600,
-      "manualOnly": true,
-      "reviewInputs": [
-        "tests/validate_local_upgrade.py",
-        "tests/upgrade_selection_cases.py",
-        "tests/upgrade_fault_matrix.py"
       ]
     },
     {
@@ -3657,73 +3119,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_tracked_upgrade_activation",
-      "purpose": "Three real installations through historical tracked setup, isolated upgrade and destination failure/retry; native generation, source integration, retained intent, edit refusal and exact recovery. Explicit investigation; measured Windows journey requires a 360s bound; no agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_tracked_upgrade_activation.py"
-      ],
-      "kind": "package",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_tracked_upgrade_activation.py",
-        "tests/validate_consumer_upgrade_install.py",
-        "tests/local_bundle_fixture.py"
-      ],
-      "needs": [
-        "build-release"
-      ],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml",
-        "tool:git",
-        "runtime:json-schema",
-        "git-ref:previous-release"
-      ],
-      "suites": [],
-      "budgetSeconds": 360,
-      "timeoutSeconds": 600,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_consumer_upgrade_install",
-      "purpose": "Real packaged primitive installation, isolated updater/destination recovery, resolved commands and one deterministic fresh-story reset with normal ratification; simulated humans and no coding agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_consumer_upgrade_install.py"
-      ],
-      "kind": "package",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_consumer_upgrade_install.py",
-        "tests/validate_task_generation.py",
-        "tests/exercise_fresh_story_reset.py",
-        "tests/validate_story_delivery.py"
-      ],
-      "needs": [
-        "build-release"
-      ],
-      "prerequisites": [
-        "module:specify_cli"
-      ],
-      "suites": [],
-      "budgetSeconds": 180,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
       "id": "validate_packaged_ui",
       "purpose": "Packaged ui contract validation.",
       "platforms": [
@@ -3777,37 +3172,6 @@
         "module:yaml",
         "module:specify_cli",
         "runtime:json-schema"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "candidate-upgrade",
-      "purpose": "Candidate-upgrade contract validation.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_public_upgrade.py",
-        "--candidate-dir",
-        "artifacts"
-      ],
-      "kind": "package",
-      "capabilities": [
-        "upgrade"
-      ],
-      "inputs": [
-        "tests/validate_public_upgrade.py"
-      ],
-      "needs": [
-        "build-release"
-      ],
-      "prerequisites": [
-        "module:yaml"
       ],
       "suites": [],
       "budgetSeconds": 120,
@@ -4624,33 +3988,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_material_closure",
-      "purpose": "Reviewed conservative architecture dependency/provider closure and plain SDK solution projection; actual two-story build/package/runtime with preserved fictional human decision and shared policy reopening.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_material_closure.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "phases",
-        "knowledge"
-      ],
-      "inputs": [
-        "tests/validate_material_closure.py",
-        "tests/validate_story_delivery.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": false
-    },
-    {
       "id": "validate_tooling_witness",
       "purpose": "Original receipt-bound complete source survives staging loss and project moves; exact explicit recovery, independent later process and partial/modified/rehashed source negatives without historical execution or public self-attestation.",
       "platforms": [
@@ -4931,9 +4268,8 @@
       ],
       "needs": [],
       "prerequisites": [
-        "module:yaml",
         "module:specify_cli",
-        "runtime:json-schema"
+        "module:yaml"
       ],
       "suites": [
         "Baseline"
@@ -4944,7 +4280,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Representative phases operational contract; see docs/validation.md for omissions."
+      "purpose": "Native command preservation, agreed review instructions and focused independent-stack knowledge without lifecycle state"
     },
     {
       "id": "mechanics-knowledge",
@@ -4972,7 +4308,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Representative knowledge operational contract; see docs/validation.md for omissions."
+      "purpose": "Native command preservation, agreed review instructions and focused independent-stack knowledge without lifecycle state"
     },
     {
       "id": "mechanics-founding",
@@ -5006,7 +4342,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Real native installed intake skill, exact fictional founding review/ratification/decision acceptance, stale authority rejection and direct first-spec handoff; no agents or runtime proof matrix."
+      "purpose": "Installed skill-led readable product intake and small architecture map without approval receipt state"
     },
     {
       "id": "mechanics-upgrade",
@@ -5025,14 +4361,11 @@
         "tests/validate_packaged_upgrade.py",
         "tests/local_bundle_fixture.py"
       ],
-      "needs": [
-        "build-release"
-      ],
+      "needs": [],
       "prerequisites": [
-        "module:yaml",
         "module:specify_cli",
-        "runtime:json-schema",
-        "git-ref:previous-release"
+        "module:yaml",
+        "tool:git"
       ],
       "suites": [
         "Baseline"
@@ -5043,7 +4376,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Immediate supported predecessor to candidate packaged Copilot upgrade with native copied outputs, customization/alias refusal and authored preservation/coherence; profile refusal and transaction rollback/retry."
+      "purpose": "Actual preview toolkit update, safe refusal, authored-work preservation and rollback/retry; no 0.x semantic migration"
     },
     {
       "id": "mechanics-scaffold",
@@ -5249,38 +4582,6 @@
       "purpose": "Scoped device selection, exact contributor-only Spec Kit parity, and actual emitted initializer library-range admission; no device installer execution."
     },
     {
-      "id": "validate_material_closure_native",
-      "command": [
-        "{python}",
-        "tests/validate_material_closure.py",
-        "--native"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "phases",
-        "composition-runtime"
-      ],
-      "inputs": [
-        "tests/validate_material_closure.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:dotnet"
-      ],
-      "suites": [],
-      "budgetSeconds": 300,
-      "timeoutSeconds": 600,
-      "manualOnly": true,
-      "reviewInputs": [
-        "tests/validate_material_closure.py"
-      ],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Real two-story restore/build/pack/runtime closure; cheap admission cases run separately."
-    },
-    {
       "id": "validate_native_start_frontend",
       "command": [
         "{python}",
@@ -5363,36 +4664,6 @@
       ],
       "needs": [],
       "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
-      "id": "validate_coding_context",
-      "purpose": "Extensible canonical-bound coding units, real native evaluation, scoped preparation and installed progress reconciliation with independent negative cases. No agents or application services.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_coding_context.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "knowledge",
-        "phases",
-        "architecture"
-      ],
-      "inputs": [
-        "tests/validate_coding_context.py",
-        "tests/coding_review_fixture.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:dotnet",
-        "tool:git"
-      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240
@@ -5621,115 +4892,6 @@
       "timeoutSeconds": 240
     },
     {
-      "id": "validate_coding_learning_contracts",
-      "purpose": "Teaching intent/version preservation, explicit shared-file boundaries, history/evidence-transfer rejection and detector/runtime freshness. No submissions execute.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_coding_learning.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "coding-learning"
-      ],
-      "inputs": [
-        "tests/validate_coding_learning.py",
-        "tests/csharp_readability_check.py",
-        "tests/fixtures/csharp-readability/**"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:dotnet"
-      ],
-      "suites": [],
-      "budgetSeconds": 60,
-      "timeoutSeconds": 120
-    },
-    {
-      "id": "validate_coding_learning",
-      "purpose": "Retained installed F6 teaching, qualification, version adoption, actual compiled later-task application, independent invalid controls, bounded performance and isolated shared preparation. No agents/providers.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/learning_review_fixture.py",
-        "--review"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "coding-learning"
-      ],
-      "inputs": [
-        "tests/learning_review_fixture.py",
-        "extensions/program-kit-dotnet/references/examples/snapshot-query/**"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:dotnet",
-        "tool:git"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
-      "id": "validate_coding_evaluation",
-      "purpose": "F7 canonical duty completeness, current maintained evidence and supported admission; fictional review, no agents/providers.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_coding_evaluation.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "coding-evaluation"
-      ],
-      "inputs": [
-        "tests/validate_coding_evaluation.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 30,
-      "timeoutSeconds": 60
-    },
-    {
-      "id": "validate_coding_evaluation_journey",
-      "purpose": "F7 canonical duty completeness, current maintained evidence and supported admission; fictional review, no agents/providers.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/evaluation_review_fixture.py",
-        "--review"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "coding-evaluation"
-      ],
-      "inputs": [
-        "tests/evaluation_review_fixture.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:dotnet",
-        "tool:git"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240
-    },
-    {
       "id": "validate_coding_installed_fresh",
       "purpose": "F8 actual packaged fresh coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
       "platforms": [
@@ -5862,34 +5024,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_coding_installation_contracts",
-      "purpose": "F8 active canonical retirement, immutable source-baseline preservation and independent packed-guide corruption controls.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_coding_installation.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "coding-installation"
-      ],
-      "inputs": [
-        "tests/validate_coding_installation.py",
-        "tests/fixtures/coding-system/*"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:yaml",
-        "tool:git"
-      ],
-      "suites": [],
-      "budgetSeconds": 30,
-      "timeoutSeconds": 60
-    },
-    {
       "id": "validate_coding_installed_adoption",
       "purpose": "Actual installed qualified-profile retention, explicit reviewed adoption boundary and managed transaction rollback/retry/conflict; no runtime migration acceptance.",
       "platforms": [
@@ -5985,56 +5119,6 @@
       "timeoutSeconds": 60
     },
     {
-      "id": "validate_operation_readiness",
-      "purpose": "Concrete operation decisions before source work; scoped actionable blockers, current source binding, actual-source applicability retention and unrelated-ready recovery without agents or new receipts.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_operation_readiness.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "operation-readiness"
-      ],
-      "inputs": [
-        "tests/validate_operation_readiness.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 10,
-      "timeoutSeconds": 30
-    },
-    {
-      "id": "validate_conformance_repair",
-      "purpose": "Existing-source repair registration, prerequisite enforcement, task/history preservation, independent outcome assessment and supported repair/resume transitions without agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_conformance_repair.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "conformance-repair"
-      ],
-      "inputs": [
-        "tests/validate_conformance_repair.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:git"
-      ],
-      "suites": [],
-      "budgetSeconds": 30,
-      "timeoutSeconds": 60
-    },
-    {
       "id": "validate_source_readability_native",
       "purpose": "Explicit development-only exact local Foundation analyzer candidate package: actual generated-policy restore/build, invalid manual source rejection and repaired positive. PROGRAM_KIT_ANALYZER_CANDIDATE must name the actual candidate package; no public/profile publication claim.",
       "platforms": [
@@ -6060,66 +5144,6 @@
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
       "manualOnly": true
-    },
-    {
-      "id": "validate_conformance_installed_journey",
-      "purpose": "Exact actual archives through native bundle installation and installed engine missing-decision recovery, existing text-source repair registration/start/complete, independent outcome assessment, engineering refresh and dependent resume; fictional authorship, no native analyzer or human product acceptance.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/conformance_install_review_fixture.py",
-        "--archives",
-        "artifacts"
-      ],
-      "kind": "mechanical",
-      "capabilities": [
-        "conformance-repair",
-        "release"
-      ],
-      "inputs": [
-        "tests/conformance_install_review_fixture.py"
-      ],
-      "needs": [
-        "build-release"
-      ],
-      "prerequisites": [
-        "module:yaml",
-        "module:specify_cli",
-        "tool:git"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_coding_adverse_boundary",
-      "purpose": "Compile fictional acquired-operation/accounting-cancellation source; require valid control before intended42 behavior rejection, failed maintained evidence admission, then corrected cleanup/uncertainty with current independent authored findings. No provider or consumer source.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_coding_adverse_boundary.py"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "coding-evaluation"
-      ],
-      "inputs": [
-        "tests/validate_coding_adverse_boundary.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:dotnet"
-      ],
-      "suites": [],
-      "budgetSeconds": 30,
-      "timeoutSeconds": 90
     },
     {
       "id": "validate_internal_modularity",
@@ -6212,34 +5236,6 @@
       "manualOnly": false
     },
     {
-      "id": "validate_consumer_repair_contracts",
-      "purpose": "Synthetic promotion/tamper, planned topology, publisher activation, phase and bounded guidance regressions.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_consumer_repair_contracts.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap",
-        "architecture",
-        "composition-runtime",
-        "knowledge"
-      ],
-      "inputs": [
-        "tests/validate_consumer_repair_contracts.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 30,
-      "timeoutSeconds": 60,
-      "manualOnly": false
-    },
-    {
       "id": "validate_product_intake_archive",
       "purpose": "Actual release archives installed through native bundle ownership, then fictional founding review/ratification/exact acceptance and direct Candidate/new feature intake. No agents or real human acceptance.",
       "platforms": [
@@ -6305,32 +5301,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_product_frontier",
-      "purpose": "Existing product open items reach feature review with explicit applicability and exact source linkage; due selected decisions block their real phase, unrelated questions remain excluded, no replacement ledger.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_product_frontier.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "founding",
-        "intake",
-        "phases"
-      ],
-      "inputs": [
-        "tests/validate_product_frontier.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 15,
-      "timeoutSeconds": 30
-    },
-    {
       "id": "validate_device_handoff",
       "purpose": "Action-scoped device diagnosis, manager preservation, human preparation scripts, ignored outputs, safe quoting and no installer execution; declared project restores stay separate.",
       "platforms": [
@@ -6359,41 +5329,197 @@
       "timeoutSeconds": 120
     },
     {
-      "id": "validate_upgrade_faults",
-      "purpose": "Explicit user-requested installer interruption/retry at every named owner boundary; original source and failed evidence stay preserved. No device installation.",
+      "id": "validate_native_phases",
+      "purpose": "Native phase bodies remain intact; ordinary tasks, agreed review instructions, custom technology and progressive knowledge need no checkpoint/.NET/old approval state",
       "platforms": [
         "Windows",
         "Linux"
       ],
       "command": [
         "{python}",
-        "tests/validate_local_upgrade.py",
-        "--fault-matrix"
+        "tests/validate_native_phases.py"
       ],
-      "kind": "integration",
+      "kind": "unit",
       "capabilities": [
-        "upgrade"
+        "phases",
+        "knowledge",
+        "operation-readiness",
+        "conformance-repair",
+        "coding-evaluation",
+        "capability-adoption"
       ],
       "inputs": [
-        "tests/validate_local_upgrade.py",
-        "tests/upgrade_selection_cases.py",
-        "tests/upgrade_fault_matrix.py"
+        "tests/validate_native_phases.py"
       ],
       "needs": [],
       "prerequisites": [
         "module:specify_cli",
-        "tool:dotnet",
-        "tool:node"
+        "module:yaml"
       ],
       "suites": [],
-      "budgetSeconds": 600,
-      "timeoutSeconds": 900,
-      "manualOnly": true,
-      "reviewInputs": [
-        "tests/validate_local_upgrade.py",
-        "tests/upgrade_selection_cases.py",
-        "tests/upgrade_fault_matrix.py"
-      ]
+      "budgetSeconds": 60,
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "validate_preview_distribution",
+      "purpose": "Preview format/channel, exact-tag admission, unchanged 0.x refusal and package tamper rejection; publication remains human-authorized",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_preview_distribution.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "release",
+        "upgrade"
+      ],
+      "inputs": [
+        "tests/validate_preview_distribution.py",
+        "extensions/program-kit-building-blocks/scripts/dependency_profiles.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml"
+      ],
+      "suites": [],
+      "budgetSeconds": 60,
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "validate_product_frontier",
+      "purpose": "Readable product questions remain available to feature intake without authoring-hash or confirmation-ledger prerequisites",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_product_frontier.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "founding",
+        "intake",
+        "phases"
+      ],
+      "inputs": [
+        "tests/validate_product_frontier.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 15,
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "validate_minimal_map_selection",
+      "purpose": "Optional managed composition resolves from readable minimal map decisions, preserves map bytes and materialization origin, rejects missing decisions, owners and escaping paths.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_minimal_map_selection.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "architecture",
+        "scaffolding"
+      ],
+      "inputs": [
+        "tests/validate_minimal_map_selection.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_coding_installation_contracts",
+      "purpose": "Current source-witness and packed example byte integrity, corruption/path guards and preview guidance parity; no historical phase permission gates.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_installation.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/validate_coding_installation.py",
+        "tests/fixtures/coding-system/*"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_readable_founding",
+      "purpose": "Readable constitution and operation-specific setup plus small domain/C4 map and six real schema/reference negatives; no ratification receipt.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_governance_state.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "intake",
+        "architecture"
+      ],
+      "inputs": [
+        "tests/validate_governance_state.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_coding_learning_contracts",
+      "purpose": "Optional maintainer teaching/contribution admission, version and private/shared boundaries; no installed learning lifecycle or native-phase eligibility.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_learning.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-learning"
+      ],
+      "inputs": [
+        "tests/validate_coding_learning.py",
+        "tests/csharp_readability_check.py",
+        "tests/fixtures/csharp-readability/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
+      "suites": [],
+      "budgetSeconds": 60,
+      "timeoutSeconds": 120,
+      "manualOnly": true
     }
   ]
 }

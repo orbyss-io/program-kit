@@ -1,30 +1,26 @@
 ---
-description: Review and update product architecture, canonical domain/C4 maps and consequential ADRs.
+description: Review substantive architecture and domain/C4 meaning with ordinary ADR decisions and optional focused helpers.
 ---
 
-Read the current product intent, constitution, relevant canonical map and ADRs. For a founding
-baseline use `speckit.program-kit-governance.product-intake`; ordinary scoped changes need no
-bootstrap run, worker brief, assessment dossier or completion fingerprint.
+Read current product intent, constitution, relevant architecture documents and ADRs. Existing
+architecture is input; 0.x workflow receipts are not converted authority. Resolve the requested
+change with the human, explaining alternatives, boundaries, domain language, ownership, entities,
+roles, lifecycles, policies, trust, integration and consequences at proportional depth.
 
-Resolve the requested substantive change with the user. Preserve existing decisions and their
-history. Update the canonical model/design and affected Proposed ADRs, name the exact decision
-scope being reviewed, and obtain explicit acceptance before promoting that scope. Regenerate the
-C4 projection after map changes. Use architecture_map.py validate for model/reference integrity.
-Hashes and generated views do not supply consent. Preserve unresolved proposals as provisional.
+The default is one small language-neutral docs/architecture/architecture-map.json (schema2.0).
+Start from references/architecture-map-minimal.json when useful; architecture_map.py validate/export
+checks real identities/references and generates workspace.dsl. No map, intake authoring record,
+source hash, acceptance-scope file or status receipt is required merely to use architectural guidance.
+A consumer may maintain another representation. Do not create exhaustive future detail.
 
-Read relevant sections of modularity-and-contracts.md, software-language.md, vertical-slicing.md
-and capability knowledge for actual responsibilities. Classify responsibilities before project
-roles: stable contracts/pure policies can be Core; persistence orchestration, endpoint adaptation
-and provider mechanisms require their actual compilation roles. Accepted prior choices do not
-silently waive present constraints. Distinguish compilation ownership from runtime composition.
+Record each actual consequential decision in a readable ADR. Accept only the individually settled
+decisions after explicit human acceptance; retain other proposals. Record ratification separately
+in the constitution. Reopen substantive changed meaning rather than representation-only edits.
+Generated views and validation do not supply consent.
 
-Qualified Foundation selections reference their exact Accepted map decisions. Preserve consumer
-semantics, integration ownership, qualified profiles and accepted locks. Use planned targets for
-missing greenfield files. The executable resource graph belongs in eng/foundation-composition.json;
-settings/provider imports and Docker Compose are generated outputs. Keep registration with owning
-features. Do not add a .Composition project or a consumer-owned Foundation Host image build.
-
-Record important domain identities, lifecycles, policies and cross-context contracts. Feature
-intake deepens future behavior. Run relevant ordinary architecture/engineering checks at the
-actual planning or implementation action. A missing bootstrap receipt does not block drafting;
-changed accepted meaning still requires human review.
+Consult relevant modularity/contracts, vertical-slicing, software-language and selected capability
+knowledge. Research local alternatives; custom technologies/patterns need actual contracts and
+tests, not compulsory consumer qualification. Optional Foundation selections, composition and
+scaffolding enforce their real selected inputs and preserve ownership/pins/locks. Unsupported
+automation must be stated honestly. Runtime checks run when the actual dependent action needs
+them, not as a prerequisite to defining architecture or specifications.

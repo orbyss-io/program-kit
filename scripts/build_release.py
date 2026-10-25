@@ -39,12 +39,9 @@ BUNDLE_RUNTIME_SCRIPTS = {
     "scripts/initialize_device.py",
     "scripts/record_local_bundle.py",
     "scripts/install_local_extension.py",
-    "scripts/consumer_upgrade_workspace.py",
     "scripts/invoke_specify.py",
-    "scripts/openapi_upgrade_reconciliation.py",
     "scripts/upgrade_program_kit.py",
-    "scripts/retired_sync_integration.py",
-    "scripts/native_phase_ownership.py",
+    "scripts/product_version.py",
 }
 
 
@@ -224,9 +221,28 @@ def bundle_source_files(root: Path) -> list[Path]:
     ]
 
 
+# Old authoring/workflow engines remain historical source inputs only. One
+# boundary applies to native component archives, tooling sources and witnesses.
+RETIRED_GOVERNANCE_SCRIPTS = frozenset({
+    'bootstrap_compatibility.py', 'bootstrap_context.py', 'bootstrap_handoff.py',
+    'bootstrap_lifecycle.py', 'bootstrap_profiles.py', 'bootstrap_proof_plan.py',
+    'bootstrap_quality.py', 'bootstrap_recovery.py', 'bootstrap_stages.py',
+    'bootstrap_intake.py', 'intake_authoring.py', 'proxy_bootstrap.py',
+    'workflow_lifecycle.py', 'codex_bootstrap_preflight.py', 'bootstrap_defaults.py',
+    'consumer_upgrade.py', 'upgrade_remediation.py',
+})
+
+
 def install_asset(root: Path, relative: Path) -> bool:
-    """Keep updater workspaces in source history, outside consumer installations."""
+    """Retain current consumer inputs while leaving retired engines in history."""
     parts = relative.parts
+    governance_script = (len(parts) == 4 and parts[:3] ==
+                         ('extensions', 'program-kit-governance', 'scripts'))
+    if len(parts) == 2 and parts[0] == 'scripts' and relative.name in RETIRED_GOVERNANCE_SCRIPTS:
+        manifest = root / 'extension.yml'
+        governance_script = manifest.is_file() and load_yaml(manifest).get('extension', {}).get('id') == 'program-kit-governance'
+    if governance_script and relative.name in RETIRED_GOVERNANCE_SCRIPTS:
+        return False
     if 'dependency-profiles' not in parts or 'candidates' not in parts:
         return True
     position = parts.index('dependency-profiles')
@@ -263,15 +279,15 @@ def build_tooling_from_source(root: Path, output: Path) -> None:
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
-        build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
-                       version, aggregates=False)
-        witness_spec = importlib.util.spec_from_file_location('tooling_source_witness',
-            root / 'extensions/program-kit-governance/scripts/tooling_witness.py')
-        witness = importlib.util.module_from_spec(witness_spec)
-        witness_spec.loader.exec_module(witness)
-        source_identity = {'repository': REPOSITORY, 'kind': 'unqualified-packaging-input',
-                           'version': version, 'publicOriginEstablished': False}
-        (staging / witness.PACKAGED).write_bytes(witness.encoded(witness.package_record(staging, source_identity)))
+        build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance', version, aggregates=False)
+        # Package provenance is distribution integrity, independent of retired
+        # consumer workflow/authoring receipts. Bind every actual archive input.
+        files = {path.relative_to(staging).as_posix(): sha256(path)
+                 for path in sorted(staging.rglob('*')) if path.is_file()}
+        encoded = (json.dumps(files, sort_keys=True, indent=2, ensure_ascii=False) + '\n').encode('utf-8')
+        (staging / 'program-kit-source-witness.json').write_text(json.dumps({
+            'schemaVersion': 1, 'files': files, 'fileSetSha256': hashlib.sha256(encoded).hexdigest()
+        }, sort_keys=True, indent=2) + '\n', encoding='utf-8')
         deterministic_zip(staging, output / f'program-kit-tooling-{version}.zip')
 
 
@@ -393,8 +409,6 @@ def main() -> int:
     validate_metadata(root, version)
     from sync_shared_runtime import sync
     sync(root)
-    from build_native_phase_baselines import validate_previous
-    validate_previous(root)
 
     output.mkdir(parents=True, exist_ok=True)
     retired = output / f'program-kit-bootstrap-{version}.zip'
@@ -420,20 +434,10 @@ def main() -> int:
                         ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules'))
         guidance = build_guidance(root, staging / 'references/release-guidance', version)
         deterministic_zip(staging, expected[0])
-        for source, name in (('RELEASE-NOTES.md', f'RELEASE-NOTES-{version}.md'),
-                             ('MIGRATIONS.md', f'MIGRATIONS-{version}.md'),
-                             ('migration-index.json', f'migration-index-{version}.json')):
+        for source, name in [('RELEASE-NOTES.md', f'RELEASE-NOTES-{version}.md'),
+                             ('COMPATIBILITY.md', f'COMPATIBILITY-{version}.md')]:
             destination = output / name
             shutil.copyfile(guidance / source, destination)
-            expected.append(destination)
-        for entry in json.loads((guidance / 'migration-index.json').read_text())['entries']:
-            destination = output / entry['guide']
-            shutil.copyfile(guidance / entry['guide'], destination)
-            expected.append(destination)
-        metadata = json.loads((guidance / 'migration-index.json').read_text()).get('consumerChanges')
-        if metadata:
-            destination = output / metadata['file']
-            shutil.copyfile(guidance / metadata['file'], destination)
             expected.append(destination)
     deterministic_zip(root / "extensions/program-kit-building-blocks", expected[1])
     deterministic_zip(root / "extensions/program-kit-dotnet", expected[2])

@@ -26,7 +26,7 @@ def check(project: Path, pins: Path, authority: str) -> None:
 
 
 def initialize(project: Path, ref: str, release: Path | None = None) -> None:
-    if not re.fullmatch(r'v\d+\.\d+\.\d+', ref):
+    if not re.fullmatch(r'v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-preview\.(?:0|[1-9][0-9]*))?', ref):
         raise ValueError('Device preflight requires the exact initializer release tag')
     if release is not None:
         if (release / 'VERSION').read_text(encoding='utf-8').strip() != ref[1:]:
@@ -48,7 +48,7 @@ def initialize(project: Path, ref: str, release: Path | None = None) -> None:
 
 def invoke_native(project,ref,release,launcher,arguments):
     """Use exact release-owned capture around the installed native CLI, with no tool acquisition."""
-    if not re.fullmatch(r'v\d+\.\d+\.\d+',ref):raise ValueError('Exact initializer release tag required')
+    if not re.fullmatch(r'v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-preview\.(?:0|[1-9][0-9]*))?',ref):raise ValueError('Exact initializer release tag required')
     if release is not None:
         if (release/'VERSION').read_text().strip()!=ref[1:]:raise ValueError('Initializer bridge release version differs')
         bridge=release/'scripts/invoke_specify.py'

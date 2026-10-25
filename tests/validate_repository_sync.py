@@ -62,6 +62,39 @@ class CoordinatorTests(unittest.TestCase):
         self.assertEqual([item["adapter"] for item in plan["operations"]], ["javascript"])
         self.assertEqual(before, sorted(str(path.relative_to(self.root)) for path in self.root.rglob("*")))
 
+    def test_plain_javascript_feature_uses_actual_package_and_consumer_pins(self):
+        self.decisions.unlink()
+        feature = self.root / 'specs/new-web'
+        feature.mkdir(parents=True)
+        (feature / 'plan.md').write_text('# Plan\nImplement web/src/app.ts through web/package.json\n')
+        sync.write(self.root / 'web/package.json', {'dependencies': {'react': '19.2.8'}})
+        (self.root / '.nvmrc').write_text('22.19.0')
+        (self.root / '.npm-version').write_text('10.9.3')
+        setup = sync.context(self.root, 'planning', 'specs/new-web')
+        self.assertTrue(setup['javascript'])
+        self.assertFalse(setup['dotnet'])
+        self.assertEqual({'node': '22.19.0', 'npm': '10.9.3'}, setup['toolchainPins'])
+        self.assertIn('web/package.json', setup['authorityInputs'])
+        self.assertFalse((feature / 'artifact-ownership.json').exists())
+        (self.root / '.npm-version').unlink()
+        with self.assertRaisesRegex(ValueError, 'actual .npm-version'):
+            sync.context(self.root, 'planning', 'specs/new-web')
+
+    def test_plain_dotnet_tasks_select_actual_generator_plan_without_old_register(self):
+        self.decisions.unlink()
+        feature = self.root / 'specs/new-requests'
+        feature.mkdir(parents=True)
+        (feature / 'tasks.md').write_text('- [ ] T001 Create src/Requests/Requests.csproj\n', encoding='utf-8')
+        model = json.loads((ROOT / 'extensions/program-kit-governance/references/architecture-map-minimal.json').read_text())
+        sync.write(self.root / 'docs/architecture/architecture-map.json', model)
+        before = {path.relative_to(self.root): path.read_bytes() for path in self.root.rglob('*') if path.is_file()}
+        plan = sync.describe(self.root, 'planning', 'specs/new-requests')
+        self.assertTrue(plan['context']['dotnet'])
+        operation = next(item for item in plan['operations'] if item['adapter'] == 'dotnet')
+        self.assertIn('eng/composition_model.py', {row['path'] for row in operation['plan']['actions']})
+        self.assertFalse(self.decisions.exists())
+        self.assertEqual(before, {path.relative_to(self.root): path.read_bytes() for path in self.root.rglob('*') if path.is_file()})
+
     def test_bootstrap_records_requirements_without_applying_them(self):
         plan = sync.describe(self.root, "bootstrap")
         self.assertTrue(plan["context"]["javascript"])
@@ -92,7 +125,7 @@ class CoordinatorTests(unittest.TestCase):
         plan = sync.describe(self.root, "planning")
         with patch.object(sync, "audit_toolchain", side_effect=ValueError("test toolchain missing")):
             with self.assertRaisesRegex(ValueError, "toolchain missing"):
-                sync.apply(self.root, plan, validate_authority=False)
+                sync.apply(self.root, plan)
         receipt = sync.load(self.root / ".program-kit/sync/receipt.json")
         self.assertEqual(receipt["status"], "incomplete")
         self.assertEqual(receipt["operations"][0]["status"], "failed")
@@ -112,15 +145,17 @@ class CoordinatorTests(unittest.TestCase):
         tasks.write_text('- [x] T001 Create an unapproved skeleton.\n', encoding='utf-8')
         self.assertNotEqual(first, sync.describe(self.root, 'planning', 'specs/RM01')['planDigest'])
 
-    def test_configured_ratification_and_baseline_are_bound_to_plan(self):
+    def test_authoring_receipts_do_not_change_selected_setup_inputs(self):
         config = self.root / '.specify/extensions/program-kit-governance/program-kit-governance-config.yml'
         config.parent.mkdir(parents=True)
         config.write_text('constitution:\n  ratification: governance/ratification.json\narchitecture:\n  decisions: governance/decisions\n', encoding='utf-8')
         sync.write(self.root / 'governance/ratification.json', {'status':'Ratified'})
         plan = sync.describe(self.root,'planning')
-        self.assertIn('governance/ratification.json', plan['context']['authorityInputs'])
-        self.assertIn('governance/decisions/bootstrap-baseline.md', plan['context']['authorityInputs'])
+        self.assertNotIn('governance/ratification.json', plan['context']['authorityInputs'])
+        self.assertNotIn('governance/decisions/bootstrap-baseline.md', plan['context']['authorityInputs'])
         sync.write(self.root / 'governance/ratification.json', {'status':'Draft'})
+        self.assertEqual(plan['planDigest'], sync.describe(self.root,'planning')['planDigest'])
+        self.decisions.write_text(json.dumps({'selected_profiles': ['typescript-web'], 'choices': ['actual changed input']}))
         self.assertNotEqual(plan['planDigest'], sync.describe(self.root,'planning')['planDigest'])
 
     def test_live_seed_is_compatible_and_original_consumer_conflict_is_preserved(self):

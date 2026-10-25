@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Small authored domain/C4 map",
+  "type": "object",
+  "required": ["schema_version", "model_id", "title", "elements", "relationships"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0"},
+    "model_id": {"$ref": "#/$defs/id"},
+    "title": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "elements": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}},
+    "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}},
+    "domain": {"type": "object", "description": "Proportional readable concepts, roles, lifecycle, policies and open questions; no required dossier."},
+    "decisions": {"type": "array", "items": {"type": "object", "required": ["id", "status"], "properties": {
+      "id": {"$ref": "#/$defs/id"}, "path": {"type": "string"},
+      "status": {"enum": ["Proposed", "Accepted", "Rejected", "Deprecated", "Superseded"]}
+    }}},
+    "views": {"type": "array", "items": {"type": "object", "required": ["id", "type"], "properties": {
+      "id": {"$ref": "#/$defs/id"}, "type": {"enum": ["system-landscape", "domain-landscape", "system-context", "container", "component"]},
+      "scope": {"$ref": "#/$defs/id"}
+    }}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"},
+    "element": {"type": "object", "required": ["id", "type", "name", "description"], "properties": {
+      "id": {"$ref": "#/$defs/id"}, "type": {"enum": ["person", "software-system", "external-system", "container", "component", "domain-capability", "bounded-context", "data-store"]},
+      "name": {"type": "string", "minLength": 1}, "description": {"type": "string", "minLength": 1},
+      "technology": {"type": "string"}, "parent": {"$ref": "#/$defs/id"},
+      "decision_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}}
+    }},
+    "relationship": {"type": "object", "required": ["id", "source", "target", "description"], "properties": {
+      "id": {"$ref": "#/$defs/id"}, "source": {"$ref": "#/$defs/id"}, "target": {"$ref": "#/$defs/id"},
+      "description": {"type": "string", "minLength": 1},
+      "decision_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}}
+    }}
+  }
+}

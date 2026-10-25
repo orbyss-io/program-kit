@@ -133,14 +133,24 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(check['prerequisites'], runner.missing_prerequisites(check))
 
     def test_previous_release_prerequisite_follows_history_and_reports_missing_tag(self):
-        reference = runner.prerequisite_git_ref('previous-release')
-        self.assertTrue(reference.startswith('refs/tags/v'))
-        self.assertEqual('refs/tags/fixture', runner.prerequisite_git_ref('refs/tags/fixture'))
-        check = dict(platforms=[runner.platform.system()], prerequisites=['git-ref:previous-release'])
-        with patch.object(runner, 'git', side_effect=ValueError('missing tag')) as git:
-            missing = runner.missing_prerequisites(check)
-            self.assertIn('make the supported historical fixture tag available', missing[0])
-            self.assertEqual(reference + '^{commit}', git.call_args.args[-1])
+        # Historical fixtures can explicitly request their own declared prior
+        # tag; the preview re-onboarding boundary does not invent a 0.x edge.
+        with FixtureDirectory() as directory:
+            root = Path(directory)
+            (root / 'VERSION').write_text('0.9.2\n')
+            (root / 'releases').mkdir()
+            (root / 'releases/history.json').write_text(json.dumps({'entries':[{'version':'0.9.2','previous':'0.9.1'}]}))
+            with patch.object(runner, 'ROOT', root):
+                reference = runner.prerequisite_git_ref('previous-release')
+                self.assertEqual('refs/tags/v0.9.1', reference)
+                self.assertEqual('refs/tags/fixture', runner.prerequisite_git_ref('refs/tags/fixture'))
+                check = dict(platforms=[runner.platform.system()], prerequisites=['git-ref:previous-release'])
+                with patch.object(runner, 'git', side_effect=ValueError('missing tag')) as git:
+                    missing = runner.missing_prerequisites(check)
+                    self.assertIn('make the supported historical fixture tag available', missing[0])
+                    self.assertEqual(reference + '^{commit}', git.call_args.args[-1])
+        preview = next(c for c in runner.load_definition()['checks'] if c['id'] == 'mechanics-upgrade')
+        self.assertNotIn('git-ref:previous-release', preview.get('prerequisites', []))
 
     def test_active_definition_is_valid_and_integrity_has_no_integration(self):
         definition = runner.load_definition()
@@ -150,25 +160,28 @@ class SelectionTests(unittest.TestCase):
         self.assertTrue(all(not c.get('manualOnly') for c in runner.selected('Baseline')))
         self.assertEqual(6, len(runner.selected('Baseline')))
 
-    def test_consumer_migration_recipe_selects_existing_upgrade_coverage(self):
+    def test_preview_toolkit_replacement_selects_owned_upgrade_coverage(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [
-            'extensions/program-kit-governance/references/consumer-migration-recipes.json'])
+            'scripts/upgrade_program_kit.py'])
         self.assertEqual([], gaps)
         ids = {c['id'] for c in checks}
         self.assertIn('mechanics-upgrade', ids)
+        self.assertIn('validate_preview_distribution', ids)
         self.assertIn('validate_coding_installation_contracts', ids)
         self.assertFalse(any(c.get('manualOnly') for c in checks))
         self.assertNotIn('mechanics-founding', ids)
 
     def test_feature_phase_change_does_not_select_founding(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [
-            'extensions/program-kit-governance/scripts/task_draft.py'])
+            'extensions/program-kit-governance/scripts/phase_obligations.py'])
         ids = {c['id'] for c in checks}
         self.assertFalse(gaps)
         self.assertIn('mechanics-phases', ids)
         self.assertNotIn('mechanics-founding', ids)
-        self.assertEqual({'validate_coding_evaluation_journey', 'validate_coding_adverse_boundary'},
-                         {c['id'] for c in checks if c['kind'] == 'integration'})
+        self.assertIn('validate_native_phases', ids)
+        self.assertFalse(any(c.get('manualOnly') for c in checks))
+        self.assertFalse({'validate_coding_evaluation_journey', 'validate_coding_adverse_boundary',
+                          'validate_story_delivery'} & ids)
 
     def test_native_evidence_owners_have_focused_affected_coverage(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [
@@ -176,7 +189,7 @@ class SelectionTests(unittest.TestCase):
             'extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py'])
         self.assertFalse(gaps)
         ids = {c['id'] for c in checks}
-        self.assertIn('validate_coding_evaluation', ids)
+        self.assertIn('validate_native_phases', ids)
         self.assertIn('validate_test_dependencies', ids)
         self.assertNotIn('mechanics-founding', ids)
 
@@ -211,10 +224,12 @@ class SelectionTests(unittest.TestCase):
         self.assertFalse(any(c.get('manualOnly') for c in checks))
         self.assertFalse({'qualify_composition_start', 'validate_typed_operation', 'validate_emitted_ci'} & ids)
 
-    def test_missing_schema_runtime_is_declared_before_phase_execution(self):
-        check = next(c for c in runner.load_definition()['checks'] if c['id'] == 'validate_phase_obligations')
+    def test_generic_phases_need_no_schema_history_but_selected_schema_checks_declare_their_own_runtime(self):
+        check = next(c for c in runner.load_definition()['checks'] if c['id'] == 'validate_native_phases')
+        self.assertNotIn('runtime:json-schema', check.get('prerequisites', []))
+        selected_schema = {'prerequisites': ['runtime:json-schema']}
         with patch.object(runner, 'schema_runtime_ready', return_value=False):
-            missing = runner.missing_prerequisites(check)
+            missing = runner.missing_prerequisites(selected_schema)
         self.assertEqual(1, len(missing))
         self.assertIn('runtime:json-schema; prepare with ', missing[0])
         self.assertIn('schema_runtime.py setup', missing[0])

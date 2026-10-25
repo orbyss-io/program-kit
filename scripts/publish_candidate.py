@@ -8,6 +8,12 @@ from pathlib import Path
 import subprocess
 
 from release_candidate import ROOT, api, gh, git, policy, read, require, source, verify_payload
+from product_version import is_preview, parse
+
+
+def channel_arguments(version):
+    parse(version)
+    return ['--prerelease', '--latest=false'] if is_preview(version) else []
 
 
 def publication_plan(records, existing, fetch):
@@ -46,6 +52,8 @@ def existing_release(tag):
 def verify_public(tag, promotion):
     release = existing_release(tag)
     require(release is not None, 'Published release is missing')
+    require(bool(release.get('prerelease')) == is_preview(promotion['source']['version']),
+            'Published release channel differs from the inspected version')
     missing = publication_plan(promotion['assets'], release['assets'], public_bytes)
     require(not missing, 'Published release missing qualified assets: ' + ', '.join(missing))
 
@@ -69,13 +77,16 @@ def publish(tag, directory):
     if release is None:
         # A concurrent creation never authorizes replacing its assets.
         gh('release', 'create', tag, '--repo', policy()['repository'], '--verify-tag',
-           '--title', 'Program Kit ' + tag, '--notes-file', notes_path)
+           '--title', 'Program Kit ' + tag, '--notes-file', notes_path, *channel_arguments(source()['version']))
         release = existing_release(tag)
+    require(bool(release.get('prerelease')) == is_preview(source()['version']),
+            'Existing release has a different publication channel; preserve it for explicit reconciliation')
     missing = publication_plan(promotion['assets'], release['assets'], public_bytes)
     if missing:
         gh('release', 'upload', tag, '--repo', policy()['repository'],
            *[directory / 'payload' / name for name in missing])
-    gh('release', 'edit', tag, '--repo', policy()['repository'], '--notes-file', notes_path)
+    gh('release', 'edit', tag, '--repo', policy()['repository'], '--notes-file', notes_path,
+       *channel_arguments(source()['version']))
     verify_public(tag, promotion)
 
 
@@ -97,7 +108,7 @@ def create_tag(tag, directory):
             require(remote['type'] == 'tag', 'Unexpected remote tag object')
             remote = api(f'repos/{policy()["repository"]}/git/tags/{remote["sha"]}')['object']
         require(remote['type'] == 'commit' and remote['sha'] == source()['commit'],
-                'Existing stable tag points to another source; obtain approval for manual recovery')
+                'Existing tag points to another source; obtain approval for manual recovery')
     git(ROOT, 'fetch', 'origin', f'refs/tags/{tag}:refs/tags/{tag}')
 
 

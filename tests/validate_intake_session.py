@@ -164,57 +164,66 @@ class IntakeSessionTests(unittest.TestCase):
         self.assertEqual(state['transcriptStatus'], 'unavailable')
         self.assertTrue(self.workspace.exists())
 
-    def test_downstream_workflow_status_is_separate_from_intake_hash_validation(self):
-        path = self.workspace / '.specify/workflows/runs/example/state.json'
-        path.parent.mkdir(parents=True)
-        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed', 'current_step_id': 'validate-architecture-output'}))
-        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
-        intake.parent.mkdir(parents=True)
-        intake.write_text('{"status":"confirmed"}')
-        with patch.object(module, 'run', return_value=2):
+    def test_readable_intent_and_constitution_preserved_without_manufactured_consent(self):
+        intent = self.workspace / 'docs/architecture/project-intent.md'
+        intent.parent.mkdir(parents=True)
+        intent.write_text('# Room booking\nProduct confirmation pending.\n', encoding='utf-8')
+        constitution = self.workspace / '.specify/memory/constitution.md'
+        constitution.parent.mkdir(parents=True)
+        constitution.write_text('# Constitution\nDraft principles.\n', encoding='utf-8')
+        inspector = self.workspace / '.specify/extensions/program-kit-governance/scripts/product_intake.py'
+        inspector.parent.mkdir(parents=True)
+        inspector.write_text('# synthetic installed inspector', encoding='utf-8')
+        with patch.object(module, 'run', return_value=0) as run:
             state = module.finish(self.record, 0, keep=True, prepare_only=True)
-        self.assertEqual(state['intakeStatus'], 'invalid')
-        self.assertEqual(state['observedWorkflows'][0]['status'], 'failed')
+        self.assertEqual('recorded', state['intakeStatus'])
+        self.assertEqual('passed', state['contextInspection'])
+        self.assertEqual('inspect', run.call_args.args[0][-1])
+        self.assertEqual(inspector, Path(run.call_args.args[0][-2]))
+        self.assertEqual(intent.read_bytes(), (self.record / 'docs/architecture/project-intent.md').read_bytes())
+        self.assertEqual(constitution.read_bytes(), (self.record / '.specify/memory/constitution.md').read_bytes())
         report = (self.record / 'REVIEW.md').read_text(encoding='utf-8')
-        self.assertIn('Standalone skill completion does not resume', report)
-        self.assertNotIn('No workflow was launched.', report)
+        self.assertIn('supplies no human confirmation', report)
+        self.assertNotIn('valid-confirmed', report)
 
-    def test_completed_intake_check_does_not_certify_evolved_architecture(self):
-        path = self.workspace / '.specify/workflows/runs/example/state.json'
-        path.parent.mkdir(parents=True)
-        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed',
-            'current_step_id': 'validate-roadmap-output', 'step_results': {
-                'validate-bootstrap-intake': {'status': 'completed', 'output': {'exit_code': 0}}}}))
-        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
-        intake.parent.mkdir(parents=True)
-        intake.write_text('{"status":"confirmed"}')
-        with patch.object(module, 'run', return_value=2):
+    def test_old_unreadable_workflow_and_intake_are_archived_without_interpreting_authority(self):
+        paths = ('.specify/workflows/runs/example/state.json', 'docs/architecture/bootstrap-intake.json')
+        for relative in paths:
+            path = self.workspace / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'\xff historical bytes')
+        with patch.object(module, 'run', side_effect=AssertionError('Must not run retired intake validator')):
             state = module.finish(self.record, 0, keep=True, prepare_only=True)
-        self.assertEqual('downstream-review-required', state['intakeStatus'])
-        self.assertEqual('failed', state['intakeValidation']['originalArtifactCheck'])
-        self.assertEqual('not-established', state['intakeValidation']['currentStageValidity'])
-        self.assertEqual(['example'], state['intakeValidation']['admittedByRuns'])
+        self.assertEqual('absent', state['intakeStatus'])
+        self.assertEqual('unavailable', state['contextInspection'])
+        self.assertEqual('preserved-in-archive; not-interpreted', state['historicalWorkflowState'])
+        self.assertNotIn('observedWorkflows', state)
+        with zipfile.ZipFile(self.record / 'consumer.zip') as archive:
+            for relative in paths:
+                self.assertEqual(b'\xff historical bytes', archive.read(relative))
 
-    def test_validation_distinguishes_draft_confirmed_and_invalid(self):
-        path = self.workspace / 'docs/architecture/bootstrap-intake.json'
-        path.parent.mkdir(parents=True)
-        for status, code, expected, command in (
-            ('draft', 0, 'valid-draft', 'validate-draft'),
-            ('confirmed', 0, 'valid-confirmed', 'validate'),
-            ('confirmed', 2, 'invalid', 'validate'),
+    def test_content_presence_and_inspection_failure_are_reported_separately(self):
+        intent = self.workspace / 'docs/architecture/project-intent.md'
+        intent.parent.mkdir(parents=True)
+        inspector = self.workspace / '.specify/extensions/program-kit-governance/scripts/product_intake.py'
+        inspector.parent.mkdir(parents=True)
+        inspector.write_text('# fictional inspector', encoding='utf-8')
+        for content, code, expected, inspection in (
+            ('# Product\nUnreviewed idea', 2, 'recorded', 'failed'),
+            ('  ', 0, 'empty', 'passed'),
         ):
-            path.write_text(json.dumps({'status': status}), encoding='utf-8')
-            with patch.object(module, 'run', return_value=code) as run:
+            intent.write_text(content, encoding='utf-8')
+            with patch.object(module, 'run', return_value=code):
                 state = module.finish(self.record, 0, keep=True, prepare_only=True)
-                self.assertEqual(state['intakeStatus'], expected)
-                self.assertEqual(run.call_args.args[0][2], command)
+            self.assertEqual(expected, state['intakeStatus'])
+            self.assertEqual(inspection, state['contextInspection'])
 
-    def test_malformed_intake_preserved_as_validation_error(self):
-        path = self.workspace / 'docs/architecture/bootstrap-intake.json'
+    def test_unreadable_current_intent_preserved_as_read_error(self):
+        path = self.workspace / 'docs/architecture/project-intent.md'
         path.parent.mkdir(parents=True)
-        path.write_text('{broken', encoding='utf-8')
+        path.write_bytes(b'\xff invalid UTF-8')
         state = module.finish(self.record, 0, keep=True, prepare_only=True)
-        self.assertEqual(state['intakeStatus'], 'validation-error')
+        self.assertEqual(state['intakeStatus'], 'unreadable')
         self.assertTrue((self.record / 'consumer.zip').exists())
 
     def test_only_exact_consumer_history_exported(self):
@@ -307,7 +316,7 @@ class IntakeSessionTests(unittest.TestCase):
     def test_install_uses_bundle_not_preinstalled_extensions(self):
         resolver = SimpleNamespace(uv_windows_specify_environment=lambda _: None)
         with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1')), \
-                patch.dict('sys.modules', {'upgrade_program_kit': resolver}), \
+                patch.dict('sys.modules', {'invoke_specify': resolver}), \
                 patch.object(module, 'run', return_value=0) as run:
             module.install_components('specify', 'git', self.workspace, self.record)
         commands = [call.args[0] for call in run.call_args_list]
@@ -382,7 +391,7 @@ class IntakeSessionTests(unittest.TestCase):
     def test_install_failure_stops_before_later_steps(self):
         resolver = SimpleNamespace(uv_windows_specify_environment=lambda _: None)
         with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1')), \
-                patch.dict('sys.modules', {'upgrade_program_kit': resolver}), \
+                patch.dict('sys.modules', {'invoke_specify': resolver}), \
                 patch.object(module, 'run', return_value=1) as run:
             with self.assertRaises(RuntimeError):
                 module.install_components('specify', 'git', self.workspace, self.record)

@@ -424,500 +424,81 @@ def placeholder_roadmap() -> str:
 
 
 def main() -> int:
+    import copy
     root = Path(__file__).resolve().parents[1]
     module = load_validator(root)
-    semantic_path = root / "tests/validate_bootstrap_semantics.py"
-    semantic_spec = importlib.util.spec_from_file_location("governance_semantic_fixture", semantic_path)
-    architecture_path = root / "extensions/program-kit-governance/scripts/architecture_map.py"
-    architecture_spec = importlib.util.spec_from_file_location("governance_architecture", architecture_path)
-    if semantic_spec is None or semantic_spec.loader is None or architecture_spec is None or architecture_spec.loader is None:
-        raise AssertionError("Cannot load semantic governance fixtures")
-    semantic = importlib.util.module_from_spec(semantic_spec)
-    architecture_module = importlib.util.module_from_spec(architecture_spec)
-    sys.modules[semantic_spec.name] = semantic
-    sys.modules[architecture_spec.name] = architecture_module
-    semantic_spec.loader.exec_module(semantic)
-    architecture_spec.loader.exec_module(architecture_module)
-    for status_line in (
-        "Status: Accepted",
-        "- Status: Accepted",
-        "- **Status**: Accepted",
-        "- **Status:** Accepted",
-    ):
-        if not module._has_decision_status(status_line, "Accepted"):
-            raise AssertionError(f"Decision status syntax was rejected: {status_line}")
-    original = Path.cwd()
-    with tempfile.TemporaryDirectory(prefix="program-kit-governance-test-") as directory:
+    previous = Path.cwd()
+    with tempfile.TemporaryDirectory(prefix='readable-governance-') as directory:
+        project = Path(directory).resolve()
         try:
-            project = Path(directory)
             os.chdir(project)
-
-            write_installation(project, "0.3.1", workflow_version="0.3.0")
-            expect_error(module, module.validate_installation, "version-incoherent")
-            expect_error(module, module.validate_installation, "upgrade_program_kit.py")
-            if run_main(module, "begin") != 1:
-                raise AssertionError("A mixed-version installation must fail before begin")
-            if (project / module.RATIFICATION).exists():
-                raise AssertionError("Mixed-version preflight wrote governance state")
-
-            write_installation(project, "0.3.1")
-            versions = module.validate_installation()
-            if set(versions.values()) != {"0.3.1"}:
-                raise AssertionError(f"Unexpected coherent versions: {versions}")
-            preset_registry_path = project / module.PRESET_REGISTRY
-            preset_registry = json.loads(preset_registry_path.read_text(encoding="utf-8"))
-            preset_registry["presets"]["program-kit-governance-preset"]["version"] = "0.3.0"
-            preset_registry_path.write_text(json.dumps(preset_registry), encoding="utf-8")
-            expect_error(module, module.validate_installation, "preset registry=0.3.0")
-            preset_registry["presets"]["program-kit-governance-preset"]["version"] = "0.3.1"
-            preset_registry_path.write_text(json.dumps(preset_registry), encoding="utf-8")
-            records_path = project / module.BUNDLE_RECORDS
-            bundle_records = json.loads(records_path.read_text(encoding="utf-8"))
-            bundle_records["bundles"][0]["version"] = "0.3.2"
-            records_path.write_text(json.dumps(bundle_records), encoding="utf-8")
-            expect_error(module, module.validate_installation, "bundle record=0.3.2")
-            bundle_records["bundles"][0]["version"] = "0.3.1"
-            records_path.write_text(json.dumps(bundle_records), encoding="utf-8")
-            managed = project / module.MANAGED_BASELINE
-            managed.parent.mkdir(parents=True, exist_ok=True)
-            managed.write_text(
-                json.dumps({"schemaVersion": 1, "programKitVersion": "0.3.0"}),
-                encoding="utf-8",
-            )
-            expect_error(module, module.validate_installation, "managed .NET baseline=0.3.0")
-            managed.write_text(
-                json.dumps({"schemaVersion": 1, "programKitVersion": "0.3.1"}),
-                encoding="utf-8",
-            )
-            versions = module.validate_installation()
-            if versions.get("managed .NET baseline") != "0.3.1":
-                raise AssertionError("Managed baseline version was not included in coherence validation")
-
-            expect_error(module, module.validate_ratification, "governance state file")
-
-            bootstrap_decisions = project / module.BOOTSTRAP_DECISIONS
-            bootstrap_decisions.parent.mkdir(parents=True, exist_ok=True)
-            for profiles, diagnostic in ((["ui-experience-v1"], "browser-web"),
-                                         (["browser-web"], "require dotnet")):
-                incomplete_browser = decisions()
-                incomplete_browser["selected_profiles"] = profiles
-                bootstrap_decisions.write_text(json.dumps(incomplete_browser), encoding="utf-8")
-                expect_error(module, module.validate_bootstrap_decisions, diagnostic)
-            alternate_without_opt_out = decisions()
-            alternate_without_opt_out["dotnet"]["host_runtime"] = "Custom.Host"
-            bootstrap_decisions.write_text(
-                json.dumps(alternate_without_opt_out), encoding="utf-8"
-            )
-            expect_error(
-                module,
-                module.validate_bootstrap_decisions,
-                "automatic .NET default",
-            )
-            explicit_opt_out = decisions()
-            explicit_opt_out["dotnet"] = {
-                "host_runtime": "Custom.Host",
-                "host_source": "override",
-                "program_kit_host_opt_out": True,
-                "opt_out_reason": "The initial design mandates an existing proprietary host",
-            }
-            module_choice = explicit_opt_out["choices"][0]
-            module_choice["decision"] = "Use the intake-mandated Custom.Host runtime"
-            module_choice["source"] = "override"
-            bootstrap_decisions.write_text(json.dumps(explicit_opt_out), encoding="utf-8")
-            module.validate_bootstrap_decisions()
-
-            acknowledgement_with_extra_field = decisions()
-            acknowledgement_with_extra_field["acknowledgements"][0]["risk"] = "Extra prose"
-            bootstrap_decisions.write_text(
-                json.dumps(acknowledgement_with_extra_field), encoding="utf-8"
-            )
-            expect_error(
-                module,
-                module.validate_bootstrap_decisions,
-                "unexpected fields",
-            )
-
-            missing_assurance = decisions()
-            del missing_assurance["web"]["security_evidence"]
-            bootstrap_decisions.write_text(json.dumps(missing_assurance), encoding="utf-8")
-            expect_error(
-                module,
-                module.validate_bootstrap_decisions,
-                "web.security_evidence",
-            )
-
-            missing_toolchain_override = decisions()
-            missing_toolchain_override["toolchain"]["source"] = "override"
-            missing_toolchain_override["toolchain"]["override_reason"] = (
-                "Retain the explicitly selected local SDK"
-            )
-            bootstrap_decisions.write_text(
-                json.dumps(missing_toolchain_override), encoding="utf-8"
-            )
-            expect_error(
-                module,
-                module.validate_bootstrap_decisions,
-                "managed-toolchain-version",
-            )
-
-            explicit_toolchain_override = decisions()
-            explicit_toolchain_override["toolchain"]["source"] = "override"
-            explicit_toolchain_override["toolchain"]["pins"]["dotnet-sdk"] = "9.0.100"
-            explicit_toolchain_override["toolchain"]["override_reason"] = (
-                "The user explicitly retained the locally installed SDK"
-            )
-            explicit_toolchain_override["overrides"].append(
-                {
-                    "id": "managed-toolchain-version",
-                    "decision": "Retain .NET SDK 9.0.100 instead of the Program Kit pin",
-                }
-            )
-            bootstrap_decisions.write_text(
-                json.dumps(explicit_toolchain_override), encoding="utf-8"
-            )
-            module.validate_bootstrap_decisions()
-
-            write_assessment(module, project, semantic, architecture_module)
-            assessment_record = json.loads(
-                (project / module.ASSESSMENT_APPROVAL).read_text(encoding="utf-8")
-            )
-            if assessment_record.get("approval_mode") != "interactive":
-                raise AssertionError("Interactive assessment approval was not recorded")
-
-            immutable_decisions = bootstrap_decisions.read_bytes()
-            write_installation(project, "0.3.2")
-            managed.write_text(
-                json.dumps({"schemaVersion": 1, "programKitVersion": "0.3.2"}),
-                encoding="utf-8",
-            )
-            expect_error(
-                module,
-                module.validate_bootstrap_decisions,
-                "no Accepted Program Kit upgrade evidence",
-            )
-            module.record_program_kit_upgrade("0.3.1", "0.3.2")
-            if bootstrap_decisions.read_bytes() != immutable_decisions:
-                raise AssertionError("Governed upgrade rewrote the hash-bound bootstrap decisions")
-            module.validate_bootstrap_decisions()
-            upgrade_path = project / module.PROGRAM_KIT_UPGRADES
-            upgrade_state = json.loads(upgrade_path.read_text(encoding="utf-8"))
-            record = upgrade_state["upgrades"][-1]
-            if (
-                record.get("baseline_profile_version") != "0.3.1"
-                or record.get("previous_installed_version") != "0.3.1"
-                or record.get("installed_version") != "0.3.2"
-                or record.get("status") != "Accepted"
-            ):
-                raise AssertionError(f"Unexpected governed upgrade record: {record}")
-            record["installed_version"] = "0.3.3"
-            upgrade_path.write_text(json.dumps(upgrade_state), encoding="utf-8")
-            expect_error(
-                module,
-                module.validate_bootstrap_decisions,
-                "without Accepted upgrade evidence",
-            )
-            record["installed_version"] = "0.3.2"
-            upgrade_path.write_text(json.dumps(upgrade_state), encoding="utf-8")
-
-            constitution_path = project / module.CONSTITUTION
-            constitution_path.parent.mkdir(parents=True)
-            constitution_path.write_text(constitution(placeholder=True), encoding="utf-8")
-            module.begin()
-            expect_error(module, module.validate_ratification, "completed ratification")
-            expect_error(module, module.validate_constitution_draft, "template placeholders")
-            expect_error(
-                module,
-                lambda: module.write_review("constitution"),
-                "template placeholders",
-            )
-            if (project / module.CONSTITUTION_REVIEW).exists():
-                raise AssertionError("Constitution gate packet appeared before a valid draft")
-
-            constitution_path.write_text(
-                constitution(metadata_layout="lines"), encoding="utf-8"
-            )
+            write_installation(project, '1.0.0-preview.2')
+            baseline = project / '.program-kit/managed.json'
+            baseline.parent.mkdir(parents=True)
+            baseline.write_text('{"programKitVersion":"1.0.0-preview.1","locks":"preserved"}')
+            original_baseline = baseline.read_bytes()
+            assert len(set(module.validate_installation().values())) == 1
+            assert baseline.read_bytes() == original_baseline
+            manifest = project / module.DOTNET_EXTENSION_MANIFEST
+            original_manifest = manifest.read_bytes()
+            manifest.write_text(original_manifest.decode().replace('preview.2', 'preview.3'))
+            expect_error(module, module.validate_installation, 'version-incoherent')
+            manifest.write_bytes(original_manifest)
+            assert '--previous-release-root' in module.repair_commands()
+            assert '--integration' not in module.repair_commands()
+            path = project / module.CONSTITUTION
+            path.parent.mkdir(parents=True)
+            text = '# Product constitution\n\n**Status**: Ratified\n\nFictional explicit ratification on 2026-10-25.\n' + (
+                'Respect consumer privacy. Use behavior tests for material policy changes. '
+                'Review substantive amendments with the human and preserve prior decisions.\n')
+            path.write_text(text, encoding='utf-8')
+            before = {p.relative_to(project): p.read_bytes() for p in project.rglob('*') if p.is_file()}
             module.validate_constitution_draft()
-            constitution_path.write_text(
-                constitution(metadata_layout="spaced-lines"), encoding="utf-8"
-            )
-            module.validate_constitution_draft()
-            constitution_path.write_text(constitution(), encoding="utf-8")
-            # Metadata is document-level. A clear header placement must behave
-            # like the template footer; duplicates anywhere remain ambiguous.
-            lines = constitution(metadata_layout="lines").splitlines()
-            metadata = [line for line in lines if line.startswith(('**Version**:', '**Ratified**:', '**Last Amended**:'))]
-            body = '\n'.join(line for line in lines if line not in metadata)
-            header_metadata = '\n'.join(metadata) + '\n' + body
-            constitution_path.write_text(header_metadata, encoding="utf-8")
-            module.validate_constitution_draft()
-            constitution_path.write_text(header_metadata + '\n' + '\n'.join(metadata), encoding="utf-8")
-            expect_error(module, module.validate_constitution_draft, 'must declare Version')
-            constitution_path.write_text(constitution(), encoding="utf-8")
-            module.validate_constitution_draft()
-            module.write_review("constitution")
-            assert_review_packet(project / module.CONSTITUTION_REVIEW, "constitution")
-            reviewed_constitution = constitution_path.read_bytes()
-            expected_final_constitution = reviewed_constitution.replace(
-                b"**Status**: Draft", b"**Status**: Ratified", 1
-            ).replace(
-                b"**Ratified**: PENDING_RATIFICATION",
-                f"**Ratified**: {module.date.today().isoformat()}".encode("utf-8"),
-                1,
-            )
-            expect_error(
-                module,
-                lambda: module.ratify("approve"),
-                "verdict 'ratify'",
-            )
-            if "**Status**: Draft" not in constitution_path.read_text(encoding="utf-8"):
-                raise AssertionError("A non-ratify verdict changed the constitution draft")
-            module.ratify("ratify", "automatic")
-            if constitution_path.read_bytes() != expected_final_constitution:
-                raise AssertionError(
-                    "Ratification changed reviewed constitution bytes outside the two permitted substitutions"
-                )
+            assert module.validate_ratification()['status'] == 'Ratified'
+            assert before == {p.relative_to(project): p.read_bytes() for p in project.rglob('*') if p.is_file()}
+            path.write_text(text + '\nFormatting and explanatory clarification leave substantive meaning unchanged.\n')
             module.validate_ratification()
-            ratification_record = json.loads(
-                (project / module.RATIFICATION).read_text(encoding="utf-8")
-            )
-            if ratification_record.get("approval_mode") != "automatic":
-                raise AssertionError("Automatic constitution ratification was not recorded")
-            finalization = ratification_record.get("finalization", {})
-            if (
-                finalization.get("reviewed_sha256") != module.hashlib.sha256(reviewed_constitution).hexdigest()
-                or finalization.get("expected_final_sha256")
-                != module.hashlib.sha256(expected_final_constitution).hexdigest()
-            ):
-                raise AssertionError("Ratification evidence did not bind the reviewed and expected final bytes")
-            module.begin()
-            recovery_state = json.loads(
-                (project / module.RATIFICATION).read_text(encoding="utf-8")
-            )
-            if recovery_state.get("previous_ratification") != ratification_record:
-                raise AssertionError("Recovery draft did not preserve prior ratification evidence")
-            if constitution_path.read_bytes() != expected_final_constitution:
-                raise AssertionError("Beginning recovery unexpectedly changed constitution bytes")
-            (project / module.RATIFICATION).write_text(
-                json.dumps(ratification_record), encoding="utf-8"
-            )
-            ratification_record["approval_mode"] = "unknown"
-            (project / module.RATIFICATION).write_text(
-                json.dumps(ratification_record), encoding="utf-8"
-            )
-            expect_error(module, module.validate_ratification, "invalid approval mode")
-            ratification_record["approval_mode"] = "automatic"
-            (project / module.RATIFICATION).write_text(
-                json.dumps(ratification_record), encoding="utf-8"
-            )
-            finalized = constitution_path.read_text(encoding="utf-8")
-            if "**Status**: Ratified" not in finalized or "PENDING_RATIFICATION" in finalized:
-                raise AssertionError("Ratification did not finalize status and pending date")
-
-            expect_error(module, lambda: module.validate_roadmap(True), "roadmap is missing")
-            roadmap_path = project / module.ROADMAP
-            roadmap_path.parent.mkdir(parents=True, exist_ok=True)
-            roadmap_path.write_text(placeholder_roadmap(), encoding="utf-8")
-            expect_error(module, lambda: module.validate_roadmap(True), "template placeholders")
-            roadmap_path.write_text(
-                roadmap("`decision-context-boundaries`; a future authorization ADR"),
-                encoding="utf-8",
-            )
-            expect_error(
-                module,
-                lambda: module.validate_roadmap(True),
-                "only exact ADR identifiers",
-            )
-            roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
-            expect_error(module, lambda: module.validate_roadmap(True), "unresolved ADRs")
-
-            hidden_gate = roadmap().replace(
-                "- **Dependencies**: None",
-                "- **Dependencies**: Before implementation, proposed test tooling requires an Accepted tooling ADR.",
-            )
-            roadmap_path.write_text(hidden_gate, encoding="utf-8")
-            # Later-phase wording does not overrule the structured ledger or
-            # prohibit specification. Due-phase enforcement is tested separately.
-            module.validate_roadmap(True)
-
-            decision = project / module.DECISIONS / "0042-first-boundary.md"
-            decision.parent.mkdir(parents=True)
-            decision.write_text("# ADR-0042\n\n- Status: Accepted\n", encoding="utf-8")
-            roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
-            module.validate_roadmap(True)
-
-            write_bootstrap_artifacts(module, project, architecture_module)
-            # Resolved document paths and lexical cwd aliases (including Windows
-            # short names) must produce the intended governance error, not ValueError.
-            with patch.object(Path, 'cwd', return_value=project / 'unused' / '..'):
-                expect_error(module, lambda: module.founding_adr_records('Rejected'), 'must be Rejected')
-            roadmap_path.write_text(
-                roadmap("`decision-context-boundaries`"), encoding="utf-8"
-            )
-            module.validate_roadmap(True)
-            roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
-            baseline_path = project / "docs/architecture/decisions/bootstrap-baseline.md"
-            baseline_text = baseline_path.read_text(encoding="utf-8")
-            approval = json.loads(
-                (project / module.ASSESSMENT_APPROVAL).read_text(encoding="utf-8")
-            )
-            approved_hash = approval["artifacts"][module.BOOTSTRAP_DECISIONS.as_posix()]
-            baseline_path.write_text(
-                baseline_text.replace(approved_hash, "0" * 64), encoding="utf-8"
-            )
-            expect_error(
-                module,
-                lambda: module.validate_bootstrap(False, True),
-                "exact approved decision-register hash",
-            )
-            baseline_path.write_text(baseline_text, encoding="utf-8")
-            architecture_path = project / module.ARCHITECTURE
-            traceability_path = project / module.TRACEABILITY
-            architecture_path.write_text(
-                architecture_path.read_text(encoding="utf-8")
-                + "\n| Slice | Status |\n| --- | --- |\n| SPEC-001 | Candidate |\n",
-                encoding="utf-8",
-            )
-            traceability_path.write_text(
-                traceability_path.read_text(encoding="utf-8")
-                + "\nSPEC-001: no roadmap record exists; Created later by roadmap.\n",
-                encoding="utf-8",
-            )
-            module.synchronize_roadmap_views()
-            # Proposal-time prose is history; only the synchronized navigation
-            # view owns the derived status. Source hashes still bind the prose.
-            module.validate_bootstrap_consistency()
-            architecture_path.write_text(
-                "# Architecture\n\nOrbyss.Foundation.Host is the accepted runtime.\n\n"
-                "The browser boundary inherits program-kit-web-threat-model-v1 and "
-                "program-kit-web-security-evidence-v1.\n",
-                encoding="utf-8",
-            )
-            traceability_path.write_text("# Traceability\n", encoding="utf-8")
-            module.synchronize_roadmap_views()
-            synchronized_map = json.loads(
-                (project / module.ARCHITECTURE_MAP).read_text(encoding="utf-8")
-            )
-            synchronized_documentation = {
-                item["path"]: item["sha256"]
-                for item in synchronized_map["documentation"]
-            }
-            for relative in (module.ARCHITECTURE, module.TRACEABILITY):
-                if synchronized_documentation.get(relative.as_posix()) != module.sha256(
-                    project / relative
-                ):
-                    raise AssertionError(
-                        f"Roadmap synchronization did not refresh {relative.as_posix()} in the canonical map"
-                    )
-            expected_projection = architecture_module.StructurizrDslExporter().export(
-                synchronized_map
-            )
-            if (project / module.WORKSPACE_DSL).read_text(encoding="utf-8") != expected_projection:
-                raise AssertionError("Roadmap synchronization did not refresh the C4 projection")
-            module.validate_bootstrap_consistency()
-            # The terminal batch runs once in the producer and again at the
-            # native handoff. Synchronization must be repeatable without drift.
-            synchronized_paths = [project / relative for relative in (
-                module.ARCHITECTURE, module.TRACEABILITY, module.ARCHITECTURE_MAP, module.WORKSPACE_DSL
-            )]
-            original_bytes = {path: path.read_bytes() for path in synchronized_paths}
-            module.synchronize_roadmap_views()
-            if any(path.read_bytes() != content for path, content in original_bytes.items()):
-                raise AssertionError("Repeated roadmap synchronization changed its outputs")
-            unrelated = project / "docs/architecture/quality-attributes.md"
-            quality_bytes = unrelated.read_bytes()
-            map_path = project / module.ARCHITECTURE_MAP
-            drift_model = json.loads(map_path.read_text(encoding="utf-8"))
-            drift_model["documentation"].append({
-                "id": "quality-attributes", "path": "docs/architecture/quality-attributes.md",
-                "sha256": module.sha256(unrelated), "scope": "Outside roadmap write ownership",
-            })
-            module.write_json(map_path, drift_model)
-            original_bytes[map_path] = map_path.read_bytes()
-            unrelated.write_bytes(quality_bytes + b"\nUnreviewed quality change\n")
-            expect_error(module, module.synchronize_roadmap_views, "documentation is missing or stale")
-            if any(path.read_bytes() != content for path, content in original_bytes.items()):
-                raise AssertionError("Rejected synchronization left partial derived updates")
-            unrelated.write_bytes(quality_bytes)
-            module.synchronize_roadmap_views()
-            module.validate_bootstrap(False, True)
-            module.write_review("bootstrap")
-            assert_review_packet(project / module.BOOTSTRAP_REVIEW, "bootstrap")
-            review_text = (project / module.BOOTSTRAP_REVIEW).read_text(encoding="utf-8")
-            if "- Accepted ADRs: 2" not in review_text:
-                raise AssertionError("Bootstrap review did not count actual Accepted ADRs")
-            if "- Proposed ADRs requiring separate later decisions: 1" not in review_text:
-                raise AssertionError("Bootstrap review counted the ADR template as a decision")
-            if "decision-context-boundaries.md" not in review_text:
-                raise AssertionError("Bootstrap review did not bind the founding ADR bundle")
-            module.accept_bootstrap("approve", "automatic")
-            bootstrap_approval = json.loads(
-                (project / module.BOOTSTRAP_APPROVAL).read_text(encoding="utf-8")
-            )
-            if bootstrap_approval.get("approval_mode") != "automatic":
-                raise AssertionError("Automatic bootstrap approval was not recorded")
-            accepted_founding = bootstrap_approval.get("accepted_founding_adrs", [])
-            if [item.get("candidate_id") for item in accepted_founding] != ["decision-context-boundaries"]:
-                raise AssertionError("Bootstrap approval did not enumerate the accepted founding ADR")
-            founding_text = (project / "docs/architecture/decisions/decision-context-boundaries.md").read_text(encoding="utf-8")
-            if not module._has_decision_status(founding_text, "Accepted"):
-                raise AssertionError("Final architecture approval did not promote the founding ADR")
-            accepted_map = json.loads((project / module.ARCHITECTURE_MAP).read_text(encoding="utf-8"))
-            if accepted_map["decisions"][0]["status"] != "Accepted":
-                raise AssertionError("Founding ADR acceptance was not reflected in the canonical map")
-            readiness = project / module.READINESS_REPORT
-            readiness.write_text("**Status**: READY\n\n# Readiness\n", encoding="utf-8")
-            module.complete_bootstrap()
-            module.validate_completion()
-            module.validate_setup_authority()
-            completion = json.loads((project / module.BOOTSTRAP_COMPLETION).read_text(encoding="utf-8"))
-            if completion.get("status") != "Completed":
-                raise AssertionError("Bootstrap completion evidence was not written")
-
-            roadmap_path.write_text(roadmap("ADR-0042", status="Active"), encoding="utf-8")
-            module.synchronize_roadmap_views()
-            expect_error(
-                module,
-                lambda: module.validate_bootstrap(True, False),
-                "changed after human approval",
-            )
-            module.validate_roadmap(False)
-            module.validate_setup_authority()
-            expect_error(module, lambda: module.validate_roadmap(True), "no Ready entry")
-
-            constitution_path.write_text(finalized + "\nAmended after gate.\n", encoding="utf-8")
-            expect_error(module, module.validate_ratification, "changed after ratification")
-
-            configuration = project / ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
-            configuration.parent.mkdir(parents=True, exist_ok=True)
-            configuration.write_text(
-                "architecture:\n"
-                "  decisions: governance/decisions\n"
-                "  specification_roadmap: governance/roadmap.md\n"
-                "constitution:\n"
-                "  document: governance/constitution.md\n"
-                "  ratification: governance/ratification.json\n",
-                encoding="utf-8",
-            )
-            module.configure_paths()
-            if module.CONSTITUTION != Path("governance/constitution.md"):
-                raise AssertionError("Installed governance configuration did not set constitution path")
-            local_configuration = configuration.with_name("program-kit-governance-config.local.yml")
-            local_configuration.write_text(
-                "architecture:\n  specification_roadmap: local/roadmap.md\n",
-                encoding="utf-8",
-            )
-            module.configure_paths()
-            if module.ROADMAP != Path("local/roadmap.md"):
-                raise AssertionError("Local governance configuration must override installed configuration")
-            configured_artifacts = module.bootstrap_artifacts()
-            if Path("local/roadmap.md") not in configured_artifacts:
-                raise AssertionError("Bootstrap validation did not adopt the configured roadmap path")
-            if Path("governance/decisions/bootstrap-baseline.md") not in configured_artifacts:
-                raise AssertionError("Bootstrap validation did not adopt the configured decisions path")
+            path.write_text(text.replace('Ratified', 'Draft'))
+            module.validate_constitution_draft()
+            expect_error(module, module.validate_ratification, 'does not record')
+            path.write_text('# [PROJECT_NAME] Constitution\n[PRINCIPLE_1_NAME]\n')
+            expect_error(module, module.validate_constitution_draft, 'placeholders')
+            config = project / module.BOOTSTRAP_DECISIONS
+            config.parent.mkdir(parents=True)
+            config.write_text('{"selected_profiles":["project-owned-python"]}')
+            module.validate_setup_configuration()
+            config.write_text('{"selected_profiles":["dotnet"],"toolchain":{"pins":[]}}')
+            expect_error(module, module.validate_setup_configuration, 'pins object')
+            import architecture_map as architecture
+            model = json.loads((root / 'extensions/program-kit-governance/references/architecture-map-minimal.json').read_text())
+            architecture.validate_model(model, project)
+            dsl = architecture.StructurizrDslExporter().export(model)
+            assert 'requester -> request_service' in dsl
+            for change in ('duplicate', 'missing-target', 'cycle', 'container-parent', 'view-scope', 'adr-escape'):
+                altered = copy.deepcopy(model)
+                if change == 'duplicate':
+                    altered['elements'].append(copy.deepcopy(altered['elements'][0]))
+                elif change == 'missing-target':
+                    altered['relationships'][0]['target'] = 'missing'
+                elif change == 'cycle':
+                    altered['elements'][0]['parent'] = altered['elements'][0]['id']
+                elif change == 'container-parent':
+                    altered['elements'][0]['type'] = 'container'
+                elif change == 'view-scope':
+                    altered['views'] = [{'id':'wrong', 'type':'component', 'scope':'requester'}]
+                else:
+                    altered['decisions'] = [{'id':'escape', 'status':'Accepted', 'path':'../outside.md'}]
+                try:
+                    architecture.validate_model(altered, project)
+                except architecture.ArchitectureMapError:
+                    pass
+                else:
+                    raise AssertionError('Invalid small-map case passed: ' + change)
+            assert not (project / '.specify/memory/constitution-ratification.json').exists()
+            assert not (project / '.specify/governance/bootstrap-approval.json').exists()
         finally:
-            os.chdir(original)
-
-    print("Governance-state negative and positive contract tests passed.")
+            os.chdir(previous)
+    print('Readable constitution/setup and small domain/C4 map contracts passed, including six map negatives.')
     return 0
 
 

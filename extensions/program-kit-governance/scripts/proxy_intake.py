@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 MARKER = Path('.specify/proxy-intake.json')
@@ -25,6 +26,13 @@ def no_execution(root):
     for name in ('bootstrap-assessment-approval.json', 'bootstrap-approval.json', 'bootstrap-completion.json'):
         if (root / '.specify/governance' / name).exists():
             raise ValueError('Proxy rehearsal must have no approval or completion record: ' + name)
+    constitution = root / '.specify/memory/constitution.md'
+    if constitution.is_file() and re.search(r'^\*\*Status\*\*:\s*Ratified\s*$', constitution.read_text(encoding='utf-8'), re.MULTILINE):
+        raise ValueError('Proxy rehearsal cannot record human constitution ratification')
+    for path in (root / 'docs/architecture/decisions').glob('*.md'):
+        from decision_status import has_decision_status
+        if has_decision_status(path.read_text(encoding='utf-8'), 'Accepted'):
+            raise ValueError('Proxy rehearsal cannot record Accepted human ADR decisions')
 
 
 def begin(root, scope):
@@ -68,12 +76,11 @@ def verify(root):
         raise ValueError('Proxy transcript must disclose simulated answers and absent authorization.')
     paths = [TRANSCRIPT]
     if value['scope'] == 'full-intake':
-        from bootstrap_intake import validate_intake
-        validate_intake(root, allowed_statuses={'draft'})
+        from product_intake import inspect
+        inspection = inspect(root, require_intent=True)
         if NOTICE not in (root / 'docs/architecture/project-intent.md').read_text(encoding='utf-8'):
             raise ValueError('Proxy intent must disclose simulated answers and absent authorization.')
-        paths += [INTAKE, Path('docs/architecture/project-intent.md'),
-                  Path('docs/architecture/architecture-map.json'), Path('docs/architecture/workspace.dsl')]
+        paths += [Path(path) for path in inspection['artifacts']]
     elif (root / INTAKE).exists():
         raise ValueError('One-round rehearsal must stop before authoring a full intake.')
     return {'kind': value['kind'], 'scope': value['scope'], 'status': 'rehearsal-checked',

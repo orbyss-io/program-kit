@@ -39,8 +39,8 @@ Inspect with `python eng/retained_inputs.py inspect --repository .`, or name one
 with `--path`. `verify` checks the declared current bytes against those original records.
 Its result explicitly supplies no fresh application/provider acceptance.
 
-Task preparation reports the configured ownership and binds the original frozen
-entries into its existing draft. A pending task referencing protected evidence uses:
+When explicitly using this optional preservation helper, inspect the named original
+before editing. A normal task can record its intended read/write ownership as:
 
 ```markdown
 - [ ] T001 Read `docs/compatibility/accepted-v1.md` and write `docs/compatibility/current-proposal.md`
@@ -53,12 +53,11 @@ entries into its existing draft. A pending task referencing protected evidence u
 | T001 | docs/compatibility/current-proposal.md | write |
 ```
 
-Saving/finalizing tasks, artifact preflight and delivery guards use the same reader.
-Changing/removing the index or rehashing a replacement record cannot remove an
-already bound frozen entry through `acknowledge-inputs`. Add a distinct active target
-linked to the original instead. Previously completed task descriptions remain history;
-their checkboxes do not authorize a new mutation. Existing artifact ownership,
-architecture and review rules still apply to the new target.
+Use `verify` explicitly when this protection is relevant to the selected work. It is
+not a generic task-generation or implementation gate. Add a distinct active target
+linked to the original instead of changing preserved evidence. Previously completed
+task descriptions remain history; checkboxes do not authorize a new mutation. Normal
+authored-file ownership, architecture and agreed review constraints still apply.
 
 The optional `archives` array names `{ "record": "original-reset" }`. Its root
 and exact payload set come from that original result. New resets bind the raw

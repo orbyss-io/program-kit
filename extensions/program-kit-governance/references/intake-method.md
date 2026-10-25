@@ -2,236 +2,52 @@
 
 ## Outcome
 
-Produce a user-confirmed project intent, a canonical C4-aligned architecture map, a reviewable
-Structurizr DSL projection, and a validated bootstrap intake contract. Intake is complete when every
-bootstrap-relevant uncertainty is answered, defaulted, assigned, or deferred; it does not require
-every future product decision to be made.
-
-Keep the intake proportional to the request. Do not inventory the repository or implementation
-internals to compensate for an already complete description. At authoring time use
-[intake-artifacts.md](intake-artifacts.md) and its schema-derived descriptor and worked example.
-Use targeted schema inspection when needed; never guess missing nested fields or learn them
-through repeated failing exports. Broad implementation discovery is still unnecessary.
+Establish shared product meaning from rough ideas or existing detailed design, preserve the human's
+actual decisions, and continue directly to the selected first feature. Use readable intent,
+constitution, ADRs and proportional architecture/roadmap context. No intake JSON or authoring
+approval receipt is a general prerequisite.
 
 ## Question policy
 
-Use [functional-discovery.md](functional-discovery.md) for the visible discovery areas, relevant
-knowledge, worked journeys and connected functional handoff. Architectural readiness includes
-coherent understanding of architecture-significant relationships across the supplied vision.
-A technically defaulted stack does not establish that understanding. Preserve detailed future input
-as feature seeds; deepen further feature detail at its specification trigger unless it changes
-shared boundaries or delivery dependencies.
+Use functional-discovery.md and the shipped grilling skill proportionally. Establish purpose,
+actors, observable success and journeys before dependent policies. Reuse supplied answers.
+Understand important concepts/entities, roles, lifecycles, invariants, trust, ownership and
+consistency broadly; deepen future details when their feature is selected. Concrete examples
+expose contradictory language and consequences. Ask only consequential unknowns.
 
-Architecture owns physical placement planning, including exact project/package/shell paths and
-target IDs. Do not ask product users for those filenames or move that bookkeeping into intake.
-Preserve repository and stack preferences when supplied; otherwise assign layout to architecture
-using semantic ownership, repository conventions and applicable defaults. A missing greenfield
-manifest is not a missing product requirement. Ask only about consequential constraints or
-trade-offs that cannot be resolved from context.
-
-Begin with the user's natural description. Reflect the understood intent before asking questions.
-Establish the problem, intended value, actors, and observable success before dependent lifecycle
-or solution-design recommendations. Reuse explicit answers already supplied; this is a dependency
-rule, not a mandatory opening questionnaire. Keep conditional recommendations conditional after
-blanket acceptance until their premises are established, following Program Kit grilling.
-Use the round and answer-handling contract in the shipped Program Kit grilling command loaded by
-the front-door skill. This reference defines which branches matter to intake, not a second
-interview algorithm. Do not run a fixed questionnaire or ask about excluded capability categories.
-
-Prioritize observable value, actors, scope, domain language and invariants, trust and data
-boundaries, external integrations, operational constraints, material Program Kit deviations, and
-the thinnest meaningful proving journey. Preserve every named source journey independently.
-
-When a role name or central operation has multiple plausible meanings, establish who supplies the
-input, who uses the result, and what result they expect before recommending dependent policies.
-A small worked example using the user's domain can expose the difference more clearly than abstract
-labels. Reuse an example already supplied; do not make this a mandatory extra question. Preserve
-useful follow-up depth: question count and interview duration are not targets to minimize.
-
-Apply a clearly applicable Program Kit default automatically when user intent neither contradicts
-it nor leaves its applicability ambiguous. Do not ask users to select or re-approve obvious tools,
-packages, versions, or technical profiles. Functional policies and product-specific layout/brand
-preferences follow functional discovery; do not infer them from an omitted preference. Record the default's source, rationale, and material consequences
-for the final synthesis, where the user can revisit it. Technical importance alone is not a reason
-to spend an interview question on an unambiguous default.
-
-For broad questions about cost, hosting, existing providers or technology constraints, distinguish
-"none specified" from "none exist". The former permits applicable Program Kit local-development
-and evaluation defaults; it does not assert an unlimited budget or authorize services. Preserve
-any concrete constraint the user supplies. Unknown production costs, hosting and account recovery
-remain due before those commitments, unless a stated requirement makes them necessary earlier.
-Do not turn an optional unanswered constraints survey into a mandatory architecture question or
-condition ordinary default adoption on proving the absence of constraints.
-
-Before confirming intake, review every remaining human decision against its next dependent action:
-what exactly cannot proceed, what supplied evidence makes an answer necessary now, and why an
-applicable default or a later trigger cannot handle it. Ask a focused question now if it really
-blocks the immediate bootstrap baseline. Otherwise apply the default or retain an owned deferral.
-Do not declare intake complete while merely assigning a genuinely immediate human blocker to
-architecture. This review covers unresolved branches; it is not another fixed questionnaire.
-
-For an included user interface, settle the intended access surface in this interview: where and
-how people need to use the first useful journey, and any special device/native/offline constraint
-that changes that choice. Reuse supplied answers. If a responsive browser is a derived proposal,
-present that proposal and its material limits in the final synthesis and obtain confirmation;
-do not preserve it simultaneously as an unanswered device-preference question. If the consumer
-cannot yet choose between materially different surfaces, ask now rather than assigning the choice
-to bootstrap closure. Do not ask for a device inventory without a consequential need.
-Include a coherent experience group: relevant brand/design-system references, visual character,
-theme, information hierarchy, navigation and interaction choices. Derive the layout from the
-journey before proposing UI profile dimensions. Use disclosed provisional preferences when the
-human has none; retain accessibility/security obligations and the single final synthesis review.
-When the first journey includes sign-in/recovery, make application and identity-provider screen
-ownership explicit. Carry confirmed brand/accessibility intent to the provider's supported theme
-customization, including Keycloak login/password-reset screens, or retain the consumer's explicit
-exclusion/deferred owning slice. The implementation name need not appear in the product request.
-
-Keep product suitability separate from executed device/accessibility verification. Confirming a
-browser proposal settles intended use, not empirical fitness of software that does not exist yet.
-Assign real-device, assistive-technology and delivered-journey checks to feature verification before
-actual use. Only a specific unresolved feasibility risk warrants an earlier bounded prototype.
-Apply the same distinction to provider selection versus tests of future consumer persistence,
-membership and shell composition. Never turn an unanswered preference into an empirical proof task.
-
-Before confirmation, reconcile open items with the current synthesis. An answered or adopted
-default belongs in choices with its evidence, not in an open human-decision item. A truly deferred
-item has an owner/next action in disposition, a later trigger, and empty blocks. Remaining
-human-decision or human-answer-required records prevent confirmation. Deferral must reflect the
-actual dependency; changing a label does not resolve an immediate question.
-
-Ask when intent is unclear, conflicts with a default, or leaves materially different candidates
-plausible. Clarify the product need first, then derive the technical consequence where evidence
-permits. Explain alternatives and consequences when an actual user choice remains. Preserve an
-explicit consumer package or provider choice, including non-Orbyss packages; assess its role and
-compatibility without silently replacing it with a managed default. Look up technical facts;
-ask the user about constraints, intent, and acceptable trade-offs.
-
-For a need with no declared Program Kit capability, say exactly that; do not claim incompatibility.
-Classify it as external, research-required, or project-owned design and ask only for information the
-project must supply. Defer questions that become material only at a named lifecycle trigger.
-
-Completion accounts for every bootstrap-relevant branch and the functional discovery areas,
-not every future implementation choice. Challenge representative success and material alternative
-paths across the supplied areas using their concepts, lifecycles, policies and observable outcomes.
-Business outcomes, semantic ownership, and architecture-significant trust, data, or consistency
-boundaries need enough evidence now to prepare a coherent map and founding candidates. Feature
-fields, detailed business rules, and implementation choices can remain assigned to their receiving
-feature specification when they do not change those boundaries. Record the closing artifact or
-owner/next action and trigger. Unanswered human decisions that block intake remain open; assigning
-them to someone does not make the intake ready to confirm.
+Apply clearly applicable researched defaults transparently. Preserve explicit decisions, defaults,
+derived conclusions, proposals and unknowns separately with rationale and sources. Consumer
+business policies and experience preferences are never inferred merely from omitted details.
+A legitimate custom stack/pattern needs actual contracts/research and honest automation limits;
+it does not need Program Kit consumer qualification.
 
 ## Conversation evidence and final review
 
-Maintain a compact record in `project-intent.md` during the interview: stable Q IDs, prerequisite
-IDs, answers or pending state, recommendations accepted, rationale, source evidence, and any
-superseding correction. Retain the user's meaning without copying the entire conversation. Reuse
-this record on re-entry and reopen only affected branches when intent changes. Do not replace a
-previously confirmed artifact merely to log a new answer; follow the re-analysis procedure below
-and stage revisions for review first.
-
-Maintain one current answer/disposition per Q ID. When corrected, update affected current answers,
-dependent pending states and the current summary together; keep the old interpretation only in a
-compact, explicitly superseded history entry linked to its replacement. Do not repeat the full
-answer in several running narratives. Batch the affected record edits after each answered round.
-At convergence, reconcile the ledger once, use `Intake status: see bootstrap-intake.json status`, and ensure
-no settled branch remains labelled open or superseded interpretation remains labelled current.
-The contract owns current draft/confirmed state. Do not duplicate it in the hash-bound prose;
-confirmation must not leave "draft awaiting review" or "not confirmed" as current assertions.
-Keep stable evidence locators when compacting; preserve rationale, exceptions and uncertainty.
-
-Keep explicit answers, Program Kit defaults, derived conclusions, and architectural proposals
-distinct in the synthesis and JSON evidence. Accepting recommendations does not turn applied
-defaults into explicit user intent or turn founding candidates into Accepted ADRs.
-
-Once the interview converges, author and validate the four draft artifacts. Present one final
-review covering the product intent, journeys, domain and context analysis, founding candidates and
-alternatives, applied defaults, and assigned/deferred items. Explain that defaults can be revised
-here. This review also satisfies grilling's shared-understanding gate. Confirmation attests to the
-accuracy of the provisional intake; the later architecture approval remains separate.
-Before synthesis, review read and write operations across each context boundary: translation
-editing/import cannot be represented solely by a read-only lookup contract. Check each journey's
-contract coverage, consistency and failure owner, and preservation of historical meaning. Use
-separate read/write contracts when their effects differ; do not infer transactional guarantees
-from a managed package's presence. Resolve a material ambiguity or mark it visibly unresolved,
-rather than rewriting architectural meaning just to satisfy a validator.
-
-Also trace each explicit product requirement from the initial idea and subsequent corrections to
-an observable journey/step or a visible excluded, assigned, deferred or unresolved disposition.
-Record compact links in the intent coverage summary. A capability name or package assessment alone
-does not demonstrate behavioral coverage. For compound needs such as import/export, account for
-both operations: actor/trigger, relevant input or selected data, and observable result. Existing
-steps may cover multiple needs; do not invent a separate journey for every requirement. Ask only
-when the missing behavior changes intent or architecture; leave implementation detail at its named
-feature-specification trigger. This is a semantic review, not a keyword-matching acceptance gate.
+Preserve compact settled intent, named decisions, provisional assumptions, unanswered frontier,
+next action and due obligations in normal authored files. Present the connected synthesis and
+obtain explicit human confirmation of meaning. Record the actual answer/context in intent.
+Constitution ratification and individual ADR acceptance remain distinct explicit human decisions.
+Do not infer consent from silence, source hashes, simulated answers or generated output.
 
 ## Architecture map
 
-The Program Kit JSON map is canonical. It preserves the portable semantics needed for C4 and
-Structurizr models: static, dynamic, deployment, filtered, custom and image views; deployment
-elements and instances; groups, archetypes, properties, perspectives and URLs; view filters,
-ordering, layout and animation; styles, themes, terminology and branding; documentation; and
-hash-bound architecture decisions. Features not yet understood by a registered importer remain
-typed extensions rather than being discarded.
-
-Its C4 System Context view contains only the system in scope, people, and directly connected external
-systems. Strategic custom views show the classified domain/subdomain landscape, bounded contexts,
-owned modules and bridges, and a typed Context Map. One dynamic view preserves each named journey in
-source order. Do not represent a bounded context or capability as a peer software system, and do not
-invent container/component/deployment views until evidence supports those C4 levels.
-
-Classify subdomains as Core, Supporting, or Generic from evidence. Derive candidate bounded contexts
-from differences in model, ubiquitous language, ownership, lifecycle, and consistency—not nouns,
-screens, or cross-cutting concerns. Each context records responsibilities, non-responsibilities,
-language, data, invariants, lifecycle, rationale, and split triggers. Every cross-context dependency
-records direction, Context Map patterns, interaction mode, owned contract, translation/ACL bridge,
-data owner, consistency owner, failure owner, and atomicity. Every module belongs to one context.
-
-Keep Program Kit mechanism coverage separate from the consumer semantic profile, provider choice,
-and adapter/integration ownership. Managed Forms mechanisms never absorb consumer-owned item,
-pricing, VAT, quantification, publication, or workflow meaning.
-
-Founding decision candidates accompany the map with a question, recommendation, alternatives,
-trade-offs, evidence, confidence, and affected map IDs. They stay `proposed` or `unresolved` during
-intake. Confirmation attests that the provisional synthesis is accurate; it does not create or
-accept ADRs. The product-intake skill uses candidates to focus consequential research, creates real Proposed
-ADRs, and presents the exact named scope for human founding acceptance. No engine pause is required.
-
-Every architecture decision records its ID, repository-relative path, SHA-256, title, date, status,
-scope, owner and supersession links. Elements, relationships, views and constraints carry typed
-`decision_refs`. Reject missing decisions, stale hashes, broken supersession chains, and accepted
-architecture facts governed only by a non-Accepted decision. Export attached decisions with
-Structurizr `!adrs` while retaining the provider-neutral canonical links.
-
-Generate `docs/architecture/workspace.dsl` as the review projection. Treat it as importable user
-input when its recorded hash changes. Import through `scripts/architecture_map.py`; never implement
-ad hoc parsing inside the skill. Unsupported DSL must produce a diagnostic and leave the canonical
-map unchanged. Preserve unrecognized portable statements as extensions. Classify `!script`,
-`!plugin`, remote includes, remote images and remote themes as `blocked-executable`; importing or
-rendering never executes or fetches them without a separate explicit policy decision and
-authorization.
+The default, when useful, is one small language-neutral schema2.0 domain/C4 map. See
+intake-artifacts.md and architecture-map-minimal.json. Use optional architecture_map.py
+validate/export for actual identifiers, references, hierarchy and projection integrity.
+Do not invent exhaustive entities, capability bindings or future placements to fill a schema.
+Existing architecture documents and local representations remain valid inputs.
 
 ## Re-analysis
 
-On every invocation, inspect the canonical artifact paths and compare their current hashes with
-`docs/architecture/bootstrap-intake.json`. When nothing changed, continue the unfinished questions
-or summarize the confirmed intake. When an artifact changed:
-
-1. validate or import the changed artifact;
-2. identify affected elements, relationships, capability assessments, open items, and slice signals;
-3. mark only affected derived conclusions stale;
-4. preserve unaffected explicit answers;
-5. surface conflicts instead of choosing a winner;
-6. reopen only affected questions; and
-7. regenerate and reconfirm all bound artifacts.
-
-A changed projection never silently supersedes an explicit user decision or confirmed Program Kit
-default. The user must resolve the conflict.
+Resume from current intent, decisions and unanswered frontier. Compare substantive changed
+meaning and reopen only affected choices. Formatting, unrelated features and absent metadata
+do not revoke acceptance. Historical0.x workflow records are preserved evidence, never upgraded
+into current authority.
 
 ## Continue founding in this session
 
-After intake confirmation and deterministic validation, continue through the connected constitution,
-consequential ADRs, technology choices and outcome roadmap in the product-intake skill. Intake
-confirmation is distinct from constitutional ratification and named architectural acceptance.
-Use [product-founding.md](product-founding.md) for focused review/acceptance commands. After that
-explicit acceptance continue directly to specification-intake for the selected first feature.
-There is no workflow command, worker dispatch or mandatory closure stage.
+After shared understanding, proceed directly to specification-intake for the selected useful
+outcome and ordinary native phases. Carry relevant questions with their owning feature.
+Do not interpose assessment/research/backlog/closure dossiers, runtime matrices or authoring
+workers. A pre-spec experiment is useful only if its answer changes what should be specified.
+Real agreed review pauses and actual dependent engineering contracts remain in force.
