@@ -118,5 +118,26 @@
   },
   "immutableInputs": [
     "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json"
+  ],
+  "guidanceSources": [
+    {
+      "owner": "program-kit-governance/references/asynchronous-workloads.md",
+      "scope": "External primary documentation links for problem-driven research; no executable or dependency pin change. Selected-version contracts control existing integrations.",
+      "reviewed": "2026-10-25",
+      "updatePolicy": "Recheck relevant source/version/region/plan for an actual decision; preserve consumer choices and profile facts. Link failure remains an explicit research limitation.",
+      "sources": [
+        "https://learn.microsoft.com/en-us/azure/app-service/overview-webjobs",
+        "https://learn.microsoft.com/en-us/azure/app-service/configure-common",
+        "https://learn.microsoft.com/en-us/azure/container-apps/jobs",
+        "https://kubernetes.io/docs/concepts/workloads/controllers/job/",
+        "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination",
+        "https://learn.microsoft.com/en-us/azure/architecture/patterns/competing-consumers",
+        "https://learn.microsoft.com/en-us/azure/service-bus-messaging/message-transfers-locks-settlement",
+        "https://learn.microsoft.com/en-us/azure/architecture/databases/guide/transactional-out-box-cosmos",
+        "https://learn.microsoft.com/en-us/azure/architecture/patterns/asynchronous-request-reply",
+        "https://learn.microsoft.com/en-us/azure/architecture/patterns/valet-key",
+        "https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/"
+      ]
+    }
   ]
 }

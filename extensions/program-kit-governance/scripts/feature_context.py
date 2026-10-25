@@ -17,6 +17,7 @@ CAPABILITIES = {
     'pdf-decoding': r'\b(?:pdfpig|flatedecode|finite pdf decod(?:er|ing))\b',
     'recording-ocr': r'\b(?:recording.only ocr|offline ocr sdk)\b',
     'snapshot-query': r'\bimmutable snapshot quer(?:y|ies)\b',
+    'async-workload': r'\b(?:background (?:jobs?|workloads?|processing)|asynchronous (?:jobs?|workloads?|processing)|durable dispatch|transactional outbox|queue consumers?|queued work|replaceable (?:execution |workload )?providers?|container apps jobs?|webjobs|kubernetes jobs?)\b',
     'browser-effects': r'\b(?:async|await|promise|settimeout|setinterval|queuemicrotask|requestanimationframe|abortcontroller|abortsignal|arraybuffer|filereader|getdocument|fetch|websocket|worker|createobjecturl)\b|\.then\s*\(',
 }
 

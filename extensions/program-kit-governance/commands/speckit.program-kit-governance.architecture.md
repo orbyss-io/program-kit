@@ -29,3 +29,8 @@ For .NET host/exporter choices, apply `principle.dotnet-host-default` in
 references/tool-selection.md. Review a custom-host proposal against actual human opt-out,
 keep unresolved choices visible, and resolve the effective profile before reading versioned
 package knowledge. A proposal, helper pass or profile listing supplies no human acceptance.
+
+For background/queued work or replaceable providers, consult references/asynchronous-workloads.md
+before choosing shared contracts. Research the relevant source-map alternatives, explicit environment
+closures and failure semantics; keep coordination, execution and exchange separate. Use only the
+focused references needed by this journey. Synthetic tests do not qualify an actual platform.

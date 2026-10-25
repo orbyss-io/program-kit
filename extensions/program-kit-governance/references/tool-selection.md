@@ -10,7 +10,26 @@ change pins or execute compatibility/admission work before saving tasks. Researc
 new capability gap or substantive override; retain accepted authority and actual verification.
 <!-- /program-kit:knowledge-rule -->
 
-## Bootstrap candidate research
+## Problem-driven research
+
+Recognize the consumer problem before selecting products. Program Kit owns the decision rules,
+semantic integration boundaries, supported combinations and focused examples that connect sources
+to that problem. Link authoritative product documentation for platform details; consult only the
+sources needed to resolve the current question. A link should explain its purpose, applicable
+version/scope and proof limits, not merely name a product.
+
+Retain exact local publisher facts when tooling, compatibility or reproducibility needs them.
+Current external documentation can expose a gap; it does not silently replace an existing consumer's
+selected version or human decision. Record consulted sources, applicable versions, alternatives,
+conclusions and uncertainties in ordinary research/plan/ADR files. Unavailable sources remain an
+explicit research limitation. Installed files need not enter context until relevant.
+
+For example, background jobs with replaceable providers select `asynchronous-workloads.md` and its
+execution/exchange source map. New lessons enter Program Kit through existing maintainer review:
+inspect the observation, identify the reusable problem/decision, and add a small source map or
+regression. A successful consumer workaround does not automatically become a universal default.
+
+## Candidate research
 
 Select capabilities before products. Research current options at bootstrap time because ecosystems, compatibility, maintenance, and security change.
 

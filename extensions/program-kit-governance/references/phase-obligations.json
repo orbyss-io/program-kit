@@ -2,6 +2,49 @@
   "schemaVersion": 1,
   "requirements": [
     {
+      "id": "async-workload",
+      "when": "async-workload",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/asynchronous-workloads.md"
+      ],
+      "sections": {
+        "program-kit-governance/references/asynchronous-workloads.md": [
+          "Recognize the problem",
+          "Three responsibilities",
+          "Research source map",
+          "Semantic replacement contract",
+          "Explicit environment composition",
+          "Failure and conformance questions",
+          "Proof and maintenance"
+        ]
+      },
+      "phases": [
+        "planning",
+        "after-plan",
+        "tasks",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": {
+        "kind": "project-checks-and-review",
+        "coverage": [
+          "tests/validate_async_workloads.py"
+        ],
+        "routingCoverage": [
+          "tests/validate_async_workloads.py"
+        ],
+        "coverageScope": "Synthetic discovery, explicit closure consistency and compiled recording workflow; no agent behavior, durable store or platform qualification."
+      },
+      "decisionRules": [],
+      "ruleIds": [
+        "principle.replaceable-async-workload",
+        "context.async-workload-research"
+      ]
+    },
+    {
       "id": "story-delivery",
       "when": "all",
       "due": "delivery",
@@ -4056,7 +4099,8 @@
         ],
         "sections": [
           "Retained ordinary-development selections",
-          "Bootstrap candidate research"
+          "Problem-driven research",
+          "Candidate research"
         ],
         "requirements": [
           "dotnet-boundaries",
@@ -4077,7 +4121,11 @@
           "disposition": "active",
           "route": "intake"
         },
-        "Bootstrap candidate research": {
+        "Problem-driven research": {
+          "disposition": "active",
+          "route": "intake"
+        },
+        "Candidate research": {
           "disposition": "active",
           "route": "intake"
         }
@@ -4094,7 +4142,7 @@
           "kind": "manual",
           "owner": "program-kit-governance",
           "reason": "Candidate research and operation-specific technical context; the selected .NET host default is separately attributed and never establishes human consent.",
-          "sha256": "8609b9b7df6bc691f04d43a65345273f663cfad758ab9e84897bd7c026d8c972"
+          "sha256": "548ec580ad4d5903c885deee2312ddb5150f72af49fd43b65a45afd2b36abfc6"
         },
         "headings": [
           [
@@ -4107,7 +4155,11 @@
           ],
           [
             2,
-            "Bootstrap candidate research"
+            "Problem-driven research"
+          ],
+          [
+            2,
+            "Candidate research"
           ]
         ]
       }
@@ -5154,6 +5206,168 @@
           "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
         }
       }
+    },
+    {
+      "path": "program-kit-governance/references/asynchronous-workloads.md",
+      "phases": [
+        "founding",
+        "architecture",
+        "planning",
+        "setup",
+        "delivery"
+      ],
+      "enforcement": "Problem-driven asynchronous workload research and semantic provider replacement; synthetic proof remains distinct from platform qualification.",
+      "route": {
+        "kind": "intake",
+        "via": [
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture-check.md",
+          "extensions/program-kit-governance/scripts/phase_obligations.py"
+        ],
+        "sections": [
+          "Recognize the problem",
+          "Three responsibilities",
+          "Research source map",
+          "Semantic replacement contract",
+          "Explicit environment composition",
+          "Failure and conformance questions",
+          "Proof and maintenance"
+        ],
+        "requirements": [
+          "async-workload"
+        ],
+        "review": "Problem-driven asynchronous workload research and semantic provider replacement; synthetic proof remains distinct from platform qualification."
+      },
+      "id": "program-kit-governance/references/asynchronous-workloads.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-governance/references/asynchronous-workloads.md"
+      },
+      "owner": "program-kit-governance",
+      "disposition": "active",
+      "sections": {
+        "Recognize the problem": {
+          "disposition": "active",
+          "route": "intake"
+        },
+        "Three responsibilities": {
+          "disposition": "active",
+          "route": "intake"
+        },
+        "Research source map": {
+          "disposition": "active",
+          "route": "intake"
+        },
+        "Semantic replacement contract": {
+          "disposition": "active",
+          "route": "intake"
+        },
+        "Explicit environment composition": {
+          "disposition": "active",
+          "route": "intake"
+        },
+        "Failure and conformance questions": {
+          "disposition": "active",
+          "route": "intake"
+        },
+        "Proof and maintenance": {
+          "disposition": "active",
+          "route": "intake"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      },
+      "purpose": "Problem-driven asynchronous workload research and semantic provider replacement; synthetic proof remains distinct from platform qualification.",
+      "contentCoverage": {
+        "remaining": {
+          "kind": "manual",
+          "owner": "program-kit-governance",
+          "reason": "Source-map framing and headings; selected rule and focused integration context retain their exact attribution.",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "headings": [
+          [
+            1,
+            "Replaceable asynchronous workloads"
+          ],
+          [
+            2,
+            "Recognize the problem"
+          ],
+          [
+            2,
+            "Three responsibilities"
+          ],
+          [
+            2,
+            "Research source map"
+          ],
+          [
+            2,
+            "Semantic replacement contract"
+          ],
+          [
+            2,
+            "Explicit environment composition"
+          ],
+          [
+            2,
+            "Failure and conformance questions"
+          ],
+          [
+            2,
+            "Proof and maintenance"
+          ]
+        ]
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/async-workload/README.md",
+      "phases": [
+        "implementation"
+      ],
+      "enforcement": "Optional SDK-free recording workflow and explicit environment closure example; no real platform qualification.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-dotnet/scripts/provider_composition.py",
+          "tests/validate_async_workloads.py"
+        ],
+        "sections": [
+          "Explicit composition check",
+          "Qualification limits"
+        ],
+        "requirements": [],
+        "review": "Optional SDK-free recording workflow and explicit environment closure example; no real platform qualification."
+      },
+      "id": "program-kit-dotnet/references/examples/async-workload/README.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-dotnet/references/examples/async-workload/README.md"
+      },
+      "owner": "program-kit-dotnet",
+      "disposition": "manual",
+      "sections": {
+        "Explicit composition check": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Qualification limits": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      },
+      "purpose": "Optional SDK-free recording workflow and explicit environment closure example; no real platform qualification."
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
@@ -13557,6 +13771,56 @@
         "checks": [
           "tests/validate_dotnet_host_guidance.py"
         ]
+      }
+    },
+    "principle.replaceable-async-workload": {
+      "purpose": "Recognize replaceable asynchronous work and research semantic execution/exchange boundaries before provider-shaped contracts",
+      "source": "program-kit-governance/references/asynchronous-workloads.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.replaceable-async-workload"
+      },
+      "owner": "program-kit-governance",
+      "family": "modularity",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "async-workload"
+      ],
+      "applicability": "Affirmative background/queued/durable work or replaceable execution provider intent; ordinary async syntax alone does not select it.",
+      "bindings": {
+        "checks": [
+          "tests/validate_async_workloads.py"
+        ]
+      }
+    },
+    "context.async-workload-research": {
+      "purpose": "Focused primary-source map, captured binding and environment semantics, failure conformance and proof limits",
+      "source": "program-kit-governance/references/asynchronous-workloads.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "context.async-workload-research"
+      },
+      "owner": "program-kit-governance",
+      "family": "modularity",
+      "level": "recommended",
+      "status": "active",
+      "requirements": [
+        "async-workload"
+      ],
+      "applicability": "Read relevant sources for the current asynchronous design question; exact selected versions control integration facts.",
+      "bindings": {
+        "checks": [
+          "tests/validate_async_workloads.py"
+        ]
+      },
+      "display": "focused-detail",
+      "contextDisposition": {
+        "kind": "context",
+        "owner": "program-kit-governance",
+        "reason": "Applied integration reasoning and external research pointers, not copied platform manuals, runtime qualification or consumer acceptance."
       }
     }
   },

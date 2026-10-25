@@ -518,6 +518,15 @@
         "architecture",
         "profiles"
       ]
+    },
+    "async-workload": {
+      "inputs": [
+        "tests/validate_async_workloads.py",
+        "extensions/program-kit-governance/references/asynchronous-workloads.md",
+        "extensions/program-kit-dotnet/references/examples/async-workload/**",
+        "extensions/program-kit-dotnet/scripts/provider_composition.py"
+      ],
+      "dependsOn": []
     }
   },
   "checks": [
@@ -5547,6 +5556,63 @@
       "suites": [],
       "budgetSeconds": 30,
       "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_async_workloads",
+      "purpose": "Problem-specific research routing, installed standalone guidance and explicit environment package/activation/binding negatives; no actual platform qualification.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_async_workloads.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge",
+        "phases",
+        "async-workload"
+      ],
+      "inputs": [
+        "tests/validate_async_workloads.py",
+        "extensions/program-kit-governance/references/asynchronous-workloads.md",
+        "extensions/program-kit-dotnet/references/examples/async-workload/**"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_async_workloads_compiled",
+      "purpose": "Compiled SDK-free Core and recording workflow semantics; no durable store or platform qualification.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_async_workloads.py",
+        "--compiled"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "async-workload"
+      ],
+      "inputs": [
+        "tests/validate_async_workloads.py",
+        "extensions/program-kit-governance/references/asynchronous-workloads.md",
+        "extensions/program-kit-dotnet/references/examples/async-workload/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
+      "suites": [],
+      "budgetSeconds": 60,
+      "timeoutSeconds": 90
     }
   ]
 }

@@ -100,6 +100,11 @@ def render(value, phase, detailed=False):
         rule = canonical_rules(['principle.dotnet-host-default'])[0]
         lines += ['## .NET host decision review', rule['text'],
                   'Canonical source: ' + rule['provenance']['path'], '']
+    if not detailed and 'async-workload' in value.get('responsibilities', []):
+        rule = canonical_rules(['principle.replaceable-async-workload'])[0]
+        lines += ['## Asynchronous workload research', rule['text'],
+                  'Canonical source: ' + rule['provenance']['path'],
+                  'Focused source map, replacement contract and conformance questions: --only async-workload', '']
     if value.get('localGuidance'):
         lines += ['Project choices and review notes: ' + ', '.join(value['localGuidance']),
                   'Read these for local decisions, exceptions and agreed pauses; missing toolkit metadata is not a phase gate.', '']
