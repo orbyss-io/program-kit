@@ -47,9 +47,40 @@ def validate_draft() -> dict:
     return inspect(require_intent=True)
 
 
-def review() -> dict:
-    """Return links to actual documents rather than another review dossier."""
-    return inspect(require_intent=True)
+def review(root: Path | None = None) -> dict:
+    """Read-only review agenda; presence and prompts never establish human review."""
+    root = (root or Path.cwd()).resolve()
+    result = inspect(root, require_intent=True)
+    intent = governance.PROJECT_INTENT.as_posix()
+    topics = (
+        ('Product and journeys', [intent, 'docs/architecture/user-journeys.md'],
+         'Walk through purpose, scope, actors and complete user outcomes.'),
+        ('Roadmap', [governance.ROADMAP.as_posix(), intent],
+         'Show priorities, dependencies, first useful feature/release and deferred outcomes.'),
+        ('Domain map', [governance.ARCHITECTURE_MAP.as_posix(), 'docs/architecture/domain-map.md', governance.ARCHITECTURE.as_posix(), intent],
+         'Explain boundaries, owners, entities, roles, lifecycles, policies and relationships.'),
+        ('C4 views', [governance.ARCHITECTURE_MAP.as_posix(), governance.WORKSPACE_DSL.as_posix(), governance.ARCHITECTURE.as_posix()],
+         'Show context/container diagrams and every additional modeled view. Raw JSON/DSL links alone are not a walkthrough. Use readable inline diagrams or the local viewer; disclose unavailable rendering or obtain an explicit deferral.'),
+        ('Technology and environments', ['docs/architecture/technology-radar.md', intent],
+         'Explain selected technologies, defaults/overrides and relevant provider/environment choices.'),
+        ('Constitution', [governance.CONSTITUTION.as_posix()],
+         'Review principles and testing/amendment policy; ratification is a distinct human decision.'),
+        ('ADRs', [p.relative_to(root).as_posix() for p in sorted((root / governance.DECISIONS).glob('*.md'))],
+         'Show consequential alternatives, rationale and individual Proposed/Accepted/etc dispositions.'),
+        ('Open decisions and handoff', [intent, governance.ROADMAP.as_posix()],
+         'State assumptions, unresolved choices, explicit deferrals and the proposed first specification.'),
+    )
+    result['review_agenda'] = [
+        {'topic': topic, 'paths': [p for p in paths if (root / p).is_file()], 'focus': focus,
+         'availability': 'linked content; human review not established' if any((root / p).is_file() for p in paths)
+                         else 'no separate artifact found; show an existing representation or explain the gap/deferral'}
+        for topic, paths, focus in topics]
+    result['confirmation_scope'] = (
+        'Present the linked overview and explain what product meaning/roadmap/architecture is proposed for confirmation. '
+        'Pause for the actual human decision before first-feature intake; constitution ratification, named ADRs and '
+        'unresolved or deferred items remain separate. An earlier unscoped confirm does not approve unseen models.')
+    result['next_action'] = 'Walk through the Review overview with the human, then wait for the scoped decision before specification intake.'
+    return result
 
 
 def status() -> dict:
@@ -61,7 +92,8 @@ def main() -> int:
     parser.add_argument('command', choices=('inspect', 'review', 'validate', 'status'))
     args = parser.parse_args()
     try:
-        print(json.dumps(inspect(require_intent=args.command in {'review', 'validate'}), ensure_ascii=False))
+        value = review() if args.command == 'review' else inspect(require_intent=args.command == 'validate')
+        print(json.dumps(value, ensure_ascii=False))
         return 0
     except (ValueError, OSError, KeyError, TypeError) as error:
         print('Product inspection failed: ' + str(error), file=sys.stderr)

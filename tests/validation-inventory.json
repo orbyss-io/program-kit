@@ -5613,6 +5613,33 @@
       "suites": [],
       "budgetSeconds": 60,
       "timeoutSeconds": 90
+    },
+    {
+      "id": "validate_intake_review",
+      "purpose": "Read-only linked product/roadmap/domain/C4 review agenda, scoped confirmation and first-feature pause instructions; no human review or agent obedience claim.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_intake_review.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "intake"
+      ],
+      "inputs": [
+        "tests/validate_intake_review.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.specification-intake.md",
+        "extensions/program-kit-governance/scripts/product_intake.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 15,
+      "timeoutSeconds": 30
     }
   ]
 }

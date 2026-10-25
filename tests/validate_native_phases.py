@@ -62,6 +62,30 @@ class NativePhaseTests(unittest.TestCase):
             refresh_integration_events(root)
             manager.scaffold_config('program-kit-governance')
             PresetManager(root).install_from_directory(ROOT / 'presets/program-kit-governance-preset', get_speckit_version())
+            # Inspect the actual native registration/dispatch boundary, not only
+            # our source manifest. This does not execute an AI hook command.
+            import yaml
+            from specify_cli.extensions import HookExecutor
+            manifest = yaml.safe_load((ROOT / 'extensions/program-kit-governance/extension.yml').read_text(encoding='utf-8'))
+            executor = HookExecutor(root)
+            registered = executor.get_project_config()['hooks']
+            self.assertEqual(set(manifest['hooks']), set(registered))
+            for event, declarations in manifest['hooks'].items():
+                expected = declarations if isinstance(declarations, list) else [declarations]
+                expected = sorted(expected, key=lambda row: row.get('priority', 10))
+                actual = executor.check_hooks_for_event(event)['hooks']
+                self.assertEqual([row['command'] for row in expected], [row['command'] for row in actual], event)
+                for row in actual:
+                    self.assertIs(row['optional'], False)
+                    self.assertIs(row['enabled'], True)
+                    command = row['command'].replace('.', '-')
+                    self.assertTrue((skills / command / 'SKILL.md').is_file(), row['command'])
+                native = (skills / ('speckit-' + event.split('_', 1)[1]) / 'SKILL.md').read_text(encoding='utf-8')
+                self.assertIn('hooks.' + event, native, event)
+            after = executor.check_hooks_for_event('after_tasks')['hooks']
+            self.assertEqual(['speckit.program-kit-governance.architecture-check', 'speckit.analyze'],
+                             [row['command'] for row in after])
+            self.assertEqual('$speckit-analyze', executor.execute_hook(after[1])['invocation'])
             for name, native in original.items():
                 installed = (skills / f'speckit-{name}/SKILL.md').read_text(encoding='utf-8')
                 self.assertIn(native, installed, 'Preset replaced the native command: ' + name)
@@ -72,6 +96,19 @@ class NativePhaseTests(unittest.TestCase):
             implementation = (skills / 'speckit-implement/SKILL.md').read_text(encoding='utf-8')
             self.assertIn('Pause dependent product work until actual acceptance', implementation)
             self.assertIn('silence', implementation.lower())
+            tasks = (skills / 'speckit-tasks/SKILL.md').read_text(encoding='utf-8')
+            for wording in ('finish the native `hooks.after_tasks` dispatch', '$speckit-analyze',
+                            'not execution', 'Returning from architecture-check',
+                            'do not force-enable', 'hooks actually invoked'):
+                self.assertIn(wording, tasks)
+            self.assertIn('Emitting the block alone does not run the hook', tasks)
+            config = executor.get_project_config()
+            config['hooks']['after_tasks'][1]['enabled'] = False
+            executor.save_project_config(config)
+            self.assertEqual(['speckit.program-kit-governance.architecture-check'],
+                             [row['command'] for row in executor.check_hooks_for_event('after_tasks')['hooks']])
+            config['hooks']['after_tasks'][1]['enabled'] = True
+            executor.save_project_config(config)
             chosen = feature(root)
             # Existing poisoned 0.x history is preserved and never parsed as
             # current authority. No .NET extension or engineering adapter exists.

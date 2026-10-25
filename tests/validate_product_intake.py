@@ -107,6 +107,13 @@ def scenario(*, source_payload=True):
         map_command = [sys.executable, installed / 'architecture_map.py']
         run(root, [*map_command, 'validate', '--map', map_path, '--project-root', root, '--verify-sources'])
         run(root, [*map_command, 'export', '--map', map_path, '--output', projection])
+        write(root / 'docs/architecture/specification-roadmap.md',
+              '# Synthetic roadmap\n1. Register a request\n2. Review a request\n')
+        review = json.loads(run(root, [*command, 'review'], contains='review_agenda').stdout)
+        assert len(review['review_agenda']) == 8
+        assert 'Pause for the actual human decision' in review['confirmation_scope']
+        assert 'Review overview' in skill.read_text(encoding='utf-8')
+        assert 'pause before specification intake' in skill.read_text(encoding='utf-8')
         spec = root / 'specs/001-request/spec.md'
         write(spec, '# Register a request\n\n## User story\nA requester submits a purpose and receives a stable identity.\n'
             '## Acceptance examples\nValid purpose is recorded; empty purpose is rejected visibly.\n'

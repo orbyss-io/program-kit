@@ -27,6 +27,20 @@ Earlier or additional pauses need agreement; do not turn every task into a new a
 Make the independent walkthrough and expected result concrete. Preserve the user's decision in a
 short note when received; no hidden JSON checkpoint, receipt or extra state initialization is needed.
 
-Use the native read-only analysis on the completed task plan. Report coverage, dependencies and
-unresolved choices. Drafting tasks never starts services, runs application acceptance or authorizes
+Before reporting task generation complete, finish the native `hooks.after_tasks` dispatch from
+`.specify/extensions.yml`. Invoke each enabled unconditional mandatory command in priority order
+and wait for its result; a printed `EXECUTE_COMMAND:` line or a recommendation to run it later is
+not execution. With the standard Program Kit hooks this means architecture review, then
+`speckit.analyze` (`$speckit-analyze` in Codex skills mode). Returning from architecture-check
+does not finish the outer tasks command. If a hook needs a human decision, pause and resume the
+remaining hooks after that decision; do not silently drop analysis. Never start another coding agent.
+
+Run native read-only analysis once on the completed task plan; do not duplicate it when the hook
+already ran for these tasks. Respect explicitly disabled/removed hooks and native condition handling;
+do not force-enable or bypass consumer configuration. If analysis was disabled, unavailable or
+blocked, report that disposition and the next action instead of claiming it ran. In the final task
+report, name the hooks actually invoked, their results and unresolved findings. Only then report
+task generation complete. This is conversational dispatch, not a new execution ledger or runner.
+
+Report coverage, dependencies and unresolved choices. Drafting tasks never starts services, runs application acceptance or authorizes
 implementation, provider operations or publication.

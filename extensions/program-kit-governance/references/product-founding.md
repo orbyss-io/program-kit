@@ -53,9 +53,20 @@ receipt. Do not create it for an unrelated stack or merely to start feature spec
 
 ## One review and direct feature handoff
 
-Present connected product meaning, journeys, consequential decisions, defaults, assumptions,
-unanswered frontier and a recommended first useful outcome. Obtain the human's explicit product
-confirmation and record it in project-intent.md. Keep only relevant later questions with owners
+Use the product-intake skill's **Review overview** before requesting confirmation: linked product
+meaning/journeys, outcome roadmap and sequence, domain boundaries/entities/lifecycles/policies,
+C4 context/container and all other modeled views, technologies/environment defaults, constitution,
+ADRs and unresolved decisions. Walk through the diagrams and roadmap; links to raw models alone
+do not show their meaning. Use existing readable diagrams or the supported local viewer; missing
+viewer prerequisites need a readable alternative or an explicit deferral, never an external upload.
+Do not create extra diagrams or paperwork merely to fill a review list.
+
+Explain the confirmation scope and then pause for the human's actual answer before first-feature
+intake. An unscoped earlier "confirm" does not establish review of unseen documents. Preserve
+earlier meaningful reviews, show substantive changes and record actual confirmations/deferrals in
+project-intent.md. Product confirmation, constitution ratification and named ADR decisions stay
+distinct. The optional `product_intake.py review` lists artifact links/prompts, never acceptance.
+Keep only relevant later questions with owners
 and triggers; feature intake deepens their detail. No acceptance-scope JSON, authoring schema,
 approval receipt or eligibility status is required.
 

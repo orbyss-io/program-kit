@@ -3431,7 +3431,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "ace9db20652933a2669476e35aa1d586ba73ba7003609f0238de0574e636ae7f",
+          "sha256": "5bbc11fd3eafac4287b278f74aecd42668014e5ad4ee042d633afc0957843f88",
           "kind": "context",
           "owner": "program-kit-governance",
           "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
@@ -5200,7 +5200,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "332b9fb1d9b858f181872d3456929408fb52be95be6da5c957f3357ae9aa2a85",
+          "sha256": "abae0a5e2c8e6c26f97d216c7c751e5e5ea918148c6db60ce6829733cdf28339",
           "kind": "context",
           "owner": "program-kit-governance",
           "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."

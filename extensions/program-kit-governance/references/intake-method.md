@@ -24,8 +24,12 @@ it does not need Program Kit consumer qualification.
 ## Conversation evidence and final review
 
 Preserve compact settled intent, named decisions, provisional assumptions, unanswered frontier,
-next action and due obligations in normal authored files. Present the connected synthesis and
-obtain explicit human confirmation of meaning. Record the actual answer/context in intent.
+next action and due obligations in normal authored files. Before asking for confirmation, use the
+product-intake skill's linked Review overview and walk through the roadmap, domain map and every
+modeled C4 view as well as product meaning, technologies, constitution, ADRs and unresolved items.
+Raw JSON/DSL links alone are not a walkthrough. State exactly what confirmation means, then pause
+for the human's answer before first-feature intake. Record actual review, confirmation and explicit
+deferrals in intent; an earlier unscoped confirmation cannot approve unseen models.
 Constitution ratification and individual ADR acceptance remain distinct explicit human decisions.
 Do not infer consent from silence, source hashes, simulated answers or generated output.
 

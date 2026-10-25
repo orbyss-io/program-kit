@@ -9,6 +9,13 @@ Use the shipped grilling skill proportionally. Reuse settled language, journeys,
 lifecycles, quality constraints and supplied examples. Ask only consequential unresolved questions.
 A rough request and a detailed existing design are both valid inputs.
 
+When handing off from product intake to the first feature, check the conversation's actual linked
+Review overview and human decision. If the roadmap/domain/C4 walkthrough was omitted or the
+confirmation scope was unclear, present the missing review and pause for a scoped decision before
+continuing. Do not infer review from a bare "confirm", generated documents or helper output. Reuse
+real earlier reviews and explicit deferrals; require no review receipt or intake restart. A direct
+independent feature request does not require a new whole-product intake ceremony.
+
 Select one useful actor outcome with coherent success and material failure examples, scope,
 non-goals, assumptions and dependencies. Challenge oversized feature boundaries and fragments
 without an independently reviewable outcome. Preserve relevant future questions with owner and

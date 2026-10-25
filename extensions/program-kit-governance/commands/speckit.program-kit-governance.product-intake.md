@@ -49,9 +49,32 @@ for focused helper commands. Existing locks and published dependency knowledge r
 
 ## Confirm meaning and continue
 
-Present the connected understanding, consequential choices and alternatives, disclosed defaults,
-assumptions, unresolved frontier and recommended first useful outcome. Obtain explicit human
-confirmation of product meaning and record the actual answer/context in project-intent.md.
+Before asking for confirmation, present a **Review overview** with direct links to the actual
+documents and a readable walkthrough of each applicable item:
+
+- Product purpose, scope, actors and end-to-end user journeys.
+- The outcome roadmap: priorities, dependencies, first useful release/feature and deferred work.
+- The domain map: boundaries/owners, important entities, roles, lifecycles, policies and relationships.
+- C4 system-context and container views, plus every additional view actually modeled. Show the
+  diagrams and explain their boundaries and connections; a raw JSON/DSL file link alone is not a
+  walkthrough. Use readable inline diagrams or the supported local view-c4 command. Missing viewer
+  prerequisites must not silently erase review: explain the limitation and show a readable diagram
+  alternative or obtain an explicit deferral. Never upload private models to an external viewer.
+- Technology choices, disclosed defaults/overrides and relevant environment/provider composition.
+- Constitution principles and ratification, and consequential ADRs with their individual statuses.
+- Assumptions, unanswered questions, proposed deferrals and the recommended first specification.
+
+Keep this proportional: use existing representations and views, do not invent deeper C4 levels,
+new mandatory files or exhaustive future design. Reuse earlier substantive reviews and show what
+changed. `product_intake.py review` can list available artifact links and review prompts; it cannot
+establish that the human saw or approved them.
+
+Explain exactly what product confirmation covers and which proposals/deferrals remain unsettled.
+Then ask for the human's explicit decision and **pause before specification intake**. Do not start
+the first feature in the same response that requests confirmation. A bare earlier "confirm" without
+an inspectable review scope does not establish review of unseen architecture or roadmap: present
+the missing overview and resolve its scope with the human. Record the actual answer/context in
+project-intent.md; record an explicit decision to defer a view honestly rather than claiming review.
 Constitution ratification and each Accepted ADR are distinct decisions: obtain and record those
 actually settled, preserving other proposals. Silence, generated files and successful checks are
 not consent. Reopen substantive changed meaning; formatting and unrelated additions do not
