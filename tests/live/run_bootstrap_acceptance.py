@@ -244,7 +244,6 @@ def prepare_local_catalog_server(
     }
     for archive_name in archive_names.values():
         shutil.copy2(artifacts / archive_name, server_root / archive_name)
-    shutil.copy2(packages / "workflow" / "workflow.yml", server_root / "workflow.yml")
 
     if os.name == "nt":
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as reservation:
@@ -259,7 +258,7 @@ def prepare_local_catalog_server(
 
     catalogs = {
         name: load_json(root / "catalogs" / f"{name}.json")
-        for name in ("extensions", "presets", "workflows")
+        for name in ("extensions", "presets")
     }
     catalogs["extensions"]["catalog_url"] = f"{base_url}/extensions.json"
     catalogs["extensions"]["extensions"]["program-kit-governance"]["download_url"] = (
@@ -274,10 +273,6 @@ def prepare_local_catalog_server(
     catalogs["presets"]["catalog_url"] = f"{base_url}/presets.json"
     catalogs["presets"]["presets"]["program-kit-governance-preset"]["download_url"] = (
         f"{base_url}/{archive_names['preset']}"
-    )
-    catalogs["workflows"]["catalog_url"] = f"{base_url}/workflows.json"
-    catalogs["workflows"]["workflows"]["program-kit-bootstrap"]["url"] = (
-        f"{base_url}/workflow.yml"
     )
     for name, catalog in catalogs.items():
         write_json(server_root / f"{name}.json", catalog)
@@ -940,7 +935,6 @@ def install_candidate(
         "building-blocks": artifacts / f"program-kit-building-blocks-{version}.zip",
         "dotnet": artifacts / f"program-kit-dotnet-{version}.zip",
         "preset": artifacts / f"program-kit-governance-preset-{version}.zip",
-        "workflow": artifacts / f"program-kit-bootstrap-{version}.zip",
         "bundle": artifacts / f"program-kit-{version}.zip",
     }
     with setup_log.open("w", encoding="utf-8", newline="\n") as log:
@@ -999,34 +993,6 @@ def install_candidate(
                     "--priority",
                     "1",
                     "--install-allowed",
-                    loopback_http_only=os.name == "nt",
-                ),
-                project,
-                log,
-            )
-            run_logged(
-                specify_bridge_command(
-                    root,
-                    "workflow",
-                    "catalog",
-                    "add",
-                    f"{base_url}/workflows.json",
-                    "--name",
-                    "program-kit-live-candidate",
-                    loopback_http_only=os.name == "nt",
-                ),
-                project,
-                log,
-            )
-            # Spec Kit 1.0.1 requires the workflow to be preinstalled before
-            # bundle installation. The remaining components are installed and
-            # provenance-recorded by the real bundle machinery.
-            run_logged(
-                specify_bridge_command(
-                    root,
-                    "workflow",
-                    "add",
-                    "program-kit-bootstrap",
                     loopback_http_only=os.name == "nt",
                 ),
                 project,
@@ -1658,6 +1624,7 @@ def write_report(
 
 
 def main() -> int:
+    raise AcceptanceError('BOOTSTRAP_WORKFLOW_RETIRED: use the installed product-intake skill; this historical paid-bootstrap launcher cannot run')
     print(
         "LIVE_ACCEPTANCE_V1_RETIRED: use the v2 authorization and phase-specific wrappers; "
         "this legacy entrypoint cannot start a coding agent.",

@@ -839,7 +839,29 @@ def _start_session(
     if existing:
         cleanup_directory(project_root)
 
-    runtime = choose_runtime(runtimes, requested_runtime)
+    try:
+        runtime = choose_runtime(runtimes, requested_runtime)
+    except C4ViewError as error:
+        from program_kit_runtime import device_toolchain as device
+        # Offer one actual requested/available route; never require installation
+        # of both optional viewer backends or reinterpret daemon access as age.
+        selected_tool = requested_runtime if requested_runtime != 'auto' else (
+            'docker' if runtimes['docker']['installed'] or not runtimes['java']['installed'] else 'java')
+        observed = runtimes[selected_tool]
+        requirement = '>=' + str(profile['selected']['java_minimum']) if selected_tool == 'java' else 'available'
+        value = device.diagnostic(selected_tool, requirement, 'Selected C4 viewer runtime',
+            str(observed.get('major')) if selected_tool == 'java' and observed.get('major') else None,
+            observed.get('path'), project_root)
+        known_java_mismatch = (selected_tool == 'java' and isinstance(observed.get('major'), int)
+                               and observed['major'] < profile['selected']['java_minimum'])
+        if observed.get('installed') and not known_java_mismatch:
+            # Runtime/image/daemon access checks above are the authority. An
+            # unavailable daemon, WAR or image never prescribes reinstallation.
+            value['status'] = 'user-terminal-verification-required'
+            value['remediation']['commands'] = []
+            value['remediation']['notes'] = [observed['diagnostic'],
+                'Retain the installed runtime. Verify its selection, access and required local viewer artifact; no installer was selected.']
+        raise C4ViewError(str(error) + '\n' + device.render(value)) from error
     preferred = requested_port or profile["selected"]["default_port"]
     port = select_port(preferred)
     directory = _safe_session_path(session_directory(project_root))

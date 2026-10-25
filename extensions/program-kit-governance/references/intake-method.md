@@ -1,4 +1,4 @@
-# Conversational bootstrap intake
+# Conversational product intake
 
 ## Outcome
 
@@ -193,8 +193,8 @@ pricing, VAT, quantification, publication, or workflow meaning.
 Founding decision candidates accompany the map with a question, recommendation, alternatives,
 trade-offs, evidence, confidence, and affected map IDs. They stay `proposed` or `unresolved` during
 intake. Confirmation attests that the provisional synthesis is accurate; it does not create or
-accept ADRs. The architecture phase uses the candidates to narrow research, creates real Proposed
-ADRs, and submits the exact founding ADR bundle at the existing post-architecture approval pause.
+accept ADRs. The product-intake skill uses candidates to focus consequential research, creates real Proposed
+ADRs, and presents the exact named scope for human founding acceptance. No engine pause is required.
 
 Every architecture decision records its ID, repository-relative path, SHA-256, title, date, status,
 scope, owner and supersession links. Elements, relationships, views and constraints carry typed
@@ -227,14 +227,11 @@ or summarize the confirmed intake. When an artifact changed:
 A changed projection never silently supersedes an explicit user decision or confirmed Program Kit
 default. The user must resolve the conflict.
 
-## Completion command
+## Continue founding in this session
 
-After confirmation and deterministic validation, output exactly one physical command line in its own
-fenced block. Use repository-relative forward-slash paths, double-quote each `name=value` argument,
-fully substitute every value, and include no placeholders, backticks, backslashes, environment
-variables, command substitutions, or shell-specific operators:
-
-`python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"`
-
-Do not run the outer workflow from an agent. Do not append automatic approval unless the user
-explicitly requests it.
+After intake confirmation and deterministic validation, continue through the connected constitution,
+consequential ADRs, technology choices and outcome roadmap in the product-intake skill. Intake
+confirmation is distinct from constitutional ratification and named architectural acceptance.
+Use [product-founding.md](product-founding.md) for focused review/acceptance commands. After that
+explicit acceptance continue directly to specification-intake for the selected first feature.
+There is no workflow command, worker dispatch or mandatory closure stage.

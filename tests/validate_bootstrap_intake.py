@@ -176,19 +176,6 @@ def main() -> int:
     intake_module = load_module(scripts / "bootstrap_intake.py", "test_bootstrap_intake")
     semantic = load_module(root / "tests/validate_bootstrap_semantics.py", "test_intake_semantic_fixture")
 
-    skill = (
-        root
-        / "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap.md"
-    ).read_text(encoding="utf-8")
-    command = (
-        'python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input '
-        '"bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"'
-    )
-    if command not in skill or "`\n" in command or "\\\n" in command:
-        raise AssertionError("Bootstrap skill does not contain the portable one-line command")
-    if any(token in skill for token in ("--input initial_design", "normalize-design", "bootstrap-brief.json")):
-        raise AssertionError("Bootstrap skill retained the legacy front door")
-
     with tempfile.TemporaryDirectory(prefix="program-kit-intake-") as directory:
         project = Path(directory)
         intent = project / "docs/architecture/project-intent.md"
@@ -361,13 +348,7 @@ def main() -> int:
         if set(changed) != {path.as_posix() for path in intake_module.CANONICAL_ARTIFACTS.values()}:
             raise AssertionError(f"Changed-artifact detection is incomplete: {changed}")
 
-    workflow = (root / "workflows/program-kit-bootstrap/workflow.yml").read_text(encoding="utf-8")
-    if "initial_design" in workflow or "normalize-design" in workflow or "bootstrap-brief" in workflow:
-        raise AssertionError("Workflow retained a temporal legacy adapter")
-    if "bootstrap_intake" not in workflow or "validate-bootstrap-intake" not in workflow:
-        raise AssertionError("Workflow does not consume the confirmed intake contract")
-
-    print("Conversational intake, C4 model, ADR linkage, and one-line handoff are valid.")
+    print("Conversational intake, C4 model, ADR linkage and source-drift contracts are valid.")
     return 0
 
 

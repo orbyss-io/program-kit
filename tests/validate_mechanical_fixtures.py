@@ -168,8 +168,11 @@ CASES = {
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--family', required=True, choices=[*CASES, 'bootstrap'])
+    parser.add_argument('--family', required=True, choices=[*CASES, 'founding', 'bootstrap'])
     args = parser.parse_args()
+    if args.family == 'bootstrap':
+        print('Bootstrap workflow mechanics are retired; use --family founding for installed skill-led founding.', file=sys.stderr)
+        return 2
     # Keep every disposable input in the owned ignored workspace. Some Windows
     # worker sandboxes expose a process TEMP that descendants cannot write.
     scratch = ROOT / 'artifacts/t'
@@ -177,17 +180,16 @@ def main():
     tempfile.tempdir = str(scratch)
     started = time.monotonic()
     try:
-        if args.family in ('bootstrap', 'phases', 'upgrade'):
+        if args.family in ('founding', 'phases', 'upgrade'):
             sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
             import schema_runtime
             if not (schema_runtime.runtime_path(ROOT) / '.ready').is_file():
                 raise RuntimeError('SCHEMA_RUNTIME_MISSING: prepare the exact locked project dependency once: '
                     + f'"{sys.executable}" "{ROOT / "extensions/program-kit-governance/scripts/schema_runtime.py"}" setup')
-        if args.family == 'bootstrap':
-            # Executes the shipped installed definition and real shell validators.
-            # Its author/review adapter cannot dispatch a coding agent.
-            from validate_installed_bootstrap_flow import scenario
-            scenario('resume', source_payload=True)
+        if args.family == 'founding':
+            # Native installed skill and focused validators; fictional authoring/reviews.
+            from validate_product_intake import scenario
+            scenario(source_payload=True)
             success = True
         else:
             suite = unittest.defaultTestLoader.loadTestsFromNames(CASES[args.family])

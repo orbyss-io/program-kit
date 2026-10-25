@@ -1,4 +1,4 @@
-"""Install the actual five component packages once; exercise an installed validator.
+"""Install the actual four component packages once; exercise an installed validator.
 
 This bounds the package/registration contract. It does not run bootstrap, agents,
 compilation, upgrades, service integrations, or every installed command.
@@ -54,7 +54,7 @@ def main():
     require(assets.is_relative_to(ROOT), 'Package fixture assets must stay within this checkout')
     version = (ROOT / 'VERSION').read_text().strip()
     components = ('program-kit-dotnet','program-kit-building-blocks','program-kit-governance',
-                  'program-kit-governance-preset','program-kit-bootstrap')
+                  'program-kit-governance-preset')
     for name in (*components, 'program-kit', 'program-kit-tooling'):
         require((assets / f'{name}-{version}.zip').is_file(), 'Build the actual candidate archives before this smoke')
     import specify_cli
@@ -100,7 +100,6 @@ def main():
         from local_bundle_fixture import install_local_bundle, verify_release_copies
         component_sources = {('extensions',name):expanded/name for name in components[:3]}
         component_sources[('presets',components[3])] = expanded/components[3]
-        component_sources[('workflows',components[4])] = expanded/components[4]
         install_local_bundle(project, expanded/'program-kit-tooling', bridge,
                              lambda label,argv:execute(argv,project), component_sources=component_sources, integration='copilot')
         records = json.loads((project/'.specify/bundle-records.json').read_text(encoding='utf-8'))
@@ -120,8 +119,8 @@ def main():
             require([h['command'] for h in actual] == expected and all(h['enabled'] and not h['optional'] for h in actual),
                     'Missing, reordered or optional required hooks: '+event)
         for relative in ('.specify/presets/program-kit-governance-preset/preset.yml',
-                         '.specify/workflows/program-kit-bootstrap/workflow.yml',
                          '.specify/bundle-records.json',
+                         '.github/skills/speckit-program-kit-governance-product-intake/SKILL.md',
                          '.github/skills/speckit-program-kit-governance-sync/SKILL.md',
                          '.github/skills/speckit-program-kit-building-blocks-sync/SKILL.md'):
             require((project/relative).is_file(),'Missing installed registration/entrypoint: '+relative)
@@ -134,6 +133,12 @@ def main():
         shutil.copytree(runtime,target_runtime)
         governance = project/'.specify/extensions/program-kit-governance/scripts/governance_state.py'
         execute([sys.executable,governance,'validate-installation'],project)
+        intake = project/'.specify/extensions/program-kit-governance/scripts/product_intake.py'
+        execute([sys.executable,intake,'--help'],project)
+        workflow_before = {str(p.relative_to(project)):p.read_bytes() for p in (project/'.specify/workflows').rglob('*') if p.is_file()}
+        status = execute([sys.executable,intake,'status'],project,1)
+        require('next_action' in status.stdout, 'Installed intake status lacks an actionable next step')
+        require(workflow_before == {str(p.relative_to(project)):p.read_bytes() for p in (project/'.specify/workflows').rglob('*') if p.is_file()}, 'Product intake mutated retired workflow history')
         schema = project/'smoke.schema.json'
         schema.write_text(json.dumps({'$schema':'https://json-schema.org/draft/2020-12/schema',
             'type':'object','properties':{'name':{'type':'string'}},'required':['name'],'additionalProperties':False}))

@@ -64,6 +64,7 @@ result, questions/answers, draft synthesis, failures/repairs and limits in plain
 measured token usage if available; never estimate it from file bytes or cached volume.
 Stop. Do not provide a bootstrap launch command for this unconfirmed proxy draft.
 
-If the user subsequently requests a same-session bootstrap rehearsal, use the separate installed
-`speckit.program-kit-governance.proxy-bootstrap` command. That explicit scope extension preserves
-the draft and provenance marker; it does not enable ordinary bootstrap or a paid live worker.
+The former proxy-bootstrap workflow extension is retired. Keep this fictional material draft and
+non-authorizing. A real consumer can use `speckit.program-kit-governance.product-intake` with actual
+user answers, explicit intake confirmation, constitution ratification and named founding acceptance.
+Never promote simulated answers or preserve the proxy marker while claiming human authority.

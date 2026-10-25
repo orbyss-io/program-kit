@@ -7,7 +7,7 @@ Latest available release: **[v0.14.3](https://github.com/orbyss-io/program-kit/r
 Program Kit extends Spec Kit's ordinary **specify -> plan -> tasks -> implement -> test** flow
 with applicable architectural knowledge, composition defaults and engineering checks. Plans and
 tasks carry substantive choices; compiler/analyzer checks, architecture tests, contract generation
-and behavioral tests enforce the software. Initial bootstrap remains available for initial setup.
+and behavioral tests enforce the software. A resumable product-intake skill establishes the foundation before the first feature.
 
 Implementation keeps focused test-first feedback: run the operation's tests, expand through affected
 dependencies when shared contracts or inputs change, and reserve complete application acceptance for
@@ -19,9 +19,9 @@ Application engineering lives in visible `eng/`, native project configuration an
 inputs. Builds, tests, contract generation and packaging do not need AI, installed extensions or
 governance history. See [the consumer structure and removal classification](docs/consumer-engineering.md).
 
-The executable behavior lives in Spec Kit extensions and a workflow. `program-kit` is only the
-versioned distribution layer: it installs the governance extension, the .NET extension, the
-governance template preset, and the bootstrap workflow as separate components.
+The executable behavior lives in Spec Kit extensions and focused scripts. `program-kit` is the
+versioned distribution layer: it installs the governance, building-blocks and .NET extensions and
+the governance template preset. Product founding runs in the current skill session.
 
 Program Kit is the AI extension, not an application platform or a component runtime. The reusable
 technical building blocks it understands are independently developed and released from
@@ -41,14 +41,14 @@ Prerequisites:
   it (for example, `codex` for Codex or `claude` for Claude).
 - Git, available as the `git` command.
 - Python, available as the `python` command. The Python Spec Kit resolver also requires
-  `PyYAML>=6,<7` in that exact interpreter.
+  `PyYAML>=6,<7` and Spec Kit's dependency-range parser `packaging>=23` in that exact interpreter.
 - Trust in this repository's catalog and release contents. Inspect them before marking the extension catalog install-allowed.
 
 > **Codex execution boundary:** Run every command in this installation section, every Program Kit
-> update, and the outer `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run ...` command yourself from a
+> update yourself from a
 > normal user-owned PowerShell or WSL terminal. Do not ask a Codex Desktop task or an interactive
 > `codex` CLI agent to run them. Agent-run setup can create `.agents` and `.specify` under a sandbox
-> identity on Windows, and the outer workflow would also cause nested `codex exec` execution.
+> identity on Windows. After normal-shell setup, product-intake runs in the existing session.
 
 The repository does not need to be empty. Existing source, documentation, an initial design, and an
 existing Spec Kit initialization are allowed. The initializer refreshes Spec Kit's Codex integration
@@ -103,16 +103,17 @@ output and the partial installation for diagnosis.
 
 The required argument is the Spec Kit integration ID. For example, use `claude` instead of `codex`
 for Claude Code. Both launchers initialize the selected integration with Spec Kit's Python runtime, register all
-four catalogs, install the pinned bootstrap workflow, and install Program Kit. They do not
+three catalogs and install Program Kit. They do not
 require a prewritten design. After installation, describe the intended project naturally to the
-installed Program Kit bootstrap skill. It conducts adaptive intake, generates the canonical
-C4-aligned domain map and confirmed contract, and provides the final one-line workflow command. Do
+installed Program Kit product-intake skill. It establishes connected product intent, constitution,
+consequential ADRs, technology choices, domain/C4 map and outcome roadmap, then continues directly
+to the selected first feature intake. Do
 not bypass or lower execution policy, broadly unblock repository files, or grant unrestricted
 execution.
 
 Initialization resolves the advertised release through immutable tag catalogs, then switches all
-four registrations to the trusted `main` update channel. Catalog entries continue to pin component
-downloads to immutable release tags, while later `workflow update` and `bundle update` commands can
+three registrations to the trusted `main` update channel. Catalog entries continue to pin component
+downloads to immutable release tags, while later bundle updates can
 discover newer Program Kit releases.
 
 The initializer records actual native generation inputs and interpreter selection
@@ -122,8 +123,9 @@ of current PATH readiness; an unrecorded historical alias remains unresolved.
 
 Before changing repository-managed files, each launcher verifies that `specify`, `python`, and Git can
 execute. Spec Kit validates the coding-agent tooling for the selected integration. The launcher
-checks whether that same `python` can import PyYAML and, only when needed,
-uses `python -m pip` to install `PyYAML>=6,<7`. If pip is unavailable or the import still fails, the
+checks whether that same `python` has `packaging>=23`, reporting its exact-interpreter preparation
+command if missing. It checks the loaded PyYAML version against `>=6,<7` and, only when needed,
+uses `python -m pip` to install `PyYAML>=6,<7`. If pip is unavailable or the range check still fails, the
 initializer stops with a dependency-specific error.
 
 Codex workers require a Git work tree. Program Kit intentionally fails early when Git is not
@@ -145,17 +147,11 @@ specify preset catalog add `
   --name program-kit `
   --install-allowed
 
-specify workflow catalog add `
-  https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json `
-  --name program-kit
-
 specify bundle catalog add `
   https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/bundles.json `
   --id program-kit `
   --policy install-allowed
 
-# Install the bootstrap workflow before composing the bundle.
-specify workflow add program-kit-bootstrap
 specify bundle install program-kit --integration codex
 ```
 
@@ -163,7 +159,7 @@ Replace `codex` with the integration you use in both initialization and bundle i
 bundle itself is integration-agnostic.
 
 Keep all four catalogs registered. A locally supplied third-party bundle
-archive resolves its extension, preset, and workflow primitives through their catalogs; the bundle
+archive resolves its extension and preset primitives through their catalogs; the bundle
 is the pinned composition record, not a self-contained primitive installer. The standalone ZIP
 assets remain useful for inspecting or installing one component deliberately.
 
@@ -217,10 +213,10 @@ python C:\path\to\program-kit-0.14.3\scripts\upgrade_program_kit.py `
 Replace `codex` with the repository's installed integration. The updater does not use catalogs or
 the network. It discovers and probes the installed Spec Kit CLI before importing its ownership
 guards; where needed, plain `python` delegates to that CLI's exact interpreter. `PKU119` reports
-an unavailable CLI runtime before mutation. It validates that the extracted bundle, workflow, extensions, and preset all have the
+an unavailable CLI runtime before mutation. It validates that the extracted bundle, extensions, and preset all have the
 same release version; takes an exclusive mutation lock; invokes every Spec Kit primitive
 sequentially; resynchronizes an existing managed .NET baseline; runs sync check; and then compares
-the bundle record, workflow manifest/registry, both extension manifests, preset manifest/registry,
+the bundle record, three extension manifests and preset manifest/registry,
 and managed-baseline version. It reports success only when every value converges. Do not run
 `workflow`, `extension`, `preset`, or `bundle` mutations concurrently with it.
 
@@ -288,121 +284,58 @@ Materialization must match the complete original or complete target, with curren
 selection checks. Changed originals, mixed locks, unknown selection changes and unfinished
 transactions remain errors; an old attempt does not authorize a different upgrade.
 
-Open the installed integration in the repository, invoke
-`$speckit-program-kit-governance-bootstrap`, and describe what you want to build. Intake uses the
-shipped Program Kit grilling skill in the same conversation: numbered questions, recommendations,
-and rounds ordered by decision dependencies. Clearly applicable technical defaults are applied
-automatically and summarized in the final review; questions focus on ambiguous intent, conflicting
-requirements, and material choices. Program Kit will show the C4 System Context and Domain Context Map and bind
-the confirmed result in `docs/architecture/bootstrap-intake.json`. It always finishes with this
-single physical command line, which can be pasted into PowerShell, Command Prompt, Bash, or another
-normal user-owned terminal from the repository root:
+Open the installed integration, invoke `$speckit-program-kit-governance-product-intake`, and
+describe what you want to build. A rough idea and a thoroughly designed application are both valid
+starting points. The skill extracts existing meaning and decisions, researches consequential
+unknowns, uses Program Kit grilling to resolve contradictions, and applies supported defaults
+transparently. It preserves supplied detail, provisional assumptions and due questions across
+sessions in the existing product artifacts.
 
-```text
-python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
-```
+Review the connected product intent/journeys, constitution, consequential ADRs, technology radar,
+canonical domain/C4 map, outcome roadmap and relevant Foundation capabilities/shell choices.
+Intake confirmation establishes an accurate synthesis. Constitutional ratification and acceptance
+of the exact named ADR/map scope remain separate explicit human decisions. Future proposals stay
+provisional; accepted status or a hash does not prove runtime compatibility.
 
-To inspect the generated diagrams before confirming intake or approving a review gate, ask
-`View the C4 projection` or invoke `$speckit-program-kit-governance-view-c4`. The installed skill
-validates `workspace.dsl` against the canonical JSON map, uses pinned Structurizr Local on an
-available localhost port starting at 8081, and keeps viewer-created state outside the repository.
+The skill uses focused installed helpers, including `bootstrap_intake.py`, `architecture_map.py`,
+`governance_state.py` and `product_intake.py`. After explicit founding acceptance it continues
+directly to `$speckit-program-kit-governance-specification-intake` for the selected first feature.
+No assessment/research/backlog/closure dossier, authoring-worker stages, workflow completion or
+pre-spec runtime matrix is required. A feasibility experiment belongs before specification only
+when its answer changes what should be specified. Ordinary restore, provider/runtime, composition
+and implementation checks remain due when their actual actions depend on them.
 
-To stress-test a plan, decision, or idea before acting on it, invoke
-`$speckit-program-kit-governance-grilling`. The standalone skill works through a dependency-aware
-design tree in question rounds and waits for shared understanding before executing the proposed
-plan. Bootstrap intake reuses this interview method; the bootstrap workflow and lifecycle hooks do
-not start a grilling session. No separately installed personal grilling skill is required.
+See [focused founding commands and acceptance](extensions/program-kit-governance/references/product-founding.md).
+To inspect the generated diagrams, ask `View the C4 projection` or invoke
+`$speckit-program-kit-governance-view-c4`. It validates map/projection freshness and uses pinned
+Structurizr Local on localhost. Standalone `$speckit-program-kit-governance-grilling` also supports
+stress-testing a plan, decision or idea in the same conversation.
 
-To evaluate the installed intake interactively from a candidate checkout, use the
-[documented interactive launcher command](tests/acceptance/intake-grilling.md)
-in a fresh user-owned terminal. It sets up a disposable consumer, asks for your product idea,
-and opens Codex for human Q&A. It preserves review evidence before cleanup and never starts
-bootstrap. See [interactive intake acceptance](tests/acceptance/intake-grilling.md).
+For an explicitly requested fictional draft rehearsal, use
+`$speckit-program-kit-governance-proxy-intake`. It preserves simulated answers and stops before
+confirmation, founding acceptance and implementation. It supplies no consumer authority or paid
+worker acceptance. [Interactive intake](tests/acceptance/intake-grilling.md) remains human-invoked.
 
-For an explicitly requested non-authorizing rehearsal, use
-`$speckit-program-kit-governance-proxy-intake` or ask for a "proxy intake rehearsal".
-It uses the current session to simulate fictional consumer answers in a disposable consumer:
-one question round for a quick scan, or full draft intake when requested. It preserves the
-questions and answers, validates the requested draft scope, and stops before confirmation and
-bootstrap. This is an optional diagnostic tool, not independent live acceptance or authorization
-for paid workers, implementation or release. See the [proxy intake command](extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-intake.md).
+The former `$speckit-program-kit-governance-bootstrap` entrypoint is a compatibility alias for
+product-intake. The founding workflow and its run/resume/reopen routes are retired. Upgrades remove
+owned active registration while preserving saved runs, proof bytes, accepted artifacts and locks.
+Incomplete old workflows remain incomplete. Review useful current artifacts with product-intake;
+never automatically restart or convert a consumer. Customized owned workflow files require owner
+reconciliation before removal. Read-only historical completion inspection remains available.
 
-You can explicitly extend a full draft through a same-session bootstrap rehearsal with
-`$speckit-program-kit-governance-proxy-bootstrap`. Native workflow stages and validators run while
-agent commands pause for the current session. Review decisions remain simulated, the intake stays
-draft, and the result has no consumer completion authority. See the [proxy bootstrap command](extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-bootstrap.md).
+### Codex Desktop and native Windows
 
-For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
-ratification:
-
-```text
-python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto" --input "auto_approve_and_ratify=true"
-```
-
-This option applies to all three review decisions. The workflow still generates and validates each
-hash-bound review packet, then records `approval_mode: automatic` in the assessment, constitution,
-and final bootstrap evidence. Review those packets and their listed artifacts after completion. The
-default remains `false`; omit the option when you want the workflow to pause at every gate.
-
-For supported bootstrap failures, use the installed `workflow_lifecycle.py resume --run-id <run-id>`
-entry point described in the [workflow resumption contract](extensions/program-kit-governance/references/workflow-resumption.md).
-It preserves successful stages, selects the affected producer and executes review, validation and
-completion through the native engine. Accepted readiness failures use an explicitly linked continuation;
-the original terminal run remains unchanged. The [older roadmap drift procedure](docs/validation.md)
-is historical guidance for versions outside the supported migration contract.
-
-Program Kit prevents concurrent bootstrap runs from mutating the same governance artifacts. If a
-hard-terminated process left an older run incorrectly recorded as `running`, the new run stops before
-intake and prints the exact `--abandon-run <run-id>` recovery command. First verify that no live
-`specify workflow` process still owns that run. The explicit recovery marks only that validated
-Program Kit run `aborted`, appends historical evidence, and preserves its files; never edit or delete
-workflow state JSON by hand.
-
-### Codex Desktop, CLI agents, and native Windows
-
-The outer lifecycle belongs to the human's normal shell. Spec Kit starts a new `codex exec` process
-for each Codex workflow command step; those workers remain sandboxed. Starting the outer workflow
-from an existing Desktop or interactive CLI agent instead nests Codex execution.
-
-On native Windows, there is an additional ownership risk. OpenAI documents that the preferred
-elevated sandbox uses dedicated lower-privilege users and filesystem permission boundaries. If that
-identity performs initialization or installation, it can own generated `.agents`, `.specify`, and
-related paths. A later sandbox refresh may then fail to apply its protective ACL boundary, including
-with `SetNamedSecurityInfoW ... error 5`. Rerunning init alone does not repair existing ownership.
-
-The installed `speckit-program-kit-governance-bootstrap` skill is guidance-only: it displays the
-complete command for the user to copy into normal PowerShell or WSL, then stops. It never runs the
-outer workflow, requests an agent exception, or installs an approval rule. See
-[Program Kit bootstrap from Windows and Codex](docs/codex-desktop-windows.md) for official OpenAI
-background, the supported sequence, and a conservative clean start that preserves `.git` unless the
-human explicitly chooses a new repository.
-
-Unless automatic approval and ratification was explicitly enabled at startup, the workflow pauses
-three times for human review. Continue a paused run after reviewing its generated artifacts:
-
-- Gate 1/3: assessment approval (`approve`)
-- Gate 2/3: constitution ratification (`ratify`)
-- Gate 3/3: final bootstrap approval (`approve`)
-
-```powershell
-specify workflow status
-python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <run-id> --input assessment_verdict=approve
-python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <run-id> --input constitution_verdict=ratify
-python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <run-id> --input bootstrap_verdict=approve
-```
-
-After normal-shell installation, Codex Desktop can use the installed skills for ordinary repository
-work. If asked about bootstrap, it should display the command for the human to run rather than
-orchestrating setup itself.
+Run initialization and toolkit installation/update from a normal user-owned PowerShell or WSL
+terminal. Then use product-intake and ordinary feature skills inside the current Codex session;
+founding does not launch an outer workflow or nested coding worker. Existing sandbox-owned path
+problems still require ownership repair. See [Windows setup and skill-led founding](docs/codex-desktop-windows.md).
 
 ## What it installs
 
-- `program-kit-bootstrap` workflow: validates and assesses the confirmed conversational intake and
-  C4-aligned domain map, performs current research, drafts the
-  project constitution with the core Spec Kit command, records human ratification as hash-bound
-  evidence, creates the architecture baseline and decision backlog, evaluates tooling, creates the
-  specification roadmap, and pauses at human review gates.
-- `program-kit-governance` extension: supplies reusable bootstrap, ratification, and lifecycle-validation commands.
+- `program-kit-governance` extension: ships product-intake, grilling, ratification, architecture,
+  feature-intake and focused governance/engineering commands.
+- `program-kit-building-blocks` extension: supplies qualified capability selection and explicit
+  consumer ownership, placement and materialization contracts.
 - `program-kit-dotnet` extension: supplies the default .NET runtime baseline and its separately
   invoked, reviewable repository sync command.
 - `program-kit-governance-preset`: adds governance traceability to feature and plan templates, and
@@ -444,7 +377,7 @@ IDs, checked states and authority until a reviewed repair. Scoped verification e
 reusable and unresolved checks without weakening full acceptance or Release gates.
 If a consumer needs a durable project-specific template, use the project's
 `.specify/templates/overrides/` layer; it has higher precedence and is not managed by Program Kit
-updates. Workflow overlays remain the appropriate mechanism for changing a workflow's steps locally.
+updates. Existing saved workflow history remains evidence; the retired founding workflow has no active overlay route.
 
 ## Governance model
 
@@ -452,11 +385,11 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
   Drafting revokes stale ratification; only the dedicated human gate and a matching SHA-256 marker
   make it authoritative.
 - Explicit intake choices, applicable versioned Program Kit defaults, safe derived defaults, and
-  reviewed overrides are adopted together by the hash-bound assessment gate and recorded in one
-  Accepted bootstrap-baseline decision. Examples and future options remain candidates.
+  reviewed overrides are presented with the connected foundation. Explicit acceptance promotes only
+  the named ADR/map scope. Examples, provisional assumptions and future options remain candidates.
 - Project-specific architecture decisions outside that reviewed baseline require a human-approved
   ADR before becoming `Accepted`.
-- Generic engineering guardrails apply by default and are revalidated against current primary sources and project context during every bootstrap.
+- Generic engineering guardrails apply by default and are revalidated against current primary sources and project context where a consequential founding or feature choice requires them.
 - The reusable software language is `Identity + Intent + Context -> Policies -> Decision -> Transition -> Effects -> Admission -> Outcome`.
 - Required admission and optional observation are separate contracts. Invisible fire-and-forget behavior and ambiguous empty policy results are forbidden.
 - `docs/architecture/specification-roadmap.md` records epic outcomes, completion conditions,
@@ -518,8 +451,8 @@ engineering adapter scaffolds central build/package management, safe managed-fil
 application-bundle staging, and release workflows. Consumers deploy the unchanged, digest-pinned
 published Foundation host with a bundle of shells.json, hostsettings.json, nuplane.settings.json,
 optional package feeds and a version/hash-bound descriptor. Consumers do not build a host DLL,
-Dockerfile or derived image. A write requires the approved,
-hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of the independently
+Dockerfile or derived image. A write requires reviewed,
+source-bound setup choices (or a later Accepted override) and acknowledgement of the independently
 pinned packages and NuGet sources; restore/build execution is separately authorized. This .NET adapter is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
 never creates .NET files. See the [building-block selection guide](extensions/program-kit-building-blocks/references/orbyss-building-blocks.md)
@@ -601,7 +534,6 @@ review must explicitly address applicable coverage and harness limitations.
 - `program-kit-building-blocks-<version>.zip`: standalone building-block selection extension.
 - `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.
 - `program-kit-governance-preset-<version>.zip`: standalone governance template preset.
-- `program-kit-bootstrap-<version>.zip`: standalone bootstrap workflow package.
 - `Initialize-ProgramKit-<version>.sh`: copyable Bash initializer for Linux, macOS, and WSL.
 - `Initialize-ProgramKit-<version>.cmd`: Windows initializer compatible with PowerShell
   `AllSigned` environments because it is a command script, not a PowerShell script.

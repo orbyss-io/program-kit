@@ -555,7 +555,9 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
             fail("PKB300", f"{label} must name a file")
         if placement["state"] == "observed" and not path.is_file():
             fail("PKB306", f"{label} claims an observed file that is absent")
-        if require_all and placement["state"] == "planned" and path.is_file():
+        # Accepted provenance records the origin when placement was decided;
+        # scaffolding does not turn it into an observation or renew authority.
+        if require_all and selection.get("status") != "Accepted" and placement["state"] == "planned" and path.is_file():
             fail("PKB306", f"{label} must preserve the already observed file's identity and ownership")
         rule = kind_contracts.get(target.get('kind'))
         if rule is None:

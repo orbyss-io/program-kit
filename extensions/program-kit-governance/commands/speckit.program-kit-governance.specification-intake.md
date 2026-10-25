@@ -53,6 +53,16 @@ answers and the constitution's testing policy into the normal spec, including an
 for automated behavioral tests. Leave implementation technologies and test frameworks for planning.
 
 Use specification_intake.py begin/review/confirm/check when maintaining a structured intake.
+Its `context` output exposes the existing product `open_items` as `productFrontier`. During this
+feature's review, explicitly decide each item's applicability in the existing brief `decisions`:
+link `productOpenItem` to its exact source ID and `productOpenItemSha256` to the supplied item hash.
+Answer or adopt a supported default, carry an applicable unresolved decision with its actual
+`owner`, `trigger` and structured `duePhase`, or use `excluded` with a concrete explanation that
+it is unrelated to this feature. Do not infer applicability or due phase from English trigger text.
+This adds no prerequisite ledger. Normal phase checks reject a selected deferred product decision
+when its explicit phase is due; settle and review the affected feature answer before continuing.
+Product answers cannot replace executed compatibility, runtime or provider evidence. Later unrelated
+frontier additions do not reopen a confirmed feature; changes to its linked source conditions do.
 Reuse an unchanged confirmed brief. Toolkit versions, document formatting, test results and
 other features do not require another confirmation. Material changes to the brief's product
 choices need the user's actual answer; never fabricate it. Reference the brief in the spec.

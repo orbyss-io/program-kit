@@ -10,7 +10,6 @@ import sys
 import tempfile
 import contextlib
 import io
-from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -155,43 +154,24 @@ def main():
                     environ={'CODEX_THREAD_ID': 'fixture'}, platform_name='posix', check_worker_access=True)
                 assert proxy == {'action': 'continue', 'script_flavor': 'py'}
 
-        # Exercise both CLI entry paths without executing schemas, an engine or
-        # workers. A paused gate and its history remain engine-owned.
+        # Retired workflow routes refuse before worker policy, subprocesses or
+        # saved-history readers are entered. Independent worker policy above
+        # remains exercised through fakes and the actual native argv builder.
         import workflow_lifecycle as workflow
-        state = SimpleNamespace(run_id='fixture', status=workflow.RunStatus.PAUSED,
-                                current_step_id='review-assessment', error=None,
-                                step_results={}, inputs={'integration': 'codex'})
-        events = []
-        @contextlib.contextmanager
-        def scope(project, requested):
-            assert project == root and requested == 'codex'
-            events.append('enter')
-            try:
-                yield
-            finally:
-                events.append('exit')
-        def executed(*args, **kwargs):
-            assert events[-1] == 'schemas'
-            events.append('engine')
-            return state
+        history_before = {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob('*') if p.is_file()}
         for command in ('run', 'resume'):
-            events.clear()
             arguments = ['workflow_lifecycle.py', command, '--run-id', 'fixture']
             if command == 'run':
                 arguments.extend(['--input', 'integration=codex'])
+            errors = io.StringIO()
             with patch.object(sys, 'argv', arguments), patch.object(Path, 'cwd', return_value=root), \
-                 patch('workflow_shell_preflight.verify_shell_launch', side_effect=lambda *a: events.append('shell')), \
-                 patch('python_runtime.environment', return_value=contextlib.nullcontext()), \
-                 patch.object(policy, 'worker_environment', scope), \
-                 patch.object(workflow.RunState, 'load', return_value=state), \
-                 patch.object(workflow, 'execution_lock', return_value=contextlib.nullcontext()), \
-                 patch.object(workflow, 'prepare_schema_runtimes', side_effect=lambda *a: events.append('schemas')), \
-                 patch.object(workflow, 'require_enabled'), patch.object(workflow.governance, 'configure_paths'), \
-                 patch.object(workflow.WorkflowEngine, 'load_workflow', return_value=object()), \
-                 patch.object(workflow, 'execute_definition', side_effect=executed), \
-                 patch.object(workflow, 'resume', side_effect=executed), contextlib.redirect_stdout(io.StringIO()):
-                assert workflow.main() == 0
-            assert events == ['shell', 'enter', 'schemas', 'engine', 'exit'], (command, events)
+                 patch.object(policy, 'worker_environment', side_effect=AssertionError('Retired route reached worker policy')), \
+                 patch.object(subprocess, 'run', side_effect=AssertionError('Retired route started a process')), \
+                 patch.object(workflow.lifecycle, 'load', side_effect=AssertionError('Retired route read saved state')), \
+                 contextlib.redirect_stderr(errors):
+                assert workflow.main() == 2
+            assert 'PROGRAM_KIT_BOOTSTRAP_WORKFLOW_RETIRED' in errors.getvalue()
+            assert history_before == {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob('*') if p.is_file()}
 
         # Distinguish the worker artifact contract from process success, while
         # retaining all existing semantic validators and review gates.
@@ -208,12 +188,6 @@ def main():
             else:
                 raise AssertionError('Missing artifacts were accepted')
 
-    # The CLI wraps both run and resume, including resumes past initial preflight.
-    lifecycle = (ROOT / 'extensions/program-kit-governance/scripts/workflow_lifecycle.py').read_text()
-    assert "if args.command in {'run', 'resume'}:" in lifecycle
-    assert "dispatch_scope.enter_context(worker_environment" in lifecycle
-    assert lifecycle.index('dispatch_scope.enter_context') < lifecycle.index('prepare_schema_runtimes(root)', lifecycle.index('def main()'))
-    assert 'dispatch_scope.close()' in lifecycle
     print('Codex argv, scoped permissions, write-probe failure, and artifact contracts passed; no coding agent started.')
     return 0
 

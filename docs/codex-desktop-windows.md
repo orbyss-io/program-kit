@@ -1,172 +1,29 @@
-# Program Kit bootstrap from Windows and Codex
+# Windows setup and skill-led founding
 
-Interpreter selection, workflow shell lookup and protected output permissions are
-covered by the supported invocation and recovery steps below. Use current commands
-and diagnostics rather than historical repair journals.
+Follow the [current installation instructions](https://github.com/orbyss-io/program-kit#install-in-a-repository)
+for the supported initializer and normal-shell setup sequence.
 
-Program Kit requires the human to start repository initialization, Program Kit installation
-or update, and outer workflow orchestration from a normal user-owned PowerShell or WSL shell. Do not
-ask a Codex Desktop task or an interactive Codex CLI agent to perform those operations.
+Use a normal user-owned PowerShell or WSL terminal for Spec Kit initialization and Program Kit
+installation/update. Windows sandbox identities can own generated `.agents` and `.specify` paths;
+rerunning init alone does not repair an existing ownership/DACL problem. Preserve work and use the
+reviewed clean-start guidance below if affected.
 
-On affected Windows hosts, Spec Kit 1.0.4 remote catalog updates launched inside Codex Desktop can
-also abort with `OPENSSL_Uplink(...): no OPENSSL_Applink` because Codex-owned native dependency
-directories precede the uv-installed CLI's OpenSSL runtime on `PATH`. This transport defect is being
-routed upstream. Keep that transport failure's diagnosis and use the supported
-offline update route below. The separate workflow shell preflight checks cmd.exe
-lookup; an oversized PATH requires an explicit human-owned invocation environment
-with resolved workflow tools. Program Kit does not silently discard inherited tool
-directories or change the user's global PATH to work around either failure.
-Use the verified full release archive and its offline `scripts/upgrade_program_kit.py` from a normal
-user-owned terminal.
+After installation, invoke `$speckit-program-kit-governance-product-intake` inside the current
+Codex conversation. It understands the product, authors connected founding artifacts, preserves
+provenance and frontier questions, and obtains explicit constitution/ADR review through focused
+scripts. It then continues directly to the selected first feature intake. It does not start an
+outer workflow or another coding worker. See [focused product founding](../extensions/program-kit-governance/references/product-founding.md).
 
-The release-owned updater also recognizes a uv-generated `specify.exe` whose managed Python cannot
-execute inside the current Windows sandbox. When that launcher's uv environment remains readable,
-the updater validates the embedded interpreter path and uv metadata, then performs read-only probes
-through `scripts/invoke_specify.py` using the updater's already-running Python. This reuses the exact
-installed `specify_cli` package without downloading, copying, or replacing it. If the package is not
-readable or compatible, `PKU114` stops before mutation and prints the exact PowerShell retry command
-for a normal user-owned terminal. A persisted repository command vector would retain a stale external
-uv path and is therefore not used as a portability claim.
+The former bootstrap workflow is retired. Old run/resume/reopen launchers return an actionable
+product-intake diagnostic. Saved workflow records and proof bytes remain historical evidence;
+an unfinished run is never marked complete or automatically converted. Upgrade removes only
+owned active workflow files/registration and refuses consumer customizations until reconciled.
 
-## Why this boundary exists
-
-Official OpenAI documentation says native Windows agent mode runs in a sandbox. The preferred
-`elevated` implementation uses dedicated lower-privilege sandbox users and filesystem permission
-boundaries; WSL runs Codex inside its Linux environment instead. See the official
-[Windows sandbox](https://learn.chatgpt.com/docs/windows/windows-sandbox) and
-[WSL](https://learn.chatgpt.com/docs/windows/wsl) documentation.
-
-Program Kit's consumer investigation found two independent problems when a Codex agent starts the
-outer Spec Kit lifecycle:
-
-1. `specify init` and bundle or extension setup can create `.agents`, `.specify`, and related paths
-   as the dedicated Windows sandbox identity. On later turns, the native elevated sandbox may be
-   unable to replace those paths' protective ACLs because the invoking Windows user is not their
-   owner. The visible failure can include `SetNamedSecurityInfoW ... error 5` and
-   `setup refresh had errors`.
-2. Spec Kit's Codex integration dispatches workflow command steps by starting `codex exec`. Starting
-   `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run` from an existing Desktop or CLI agent therefore asks
-   a sandboxed agent to start another Codex worker.
-
-Starting an interactive `codex` CLI agent and asking that agent to orchestrate setup is not a normal
-shell alternative. The CLI agent is sandboxed too.
-
-## Supported sequence
-
-Use a normal terminal owned by the human account:
-
-1. Open PowerShell directly, or open a WSL shell when the repository and toolchain live in WSL.
-2. Change to the repository root. Existing project files and an existing Spec Kit initialization
-   are allowed; the initializer stops if Program Kit itself is already or partially installed.
-3. Download the appropriate root initializer using the
-   [current installation instructions](https://github.com/orbyss-io/program-kit#install-in-a-repository)
-   and run it there. Follow any initializer correction listed there before selecting a release asset;
-   opening a fresh terminal does not refresh an already downloaded launcher.
-
-   - `Initialize-ProgramKit.sh codex` from Bash in WSL; or
-   - `Initialize-ProgramKit.cmd codex` from PowerShell on Windows, including under `AllSigned`.
-
-   The required argument is the Spec Kit integration ID; for example, pass `claude` for Claude
-   Code. The command launcher works without changing PowerShell execution policy. Both variants
-   verify that `specify`, `python`, and Git can execute. Spec Kit validates the selected integration's
-   coding-agent tooling. If the directory is not already in a Git work tree, the initializer stops
-   before package installation or repository setup and prints `git init` and `git status` for the
-   user to run. It also verifies that the exact `python` used by the workflow can import
-   PyYAML, installing `PyYAML>=6,<7` through that interpreter's pip only when it is missing. A
-   missing or unusable dependency stops initialization before repository setup. Both variants then
-   perform the complete installation without deleting unrelated project files, and their Codex
-   initialization is equivalent to:
-
-   ```powershell
-   specify init . --force --non-interactive --integration codex --script py
-   ```
-
-   For a manual installation, use the same `--script py` option before catalog registration and
-   Program Kit installation. Program Kit requires Python and uses this resolver consistently. Do
-   not bypass or lower `AllSigned`, broadly unblock repository files, or grant unrestricted
-   execution.
-4. Run `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run ...` there.
-5. Let Spec Kit launch its `codex exec` workflow workers. Those workers remain sandboxed.
-6. Run each human-reviewed `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <id> ...` command from the same normal shell.
-7. Use Codex Desktop afterward for ordinary repository work and the installed skills.
-
-Example outer command:
-
-```text
-python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
-```
-
-Generate and confirm the fixed intake contract through the installed bootstrap skill first. The
-skill always emits this as one physical line that can be pasted into any normal terminal.
-Developers who review the complete result after the run can explicitly add
-`--input auto_approve_and_ratify=true`. This bypasses all three pauses but still writes and validates
-their review packets and marks the resulting governance evidence as automatic. The option defaults
-to `false`; without it, resume through `workflow_lifecycle.py` with the verdict for the current gate.
-
-## Explicit worker write access
-
-The lifecycle entry point selects `--sandbox workspace-write` for its Codex workers on every
-`run` and `resume`, including a resume after the initial workflow preflight. It supplies the
-installed Spec Kit adapter's arguments only for that invocation and restores the caller's
-environment afterward. It does not edit `.codex/config.toml`, project trust, or user settings.
-Model, profile, reasoning and output options are retained; conflicting permissions, alternate
-working roots and unsupported extra arguments stop before dispatch.
-
-On native Windows, a model-free `codex sandbox` probe uses the adapter-selected executable and
-profile to verify writes in the repository root, `docs/architecture`, `.specify/memory` and
-`.specify/governance`. It removes only its own probe files and empty directories it created.
-Each invocation records adapter argv and probe results in
-`.specify/workflows/worker-preflights/`. These results prove probe writes, not completion of a
-later worker turn. The artifact and semantic validators still decide stage acceptance.
-
-`PROGRAM_KIT_CODEX_WORKSPACE_WRITE` means write access could not be established or the adapter's
-argv contract is unsupported. Inspect the preserved diagnostic for Codex configuration,
-managed requirements, or an actual artifact-directory permission failure. Update Codex if its
-native sandbox command is unsupported; consult the policy administrator if workspace writes
-are prohibited. Keep the sandbox enabled. A direct raw Spec Kit launch cannot inherit Program
-Kit's invocation scope; use the lifecycle entry point for bootstrap and resumption.
-
-Codex documents that `exec` defaults to read-only and recommends explicit workspace-write for
-editing automation. Trust controls whether project config is loaded; trusting a repository
-does not select the required dispatch mode. See [non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode)
-and [configuration precedence](https://learn.chatgpt.com/docs/config-file/config-basic).
-
-For a fresh native Windows control from a normal user-owned terminal, run
-`scripts/Probe-CodexWorkerPermissions.ps1` in this source repository. It initializes a disposable
-Git/Spec Kit repository, captures actual adapter argv and redacted Codex diagnostics, and compares
-read-only and workspace-write sandbox writes. It starts no coding agent or bootstrap workflow.
-It is a permission control, not a new model-driven bootstrap acceptance run.
-
-Codex workflow workers require the repository root to be in a Git work tree. If an older Program
-Kit initializer was used in a directory without Git, repair it from the repository root before
-starting a new workflow run:
-
-```powershell
-git init
-git status
-```
-
-Do not pass `--skip-git-repo-check`; initialize the repository cleanly instead.
-
-If the installed bootstrap skill is invoked inside Codex, it only formats this command and tells the
-user where to run it. It must not execute the command, request an agent exception, or create a
-persistent approval rule.
-
-Before intake or research, Program Kit reads `.agents/skills/speckit-constitution/SKILL.md` to
-identify the installed Spec Kit resolver. On native Windows it verifies that the referenced file
-exists and can execute. A blocked PowerShell resolver stops the workflow immediately. Cleanly
-regenerate the Codex integration with `specify init . --force --non-interactive --integration codex
---script py`, then verify that `.specify/scripts/python/resolve_template.py` exists and is referenced
-by the constitution skill. Do not weaken execution policy, broadly unblock repository files, or
-grant unrestricted execution.
-
-If the referenced Python resolver exists but reports that PyYAML is required, do not reinitialize
-Spec Kit. Install the dependency into the exact interpreter used by the workflow and verify it:
-
-```powershell
-python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
-python .specify/scripts/python/resolve_template.py constitution-template --json
-```
+Interpreter selection and schema dependencies retain their focused setup owners. Prepare the
+exact schema runtime only when a validator needs it; missing dependencies remain explicit errors.
+Native toolchains, provider accounts and runtime compatibility are checked at the action that
+actually requires them, not by founding status. Never copy credentials or loosen sandbox access
+as a setup workaround.
 
 ## Clean start after agent-owned initialization
 
@@ -206,6 +63,5 @@ human explicitly decides the old history is unnecessary.
 ## Do not mask the problem
 
 Do not make `%USERPROFILE%\.codex` writable to a sandbox identity, copy Codex authentication or
-state into a repository, globally enable unrestricted agent access, add a rule allowing the outer
-workflow, or ask an agent to execute it outside its sandbox. Those approaches do not correct
+state into a repository, globally enable unrestricted agent access, or ask an agent to bypass its sandbox. Those approaches do not correct
 agent-owned project paths and blur the intended trust boundary.

@@ -8,7 +8,7 @@
       "id": "program-kit",
       "version": "0.14.3",
       "role": "architecture-governed-development",
-      "description": "Bootstraps constitution-first, modular, vertically sliced Spec Kit repositories from an initial design.",
+      "description": "Guides product intake, founding decisions and modular, vertically sliced Spec Kit delivery through installed skills and scripts.",
       "author": "Orbyss",
       "license": "MIT",
       "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.14.3/program-kit-0.14.3.zip",
@@ -20,9 +20,17 @@
         "extensions": 3,
         "presets": 1,
         "steps": 0,
-        "workflows": 1
+        "workflows": 0
       },
-      "tags": ["architecture", "adr", "governance", "bootstrap", "sdd", "vertical-slicing", "modularity"],
+      "tags": [
+        "architecture",
+        "adr",
+        "governance",
+        "bootstrap",
+        "sdd",
+        "vertical-slicing",
+        "modularity"
+      ],
       "verified": false
     }
   }

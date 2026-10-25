@@ -3,6 +3,14 @@
   "profileRegistry": "extensions/program-kit-building-blocks/references/dependency-profiles",
   "optionalTools": [
     {
+      "name": "Human-owned device prerequisite preparation",
+      "command": "Read-only version probes and generated human-run preparation scripts; never installer execution",
+      "usedBy": "extensions/program-kit-governance/scripts/program_kit_runtime/device_toolchain.py; scripts/initialize_device.py; scripts/run_validation.py",
+      "scope": "Only prerequisites of the selected action: existing core tools plus Git, PowerShell, Docker, Java and GitHub CLI. Missing/incompatible tools receive OS/manager-specific preparation or explicit manual verification; access/authentication/daemon uncertainty never authorizes replacement.",
+      "updatePolicy": "No new version pins or qualification. Preserve existing managers and actual owner constraints. Agent never installs device software; human inspects and executes scripts, then original action rechecks fresh paths/versions. Review recipe changes against official sources.",
+      "source": "https://git-scm.com/install/; https://github.com/git-guides/install-git; https://learn.microsoft.com/powershell/scripting/install/install-powershell; https://docs.docker.com/get-started/get-docker/; https://adoptium.net/installation/; https://github.com/cli/cli/blob/trunk/docs/install_windows.md; https://github.com/cli/cli/blob/trunk/docs/install_macos.md"
+    },
+    {
       "name": "Dedicated dependency maintenance App token action",
       "command": "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1",
       "usedBy": ".github/workflows/update-dependencies.yml",

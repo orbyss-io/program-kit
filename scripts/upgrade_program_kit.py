@@ -38,7 +38,6 @@ COMPONENTS = (
     ("building-block extension", Path("extensions/program-kit-building-blocks/extension.yml")),
     (".NET extension", Path("extensions/program-kit-dotnet/extension.yml")),
     ("governance preset", Path("presets/program-kit-governance-preset/preset.yml")),
-    ("bootstrap workflow", Path("workflows/program-kit-bootstrap/workflow.yml")),
 )
 
 
@@ -149,6 +148,62 @@ def validate_release(release: Path) -> str:
             f"PKU102 release source is version-incoherent; VERSION={expected}, {details}"
         )
     return expected
+
+
+def retired_workflow_catalogs(target: Path) -> list[int]:
+    """Select only canonical publisher catalog sources through native ordering."""
+    path = repository_relative_path(target, '.specify/workflow-catalogs.yml', 'workflow catalog')
+    if not path.is_file():
+        return []
+    from specify_cli.workflows.catalog import WorkflowCatalog, WorkflowCatalogError
+    try:
+        entries = WorkflowCatalog(target)._load_catalog_config(path) or []
+    except (OSError, ValueError, WorkflowCatalogError) as error:
+        raise UpgradeError('PKU150 unresolved workflow catalog configuration; preserve it: ' + str(error)) from error
+    owned = [index for index, entry in enumerate(entries) if re.fullmatch(
+        r'https://raw\.githubusercontent\.com/orbyss-io/program-kit/(?:main|v[0-9]+\.[0-9]+\.[0-9]+)/catalogs/workflows\.json', entry.url)]
+    if owned and os.environ.get('SPECKIT_WORKFLOW_CATALOG_URL', '').strip():
+        raise UpgradeError('PKU150 unset the explicit SPECKIT_WORKFLOW_CATALOG_URL override in the invoking terminal before retiring its project catalog')
+    return sorted(owned, reverse=True)
+
+
+def retired_workflow_preflight(target: Path, release: Path) -> bool:
+    """Admit only an exact historical installed component; saved runs are untouched."""
+    identity = 'program-kit-bootstrap'
+    directory = repository_relative_path(target, '.specify/workflows/' + identity, 'retired workflow')
+    registry_path = repository_relative_path(target, '.specify/workflows/workflow-registry.json', 'workflow registry')
+    registry = read_destination_state(registry_path, 'workflow') if registry_path.is_file() else {'workflows': {}}
+    records = registry.get('workflows')
+    if not isinstance(records, dict):
+        raise UpgradeError('PKU150 malformed workflow registry; preserve it for owner reconciliation')
+    record = records.get(identity)
+    if record is None:
+        if directory.exists():
+            raise UpgradeError('PKU150 unregistered retired workflow files require explicit owner reconciliation; nothing removed')
+        return False
+    if not isinstance(record, dict) or not directory.is_dir():
+        raise UpgradeError('PKU150 registered retired workflow has missing or unresolved source; preserve it for owner reconciliation')
+    bundles = read_destination_state(target / '.specify/bundle-records.json', 'bundle').get('bundles', [])
+    for bundle in bundles:
+        if bundle.get('bundle_id') != 'program-kit' and any(
+                item.get('kind') == 'workflows' and item.get('id') == identity
+                for item in bundle.get('required_components', bundle.get('contributed_components', []))):
+            raise UpgradeError('PKU150 retired workflow is required by another native bundle; reconcile its owner before upgrading')
+    files = {}
+    for path in directory.rglob('*'):
+        relative = path.relative_to(directory).as_posix()
+        repository_relative_path(target, path.relative_to(target).as_posix(), 'retired workflow source')
+        if path.is_file():
+            files[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+        elif not path.is_dir() or not any(path.rglob('*')):
+            raise UpgradeError('PKU150 consumer customization or unsupported retired workflow source directory; preserve it')
+    table = json.loads((release / 'extensions/program-kit-governance/references/native-phase-source-baselines.json').read_text(encoding='utf-8'))
+    matches = [row for row in table['components'] if row.get('kind') == 'workflows'
+        and row.get('id') == identity and row.get('version') == str(record.get('version'))
+        and row.get('files') == files]
+    if not matches:
+        raise UpgradeError('PKU150 retired workflow has consumer customization or unknown historical source; preserve its files and reconcile explicitly')
+    return True
 
 
 def load_managed_profile(target: Path) -> tuple[str, str] | None:
@@ -761,7 +816,7 @@ def preflight_specify(command: list[str], target: Path, release: Path) -> list[s
         probes = (
             ["--version"],
             ["bundle", "install", "--help"],
-            ["workflow", "add", "--help"],
+            ["workflow", "remove", "--help"],
             ["extension", "add", "--help"],
             ["preset", "remove", "--help"],
             ["preset", "add", "--help"],
@@ -870,12 +925,15 @@ def managed_mutation_destinations(
     for relative, reason in (
         (".specify", "upgrade lock and Spec Kit registries"),
         (".specify/extensions", "extension installation"),
-        (".specify/workflows", "workflow installation"),
+        (".specify/workflows", "retired workflow removal"),
         (".specify/presets", "preset installation"),
         (".program-kit/sync", "shared repository setup context and receipts"),
         (".specify/governance", "upgrade history and verified migration completion"),
     ):
         add_root(target / relative, reason)
+
+    if retired_workflow_catalogs(target):
+        existing_files.add(target / '.specify/workflow-catalogs.yml')
 
     integration_state_path = target / ".specify/integration.json"
     integration_state = read_destination_state(integration_state_path, "integration")
@@ -1112,7 +1170,7 @@ def canonical_attempt_input_paths(target, release, phase_plan, mutation_argument
     _, files = managed_mutation_destinations(target, release, *mutation_arguments)
     names = {path.relative_to(target).as_posix() for path in files}
     names.update({'.specify/integration.json', '.specify/init-options.json', '.specify/extensions/.registry',
-                  '.specify/presets/.registry', '.specify/workflows/workflow-registry.json', '.specify/bundle-records.json',
+                  '.specify/presets/.registry', '.specify/workflows/workflow-registry.json', '.specify/workflow-catalogs.yml', '.specify/bundle-records.json',
                   '.program-kit/managed.json', '.program-kit/dependency-profile.json',
                   '.program-kit/sync/context.json', '.program-kit/sync/receipt.json',
                   '.program-kit/sync/dependencies.json', '.program-kit/installation/migration.json',
@@ -1663,7 +1721,7 @@ def main() -> int:
         if args.plan:
             observed = previous_installed_version(target, release, version, args.repair_of_release_sha256)
             _, plan = migration_plan(release, migration_origin(target, current_version(target), observed, version, retry_context), version)
-            plan['installationActions'] = ['install bundle/workflow/extensions/preset sequentially',
+            plan['installationActions'] = ['remove the exact retired workflow through native ownership; install extensions/preset and refresh bundle sequentially',
                 'refresh every installed native integration and compose all registered phase contributions; preserve customizations',
                 'synchronize engineering configuration transactionally', 'validate installation coherence',
                 'restore and verify affected native dependencies' if not args.offline else 'report native dependency verification pending']
@@ -1722,6 +1780,8 @@ def main() -> int:
                 target, release, args.local_repairs, args.local_repairs_sha256, original_inputs)
         elif prior and prior[1].get('localRepairs'):
             raise UpgradeError('PKU147 interrupted local repair reconciliation requires its original --local-repairs and --local-repairs-sha256 arguments')
+        retired_catalog_indexes = retired_workflow_catalogs(target)
+        retire_workflow = retired_workflow_preflight(target, release)
         phase_plan = phase_refresh_plan(target, release, deviations)
         if pending_upgrade_transactions(target):
             descriptor, lock_path = acquire_lock(target)
@@ -1825,14 +1885,18 @@ def main() -> int:
             return local_extension + ['--target', str(target), '--source', str(release / 'extensions' / identity),
                                       '--extension', identity, '--force']
         steps = [
-            (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
             (extension_copy('program-kit-governance'), "Install governance extension"),
             (extension_copy('program-kit-building-blocks'), "Install building-block extension"),
             (extension_copy('program-kit-dotnet'), "Install .NET extension"),
             (specify + ["preset", "remove", "program-kit-governance-preset"], "Remove prior governance preset"),
             (specify + ["preset", "add", "--dev", str(release / "presets/program-kit-governance-preset")], "Install governance preset"),
-            (local_bundle,"Resolve bundle composition record"),
         ]
+        for catalog_index in retired_catalog_indexes:
+            steps.append((specify + ['workflow', 'catalog', 'remove', str(catalog_index)], 'Remove retired Program Kit workflow catalog: ' + str(catalog_index)))
+        # Keep native bundle sealing last, after every component and catalog owner.
+        steps.append((local_bundle, 'Resolve bundle composition record'))
+        if retire_workflow:
+            steps.insert(0, (specify + ["workflow", "remove", "program-kit-bootstrap"], "Remove retired bootstrap workflow"))
         total = (
             len(steps)
             + 2 * len(phase_plan['integrations'])
@@ -1973,7 +2037,7 @@ def main() -> int:
         attempt.update(status='completed', outcome='offline-coherent')
         seal_attempt(attempt_path, attempt)
         print(
-            f"Program Kit v{version} upgrade completed: workflow, extensions, preset, bundle record, "
+            f"Program Kit v{version} upgrade completed: extensions, preset, bundle record, "
             "managed baseline, and installation metadata are coherent."
         )
         return 0

@@ -17,8 +17,9 @@ Exact SDK, Node and npm authority comes from the selected profile/approved decis
 managed `global.json`, `.nvmrc`, `.npm-version`. Python's existing minimum is >=3.11;
 an exact `.python-version`, when present, remains authoritative. The contributor Spec Kit
 compatibility baseline remains >=1.1.1,<2, with 1.1.1 recommended for a baseline repair.
-Contributors use the exact existing `specify-cli` pin in `.github/workflows/ci.yml`; diagnostics
-read that file instead of substituting the compatibility minimum. Do not edit pins,
+Checks which explicitly require CI parity use the exact existing `specify-cli` pin in
+`.github/workflows/qualify-candidate.yml`; other checks retain their actual supported range.
+Diagnostics read that file instead of substituting a new pin. Do not edit pins,
 consumer locks, SDK roll-forward settings, or existing architecture authority to accommodate
 whatever is installed. An existing supported override retains its normal decision contract.
 
@@ -32,15 +33,15 @@ do not silently switch managers. Commands printed as recommendations are for the
 
 Both human-owned `Initialize-ProgramKit.cmd` and `Initialize-ProgramKit.sh` run
 `scripts/initialize_device.py` before Spec Kit initialization, catalog registration or repository
-dependency setup. It reuses the same diagnostic provider and exact SDK/Node/npm pins from the
-initializer's selected release tag. A source checkout/staged same-version release uses its files;
-a standalone launcher fetches only diagnostic Python sources and pin data over HTTPS from that
+dependency setup. It checks shared Python, supported Spec Kit and Git using the diagnostic provider
+from the initializer's selected release tag. A source checkout/staged same-version release uses its files;
+a standalone launcher fetches only that self-contained diagnostic Python source over HTTPS from that
 exact tag into temporary storage outside the consumer. No device distribution is downloaded.
 Failed lookup, missing tools or wrong selections block initialization without starting bootstrap.
 
-The current release's core device requirements are checked even before profile intake. Git and
-the chosen integration retain their existing prerequisites. Profile-specific providers (for
-example a running container engine) are checked when selected. The user's terminal runs any
+Node, npm and .NET are checked when a selected action/profile needs them; neutral product intake
+does not require the managed stack. The chosen integration retains its existing prerequisites.
+Profile-specific providers (for example a running container engine) are checked when selected. The user's terminal runs any
 reported installation commands; the preflight never runs them. After completion, refresh the
 shell/application and rerun initialization. Actual paths/versions must pass before setup continues.
 Future pin changes require fresh verification rather than relying on an initialization receipt.
@@ -135,6 +136,21 @@ its official exact-version commands. No repository-local uv tool environment est
 
 After the user reports completion, re-probe actual executable paths and versions. On Windows:
 
+The provider emits an inspectable `.ps1` or `.sh` under
+`artifacts/program-kit/device-preparation/` only after Git proves that path is ignored in the
+actual repository. It preserves existing files and ignore rules. Without that proof, it prints
+the complete inline script and writes no artifact. Scripts are data for the human: Program Kit
+never executes them. Native command failures stop preparation; completion always requires a
+fresh probe by the original dependent action. Manual/verification-only scripts exit with a
+nonzero status and make no install-ready claim.
+
+Git, PowerShell, Docker, Java and GitHub CLI use a closed known-tool map. Only the selected
+owner supplies availability, minimum or exact requirements; no toolkit-wide versions are
+invented. Known missing tools receive official OS/manager instructions. Existing installations
+retain their manager; unknown ownership, unsupported OS/manager, inaccessible probes and
+Docker daemon/context failures receive verification/manual steps instead of a replacement
+installer. Docker client installation and daemon availability are separate checks.
+
 ```powershell
 Get-Command node,npm,dotnet,python,specify -All | Select-Object Name,Source
 node --version
@@ -177,3 +193,11 @@ Official command sources checked for this implementation on 2026-10-08:
 [uv Python](https://docs.astral.sh/uv/guides/install-python/),
 [uv tools](https://docs.astral.sh/uv/concepts/tools/),
 [pyenv](https://github.com/pyenv/pyenv), [Spec Kit](https://github.com/github/spec-kit).
+
+Additional official sources checked on 2026-10-25: [Git](https://git-scm.com/install/),
+[Git Linux](https://github.com/git-guides/install-git),
+[PowerShell](https://learn.microsoft.com/powershell/scripting/install/install-powershell),
+[GitHub CLI Windows](https://github.com/cli/cli/blob/trunk/docs/install_windows.md),
+[GitHub CLI macOS](https://github.com/cli/cli/blob/trunk/docs/install_macos.md),
+[Temurin](https://adoptium.net/installation/),
+[Docker](https://docs.docker.com/get-started/get-docker/).

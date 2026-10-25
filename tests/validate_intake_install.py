@@ -47,12 +47,12 @@ def main():
                     actual = destination / name
                     assert actual.is_file() and actual.read_bytes() == archive.read(name), component + '/' + name
             installed[component] = 'all archive members match installed files'
-        with zipfile.ZipFile(assets / f'program-kit-bootstrap-{version}.zip') as archive:
-            assert archive.read('workflow.yml') == (project / '.specify/workflows/program-kit-bootstrap/workflow.yml').read_bytes()
+        assert not (project / '.specify/workflows/program-kit-bootstrap').exists()
+        assert (project / intake_session.SKILL).is_file()
         # The installation has no material from any private consumer.
         assert not (project / 'product-idea.md').exists()
         assert (project / '.specify/bundle-records.json').is_file()
-        report = {'schemaVersion': 1, 'installed': installed, 'workflow': 'release archive bytes match',
+        report = {'schemaVersion': 1, 'installed': installed, 'workflow': 'retired; not installed',
                   'coherence': 'passed', 'inputManifest': 'installation-inputs.json',
                   'scope': 'installation only; no intake, bootstrap, provider or coding agent executed'}
         (record / 'result.json').write_text(json.dumps(report, indent=2) + '\n')

@@ -128,49 +128,48 @@ if errorlevel 1 (
   exit /b 2
 )
 
-call "%SPECKIT_PYTHON%" -c "import yaml" >nul 2>nul
+rem packaging is Spec Kit's existing dependency-range parser, also required when
+rem the resolver uses a separately selected Python. Never switch interpreters.
+call "%SPECKIT_PYTHON%" -c "from importlib.metadata import version; from packaging.specifiers import SpecifierSet; assert version('packaging') in SpecifierSet('>=23')" >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: The selected resolver Python requires packaging^>=23 for dependency range checks. Prepare this declared library in your own terminal, then rerun the initializer: 1>&2
+  echo   "%SPECKIT_PYTHON%" -m pip install "packaging>=23" 1>&2
+  exit /b 2
+)
+set "PROGRAM_KIT_YAML_PROBE=import yaml; from packaging.specifiers import SpecifierSet; from packaging.version import Version; assert Version(yaml.__version__) in SpecifierSet('>=6,<7')"
+call "%SPECKIT_PYTHON%" -c "%PROGRAM_KIT_YAML_PROBE%" >nul 2>nul
 if errorlevel 1 (
   call "%SPECKIT_PYTHON%" -m pip --version >nul 2>nul
   if errorlevel 1 goto :pip_missing
   echo Installing the PyYAML dependency required by the Spec Kit Python resolver...
   call "%SPECKIT_PYTHON%" -m pip install --disable-pip-version-check "PyYAML>=6,<7"
   if errorlevel 1 goto :dependency_failed
-  call "%SPECKIT_PYTHON%" -c "import yaml" >nul 2>nul
+  call "%SPECKIT_PYTHON%" -c "%PROGRAM_KIT_YAML_PROBE%" >nul 2>nul
   if errorlevel 1 goto :dependency_failed
 )
 
-set "PROGRAM_KIT_STAGE=step 1/8: Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor"
-echo [1/8] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
+set "PROGRAM_KIT_STAGE=step 1/6: Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor"
+echo [1/6] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
 call :profiled_native init . --force --non-interactive --integration %PROGRAM_KIT_INTEGRATION% --script py
 if errorlevel 1 goto :failed
 
-set "PROGRAM_KIT_STAGE=step 2/8: Registering the Program Kit extension catalog"
-echo [2/8] Registering the Program Kit extension catalog...
+set "PROGRAM_KIT_STAGE=step 2/6: Registering the Program Kit extension catalog"
+echo [2/6] Registering the Program Kit extension catalog...
 call "%PROGRAM_KIT_SPECIFY%" extension catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/extensions.json --name program-kit --install-allowed
 if errorlevel 1 goto :failed
 
-set "PROGRAM_KIT_STAGE=step 3/8: Registering the Program Kit preset catalog"
-echo [3/8] Registering the Program Kit preset catalog...
+set "PROGRAM_KIT_STAGE=step 3/6: Registering the Program Kit preset catalog"
+echo [3/6] Registering the Program Kit preset catalog...
 call "%PROGRAM_KIT_SPECIFY%" preset catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/presets.json --name program-kit --install-allowed
 if errorlevel 1 goto :failed
 
-set "PROGRAM_KIT_STAGE=step 4/8: Registering the Program Kit workflow catalog"
-echo [4/8] Registering the Program Kit workflow catalog...
-call "%PROGRAM_KIT_SPECIFY%" workflow catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/workflows.json --name program-kit
-if errorlevel 1 goto :failed
-
-set "PROGRAM_KIT_STAGE=step 5/8: Registering the Program Kit bundle catalog"
-echo [5/8] Registering the Program Kit bundle catalog...
+set "PROGRAM_KIT_STAGE=step 4/6: Registering the Program Kit bundle catalog"
+echo [4/6] Registering the Program Kit bundle catalog...
 call "%PROGRAM_KIT_SPECIFY%" bundle catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/bundles.json --id program-kit --policy install-allowed
 if errorlevel 1 goto :failed
 
-set "PROGRAM_KIT_STAGE=step 6/8: Installing the bootstrap workflow"
-echo [6/8] Installing the bootstrap workflow...
-call "%PROGRAM_KIT_SPECIFY%" workflow add program-kit-bootstrap
-if errorlevel 1 goto :failed
-
-set "PROGRAM_KIT_STAGE=step 7/8: Installing Program Kit"
-echo [7/8] Installing Program Kit...
+set "PROGRAM_KIT_STAGE=step 5/6: Installing Program Kit"
+echo [5/6] Installing Program Kit...
 call :profiled_native bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
 if errorlevel 1 goto :failed
 call "%SPECKIT_PYTHON%" ".specify\extensions\program-kit-governance\scripts\ensure_utf8.py" --target .
@@ -180,13 +179,11 @@ if errorlevel 1 goto :failed
 call "%SPECKIT_PYTHON%" ".specify\extensions\program-kit-governance\scripts\schema_runtime.py" record-copy
 if errorlevel 1 goto :failed
 
-set "PROGRAM_KIT_STAGE=step 8/8: Switching Program Kit catalogs to the update channel"
-echo [8/8] Switching Program Kit catalogs to the update channel...
+set "PROGRAM_KIT_STAGE=step 6/6: Switching Program Kit catalogs to the update channel"
+echo [6/6] Switching Program Kit catalogs to the update channel...
 call "%PROGRAM_KIT_SPECIFY%" extension catalog remove program-kit
 if errorlevel 1 goto :failed
 call "%PROGRAM_KIT_SPECIFY%" preset catalog remove program-kit
-if errorlevel 1 goto :failed
-call "%PROGRAM_KIT_SPECIFY%" workflow catalog remove 0
 if errorlevel 1 goto :failed
 call "%PROGRAM_KIT_SPECIFY%" bundle catalog remove program-kit
 if errorlevel 1 goto :failed
@@ -194,13 +191,11 @@ call "%PROGRAM_KIT_SPECIFY%" extension catalog add https://raw.githubusercontent
 if errorlevel 1 goto :failed
 call "%PROGRAM_KIT_SPECIFY%" preset catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/presets.json --name program-kit --install-allowed
 if errorlevel 1 goto :failed
-call "%PROGRAM_KIT_SPECIFY%" workflow catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json --name program-kit
-if errorlevel 1 goto :failed
 call "%PROGRAM_KIT_SPECIFY%" bundle catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/bundles.json --id program-kit --policy install-allowed
 if errorlevel 1 goto :failed
 
 echo.
-echo Program Kit initialization is complete.
+echo Program Kit initialization is complete. Start speckit.program-kit-governance.product-intake in your coding assistant.
 exit /b 0
 
 :agent_environment
@@ -217,7 +212,7 @@ echo ERROR: PyYAML could not be installed for the `python` command. Install "PyY
 exit /b 2
 
 :pip_missing
-echo ERROR: PyYAML is missing and `python -m pip` is unavailable. Install pip for this Python interpreter, then install "PyYAML^>=6,^<7" and rerun the initializer. 1>&2
+echo ERROR: PyYAML is missing or outside ^>=6,^<7 and pip is unavailable for "%SPECKIT_PYTHON%". Prepare "PyYAML^>=6,^<7" for that exact interpreter in your own terminal and rerun the initializer. 1>&2
 exit /b 2
 
 :git_not_initialized

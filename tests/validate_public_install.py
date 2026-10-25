@@ -13,10 +13,6 @@ EXTENSION_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
     f"{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs/extensions.json"
 )
-WORKFLOW_CATALOG = (
-    "https://raw.githubusercontent.com/orbyss-io/program-kit/"
-    f"{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs/workflows.json"
-)
 PRESET_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
     f"{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs/presets.json"
@@ -44,12 +40,6 @@ def run(*args: str, cwd: Path) -> None:
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
-    source_workflow = yaml.safe_load(
-        (root / "workflows/program-kit-bootstrap/workflow.yml").read_text(
-            encoding="utf-8"
-        )
-    )
-    expected_steps = [step["id"] for step in source_workflow.get("steps", [])]
     with tempfile.TemporaryDirectory(prefix="program-kit-public-test-") as directory:
         project = Path(directory)
         run(
@@ -87,16 +77,6 @@ def main() -> int:
         )
         run(
             "specify",
-            "workflow",
-            "catalog",
-            "add",
-            WORKFLOW_CATALOG,
-            "--name",
-            "program-kit",
-            cwd=project,
-        )
-        run(
-            "specify",
             "bundle",
             "catalog",
             "add",
@@ -108,10 +88,6 @@ def main() -> int:
             cwd=project,
         )
 
-        # Spec Kit 1.0.1's bundle adapter routes workflow IDs through the
-        # local-dev installer. Preinstalling the catalog workflow avoids that
-        # defect while preserving the bundle's pinned workflow reference.
-        run("specify", "workflow", "add", "program-kit-bootstrap", cwd=project)
         run("specify", "bundle", "install", "program-kit", cwd=project)
 
         extensions = yaml.safe_load(
@@ -127,15 +103,8 @@ def main() -> int:
         if "program-kit-dotnet" not in extensions.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
 
-        workflow = yaml.safe_load(
-            (
-                project
-                / ".specify/workflows/program-kit-bootstrap/workflow.yml"
-            ).read_text(encoding="utf-8")
-        )
-        step_ids = [step["id"] for step in workflow.get("steps", [])]
-        if step_ids != expected_steps:
-            raise AssertionError(f"Installed workflow steps {step_ids} != {expected_steps}")
+        if (project / '.specify/workflows/program-kit-bootstrap').exists():
+            raise AssertionError('Retired workflow was installed')
 
         deployed_extension = project / ".specify/extensions/program-kit-governance"
         governance = deployed_extension / "scripts/governance_state.py"
@@ -151,7 +120,7 @@ def main() -> int:
             raise AssertionError("Installed building-block resolver is missing")
         if not (
             project
-            / ".agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md"
+            / ".agents/skills/speckit-program-kit-governance-product-intake/SKILL.md"
         ).is_file():
             raise AssertionError("Installed Codex-safe bootstrap skill is missing")
         if not (

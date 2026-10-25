@@ -349,34 +349,8 @@ def main() -> int:
     viewer = load_module(scripts / "c4_view.py", "test_c4_viewer")
     semantic = load_module(repository / "tests/validate_bootstrap_semantics.py", "test_c4_semantic_fixture")
 
-    viewer_skill = (
-        repository
-        / "extensions/program-kit-governance/commands/speckit.program-kit-governance.view-c4.md"
-    ).read_text(encoding="utf-8")
-    bootstrap_skill = (
-        repository
-        / "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap.md"
-    ).read_text(encoding="utf-8")
-    viewing_reference = (
-        repository / "extensions/program-kit-governance/references/c4-viewing.md"
-    ).read_text(encoding="utf-8")
-    workflow = (repository / "workflows/program-kit-bootstrap/workflow.yml").read_text(
-        encoding="utf-8"
-    )
-    intake_validator = (
-        repository / "extensions/program-kit-governance/scripts/bootstrap_intake.py"
-    ).read_text(encoding="utf-8")
-    for text, marker in (
-        (viewer_skill, "including informed review before bootstrap confirmation"),
-        (viewer_skill, "never performs bootstrap approval"),
-        (bootstrap_skill, "draft artifact hashes"),
-        (viewing_reference, "Draft intake review is allowed before explicit confirmation"),
-    ):
-        if marker not in text:
-            raise AssertionError(f"Bootstrap/viewer guidance lost the draft-review boundary: {marker}")
-    if "validate-bootstrap-intake" not in workflow or 'intake.get("status") != "confirmed"' not in intake_validator:
-        raise AssertionError("The outer bootstrap workflow no longer requires a confirmed intake")
-
+    # The retired founding engine supplied no viewer authority. Actual draft
+    # hash binding and absence of confirmation are exercised below.
     profile = viewer.load_profile()
     if profile["selected"]["version"] in {"", "latest"}:
         raise AssertionError("Structurizr viewer must use an exact managed version")

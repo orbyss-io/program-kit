@@ -100,9 +100,9 @@ def apply(root: Path) -> dict:
         if pins:
             resolved['toolchain'] = {'source': 'program-kit-default', 'pins': pins, 'override_reason': ''}
     if resolved != current:
-        approval = root / '.specify/governance/bootstrap-assessment-approval.json'
-        if approval.is_file():
-            raise ValueError('BOOTSTRAP-APPROVAL-BOUNDARY: default resolution cannot rewrite an approved register; reopen assessment through the workflow')
+        approvals = [root / '.specify/governance' / name for name in ('bootstrap-assessment-approval.json', 'bootstrap-approval.json')]
+        if any(path.is_file() for path in approvals):
+            raise ValueError('FOUNDING-APPROVAL-BOUNDARY: default resolution cannot rewrite an approved register; review the affected choices through product-intake')
         path.write_text(json.dumps(resolved, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
     return {'changed': resolved != current, 'selected_profiles': resolved['selected_profiles']}
 

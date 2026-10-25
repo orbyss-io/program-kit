@@ -1,26 +1,16 @@
-# Bootstrap prerequisite, verdict and recovery contract
+# Retained prerequisite and proof evidence
 
-The architecture owner, followed by the bootstrap-closure command, owns technical bookkeeping.
-Bootstrap completion means a valid reviewed baseline has been initialized, not that every decision
-or first-slice proof has been resolved. Roadmap Ready means ready for specification intake.
-The same ledger independently gates planning, implementation, delivery and production.
-Unclear journeys stay Candidate with owned discovery work; bootstrap may complete with no Ready entry.
+The founding workflow and its closure/recovery stages are retired. The supported route is
+[product founding](product-founding.md), followed directly by feature intake. Neither a ledger,
+proof plan nor runtime compatibility run is mandatory merely to specify a product. Preserve
+existing ledger/receipt bytes and their actual obligations; unfinished history is never completed
+by installing a skill. Run focused experiments before specification only when their answers change
+what should be specified. Actual restore, native/provider/runtime and implementation checks remain
+due at their dependent actions.
 
-The lifecycle run/resume/reopen entry point provisions and checks the pinned schema tools for
-both the native shell Python and the installed workflow-engine Python before dispatch. Each
-interpreter retains its own project-local dependency cache; uv installation uses a project-local
-download cache. Setup or import failures stop at this boundary before agent work. Internal steps
-and read-only completion validation do not silently install dependencies or change approvals.
-
-Assessment approval freezes every artifact named in its receipt, including
-`tooling-evaluation.md`, assessment/backlog, confirmed intake and the review packet.
-Later architecture/tooling/roadmap/closure stages preserve those exact bytes.
-Research can contain an earlier phase assignment that a reviewed follow-on ADR
-refines. Record that refinement in the new ADR and prerequisite ledger, citing
-the original; do not rewrite approved research or insert a backlink into it.
-Substantive replacement requires the owning assessment review, never a refreshed
-hash invented by a later producer. Stage briefs project this read-only boundary,
-and terminal stage validation checks it before downstream proofs and review.
+The following describes retained evidence formats for ordinary phase obligations and historical
+audits, not an instruction to recreate an old workflow dossier. Source-bound conditions retain
+owners, actual triggers and honest evidence. Existing compatibility failures remain failures.
 
 `docs/architecture/bootstrap-prerequisites.json` has schema_version `1.0`, `sources` and
 `prerequisites` arrays. It is part of the reviewed and hash-bound bootstrap artifact bundle.
@@ -133,7 +123,7 @@ For architecture-disposition conditions, the aggregate `bootstrap_proof_plan.py`
 attach the latest passing standalone native receipt for its exact planned recipe without
 rerunning it. It preserves Active/Delivered status and promotes only Blocked/Candidate entries.
 After bootstrap completion, use the explicit reviewed post-bootstrap continuation in
-`workflow-resumption.md` to close the ledger and reconcile roadmap wording/byte budgets.
+the scoped decision owner to close a genuinely satisfied obligation with actual evidence.
 Do not hand-close the approved ledger, relabel the obligation, or refresh approval hashes.
 Receipts also bind the current decision register and selected composition/pins, normalizing only
 selection approval metadata. Changed package selection requires fresh compatibility evidence.
@@ -183,14 +173,8 @@ non-ready assessment. A purported READY assessment with invalid authority fails 
 wrapper exits 2 for its invalid-output contract). `complete-bootstrap` retains independent authority
 and exact READY checks. The workflow fails resumably before completion, never at an abort-only gate.
 
-Use the supported `workflow_lifecycle.py resume --run-id <existing-id>` workflow entrypoint;
-see [workflow-resumption.md](workflow-resumption.md). The engine owns producers, review gates,
-eligibility and successful terminal state. Accepted readiness failures use a linked native
-continuation that preserves the historical source. Failed earlier stages rerun the affected
-producer with invalidated downstream step results. Technical abort-only history is not semantic
-rejection. Internal artifact helpers preserve evidence, but their success or an independent
-completion file does not establish workflow success. Completion must bind a completed engine run.
-
+Saved engine records may be inspected read-only. The retired workflow cannot resume, reopen or
+claim completion; use product-intake to review useful current artifacts explicitly.
 
 ## Executed compatibility cases
 
@@ -243,45 +227,9 @@ still reject substantive changes. Put any executable parameters in a separate bo
 do not remove source obligations or relax stream/recipe hashes to make acceptance pass.
 
 
-## Native execution handoff
+## Current execution boundary
 
-The closure producer writes `bootstrap-proof-plan.json` with `schemaVersion: 1`, `probes`
-(`id`, repository-relative `recipe`, bounded `timeout`) and `readyWhenProven` (`id`, exact
-complete architecture `prerequisites`, `rationale`). It leaves blockers open. The following
-native shell step runs `bootstrap_proof_plan.py`; no coding agent is dispatched for restore
-or execution. It attaches passing receipts, closes only those dependencies and applies only
-explicitly prepared conditional Ready transitions. A failed probe stops the workflow with its
-receipt preserved. Explicit recovery reuses current successful proofs and renews failed work.
-An empty plan explicitly records that no scratch proof is required. Final approval reviews
-scope, dispositions and evidence after execution; it never substitutes for a failed probe.
-
-Both read-only plan validation and execution inspect every planned contract's current fixture
-inputs before invalidating eligibility or provisioning any probe. A stale later fixture therefore
-blocks earlier provisioning too. The bounded diagnostic names its contract and the supported
-`fixture_readiness.py` preview/apply route; it does not renew fixtures or replay providers itself.
-
-For a selected first slice, closure validation requires every open architecture prerequisite to
-have a probe and a complete conditional Ready transition, unless the entry is already Ready.
-An empty `readyWhenProven` array with a Blocked first entry is incomplete closure planning, even
-when all listed toolchain recipes are valid. Resolve it before executing any probes. Future slices
-may retain their scoped blockers. The closure output budget includes its roadmap edits.
-
-After a compatibility failure has been repaired and every planned proof has current passing
-evidence, the owner may use `workflow_lifecycle.py resume --run-id <id> --reuse-proven-closure`.
-This checks current design, source, contract, tooling and executed-case bindings before retaining
-the closure producer's output. It resumes at the native proof shell, preserving downstream
-validation and human review. Open, failed, stale or differently planned proofs reject reuse;
-ordinary resume still returns to the owning authoring stage when repair requires new design work.
-
-
-## Completion and continuation
-
-The native renderer produces INITIALIZED when the reviewed baseline validates, even with open
-obligations. It lists candidate phase eligibility. Broken hashes, missing required artifacts and
-contradictory accepted records still prevent acceptance. Artifact conflicts pause their owning stage;
-ordinary unresolved intent/design is carried into the existing ledger, never answered by assumption.
-Use `bootstrap_handoff.py eligibility --entry <ID> --feature <feature-ID> --phase specification|planning|implementation|delivery|production`
-to inspect a slice. Resolve the named obligation through existing research/design, ADR review or
-compatibility recipes, reconcile source bindings and review changed authority. Then resume the
-affected feature phase. A consumer-owned technology uses this same evidence route; it does not
-require adding a managed catalog entry or waiting for Program Kit publication.
+Compatibility recipes remain focused tools for concrete provider/runtime questions and ordinary
+engineering obligations. Do not invoke an old closure/recovery stage or workflow to run them.
+A successful receipt proves only its recorded inputs and assertions. A status/hash or accepted
+ADR never proves runtime compatibility, implementation completion or human consent.

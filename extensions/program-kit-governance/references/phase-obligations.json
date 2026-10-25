@@ -2718,23 +2718,25 @@
     {
       "path": "program-kit-governance/references/bootstrap-lifecycle.md",
       "phases": [
-        "bootstrap",
-        "continuation"
+        "planning",
+        "implementation",
+        "delivery",
+        "historical evidence"
       ],
-      "enforcement": "Native prerequisite/compatibility evidence; preserve original approved history.",
+      "enforcement": "Focused source-bound prerequisite and compatibility evidence at its dependent action; retained historical formats confer no founding completion or runtime acceptance.",
       "route": {
-        "kind": "bootstrap",
+        "kind": "manual",
         "via": [
-          "extensions/program-kit-governance/scripts/bootstrap_lifecycle.py"
+          "extensions/program-kit-governance/scripts/bootstrap_lifecycle.py",
+          "extensions/program-kit-governance/scripts/phase_obligations.py"
         ],
         "sections": [
           "Assign conditions before drafting proofs",
           "Executed compatibility cases",
-          "Native execution handoff",
-          "Completion and continuation"
+          "Current execution boundary"
         ],
         "requirements": [],
-        "review": "Native prerequisite/compatibility evidence; preserve original approved history."
+        "review": "Focused source-bound prerequisite and compatibility evidence at its dependent action; retained historical formats confer no founding completion or runtime acceptance."
       },
       "id": "program-kit-governance/references/bootstrap-lifecycle.md",
       "locator": {
@@ -2746,19 +2748,15 @@
       "sections": {
         "Assign conditions before drafting proofs": {
           "disposition": "conditional",
-          "route": "bootstrap"
+          "route": "manual"
         },
         "Executed compatibility cases": {
           "disposition": "conditional",
-          "route": "bootstrap"
+          "route": "manual"
         },
-        "Native execution handoff": {
+        "Current execution boundary": {
           "disposition": "conditional",
-          "route": "bootstrap"
-        },
-        "Completion and continuation": {
-          "disposition": "conditional",
-          "route": "bootstrap"
+          "route": "manual"
         }
       },
       "evidence": {
@@ -2767,7 +2765,7 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Native prerequisite/compatibility evidence; preserve original approved history."
+      "purpose": "Focused source-bound prerequisite and compatibility evidence at its dependent action; retained historical formats confer no founding completion or runtime acceptance."
     },
     {
       "path": "program-kit-governance/references/c4-viewing.md",
@@ -2815,21 +2813,24 @@
     {
       "path": "program-kit-governance/references/codex-desktop-windows.md",
       "phases": [
-        "bootstrap execution"
+        "setup",
+        "upgrade",
+        "founding"
       ],
-      "enforcement": "Human-owned launch, exact interpreter and narrowly owned platform repair.",
+      "enforcement": "Human-owned installation/update, exact interpreter and narrowly owned platform repair; skill-led founding starts only after setup and supplies no runtime compatibility claim.",
       "route": {
-        "kind": "bootstrap",
+        "kind": "setup",
         "via": [
-          "extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py"
+          "Initialize-ProgramKit.cmd",
+          "Initialize-ProgramKit.sh",
+          "scripts/initialize_device.py",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
         ],
         "sections": [
-          "Reason",
-          "Safe workflow",
-          "Existing affected repository"
+          "Program Kit setup boundary for Codex on Windows"
         ],
         "requirements": [],
-        "review": "Human-owned launch, exact interpreter and narrowly owned platform repair."
+        "review": "Human-owned installation/update, exact interpreter and narrowly owned platform repair; skill-led founding starts only after setup and supplies no runtime compatibility claim."
       },
       "id": "program-kit-governance/references/codex-desktop-windows.md",
       "locator": {
@@ -2839,17 +2840,9 @@
       "owner": "program-kit-governance",
       "disposition": "conditional",
       "sections": {
-        "Reason": {
+        "Program Kit setup boundary for Codex on Windows": {
           "disposition": "conditional",
-          "route": "bootstrap"
-        },
-        "Safe workflow": {
-          "disposition": "conditional",
-          "route": "bootstrap"
-        },
-        "Existing affected repository": {
-          "disposition": "conditional",
-          "route": "bootstrap"
+          "route": "setup"
         }
       },
       "evidence": {
@@ -2858,26 +2851,26 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Human-owned launch, exact interpreter and narrowly owned platform repair."
+      "purpose": "Human-owned installation/update, exact interpreter and narrowly owned platform repair; skill-led founding starts only after setup and supplies no runtime compatibility claim."
     },
     {
       "path": "program-kit-governance/references/device-toolchain-policy.md",
       "phases": [
-        "bootstrap",
+        "setup",
         "planning",
         "implementation",
         "upgrade",
         "delivery"
       ],
-      "enforcement": "Read-only device preflight pauses dependent execution; user-terminal installation and agent verification preserve exact authority.",
+      "enforcement": "Read-only device preflight pauses only dependent execution; human-terminal installation and actual agent verification preserve exact pins and authority. Founding alone requires no device runtime proof.",
       "route": {
         "kind": "setup",
         "via": [
           "extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py",
           "extensions/program-kit-governance/scripts/repository_sync.py",
           "extensions/program-kit-governance/scripts/python_runtime.py",
-          "extensions/program-kit-governance/commands/speckit.program-kit-governance.tooling.md",
-          "extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md"
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
         ],
         "sections": [
           "Initialization front door",
@@ -2886,7 +2879,7 @@
           "Verification and scope"
         ],
         "requirements": [],
-        "review": "Toolchain readiness only; grants no application, migration, publication or paid-worker authority."
+        "review": "Read-only device preflight pauses only dependent execution; human-terminal installation and actual agent verification preserve exact pins and authority. Founding alone requires no device runtime proof."
       },
       "id": "program-kit-governance/references/device-toolchain-policy.md",
       "locator": {
@@ -2919,7 +2912,7 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Read-only device preflight pauses dependent execution; user-terminal installation and agent verification preserve exact authority."
+      "purpose": "Read-only device preflight pauses only dependent execution; human-terminal installation and actual agent verification preserve exact pins and authority. Founding alone requires no device runtime proof."
     },
     {
       "path": "program-kit-governance/references/default-adoption.md",
@@ -3300,13 +3293,14 @@
     {
       "path": "program-kit-governance/references/intake-method.md",
       "phases": [
-        "intake"
+        "intake",
+        "founding"
       ],
-      "enforcement": "Human interview and exact shared synthesis; tests cannot certify interview quality.",
+      "enforcement": "Human interview and exact shared synthesis with explicit provenance; focused validators bind artifacts but cannot certify interview quality or human consent.",
       "route": {
         "kind": "intake",
         "via": [
-          "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap.md"
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
         ],
         "sections": [
           "Outcome",
@@ -3314,10 +3308,10 @@
           "Conversation evidence and final review",
           "Architecture map",
           "Re-analysis",
-          "Completion command"
+          "Continue founding in this session"
         ],
         "requirements": [],
-        "review": "Human interview and exact shared synthesis; tests cannot certify interview quality."
+        "review": "Human interview and exact shared synthesis with explicit provenance; focused validators bind artifacts but cannot certify interview quality or human consent."
       },
       "id": "program-kit-governance/references/intake-method.md",
       "locator": {
@@ -3347,7 +3341,7 @@
           "disposition": "conditional",
           "route": "intake"
         },
-        "Completion command": {
+        "Continue founding in this session": {
           "disposition": "conditional",
           "route": "intake"
         }
@@ -3358,7 +3352,7 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Human interview and exact shared synthesis; tests cannot certify interview quality."
+      "purpose": "Human interview and exact shared synthesis with explicit provenance; focused validators bind artifacts but cannot certify interview quality or human consent."
     },
     {
       "path": "program-kit-governance/references/json-schema-tools.md",
@@ -4002,16 +3996,19 @@
     {
       "path": "program-kit-governance/references/tool-selection.md",
       "phases": [
+        "founding",
         "architecture",
         "planning",
         "setup",
         "delivery"
       ],
-      "enforcement": "Capability fit and source quality; retain existing pins during feature work.",
+      "enforcement": "Capability fit, primary-source quality and explicit adopted/default/override provenance; retain qualified pins during feature work. Human decision review and actual dependent engineering checks remain separate.",
       "route": {
-        "kind": "bootstrap",
+        "kind": "intake",
         "via": [
-          "extensions/program-kit-governance/commands/speckit.program-kit-governance.research.md"
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture.md",
+          "extensions/program-kit-governance/scripts/product_intake.py"
         ],
         "sections": [
           "Retained ordinary-development selections",
@@ -4022,7 +4019,7 @@
           "browser-experience",
           "capability-adoption"
         ],
-        "review": "Capability fit and source quality; retain existing pins during feature work."
+        "review": "Capability fit, primary-source quality and explicit adopted/default/override provenance; retain qualified pins during feature work. Human decision review and actual dependent engineering checks remain separate."
       },
       "id": "program-kit-governance/references/tool-selection.md",
       "locator": {
@@ -4034,11 +4031,11 @@
       "sections": {
         "Retained ordinary-development selections": {
           "disposition": "active",
-          "route": "bootstrap"
+          "route": "intake"
         },
         "Bootstrap candidate research": {
           "disposition": "active",
-          "route": "bootstrap"
+          "route": "intake"
         }
       },
       "evidence": {
@@ -4047,7 +4044,7 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Capability fit and source quality; retain existing pins during feature work."
+      "purpose": "Capability fit, primary-source quality and explicit adopted/default/override provenance; retain qualified pins during feature work. Human decision review and actual dependent engineering checks remain separate."
     },
     {
       "path": "program-kit-governance/references/ui-evaluation-v1.md",
@@ -4288,19 +4285,22 @@
     {
       "path": "program-kit-governance/references/workflow-resumption.md",
       "phases": [
-        "bootstrap continuation"
+        "historical evidence",
+        "upgrade",
+        "founding"
       ],
-      "enforcement": "Explicit human-owned continuation and actual native outcomes; not ordinary implementation orchestration.",
+      "enforcement": "Retirement and migration guidance plus read-only bound historical completion inspection; run/resume/reopen grant no current founding authority.",
       "route": {
-        "kind": "bootstrap",
+        "kind": "manual",
         "via": [
-          "extensions/program-kit-governance/scripts/workflow_lifecycle.py"
+          "extensions/program-kit-governance/scripts/workflow_lifecycle.py",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md"
         ],
         "sections": [
-          "Governed workflow resumption"
+          "Retired founding workflow: historical evidence and migration"
         ],
         "requirements": [],
-        "review": "Explicit human-owned continuation and actual native outcomes; not ordinary implementation orchestration."
+        "review": "Retirement and migration guidance plus read-only bound historical completion inspection; run/resume/reopen grant no current founding authority."
       },
       "id": "program-kit-governance/references/workflow-resumption.md",
       "locator": {
@@ -4310,9 +4310,9 @@
       "owner": "program-kit-governance",
       "disposition": "conditional",
       "sections": {
-        "Governed workflow resumption": {
+        "Retired founding workflow: historical evidence and migration": {
           "disposition": "conditional",
-          "route": "bootstrap"
+          "route": "manual"
         }
       },
       "evidence": {
@@ -4321,7 +4321,7 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Explicit human-owned continuation and actual native outcomes; not ordinary implementation orchestration."
+      "purpose": "Retirement and migration guidance plus read-only bound historical completion inspection; run/resume/reopen grant no current founding authority."
     },
     {
       "path": "program-kit-governance/references/component-adoption.md",
@@ -5019,6 +5019,69 @@
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
       "purpose": "Manual finite .NET learning recipe, installed positive/negative application and bounded performance observations; no automatic adoption, human acceptance or universal optimization."
+    },
+    {
+      "path": "program-kit-governance/references/product-founding.md",
+      "phases": [
+        "intake",
+        "founding",
+        "specification"
+      ],
+      "enforcement": "Connected product/founding guidance routes exact intake synthesis, separate human constitution ratification and named ADR/map acceptance through existing owners, then direct feature intake. Scoped validators check content/selection identity; they prove neither human consent nor runtime compatibility.",
+      "route": {
+        "kind": "intake",
+        "via": [
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md",
+          "extensions/program-kit-governance/scripts/product_intake.py",
+          "extensions/program-kit-governance/scripts/governance_state.py",
+          "extensions/program-kit-governance/scripts/specification_intake.py"
+        ],
+        "sections": [
+          "Current product and architecture",
+          "Constitution and consequential decisions",
+          "Technology and qualified capabilities",
+          "One review and direct feature handoff",
+          "Existing consumers and historical evidence"
+        ],
+        "requirements": [],
+        "review": "Connected product/founding guidance routes exact intake synthesis, separate human constitution ratification and named ADR/map acceptance through existing owners, then direct feature intake. Scoped validators check content/selection identity; they prove neither human consent nor runtime compatibility."
+      },
+      "id": "program-kit-governance/references/product-founding.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-governance/references/product-founding.md"
+      },
+      "owner": "program-kit-governance",
+      "disposition": "conditional",
+      "sections": {
+        "Current product and architecture": {
+          "disposition": "conditional",
+          "route": "intake"
+        },
+        "Constitution and consequential decisions": {
+          "disposition": "conditional",
+          "route": "intake"
+        },
+        "Technology and qualified capabilities": {
+          "disposition": "conditional",
+          "route": "intake"
+        },
+        "One review and direct feature handoff": {
+          "disposition": "conditional",
+          "route": "intake"
+        },
+        "Existing consumers and historical evidence": {
+          "disposition": "conditional",
+          "route": "intake"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      },
+      "purpose": "Connected product/founding guidance routes exact intake synthesis, separate human constitution ratification and named ADR/map acceptance through existing owners, then direct feature intake. Scoped validators check content/selection identity; they prove neither human consent nor runtime compatibility."
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",

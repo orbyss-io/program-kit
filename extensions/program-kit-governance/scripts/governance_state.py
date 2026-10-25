@@ -304,26 +304,7 @@ def validate_installation() -> dict[str, str]:
         "preset": manifest_version(
             project_path(PRESET_MANIFEST), "Program Kit Governance preset"
         ),
-        "workflow": manifest_version(
-            project_path(WORKFLOW_MANIFEST), "Program Kit Bootstrap workflow"
-        ),
     }
-    registry_path = project_path(WORKFLOW_REGISTRY)
-    if not registry_path.is_file():
-        raise GovernanceStateError(
-            f"Workflow registry is missing: {registry_path}\n"
-            f"Repair the installation, in this order:\n{repair_commands()}"
-        )
-    registry = read_json(registry_path)
-    workflows = registry.get("workflows")
-    entry = workflows.get("program-kit-bootstrap") if isinstance(workflows, dict) else None
-    registry_version = entry.get("version") if isinstance(entry, dict) else None
-    if not isinstance(registry_version, str):
-        raise GovernanceStateError(
-            f"Program Kit Bootstrap is absent from the workflow registry: {registry_path}\n"
-            f"Repair the installation, in this order:\n{repair_commands()}"
-        )
-    versions["workflow registry"] = registry_version
 
     preset_registry_path = project_path(PRESET_REGISTRY)
     if not preset_registry_path.is_file():
@@ -674,7 +655,8 @@ def reviewed_adr_records() -> list[dict[str, str]]:
     return records
 
 
-def accept_founding_adrs(records: list[dict[str, str]], *, existing_accepted: bool = False) -> list[dict[str, str]]:
+def accept_founding_adrs(records: list[dict[str, str]], *, existing_accepted: bool = False,
+                         project_narratives: bool = True) -> list[dict[str, str]]:
     architecture = _load_architecture_module()
     map_path = project_path(ARCHITECTURE_MAP)
     model = architecture.load_object(map_path)
@@ -723,7 +705,7 @@ def accept_founding_adrs(records: list[dict[str, str]], *, existing_accepted: bo
                 item["status"] = "accepted"
                 item["decision_refs"] = list(dict.fromkeys([*item["decision_refs"], candidate_id]))
         accepted.append({"candidate_id": candidate_id, "path": record["path"], "sha256": decision["sha256"]})
-    if project_path(ACCEPTANCE_SCOPE).is_file():
+    if project_narratives and project_path(ACCEPTANCE_SCOPE).is_file():
         lifecycle_call("project_lifecycle", model)
     architecture.validate_model(model, Path.cwd().resolve())
     write_json(map_path, model)
@@ -1271,9 +1253,7 @@ def write_review(stage: str) -> None:
             "",
             "## Decision requested",
             "",
-            "Ratify the complete constitution. Approval deterministically changes only its Draft status and an initial `PENDING_RATIFICATION` date before hash-binding the final content. Reject keeps the run paused for revision.",
-            "",
-            "When the workflow's explicit auto-approval option is enabled, this packet is still retained for post-run review and the ratification evidence is marked automatic.",
+            "Ratify the complete constitution. After explicit human ratification, finalization changes only its Draft status and an initial `PENDING_RATIFICATION` date before hash-binding the final content. Reject to revise and regenerate this review.",
             "",
             "## File under review",
             "",
@@ -1291,7 +1271,7 @@ def write_review(stage: str) -> None:
             "",
             "## After rejection",
             "",
-            "Revise the constitution, then regenerate and revalidate this packet before resuming:",
+            "Revise the constitution, then regenerate and revalidate this packet before asking for ratification:",
             "",
             "```powershell",
             "python .specify/extensions/program-kit-governance/scripts/governance_state.py write-review --stage constitution",
@@ -1818,6 +1798,10 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
 
 def validate_setup_authority() -> None:
     """Validate durable setup consent without freezing later feature/roadmap evolution."""
+    if project_path(BOOTSTRAP_APPROVAL).is_file() and read_json(project_path(BOOTSTRAP_APPROVAL)).get('route') == 'product-intake':
+        from product_intake import validate_accepted
+        validate_accepted(current=False)
+        return
     assessment = validate_assessment_approval()
     validate_ratification()
     validate_bootstrap_decisions()
@@ -2315,6 +2299,12 @@ def synchronize_lifecycle() -> None:
 
 def readiness_authority(run_id: str = '') -> dict:
     """Calculate eligibility from owned records, never from a prior report."""
+    if project_path(BOOTSTRAP_APPROVAL).is_file() and read_json(project_path(BOOTSTRAP_APPROVAL)).get('route') == 'product-intake':
+        from product_intake import status
+        result = status()
+        return {**result, 'handoff': None,
+                'blockers': [{'id': 'founding-authority', 'owner': 'Product and architecture owner', 'task': item}
+                             for item in result['blockers']]}
     import contextlib
     import io
     from bootstrap_handoff import first_feature, untracked_questions
@@ -2339,6 +2329,15 @@ def readiness_authority(run_id: str = '') -> dict:
 
 def render_readiness(run_id: str = '') -> dict:
     """Project existing authority into the terminal report; never make a decision."""
+    if project_path(BOOTSTRAP_APPROVAL).is_file() and read_json(project_path(BOOTSTRAP_APPROVAL)).get('route') == 'product-intake':
+        from product_intake import status
+        result = status()
+        lines = [f"**Status**: {result['status']}", '', result['next_action'], '',
+                 'Authority: human-reviewed founding artifacts, accepted ADR/map scope and ratified constitution.',
+                 'This asserts no runtime compatibility or implementation completion. Open obligations retain their due actions.', '']
+        lines += [f'- Blocker: {item}' for item in result['blockers']]
+        write_text(project_path(READINESS_REPORT), '\n'.join(lines))
+        return result
     authority = readiness_authority(run_id)
     status, blockers, handoff = authority['status'], authority['blockers'], authority['handoff']
     lines = [f'**Status**: {status}', '',
@@ -2468,6 +2467,13 @@ def main() -> int:
     subparsers.add_parser("validate-setup-authority")
     subparsers.add_parser("validate-completion")
     args = parser.parse_args()
+    retired = {'accept-assessment', 'accept-bootstrap', 'complete-bootstrap', 'synchronize-lifecycle',
+               'synchronize-roadmap', 'evaluate-readiness', 'require-readiness'}
+    if args.command in retired or (args.command == 'write-review' and args.stage != 'constitution'):
+        print('PROGRAM_KIT_BOOTSTRAP_WORKFLOW_RETIRED: use the installed product-intake skill and '
+              'product_intake.py review/accept/validate/status. Preserve historical workflow and proof bytes; '
+              'unfinished old runs remain incomplete.', file=sys.stderr)
+        return 2
     try:
         configure_paths()
         if args.command == "validate-installation":
@@ -2475,8 +2481,8 @@ def main() -> int:
             print(f"Program Kit installation is version-coherent: {next(iter(versions.values()))}")
         else:
             # Installation coherence is the first invariant for every stateful or
-            # validating governance operation. In particular, no Draft marker may
-            # be written while the separately installed workflow is stale.
+            # validating governance operation. No Draft marker may be written
+            # while the installed extensions/preset/bundle record are incoherent.
             validate_installation()
             if args.command == "record-upgrade":
                 record_program_kit_upgrade(args.previous_version, args.target_version)

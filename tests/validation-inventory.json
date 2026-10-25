@@ -33,7 +33,9 @@
         "tests/release_workflow_contracts.py",
         ".github/scripts/update_published_readme.py",
         "extensions/program-kit-governance/scripts/asset_sources.py",
-        "extensions/program-kit-governance/scripts/release_guidance.py"
+        "extensions/program-kit-governance/scripts/release_guidance.py",
+        "scripts/record_local_bundle.py",
+        "scripts/Test-LocalInstall.ps1"
       ],
       "dependsOn": []
     },
@@ -132,7 +134,8 @@
         "tests/pattern_review_fixture.py",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-patterns.md",
         "extensions/program-kit-governance/scripts/historical_phase_evidence.py",
-        "extensions/program-kit-building-blocks/scripts/lifecycle_knowledge.py"
+        "extensions/program-kit-building-blocks/scripts/lifecycle_knowledge.py",
+        "extensions/program-kit-governance/references/capability-index.json"
       ],
       "dependsOn": [
         "profiles"
@@ -233,7 +236,8 @@
         "extensions/program-kit-governance/scripts/placement*.py",
         "extensions/program-kit-governance/references/architecture*",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture*.md",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.view-c4.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.view-c4.md",
+        "extensions/program-kit-governance/scripts/c4_view.py"
       ],
       "dependsOn": [
         "schema"
@@ -480,6 +484,31 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py"
       ],
       "dependsOn": []
+    },
+    "founding": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/product_intake.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.product-intake.md",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.research.md",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.roadmap.md",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.tooling.md",
+        "extensions/program-kit-governance/references/product-founding.md",
+        "extensions/program-kit-governance/references/bootstrap-lifecycle.md",
+        "extensions/program-kit-governance/references/intake-method.md",
+        "extensions/program-kit-governance/references/intake-artifacts.md",
+        "extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py",
+        "extensions/program-kit-governance/scripts/proxy_bootstrap.py",
+        "extensions/program-kit-governance/references/bootstrap-continuation.yml",
+        "scripts/intake_session.py",
+        "scripts/Start-IntakeSession.ps1"
+      ],
+      "dependsOn": [
+        "shared-governance",
+        "intake",
+        "architecture",
+        "profiles"
+      ]
     }
   },
   "checks": [
@@ -1618,7 +1647,7 @@
     },
     {
       "id": "validate_components",
-      "purpose": "Components contract validation.",
+      "purpose": "Native component manifests, registered sources/hooks/templates and four-component skill-led founding distribution; no workflow execution.",
       "platforms": [
         "Windows",
         "Linux"
@@ -1642,7 +1671,7 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_json_schema",
@@ -1689,33 +1718,6 @@
       ],
       "needs": [],
       "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "test_workflow_shell_preflight",
-      "purpose": "Automatic Windows PATH preparation, native shell/npm launcher lookup, recorded interpreter, scoped restoration and pre-dispatch immutable history; no coding workers.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/test_workflow_shell_preflight.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/test_workflow_shell_preflight.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli"
-      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
@@ -2677,34 +2679,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_bootstrap_lifecycle",
-      "purpose": "Deterministic fresh approval and accepted/aborted recovery regression tests (no agents).",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_bootstrap_lifecycle.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_bootstrap_lifecycle.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
       "id": "validate_readiness_scope",
       "purpose": "Enforce accepted slice scope without treating proposal prose as lifecycle state.",
       "platforms": [
@@ -2724,34 +2698,6 @@
       ],
       "needs": [],
       "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_readiness_projection",
-      "purpose": "Native terminal readiness is a state projection, without an agent verdict.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_readiness_projection.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_readiness_projection.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
@@ -2811,113 +2757,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_bootstrap_proof_plan",
-      "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_bootstrap_proof_plan.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_bootstrap_proof_plan.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_post_bootstrap_continuation",
-      "purpose": "Completed-bootstrap review, evidence preservation and Active lifecycle regressions; mocked dispatch, no coding agents.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_post_bootstrap_continuation.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_post_bootstrap_continuation.py"
-      ],
-      "needs": [],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_workflow_resumption",
-      "purpose": "Native engine regression: stage retry, NOT READY, preserved history and completion.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_workflow_resumption.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/windows_path_alias.py",
-        "tests/validate_workflow_resumption.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_workflow_runtimes",
-      "purpose": "Workflow entry runtime preflight; no coding-agent sessions.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_workflow_runtimes.py"
-      ],
-      "kind": "unit",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_workflow_runtimes.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
       "id": "validate_live_fixture_catalog",
       "purpose": "Verify selectable committed live inputs, approval binding and tamper rejection.",
       "platforms": [
@@ -2944,7 +2783,7 @@
     },
     {
       "id": "validate_live_workflow_acceptance",
-      "purpose": "Deterministic paid-workflow guards; never starts a coding agent.",
+      "purpose": "Offline bootstrap retirement boundaries and retained independent one-use/checkpoint authorization; never starts workers.",
       "platforms": [
         "Windows",
         "Linux"
@@ -2955,16 +2794,13 @@
       ],
       "kind": "unit",
       "capabilities": [
-        "bootstrap"
+        "live-harness"
       ],
       "inputs": [
         "tests/validate_live_workflow_acceptance.py"
       ],
       "needs": [],
-      "prerequisites": [
-        "module:specify_cli",
-        "module:yaml"
-      ],
+      "prerequisites": [],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
@@ -3173,38 +3009,8 @@
       "manualOnly": true
     },
     {
-      "id": "validate_codex_bootstrap",
-      "purpose": "Codex bootstrap contract validation.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_codex_bootstrap.py"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_codex_bootstrap.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "module:yaml"
-      ],
-      "suites": [],
-      "budgetSeconds": 300,
-      "timeoutSeconds": 600,
-      "manualOnly": true,
-      "reviewInputs": [
-        "tests/validate_codex_bootstrap.py"
-      ]
-    },
-    {
       "id": "source-install",
-      "purpose": "Install source components and verify registered skills, hooks and view-only behavior on Windows.",
+      "purpose": "PowerShell wrapper around the same actual archive-native intake installation check; no source-linked installation or workers.",
       "platforms": [
         "Windows"
       ],
@@ -3212,16 +3018,26 @@
         "{powershell}",
         "-NoProfile",
         "-File",
-        "scripts/Test-LocalInstall.ps1"
+        "scripts/Test-LocalInstall.ps1",
+        "-Python",
+        "{python}"
       ],
       "kind": "integration",
       "capabilities": [
         "release"
       ],
-      "inputs": [],
-      "needs": [],
+      "inputs": [
+        "scripts/Test-LocalInstall.ps1"
+      ],
+      "needs": [
+        "build-release"
+      ],
       "prerequisites": [
-        "tool:pwsh"
+        "tool:pwsh",
+        "module:specify_cli",
+        "module:yaml",
+        "tool:specify",
+        "tool:git"
       ],
       "suites": [],
       "budgetSeconds": 300,
@@ -3452,39 +3268,8 @@
       ]
     },
     {
-      "id": "validate_bootstrap_context",
-      "purpose": "Bootstrap context contract validation.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_bootstrap_context.py"
-      ],
-      "kind": "integration",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_bootstrap_context.py"
-      ],
-      "needs": [],
-      "prerequisites": [
-        "tool:dotnet",
-        "tool:node"
-      ],
-      "suites": [],
-      "budgetSeconds": 300,
-      "timeoutSeconds": 600,
-      "manualOnly": true,
-      "reviewInputs": [
-        "tests/validate_bootstrap_context.py"
-      ]
-    },
-    {
       "id": "validate_bootstrap_intake",
-      "purpose": "Bootstrap intake contract validation.",
+      "purpose": "Confirmed intake schema, C4 hierarchy/round-trip and ADR source linkage; historical filename retained.",
       "platforms": [
         "Windows",
         "Linux"
@@ -3512,7 +3297,7 @@
     },
     {
       "id": "validate_bootstrap_semantics",
-      "purpose": "Bootstrap semantics contract validation.",
+      "purpose": "Product/domain/map semantic negatives and draft intake consistency; historical filename retained.",
       "platforms": [
         "Windows",
         "Linux"
@@ -3551,15 +3336,13 @@
       ],
       "kind": "integration",
       "capabilities": [
-        "phases"
+        "architecture"
       ],
       "inputs": [
         "tests/validate_c4_view.py"
       ],
       "needs": [],
-      "prerequisites": [
-        "tool:docker"
-      ],
+      "prerequisites": [],
       "suites": [],
       "budgetSeconds": 300,
       "timeoutSeconds": 600,
@@ -3570,7 +3353,7 @@
     },
     {
       "id": "validate_live_bootstrap_acceptance",
-      "purpose": "Live bootstrap acceptance contract validation.",
+      "purpose": "Shared offline supervision, redaction, historical checkpoint copying, exact restore-request guards and loopback transfer; no coding workers or provider operations.",
       "platforms": [
         "Windows",
         "Linux"
@@ -3581,16 +3364,14 @@
       ],
       "kind": "integration",
       "capabilities": [
-        "bootstrap"
+        "live-harness"
       ],
       "inputs": [
         "tests/validate_live_bootstrap_acceptance.py"
       ],
       "needs": [],
       "prerequisites": [
-        "module:specify_cli",
-        "tool:dotnet",
-        "tool:node"
+        "module:specify_cli"
       ],
       "suites": [],
       "budgetSeconds": 300,
@@ -3943,62 +3724,6 @@
       "manualOnly": true
     },
     {
-      "id": "validate_installed_bootstrap_flow",
-      "purpose": "All shipped bootstrap steps, real shell validators, fictional authoring/reviews.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_installed_bootstrap_flow.py"
-      ],
-      "kind": "package",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_installed_bootstrap_flow.py"
-      ],
-      "needs": [
-        "build-release"
-      ],
-      "prerequisites": [
-        "module:specify_cli"
-      ],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
-      "id": "validate_bootstrap_consistency_e2e",
-      "purpose": "Bootstrap consistency e2e contract validation.",
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "command": [
-        "{python}",
-        "tests/validate_bootstrap_consistency_e2e.py"
-      ],
-      "kind": "package",
-      "capabilities": [
-        "bootstrap"
-      ],
-      "inputs": [
-        "tests/validate_bootstrap_consistency_e2e.py"
-      ],
-      "needs": [
-        "build-release"
-      ],
-      "prerequisites": [],
-      "suites": [],
-      "budgetSeconds": 120,
-      "timeoutSeconds": 240,
-      "manualOnly": true
-    },
-    {
       "id": "validate_packaged_ui",
       "purpose": "Packaged ui contract validation.",
       "platforms": [
@@ -4041,7 +3766,8 @@
         "release"
       ],
       "inputs": [
-        "tests/validate_release_install.py"
+        "tests/validate_release_install.py",
+        "tests/local_bundle_fixture.py"
       ],
       "needs": [
         "build-release"
@@ -4049,7 +3775,8 @@
       "prerequisites": [
         "tool:specify",
         "module:yaml",
-        "module:specify_cli"
+        "module:specify_cli",
+        "runtime:json-schema"
       ],
       "suites": [],
       "budgetSeconds": 120,
@@ -5248,19 +4975,21 @@
       "purpose": "Representative knowledge operational contract; see docs/validation.md for omissions."
     },
     {
-      "id": "mechanics-bootstrap",
+      "id": "mechanics-founding",
       "command": [
         "{python}",
         "tests/validate_mechanical_fixtures.py",
         "--family",
-        "bootstrap"
+        "founding"
       ],
       "kind": "mechanical",
       "capabilities": [
-        "bootstrap"
+        "founding"
       ],
       "inputs": [
-        "tests/validate_mechanical_fixtures.py"
+        "tests/validate_mechanical_fixtures.py",
+        "tests/validate_product_intake.py",
+        "tests/local_bundle_fixture.py"
       ],
       "needs": [],
       "prerequisites": [
@@ -5277,7 +5006,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Representative bootstrap operational contract; see docs/validation.md for omissions."
+      "purpose": "Real native installed intake skill, exact fictional founding review/ratification/decision acceptance, stale authority rejection and direct first-spec handoff; no agents or runtime proof matrix."
     },
     {
       "id": "mechanics-upgrade",
@@ -5489,7 +5218,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Native install_bundle of exact five component archives through local transport, real ownership/hooks/registries and installed governance coherence plus validator accept/reject."
+      "purpose": "Native install_bundle of exact four component archives through local transport, real ownership/hooks/registries and installed governance coherence plus validator accept/reject."
     },
     {
       "id": "validate_device_selection",
@@ -5502,10 +5231,14 @@
         "native-toolchain"
       ],
       "inputs": [
-        "tests/validate_device_selection.py"
+        "tests/validate_device_selection.py",
+        "Initialize-ProgramKit.cmd",
+        "Initialize-ProgramKit.sh"
       ],
       "needs": [],
-      "prerequisites": [],
+      "prerequisites": [
+        "module:packaging"
+      ],
       "suites": [],
       "budgetSeconds": 60,
       "timeoutSeconds": 120,
@@ -5513,7 +5246,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Exact contributor Spec Kit pin follows shared package workflow, ambiguity rejects without unrelated device preflight."
+      "purpose": "Scoped device selection, exact contributor-only Spec Kit parity, and actual emitted initializer library-range admission; no device installer execution."
     },
     {
       "id": "validate_material_closure_native",
@@ -6419,13 +6152,33 @@
     {
       "id": "validate_intake_install",
       "purpose": "Actual native intake install from exact release-builder archives, all installed component bytes and bundle ownership; no worker.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_intake_install.py", "--assets-dir", "artifacts"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_intake_install.py",
+        "--assets-dir",
+        "artifacts"
+      ],
       "kind": "integration",
-      "capabilities": ["bootstrap", "release"],
-      "inputs": ["tests/validate_intake_install.py"],
-      "needs": ["build-release"],
-      "prerequisites": ["tool:specify", "tool:git", "module:yaml", "module:specify_cli"],
+      "capabilities": [
+        "founding",
+        "release"
+      ],
+      "inputs": [
+        "tests/validate_intake_install.py"
+      ],
+      "needs": [
+        "build-release"
+      ],
+      "prerequisites": [
+        "tool:specify",
+        "tool:git",
+        "module:yaml",
+        "module:specify_cli"
+      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
@@ -6434,13 +6187,25 @@
     {
       "id": "validate_fixture_isolation",
       "purpose": "Offline native MSBuild ancestor import failure, shared scratch preparation, exact pins and preserved pickup sources.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_fixture_isolation.py"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_fixture_isolation.py"
+      ],
       "kind": "integration",
-      "capabilities": ["bootstrap"],
-      "inputs": ["tests/validate_fixture_isolation.py"],
+      "capabilities": [
+        "bootstrap"
+      ],
+      "inputs": [
+        "tests/validate_fixture_isolation.py"
+      ],
       "needs": [],
-      "prerequisites": ["tool:dotnet"],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
       "suites": [],
       "budgetSeconds": 90,
       "timeoutSeconds": 150,
@@ -6473,6 +6238,162 @@
       "budgetSeconds": 30,
       "timeoutSeconds": 60,
       "manualOnly": false
+    },
+    {
+      "id": "validate_product_intake_archive",
+      "purpose": "Actual release archives installed through native bundle ownership, then fictional founding review/ratification/exact acceptance and direct Candidate/new feature intake. No agents or real human acceptance.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_product_intake.py",
+        "--archive"
+      ],
+      "kind": "package",
+      "capabilities": [
+        "founding",
+        "release"
+      ],
+      "inputs": [
+        "tests/validate_product_intake.py",
+        "tests/local_bundle_fixture.py"
+      ],
+      "needs": [
+        "build-release"
+      ],
+      "prerequisites": [
+        "module:specify_cli",
+        "module:yaml",
+        "tool:git",
+        "runtime:json-schema"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_public_install",
+      "purpose": "Explicit post-publication native public-catalog installation using the selected public ref; does not qualify unpublished candidate bytes.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_public_install.py"
+      ],
+      "kind": "package",
+      "capabilities": [
+        "release"
+      ],
+      "inputs": [
+        "tests/validate_public_install.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "tool:specify",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_product_frontier",
+      "purpose": "Existing product open items reach feature review with explicit applicability and exact source linkage; due selected decisions block their real phase, unrelated questions remain excluded, no replacement ledger.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_product_frontier.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "founding",
+        "intake",
+        "phases"
+      ],
+      "inputs": [
+        "tests/validate_product_frontier.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 15,
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "validate_device_handoff",
+      "purpose": "Action-scoped device diagnosis, manager preservation, human preparation scripts, ignored outputs, safe quoting and no installer execution; declared project restores stay separate.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_device_handoff.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "shared-runtime",
+        "native-toolchain",
+        "validation",
+        "architecture",
+        "repair"
+      ],
+      "inputs": [
+        "tests/validate_device_handoff.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 60,
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "validate_upgrade_faults",
+      "purpose": "Explicit user-requested installer interruption/retry at every named owner boundary; original source and failed evidence stay preserved. No device installation.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_local_upgrade.py",
+        "--fault-matrix"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "upgrade"
+      ],
+      "inputs": [
+        "tests/validate_local_upgrade.py",
+        "tests/upgrade_selection_cases.py",
+        "tests/upgrade_fault_matrix.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:specify_cli",
+        "tool:dotnet",
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 600,
+      "timeoutSeconds": 900,
+      "manualOnly": true,
+      "reviewInputs": [
+        "tests/validate_local_upgrade.py",
+        "tests/upgrade_selection_cases.py",
+        "tests/upgrade_fault_matrix.py"
+      ]
     }
   ]
 }

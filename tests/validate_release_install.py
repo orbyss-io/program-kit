@@ -7,7 +7,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import zipfile
 from pathlib import Path
 
@@ -28,7 +27,58 @@ EXPECTED_HOOKS = {
     "after_implement",
 }
 
+RETIRED_COMMANDS = {
+    'assessment', 'research', 'roadmap', 'tooling', 'bootstrap-closure',
+    'bootstrap-recovery', 'proxy-bootstrap',
+}
 
+
+def install_archives(project: Path, release: Path, archives: dict, *, version: str):
+    """Keep native planning, pin checks and ownership; supply local release ZIPs."""
+    from specify_cli._assets import get_speckit_version
+    from specify_cli.bundles.adapters import DefaultPrimitiveInstaller
+    from specify_cli.bundles.installer import install_bundle
+    from specify_cli.bundles.manifest import BundleManifest
+    from specify_cli.bundles.resolver import resolve_install_plan
+    from specify_cli.events import refresh_integration_events
+    from specify_cli.extensions import ExtensionManager
+    from specify_cli.presets import PresetManager
+    sys.path.insert(0, str(release / 'extensions/program-kit-governance/scripts'))
+    import render_profile
+
+    def install(kind, identity, force=False):
+        archive = archives[(kind, identity)]
+        operation = 'extension' if kind == 'extensions' else 'preset'
+        with render_profile.capture(project, [operation, 'add', str(archive)]):
+            manager = ExtensionManager(project) if kind == 'extensions' else PresetManager(project)
+            installed = manager.install_from_zip(archive, get_speckit_version(), force=force,
+                expected_id=identity, expected_version=version)
+            if kind == 'extensions':
+                refresh_integration_events(project)
+                _, _, failed = manager.scaffold_config(installed.id)
+                if failed:
+                    raise AssertionError('Native archive configuration scaffolding failed: ' + ', '.join(failed))
+
+    class ArchiveInstaller(DefaultPrimitiveInstaller):
+        def install(self, target, component):
+            assert Path(target).resolve() == project.resolve()
+            assert component.version == version
+            install(component.kind, component.id)
+
+    manifest = BundleManifest.from_file(release / 'bundle.yml')
+    plan = resolve_install_plan(manifest, speckit_version=get_speckit_version(), active_integration='codex')
+    result = install_bundle(project, plan, ArchiveInstaller(allow_network=False), manifest=manifest)
+    assert len(result.installed) == 4 and not result.skipped
+    return install
+
+
+def installed_check(project, script, *arguments, expected=0):
+    result = subprocess.run([sys.executable, '-B', str(script), *arguments], cwd=project,
+        capture_output=True, text=True, encoding='utf-8', timeout=90)
+    if result.returncode != expected:
+        raise AssertionError(f'Installed command returned {result.returncode}, expected {expected}: '
+                             + result.stdout + result.stderr)
+    return result
 
 
 def run(*args: str, cwd: Path) -> None:
@@ -67,7 +117,6 @@ def main() -> int:
     building_blocks_zip = assets / f"program-kit-building-blocks-{version}.zip"
     dotnet_zip = assets / f"program-kit-dotnet-{version}.zip"
     preset_zip = assets / f"program-kit-governance-preset-{version}.zip"
-    workflow_zip = assets / f"program-kit-bootstrap-{version}.zip"
     bundle_zip = assets / f"program-kit-{version}.zip"
     tooling_zip = assets / f"program-kit-tooling-{version}.zip"
     initializers = {
@@ -81,7 +130,6 @@ def main() -> int:
             building_blocks_zip,
             dotnet_zip,
             preset_zip,
-            workflow_zip,
             bundle_zip,
             tooling_zip,
             *initializers.values(),
@@ -97,7 +145,7 @@ def main() -> int:
                 f"Versioned {suffix} consumer initializer differs from the root template"
             )
 
-    for release_zip in (extension_zip, building_blocks_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip, tooling_zip):
+    for release_zip in (extension_zip, building_blocks_zip, dotnet_zip, preset_zip, bundle_zip, tooling_zip):
         with zipfile.ZipFile(release_zip, "r") as archive:
             forbidden_entries = []
             for name in archive.namelist():
@@ -150,11 +198,18 @@ def main() -> int:
             )
 
     with FixtureDirectory(prefix="program-kit-release-test-") as directory:
-        project = Path(directory)
-        extracted_extension = project / "release-extension"
-        extracted_building_blocks = project / "release-building-block-extension"
-        extracted_dotnet = project / "release-dotnet-extension"
-        extracted_preset = project / "release-governance-preset"
+        owned = Path(directory)
+        project = owned / 'consumer'
+        project.mkdir()
+        release = owned / 'release'
+        with zipfile.ZipFile(tooling_zip) as archive:
+            archive.extractall(release)
+        with zipfile.ZipFile(bundle_zip) as archive:
+            archive.extractall(release)
+        extracted_extension = owned / "release-extension"
+        extracted_building_blocks = owned / "release-building-block-extension"
+        extracted_dotnet = owned / "release-dotnet-extension"
+        extracted_preset = owned / "release-governance-preset"
         with zipfile.ZipFile(extension_zip, "r") as archive:
             archive.extractall(extracted_extension)
         with zipfile.ZipFile(building_blocks_zip, "r") as archive:
@@ -174,7 +229,7 @@ def main() -> int:
             if not (extracted_building_blocks / path).is_file():
                 raise AssertionError(f"Building-block extension release ZIP is missing {path}")
         for path in (
-            "scripts/codex_bootstrap_preflight.py",
+            "scripts/product_intake.py",
             "scripts/consumer_upgrade.py",
             "commands/speckit.program-kit-governance.upgrade.md",
             "references/consumer-upgrade.md",
@@ -184,7 +239,8 @@ def main() -> int:
             "scripts/specification_intake.py",
             "scripts/architecture_map.py",
             "scripts/c4_view.py",
-            "commands/speckit.program-kit-governance.assessment.md",
+            "commands/speckit.program-kit-governance.product-intake.md",
+            "references/product-founding.md",
             "commands/speckit.program-kit-governance.grilling.md",
             "commands/speckit.program-kit-governance.specification-intake.md",
             "references/specification-intake.md",
@@ -202,6 +258,13 @@ def main() -> int:
         ):
             if not (extracted_extension / path).is_file():
                 raise AssertionError(f"Extension release ZIP is missing {path}")
+        manifest = yaml.safe_load((extracted_extension / 'extension.yml').read_text(encoding='utf-8'))
+        for command in manifest['provides']['commands']:
+            if not (extracted_extension / command['file']).is_file():
+                raise AssertionError('Advertised command missing from archive: ' + command['name'])
+        for name in RETIRED_COMMANDS:
+            if (extracted_extension / f'commands/speckit.program-kit-governance.{name}.md').exists():
+                raise AssertionError('Archive still delivers retired command: ' + name)
         packaged_rule_files = list(extracted_extension.rglob("*.rules"))
         if packaged_rule_files:
             raise AssertionError(
@@ -225,15 +288,11 @@ def main() -> int:
                 raise AssertionError(
                     f"Extension release ZIP reintroduced escalation guidance: {phrase}"
                 )
-        for phrase in (
-            "normal user-owned PowerShell or WSL",
-            "Do not call a shell tool",
-            "git clone --no-hardlinks --no-checkout",
-        ):
-            if phrase not in packaged_guidance:
-                raise AssertionError(
-                    f"Extension release ZIP is missing safe boundary guidance: {phrase}"
-                )
+        alias = (extracted_extension / 'commands/speckit.program-kit-governance.bootstrap.md').read_text(encoding='utf-8')
+        if 'speckit-program-kit-governance-product-intake' not in alias or 'workflow_lifecycle.py' in alias:
+            raise AssertionError('Compatibility alias must route directly to the installed product-intake skill')
+        if 'normal user-owned PowerShell or WSL' not in ' '.join(packaged_guidance.split()):
+            raise AssertionError('Packaged Windows guidance lost the human-terminal installation boundary')
         for reference in ("vertical-slicing.md", "modularity-and-contracts.md", "default-adoption.md"):
             if not (extracted_extension / "references" / reference).is_file():
                 raise AssertionError(f"Extension release ZIP is missing {reference}")
@@ -277,30 +336,12 @@ def main() -> int:
             "--ignore-agent-tools",
             cwd=project,
         )
-        run(
-            "specify",
-            "extension",
-            "add",
-            str(extracted_dotnet),
-            "--dev",
-            cwd=project,
-        )
-        run(
-            "specify",
-            "extension",
-            "add",
-            str(extracted_building_blocks),
-            "--dev",
-            cwd=project,
-        )
-        run(
-            "specify",
-            "preset",
-            "add",
-            "--dev",
-            str(extracted_preset),
-            cwd=project,
-        )
+        reinstall = install_archives(project, release, {
+            ('extensions', 'program-kit-governance'): extension_zip,
+            ('extensions', 'program-kit-building-blocks'): building_blocks_zip,
+            ('extensions', 'program-kit-dotnet'): dotnet_zip,
+            ('presets', 'program-kit-governance-preset'): preset_zip,
+        }, version=version)
         if not (project / ".agents/skills/speckit-constitution/SKILL.md").is_file():
             raise AssertionError(
                 "Spec Kit did not install the core speckit.constitution command"
@@ -328,30 +369,35 @@ def main() -> int:
         preexisting_config_path.write_text(
             yaml.safe_dump(preexisting_config, sort_keys=False), encoding="utf-8"
         )
-        run(
-            "specify",
-            "extension",
-            "add",
-            str(extracted_extension),
-            "--dev",
-            "--force",
-            cwd=project,
-        )
-        run(
-            "specify",
-            "extension",
-            "add",
-            str(extracted_extension),
-            "--dev",
-            "--force",
-            cwd=project,
-        )
-        bootstrap_skill = (
+        reinstall('extensions', 'program-kit-governance', force=True)
+        reinstall('extensions', 'program-kit-governance', force=True)
+        for kind, identity, payload in (
+            ('extensions', 'program-kit-governance', extension_zip),
+            ('extensions', 'program-kit-building-blocks', building_blocks_zip),
+            ('extensions', 'program-kit-dotnet', dotnet_zip),
+            ('presets', 'program-kit-governance-preset', preset_zip),
+        ):
+            destination = project / '.specify' / kind / identity
+            if destination.is_symlink() or (destination / '.specify-dev').exists():
+                raise AssertionError('Release archive produced linked development registration: ' + identity)
+            with zipfile.ZipFile(payload) as archive:
+                for name in archive.namelist():
+                    if not name.endswith('/') and (destination / name).read_bytes() != archive.read(name):
+                        raise AssertionError('Installed payload differs from independent archive: ' + identity + '/' + name)
+        product_skill = (
             project
-            / ".agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md"
+            / ".agents/skills/speckit-program-kit-governance-product-intake/SKILL.md"
         )
-        if not bootstrap_skill.is_file():
-            raise AssertionError("Codex-safe Program Kit bootstrap skill was not installed")
+        if not product_skill.is_file():
+            raise AssertionError("Program Kit product-intake skill was not installed")
+        for command in manifest['provides']['commands']:
+            skill = project / '.agents/skills' / command['name'].replace('.', '-') / 'SKILL.md'
+            installed_source = project / '.specify/extensions/program-kit-governance' / command['file']
+            if not skill.is_file() or installed_source.read_bytes() != (extracted_extension / command['file']).read_bytes():
+                raise AssertionError('Native command registration differs from archive: ' + command['name'])
+        for name in RETIRED_COMMANDS:
+            if (project / f'.agents/skills/speckit-program-kit-governance-{name}').exists():
+                raise AssertionError('Retired command was registered as a native skill: ' + name)
         c4_view_skill = project / ".agents/skills/speckit-program-kit-governance-view-c4/SKILL.md"
         if not c4_view_skill.is_file():
             raise AssertionError("C4 projection viewing skill was not installed")
@@ -365,7 +411,7 @@ def main() -> int:
             ".specify/extensions/program-kit-governance/commands/"
             "speckit.program-kit-governance.grilling.md"
         )
-        if grilling_reference not in bootstrap_skill.read_text(encoding="utf-8"):
+        if "speckit.program-kit-governance.grilling" not in product_skill.read_text(encoding="utf-8"):
             raise AssertionError("Installed intake lost its Program Kit grilling dependency")
         if grilling_reference not in feature_intake_skill.read_text(encoding="utf-8"):
             raise AssertionError("Installed feature intake lost its Program Kit grilling dependency")
@@ -382,9 +428,9 @@ def main() -> int:
             or "never performs bootstrap approval" not in c4_view_skill_text
         ):
             raise AssertionError("Installed C4 viewer skill lost the draft-review approval boundary")
-        installed_skill_text = bootstrap_skill.read_text(encoding="utf-8")
-        if "Stop. Do not call a shell tool" not in installed_skill_text:
-            raise AssertionError("Installed bootstrap skill lost its execution-boundary guidance")
+        installed_skill_text = product_skill.read_text(encoding="utf-8")
+        if 'product_intake.py' not in installed_skill_text:
+            raise AssertionError('Installed product-intake skill lost its mechanical entrypoint')
         if 'references/functional-discovery.md' not in installed_skill_text:
             raise AssertionError('Installed intake does not route functional discovery before convergence')
         functional = project/'.specify/extensions/program-kit-governance/references/functional-discovery.md'
@@ -393,7 +439,46 @@ def main() -> int:
         specification = (project/'.agents/skills/speckit-program-kit-governance-specification-intake/SKILL.md').read_text(encoding='utf-8')
         if 'functional-discovery.md' not in specification:
             raise AssertionError('Installed specification intake cannot carry the functional model forward')
-        run("specify", "workflow", "add", str(workflow_zip), "--dev", cwd=project)
+
+        installed_scripts = project / '.specify/extensions/program-kit-governance/scripts'
+        installed_check(project, installed_scripts / 'governance_state.py', 'validate-installation')
+        registry_path = project / '.specify/presets/.registry'
+        original_registry = registry_path.read_bytes()
+        registry = json.loads(original_registry)
+        registry['presets']['program-kit-governance-preset']['version'] = '0.0.0'
+        registry_path.write_text(json.dumps(registry) + '\n', encoding='utf-8')
+        before_mismatch = snapshot(project)
+        try:
+            refusal = installed_check(project, installed_scripts / 'governance_state.py',
+                                      'validate-installation', expected=1)
+            if 'version' not in (refusal.stdout + refusal.stderr).lower():
+                raise AssertionError('Coherence failure did not identify the version mismatch')
+            if snapshot(project) != before_mismatch:
+                raise AssertionError('Coherence refusal changed the consumer')
+        finally:
+            registry_path.write_bytes(original_registry)
+        # Verify the actual copied native outputs, including refusal to overwrite
+        # consumer customization. The existing owner replays registered sources.
+        from local_bundle_fixture import verify_release_copies
+        verify_release_copies(project, release)
+
+        # Reuse only the exact prepared project-local schema dependency. This
+        # fixture never acquires or changes a device interpreter/toolchain.
+        sys.path.insert(0, str(extracted_extension / 'scripts'))
+        import schema_runtime
+        runtime = schema_runtime.runtime_path(root)
+        if not (runtime / '.ready').is_file():
+            raise RuntimeError('SCHEMA_RUNTIME_MISSING: prepare the exact project dependency before this fixture')
+        shutil.copytree(runtime, schema_runtime.runtime_path(project))
+        installed_check(project, installed_scripts / 'schema_runtime.py', 'record-copy')
+        installed_check(project, installed_scripts / 'product_intake.py', '--help')
+        before_intake = snapshot(project)
+        status = installed_check(project, installed_scripts / 'product_intake.py', 'status', expected=1)
+        payload = json.loads(status.stdout)
+        if payload.get('status') != 'NOT READY' or payload.get('eligible') is not False or not payload.get('next_action'):
+            raise AssertionError('Clean installed product-intake did not report an actionable incomplete state')
+        if snapshot(project) != before_intake:
+            raise AssertionError('Installed product-intake status changed the consumer')
 
         scenario_architecture = (
             root / "tests/live/scenarios/clean-bootstrap/docs/architecture"
@@ -418,7 +503,8 @@ def main() -> int:
         )
         draft_review = subprocess.run(
             [
-                "python",
+                sys.executable,
+                '-B',
                 str(installed_viewer),
                 "inspect",
                 "--project-root",
@@ -451,7 +537,8 @@ def main() -> int:
         )
         draft_bootstrap_validation = subprocess.run(
             [
-                "python",
+                sys.executable,
+                '-B',
                 str(installed_intake_validator),
                 "validate",
                 "--project-root",
@@ -468,14 +555,15 @@ def main() -> int:
             draft_bootstrap_validation.returncode == 0
             or "not confirmed" not in draft_bootstrap_validation.stderr
         ):
-            raise AssertionError("The packaged outer bootstrap validator accepted a draft intake")
+            raise AssertionError("The packaged intake validator accepted a draft intake")
 
         intake["status"] = "confirmed"
         intake_path.write_text(
             json.dumps(intake, indent=2) + "\n", encoding="utf-8", newline="\n"
         )
         run(
-            "python",
+            sys.executable,
+            '-B',
             str(installed_intake_validator),
             "validate",
             "--project-root",
@@ -487,13 +575,11 @@ def main() -> int:
         extension_config = yaml.safe_load(
             (project / ".specify/extensions.yml").read_text(encoding="utf-8")
             )
-        if "Do not enumerate the repository" not in installed_skill_text:
-            raise AssertionError("Installed bootstrap skill lost its bounded-discovery contract")
         if not (
             project
             / ".specify/extensions/program-kit-governance/references/intake-artifacts.md"
         ).is_file():
-            raise AssertionError("Installed bootstrap skill is missing its compact authoring contract")
+            raise AssertionError("Installed product-intake skill is missing its compact authoring contract")
         deployed_config = (
             project
             / ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
@@ -569,22 +655,12 @@ def main() -> int:
         ).is_file():
             raise AssertionError("Building-block sync command was not installed as a namespaced skill")
 
-        installed_workflow = yaml.safe_load(
-            (
-                project
-                / ".specify/workflows/program-kit-bootstrap/workflow.yml"
-            ).read_text(encoding="utf-8")
-        )
-        steps = installed_workflow.get("steps", [])
-        step_ids = [step["id"] for step in steps]
-        expected_steps = [step["id"] for step in yaml.safe_load((root / "workflows/program-kit-bootstrap/workflow.yml").read_text(encoding="utf-8"))["steps"]]
-        if step_ids != expected_steps:
-            raise AssertionError(f"Installed workflow steps {step_ids} != {expected_steps}")
+        if (project / '.specify/workflows/program-kit-bootstrap').exists():
+            raise AssertionError('Retired workflow was installed')
+        assert (project / '.agents/skills/speckit-program-kit-governance-product-intake/SKILL.md').is_file()
 
-        # Spec Kit resolves third-party primitives through their catalogs
-        # even when a bundle is installed from a local ZIP. The archive is
-        # therefore verified for its pinned component graph here; the live
-        # public-catalog test validates catalog-backed bundle installation.
+        # The native bundle record was created from these exact four archives;
+        # catalog transport is covered separately by the candidate install check.
         with zipfile.ZipFile(bundle_zip, "r") as archive:
             packaged_bundle = yaml.safe_load(archive.read("bundle.yml"))
         with zipfile.ZipFile(tooling_zip, "r") as archive:
@@ -604,9 +680,11 @@ def main() -> int:
             ("extensions", "program-kit-building-blocks"),
             ("extensions", "program-kit-dotnet"),
             ("presets", "program-kit-governance-preset"),
-            ("workflows", "program-kit-bootstrap"),
         }:
             raise AssertionError(f"Unexpected packaged bundle component graph: {component_graph}")
+        for kind, entries in packaged_bundle['provides'].items():
+            if any(entry.get('version') != version for entry in entries):
+                raise AssertionError('Bundle component pins differ from the release version: ' + kind)
 
     print("Packaged component and bundle install test passed.")
     return 0

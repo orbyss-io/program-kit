@@ -23,16 +23,16 @@ import zipfile
 from local_catalog_server import CatalogHandler
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = Path('.agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md')
+SKILL = Path('.agents/skills/speckit-program-kit-governance-product-intake/SKILL.md')
 GRILLING = Path('.specify/extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md')
 INSTRUCTIONS = """# Interactive intake evaluation
 
-Read .agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md in full and
+Read .agents/skills/speckit-program-kit-governance-product-intake/SKILL.md in full and
 use that installed skill. Follow its routed references and Program Kit's own
 grilling method, not an unrelated personal grilling skill. Use the human's opening
 message as the starting product idea. If product-idea.md is supplied, read it as
 additional user input. Ask the human questions in this conversation.
-This is intake only: do not run bootstrap, install/update components, start
+This is intake only: do not accept the founding baseline, install/update components, start
 another agent, or implement the product. Stop after the intake review and handoff.
 Keep the skill's compact question/decision record current, including partial
 answers, corrections and pending questions. Do not claim user confirmation early.
@@ -44,7 +44,7 @@ CONSUMER_INSTRUCTIONS = """# Consumer trial
 
 For the interactive intake task, read INTAKE-SESSION.md and follow its installed
 intake skill. Those interview-only instructions apply only to that task.
-For a separately authorized bootstrap stage or feature task, follow the installed
+For a separately authorized founding continuation or feature task, follow the installed
 skill named by that task and its supplied context. Do not repeat the intake or
 reread its skill unless the task explicitly returns to intake. This file grants
 no approval, workflow execution, installation or paid-agent authorization.
@@ -94,17 +94,59 @@ def release_assets(record: Path, supplied: Path | None = None) -> Path:
         checksums[name] = expected
     names = [f'{name}-{version}.zip' for name in (
         'program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet',
-        'program-kit-governance-preset', 'program-kit-bootstrap', 'program-kit')]
+        'program-kit-governance-preset', 'program-kit', 'program-kit-tooling')]
     for name in names:
         path = supplied / name
         if checksums.get(name) != digest(path):
             raise ValueError('Release asset is missing or differs from SHA256SUMS: ' + name)
-        validate_distribution_archive(path)
+        validate_distribution_archive(path, tooling=name.startswith('program-kit-tooling-'))
+    verify_source_assets(supplied, version)
     save(record / 'installation-inputs.json', {
         'schemaVersion': 1, 'version': version, 'origin': 'local-release-build' if built else 'supplied-assets',
         'assetsDirectory': str(supplied), 'sha256': {name: checksums[name] for name in names},
         'scope': 'Local package installation; no public release or consumer acceptance claim'})
     return supplied
+
+
+def verify_source_assets(assets: Path, version: str) -> None:
+    """Bind supplied package bytes to this source, including dirty candidate inputs."""
+    from build_release import bundle_source_files
+    from build_release_guidance import build as build_guidance
+    with zipfile.ZipFile(assets / f'program-kit-tooling-{version}.zip') as archive:
+        witness = json.loads(archive.read('program-kit-source-witness.json'))
+        files = {name: hashlib.sha256(archive.read(name)).hexdigest() for name in archive.namelist()
+                 if not name.endswith('/') and name != 'program-kit-source-witness.json'}
+        encoded_files = (json.dumps(files, sort_keys=True, indent=2, ensure_ascii=False) + '\n').encode('utf-8')
+        if witness.get('schemaVersion') != 1 or witness.get('files') != files or witness.get('fileSetSha256') != hashlib.sha256(encoded_files).hexdigest():
+            raise ValueError('Release tooling source witness differs from actual archive bytes')
+        expected = {relative.as_posix(): digest(ROOT / relative) for relative in bundle_source_files(ROOT)}
+        for name, sha in expected.items():
+            if files.get(name) != sha:
+                raise ValueError('Release tooling differs from the current intake source: ' + name)
+        with tempfile.TemporaryDirectory(prefix='intake-guidance-') as temporary:
+            guidance = Path(temporary) / 'full'
+            build_guidance(ROOT, guidance, version)
+            generated = {'references/release-guidance/' + path.relative_to(guidance).as_posix(): path.read_bytes()
+                         for path in guidance.rglob('*') if path.is_file()}
+            tooling_guidance = Path(temporary) / 'tooling'
+            build_guidance(ROOT, tooling_guidance, version, aggregates=False)
+            expected.update({'extensions/program-kit-governance/references/release-guidance/' + path.relative_to(tooling_guidance).as_posix(): digest(path)
+                             for path in tooling_guidance.rglob('*') if path.is_file()})
+            if files != expected:
+                raise ValueError('Release tooling has missing, changed or unexpected same-source members')
+            for kind, identities in (('extensions', ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet')),
+                                     ('presets', ('program-kit-governance-preset',))):
+                for identity in identities:
+                    prefix = kind + '/' + identity + '/'
+                    wanted = {name[len(prefix):]: archive.read(name) for name in files if name.startswith(prefix)}
+                    if identity == 'program-kit-governance': wanted.update(generated)
+                    with zipfile.ZipFile(assets / f'{identity}-{version}.zip') as component:
+                        actual = {name: component.read(name) for name in component.namelist() if not name.endswith('/')}
+                        if actual != wanted:
+                            raise ValueError('Component archive differs from same-source tooling: ' + identity)
+        with zipfile.ZipFile(assets / f'program-kit-{version}.zip') as bundle:
+            if bundle.read('bundle.yml') != archive.read('bundle.yml'):
+                raise ValueError('Native composition differs from same-source tooling')
 
 
 @contextmanager
@@ -135,14 +177,6 @@ def candidate_catalogs(record: Path, assets: Path | None = None):
                 catalog[kind][name]['download_url'] = f'{base}/{name}.zip'
                 catalog[kind][name]['sha256'] = digest(directory / f'{name}.zip')
             save(directory / f'{kind}.json', catalog)
-        # Native workflow downloads support release archives as well as YAML.
-        # Exercise the archive itself, with its exact published checksum.
-        shutil.copyfile(assets / f'program-kit-bootstrap-{version}.zip', directory / 'program-kit-bootstrap.zip')
-        workflow = json.loads((ROOT / 'catalogs/workflows.json').read_text(encoding='utf-8'))
-        workflow['catalog_url'] = f'{base}/workflows.json'
-        workflow['workflows']['program-kit-bootstrap']['url'] = f'{base}/program-kit-bootstrap.zip'
-        workflow['workflows']['program-kit-bootstrap']['sha256'] = digest(directory / 'program-kit-bootstrap.zip')
-        save(directory / 'workflows.json', workflow)
         shutil.copyfile(assets / f'program-kit-{version}.zip', directory / 'program-kit.zip')
         bundle = json.loads((ROOT / 'catalogs/bundles.json').read_text(encoding='utf-8'))
         bundle['catalog_url'] = f'{base}/bundles.json'
@@ -151,7 +185,7 @@ def candidate_catalogs(record: Path, assets: Path | None = None):
         save(directory / 'bundles.json', bundle)
         expected = json.loads((record / 'installation-inputs.json').read_text(encoding='utf-8'))['sha256']
         for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet',
-                     'program-kit-governance-preset', 'program-kit-bootstrap', 'program-kit'):
+                     'program-kit-governance-preset', 'program-kit'):
             if digest(directory / f'{name}.zip') != expected[f'{name}-{version}.zip']:
                 raise ValueError('Release asset changed during transport preparation: ' + name)
         if os.name == 'nt':
@@ -208,13 +242,8 @@ def install_components(specify: str, git: str, workspace: Path, record: Path, as
             [specify, 'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py', '--ignore-agent-tools'],
             [specify, 'extension', 'catalog', 'add', f'{base}/extensions.json', '--name', 'intake-candidate', '--priority', '1', '--install-allowed'],
             [specify, 'preset', 'catalog', 'add', f'{base}/presets.json', '--name', 'intake-candidate', '--priority', '1', '--install-allowed'],
-            [specify, 'workflow', 'catalog', 'add', f'{base}/workflows.json', '--name', 'intake-candidate'],
             [specify, 'bundle', 'catalog', 'add', f'{base}/bundles.json', '--id', 'intake-candidate', '--policy', 'install-allowed'],
-            # Spec Kit requires workflow preinstallation. Let the bundle contribute the other
-            # components itself: preinstalling everything omits their bundle provenance.
-            [specify, 'workflow', 'add', 'program-kit-bootstrap'],
             [specify, 'bundle', 'install', 'program-kit', '--integration', 'codex'],
-            [specify, 'workflow', 'catalog', 'remove', '0'],
             [specify, 'bundle', 'catalog', 'remove', 'intake-candidate'],
             [specify, 'extension', 'catalog', 'remove', 'intake-candidate'],
             [specify, 'preset', 'catalog', 'remove', 'intake-candidate'],
@@ -267,7 +296,7 @@ def initialize_owner_access(workspace: Path) -> str:
     if os.name != 'nt':
         return 'not-required'
     if os.environ.get('CODEX_THREAD_ID') or os.environ.get('CI'):
-        return 'human-terminal-required; workflow preflight verifies cross-account access'
+        return 'human-terminal-required; no persistent access grant from agent preparation'
     if workspace.is_symlink() or list(workspace.iterdir()) != [workspace / '.intake-session-owner']:
         raise RuntimeError('INTAKE_ACCESS_SCOPE: permission initialization requires the new empty owned workspace.')
     script = '''$ErrorActionPreference='Stop'
@@ -321,7 +350,7 @@ def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: P
     # The actual command sources are saved too: a commit alone cannot identify dirty candidates.
     shutil.copy2(ROOT / 'VERSION', record / 'VERSION')
     source_commands = ROOT / 'extensions/program-kit-governance/commands'
-    for name in ('speckit.program-kit-governance.bootstrap.md', 'speckit.program-kit-governance.grilling.md'):
+    for name in ('speckit.program-kit-governance.product-intake.md', 'speckit.program-kit-governance.grilling.md'):
         shutil.copy2(source_commands / name, record / name)
     save(record / 'session.json', state)
     if assets is None:
@@ -345,7 +374,7 @@ def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: P
         if tool:
             run([tool, *arguments], workspace, record / 'setup.log')
     installed_skill = workspace / SKILL
-    if not installed_skill.is_file() or GRILLING.as_posix() not in installed_skill.read_text(encoding='utf-8'):
+    if not installed_skill.is_file() or 'speckit.program-kit-governance.grilling' not in installed_skill.read_text(encoding='utf-8'):
         raise RuntimeError('Installed intake skill does not route to Program Kit grilling.')
     if digest(workspace / GRILLING) != digest(source_commands / GRILLING.name):
         raise RuntimeError('Installed Program Kit grilling differs from the candidate.')

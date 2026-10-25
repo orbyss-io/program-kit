@@ -12,10 +12,8 @@ param(
     [string]$Case = '',
     [string]$ReleaseRoot = '',
     [string]$BaselineReport = '',
-    [Parameter(Mandatory)]
-    [string]$Model,
-    [Parameter(Mandatory)]
-    [string]$ReasoningEffort,
+    [string]$Model = '',
+    [string]$ReasoningEffort = '',
     [int]$TimeoutSeconds = 7200,
     [int]$ExpiresMinutes = 30,
     [string]$Scenario = '',
@@ -26,12 +24,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ($Phase -in @('bootstrap-checkpoint', 'workflow-fresh', 'workflow-failure', 'workflow-resume')) {
+    throw 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED: paid bootstrap/workflow execution is retired. Use $speckit-program-kit-governance-product-intake, review the project baseline, then continue with specification intake. Preserve existing manifests and checkpoints as history; no authorization was issued.'
+}
+if (-not $Model -or -not $ReasoningEffort) { throw 'Select the exact -Model and -ReasoningEffort for the requested paid phase.' }
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 if (@(@($ReleaseReceipt, $TrialReceipt, $CiPreparation) | Where-Object { $_ }).Count -ne 1) { throw 'Select exactly one -CiPreparation, -ReleaseReceipt (historical), or -TrialReceipt (development learning).' }
 $receiptKind = if ($CiPreparation) { 'ci-prepared' } elseif ($TrialReceipt) { 'development-trial' } else { 'release' }
 $receiptPath = (Resolve-Path -LiteralPath $(if ($CiPreparation) { $CiPreparation } elseif ($TrialReceipt) { $TrialReceipt } else { $ReleaseReceipt })).Path
 $receiptDetails = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json
-if (-not $Phase.StartsWith('workflow-') -and $Phase -notin @('bootstrap-checkpoint', 'building-block-consumer') -and -not $Case) { throw 'LIVE_SYNC_CASE_REQUIRED: select the exact baseline, candidate or upgrade case.' }
+if ($Phase -ne 'building-block-consumer' -and -not $Case) { throw 'LIVE_SYNC_CASE_REQUIRED: select the exact baseline, candidate or upgrade case.' }
 if ($ReferenceAdmission) {
     if ($Checkpoint -or $Phase -ne 'upgrade-consumer') { throw 'A reference admission is the distinct parent of upgrade-consumer only; do not also supply a checkpoint.' }
     $Checkpoint = (Resolve-Path -LiteralPath $ReferenceAdmission).Path
@@ -39,8 +41,8 @@ if ($ReferenceAdmission) {
     if ($referenceDetails.kind -ne 'released-reference-consumer' -or $referenceDetails.historicalLiveCheckpoint -ne $false) { throw 'An explicitly admitted released reference is required.' }
 }
 if ($Phase -eq 'upgrade-consumer' -and -not $BaselineReport -and -not $ReferenceAdmission) { throw 'LIVE_SYNC_UPGRADE_BASELINE_ACCEPTANCE_REQUIRED: supply an admitted released reference or verified historical live baseline.' }
-if ($Phase -notin @('bootstrap-checkpoint', 'workflow-fresh', 'workflow-failure') -and -not $Checkpoint) {
-    throw 'LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED: building-block-consumer authorization must bind a checkpoint.'
+if (-not $Checkpoint) {
+    throw 'LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED: the selected paid phase must bind its exact checkpoint.'
 }
 if ($Checkpoint) { $Checkpoint = (Resolve-Path -LiteralPath $Checkpoint).Path }
 if (-not $Output) {
@@ -63,7 +65,7 @@ $previewArguments = @((Join-Path $projectRoot 'tests/live/v2/cli.py'), 'session-
 if ($ReleaseRoot) { $previewArguments += @('--release-root', (Resolve-Path -LiteralPath $ReleaseRoot).Path) }
 $previewOutput = @(& python @previewArguments)
 if ($LASTEXITCODE -ne 0 -or $previewOutput.Count -ne 1 -or $previewOutput[0] -notmatch '^\d+$') {
-    throw 'Could not verify the paid-session limit from the candidate receipt and packaged workflow.'
+    throw 'Could not verify the paid-session limit from the candidate receipt and active phase contract.'
 }
 $maximumPaidSessions = [int]$previewOutput[0]
 
@@ -84,17 +86,6 @@ Write-Host "  timeout: $TimeoutSeconds seconds"
 Write-Host "  maximum paid sessions: $maximumPaidSessions (verified against the candidate package)"
 Write-Host "  expiry: $ExpiresMinutes minutes"
 Write-Host '  worker network: model transport only; registry restore belongs to the supervisor'
-if ($Phase.StartsWith('workflow-')) {
-    Write-Host "  fixture: $Fixture @ $FixtureVersion"
-    Write-Host '  at most 8 paid command dispatches, stopping at the next human gate or terminal outcome'
-    Write-Host "  reviewed gate verdict: $(if ($Verdict) { $Verdict } else { '<none>' })"
-    Write-Host '  each subsequent paid continuation requires its own one-use authorization bound to the saved checkpoint'
-    if ($Phase -eq 'workflow-failure') { Write-Host '  controlled fault: replace an actually READY report immediately before the native readiness requirement' }
-    if ($Checkpoint) {
-        & python (Join-Path $projectRoot 'tests\live\v2\workflow_acceptance.py') inspect-parent --checkpoint $Checkpoint
-        if ($LASTEXITCODE -ne 0) { throw 'LIVE_WORKFLOW_PARENT_INVALID: no authorization was issued.' }
-    }
-}
 $required = "AUTHORIZE $Phase"
 $confirmation = Read-Host "Type '$required' to issue the one-use authorization"
 if ($confirmation -cne $required) { throw 'LIVE_AUTHORIZATION_NOT_CONFIRMED: no authorization was written.' }
@@ -111,11 +102,6 @@ if ($Checkpoint) { $arguments += @('--checkpoint', $Checkpoint) }
 if ($Case) { $arguments += @('--case', $Case) }
 if ($ReleaseRoot) { $arguments += @('--release-root', (Resolve-Path -LiteralPath $ReleaseRoot).Path) }
 if ($BaselineReport) { $arguments += @('--baseline-report', (Resolve-Path -LiteralPath $BaselineReport).Path) }
-if ($Scenario -and -not $Phase.StartsWith('workflow-')) { $arguments += @('--scenario', ([System.IO.Path]::GetFullPath($Scenario))) }
-if ($Phase.StartsWith('workflow-')) {
-    $arguments[0] = Join-Path $projectRoot 'tests/live/v2/workflow_acceptance.py'
-    $arguments += @('--fixture', $Fixture, '--fixture-version', $FixtureVersion)
-    if ($Verdict) { $arguments += @('--verdict', $Verdict) }
-}
+if ($Scenario) { $arguments += @('--scenario', ([System.IO.Path]::GetFullPath($Scenario))) }
 & python @arguments
 if ($LASTEXITCODE -ne 0) { throw "Live authorization issuance failed with exit code $LASTEXITCODE." }

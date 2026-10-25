@@ -197,7 +197,8 @@ class RepositoryToolchainTests(unittest.TestCase):
         self.assertEqual('9.0.100', record['resolved']['dotnet'])
         self.assertEqual([str(launcher.resolve())], record['commands']['dotnet'])
         value = device.diagnostic('dotnet', '10.0.202', 'global.json sdk.version', '9.0.100', str(self.tools['dotnet']), self.repo)
-        self.assertIn(str(self.shared), '\n'.join(value['remediation']['commands']))
+        self.assertEqual([], value['remediation']['commands'])
+        self.assertIn('existing SDK installation method', ' '.join(value['remediation']['notes']))
         self.assertIn('dotnet --list-sdks', value['remediation']['verification'])
         self.assertEqual({'8.0.100', '9.0.100', '10.0.202'}, {p.name for p in (self.shared / 'sdk').iterdir()})
 
@@ -241,8 +242,8 @@ class RepositoryToolchainTests(unittest.TestCase):
         before = {p.relative_to(self.repo): p.read_bytes() for p in self.repo.rglob('*') if p.is_file()}
         self.binary(self.shared, 'node', '22.19.0')
         with patch.dict(os.environ, self.env, clear=True):
-            with self.assertRaisesRegex(ValueError, 'PKT030.*node'):
-                initialize_device.initialize(self.repo, 'v1.2.3', release)
+            # Neutral product intake does not depend on a selected managed stack.
+            initialize_device.initialize(self.repo, 'v1.2.3', release)
             self.assertEqual(before, {p.relative_to(self.repo): p.read_bytes() for p in self.repo.rglob('*') if p.is_file()})
             self.binary(self.shared, 'node', self.required['node'])
             initialize_device.initialize(self.repo, 'v1.2.3', release)

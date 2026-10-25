@@ -1,11 +1,14 @@
 """Selection, input identity and failure semantics of local validation."""
 import copy
+import contextlib
+import io
 import json
 import tempfile
 from pathlib import Path
 import sys
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 from owned_fixture import FixtureDirectory
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
@@ -13,6 +16,52 @@ import run_validation as runner
 
 
 class SelectionTests(unittest.TestCase):
+    def test_explicit_checks_keep_command_budgets_without_inheriting_an_unselected_suite(self):
+        import live.v2.supervisor as supervisor
+        for suite, explicit, elapsed, command_limit, expected, aggregate in (
+            ('Integrity', True, 70, 300, 0, None),
+            ('Integrity', True, 310, 300, 1, None),
+            ('Integrity', False, 70, 300, 1, 60),
+            ('Baseline', False, 610, 1000, 1, 600),
+        ):
+            with self.subTest(suite=suite, explicit=explicit, elapsed=elapsed), FixtureDirectory() as directory:
+                root = Path(directory)
+                check = dict(id='synthetic-upgrade', kind='integration', needs=[],
+                             budgetSeconds=command_limit, timeoutSeconds=1200)
+                definition = {'checks': [check], 'suiteBudgetsSeconds': {'Integrity': 60, 'Baseline': 600}}
+                argv = ['run_validation.py', '--suite', suite]
+                if explicit:
+                    argv += ['--check', check['id'], '--reason', 'synthetic selected upgrade budget']
+                with patch.object(runner, 'ROOT', root), \
+                        patch.object(runner, 'load_definition', return_value=definition), \
+                        patch.object(runner, 'selected', return_value=[check]), \
+                        patch.object(runner, 'git', return_value='synthetic'), \
+                        patch.object(runner, 'input_snapshot', return_value={'digest': 'fixed'}), \
+                        patch.object(runner, 'missing_prerequisites', return_value=[]), \
+                        patch.object(runner, 'prerequisite_versions', return_value={}), \
+                        patch.object(runner, 'command', return_value=['synthetic-no-process']), \
+                        patch.object(runner.sys, 'argv', argv), \
+                        patch.object(supervisor, 'run_supervised', return_value=SimpleNamespace(
+                            exitCode=0, timedOut=False, cleanupComplete=True, logsDrained=True)), \
+                        patch.object(runner.time, 'monotonic', side_effect=[0, 0, 0, 0, elapsed, elapsed]), \
+                        contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(expected, runner.main())
+                journal = json.loads(next((root / 'artifacts/validation-runs').glob('*/results.json')).read_text())
+                self.assertEqual(aggregate, journal['suiteBudgetSeconds'])
+                self.assertEqual(elapsed > command_limit, journal['steps'][0]['overBudget'])
+                self.assertEqual(bool(aggregate and elapsed > aggregate), journal['overBudget'])
+
+    def test_known_device_admission_is_scoped_to_selected_requirements(self):
+        policy = runner.device_policy()
+        with patch.object(runner, 'device_policy', return_value=policy), \
+                patch.object(policy, 'require_tool') as admit:
+            self.assertEqual([], runner.missing_prerequisites({'id': 'git-only', 'prerequisites': ['tool:git']}))
+            admit.assert_called_once_with(runner.ROOT, 'git', authority='Selected check git-only')
+        with patch.object(runner, 'device_policy', return_value=policy), \
+                patch.object(policy, 'require_tool') as admit:
+            runner.missing_prerequisites({'id': 'library-only', 'prerequisites': ['module:json']})
+            admit.assert_not_called()
+
     def definition(self):
         return {'capabilities': {
             'producer': {'inputs': ['producer/**'], 'dependsOn': []},
@@ -109,15 +158,15 @@ class SelectionTests(unittest.TestCase):
         self.assertIn('mechanics-upgrade', ids)
         self.assertIn('validate_coding_installation_contracts', ids)
         self.assertFalse(any(c.get('manualOnly') for c in checks))
-        self.assertNotIn('mechanics-bootstrap', ids)
+        self.assertNotIn('mechanics-founding', ids)
 
-    def test_feature_phase_change_does_not_select_bootstrap(self):
+    def test_feature_phase_change_does_not_select_founding(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [
             'extensions/program-kit-governance/scripts/task_draft.py'])
         ids = {c['id'] for c in checks}
         self.assertFalse(gaps)
         self.assertIn('mechanics-phases', ids)
-        self.assertNotIn('mechanics-bootstrap', ids)
+        self.assertNotIn('mechanics-founding', ids)
         self.assertEqual({'validate_coding_evaluation_journey', 'validate_coding_adverse_boundary'},
                          {c['id'] for c in checks if c['kind'] == 'integration'})
 
@@ -129,14 +178,14 @@ class SelectionTests(unittest.TestCase):
         ids = {c['id'] for c in checks}
         self.assertIn('validate_coding_evaluation', ids)
         self.assertIn('validate_test_dependencies', ids)
-        self.assertNotIn('mechanics-bootstrap', ids)
+        self.assertNotIn('mechanics-founding', ids)
 
     def test_shared_governance_change_selects_both_consumers(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [
             'extensions/program-kit-governance/scripts/governance_state.py'])
         ids = {c['id'] for c in checks}
         self.assertFalse(gaps)
-        self.assertTrue({'mechanics-phases', 'mechanics-bootstrap'} <= ids)
+        self.assertTrue({'mechanics-phases', 'mechanics-founding'} <= ids)
 
     def test_shared_foundation_contract_selects_narrow_native_consumers(self):
         checks, gaps, reasons = runner.select_affected(runner.load_definition(), [

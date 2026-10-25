@@ -7,11 +7,13 @@ Project dependency caches/restores are deliberately outside this contract.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 
@@ -21,11 +23,87 @@ SOURCES = {
     'dotnet': 'https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script',
     'python': 'https://docs.astral.sh/uv/guides/install-python/',
     'specify': 'https://github.com/github/spec-kit',
+    'git': 'https://git-scm.com/install/',
+    'pwsh': 'https://learn.microsoft.com/powershell/scripting/install/install-powershell',
+    'docker': 'https://docs.docker.com/get-started/get-docker/',
+    'java': 'https://adoptium.net/installation/',
+    'gh': 'https://github.com/cli/cli#installation',
 }
 REFRESH = ('After the user reports completion, open a fresh terminal and restart the calling '
            'application if its inherited PATH is stale. Re-run readiness and inspect actual paths '
            'and versions before dependent execution. Do not install another local copy or prepend '
            'a temporary PATH to mask an outdated selection.')
+
+
+# Closed device names and actual owner constraints. No arbitrary executable or
+# version strings are ever interpolated into a human installer script.
+VERSION = re.compile(r'^(?:>=)?[0-9]+(?:\.[0-9]+){0,3}$')
+EXTRA_TOOLS = {'git', 'pwsh', 'docker', 'java', 'gh'}
+
+
+def host_windows() -> bool:
+    return os.name == 'nt'
+
+
+def validate_request(name: str, required: str) -> None:
+    if name not in SOURCES or not isinstance(required, str) or not (
+            required == 'available' or VERSION.fullmatch(required)):
+        raise ValueError('PKT031 unknown device tool or unsafe/unrecognized version constraint')
+
+
+def quote(value: str, windows: bool) -> str:
+    if not isinstance(value, str) or any(ord(c) < 32 for c in value):
+        raise ValueError('PKT031 device script data contains a control character')
+    return "'" + value.replace("'", "''") + "'" if windows else shlex.quote(value)
+
+
+def extra_instructions(name, required, repository, detected_path):
+    windows = host_windows()
+    minimum = required.removeprefix('>=')
+    commands, notes = [], []
+    sources = [SOURCES[name]]
+    # Existing installations with unknown ownership are never replaced merely
+    # because a different package manager happens to be installed.
+    if detected_path:
+        notes.append('Retain the existing installation method. Verify its official update procedure; '
+                     'no manager ownership was established, so no replacement command is prescribed.')
+    elif windows and executable('winget', repository) and name in {'git', 'pwsh', 'gh', 'java'}:
+        package = {'git': 'Git.Git', 'pwsh': 'Microsoft.PowerShell', 'gh': 'GitHub.cli'}.get(name)
+        if name == 'java':
+            # The C4 owner supplies a minimum major. Only documented Temurin LTS
+            # package identities are emitted; an unknown major remains manual.
+            if minimum in {'11', '21'}:
+                package = 'EclipseAdoptium.Temurin.' + minimum + '.JDK'
+        if package:
+            commands = ['winget install --id ' + package + ' --exact --source winget']
+    elif sys.platform == 'darwin' and executable('brew', repository) and name in {'git', 'gh'}:
+        commands = ['brew install ' + name]
+    elif sys.platform.startswith('linux') and name == 'git':
+        try:
+            distro = __import__('platform').freedesktop_os_release().get('ID', '')
+        except (OSError, AttributeError):
+            distro = ''
+        if distro in {'ubuntu', 'debian'} and executable('apt-get', repository):
+            commands = ['sudo apt-get update', 'sudo apt-get install git-all']
+        elif distro == 'fedora' and executable('dnf', repository):
+            commands = ['sudo dnf install git-all']
+    if name == 'docker':
+        notes.append('Install Docker using the official instructions for this OS/architecture and your chosen '
+                     'Engine/Desktop provider. Review its prerequisites/license. Do not change daemon/socket '
+                     'permissions or select another context to mask an access failure.')
+    if name == 'java':
+        notes.append('The requirement is supplied by the selected runtime owner, not a toolkit-wide Java pin. '
+                     'Retain the existing JDK vendor/manager; verify persistent JAVA_HOME/PATH where applicable.')
+    if not commands:
+        notes.append('Manual installation/update step remains: use the linked official instructions for '
+                     'the existing manager, OS and architecture, then run the verification script. '
+                     'This handoff is not an install-ready recipe or a readiness claim.')
+    verify = ['java -version'] if name == 'java' else [name + ' --version']
+    if name == 'docker':
+        verify += ['docker context show', 'docker version', 'docker info']
+    location = f'Get-Command {name} -All | Select-Object Name,Source' if windows else f'command -v {name}'
+    return {'commands': commands, 'verification': [location, *verify], 'notes': notes, 'sources': sources,
+            'installationReady': bool(commands)}
 
 
 def shared(path: Path, repository: Path) -> bool:
@@ -75,12 +153,37 @@ def uv_setup(windows: bool) -> list[str]:
 
 def instructions(name: str, required: str, repository: Path, detected_path: str = '') -> dict:
     """Commands are data for the human, never a subprocess argument vector."""
-    windows = os.name == 'nt'
+    validate_request(name, required)
+    if not host_windows() and sys.platform != 'darwin' and not sys.platform.startswith('linux'):
+        return {'commands': [], 'verification': ['command -v ' + name,
+                name + (' -version' if name == 'java' else ' version' if name == 'specify' else ' --version')],
+            'notes': ['This inspected OS has no supported preparation recipe. Use the official OS/architecture '
+                      'instructions manually, then rerun the original dependent check.'],
+            'sources': [SOURCES[name]], 'installationReady': False}
+    if name in EXTRA_TOOLS:
+        return extra_instructions(name, required, repository, detected_path)
+    windows = host_windows()
+    if required == 'available' or (required.startswith('>=') and name != 'python'):
+        location = f'Get-Command {name} -All | Select-Object Name,Source' if windows else f'command -v {name}'
+        return {'commands': [], 'verification': [location, name + (' version' if name == 'specify' else ' --version')],
+            'notes': ['The selected action requires this tool, but this layer supplies no exact installer selector. '
+                      'Use the actual owning profile/minimum and existing manager; no version or installer was invented.'],
+            'sources': [SOURCES[name]], 'installationReady': False}
     commands, notes, sources = [], [], [SOURCES[name]]
     verify = [f'{name} --version']
     location = f'Get-Command {name} -All | Select-Object Name,Source' if windows else f'command -v {name}'
     if name in {'node', 'npm'}:
-        manager = next((item for item in ('fnm', 'volta', 'nvm') if executable(item, repository)), None)
+        normalized = detected_path.replace('\\', '/').lower()
+        owner = next((manager for manager, fragments in (
+            ('volta', ('/.volta/', '/volta/')), ('fnm', ('/.fnm/', '/fnm/')),
+            ('nvm', ('/.nvm/', '/nvm/'))) if any(fragment in normalized for fragment in fragments)), None)
+        manager = owner if detected_path else next((item for item in ('fnm', 'volta', 'nvm') if executable(item, repository)), None)
+        if detected_path and (not owner or (owner != 'nvm' and not executable(owner, repository))):
+            return {'commands': [], 'verification': [location, name + ' --version'],
+                'notes': [('First select the required shared Node. ' if name == 'npm' else '') +
+                    'Retain the active native/manager installation. Its exact manager is unknown or unavailable; '
+                    'do not select a different installed manager or create a local fallback.'],
+                'sources': sources, 'installationReady': False}
         # POSIX nvm is a shell function, absent from shutil.which. Preserve a detected nvm install.
         if manager is None and (os.environ.get('NVM_DIR') or '/.nvm/' in detected_path):
             manager = 'nvm'
@@ -93,6 +196,12 @@ def instructions(name: str, required: str, repository: Path, detected_path: str 
                 notes.append('Recommended side-by-side manager: fnm. Preserve the existing Node installation. '
                              'Reopen your terminal after installing the manager. Do not delete existing tools.')
             if manager == 'fnm':
+                selected_shell = Path(os.environ.get('SHELL', '/bin/bash')).name
+                if not windows and selected_shell not in {'bash', 'zsh'}:
+                    return {'commands': [], 'verification': [location, 'node --version', 'npm --version'],
+                        'notes': ['Retain the existing shell and fnm manager. Its persistent loader requires '
+                                  'manual setup using the official instructions for this shell; no shell profile was guessed.'],
+                        'sources': sources, 'installationReady': False}
                 commands += [f'fnm install {required}', f'fnm default {required}', f'fnm use {required}']
                 shell = 'powershell' if windows else ('zsh' if os.environ.get('SHELL', '').endswith('zsh') else 'bash')
                 loader = ('fnm env --shell powershell | Out-String | Invoke-Expression' if windows else
@@ -127,22 +236,32 @@ def instructions(name: str, required: str, repository: Path, detected_path: str 
             verify = ['npm --version', 'npm config get prefix']
             if manager == 'volta': sources.append('https://docs.volta.sh/reference/install')
     elif name == 'dotnet':
+        if detected_path:
+            return {'commands': [], 'verification': [location, 'dotnet --list-sdks', 'dotnet --list-runtimes', 'dotnet --version'],
+                'notes': ['Retain the existing SDK installation method and side-by-side SDKs. An executable path '
+                          'does not prove dotnet-install ownership; use its existing native/package-manager update procedure.'],
+                'sources': sources, 'installationReady': False}
         # Install alongside other SDKs into the already selected shared root, never a per-repo root.
         root = Path(detected_path).parent if detected_path else Path.home() / '.dotnet'
+        if not shared(root, repository):
+            return {'commands': [], 'verification': [location, 'dotnet --list-sdks', 'dotnet --version'],
+                'notes': ['Repository-local SDK roots cannot establish device readiness. Verify the shared device installation in a fresh terminal.'],
+                'sources': sources, 'installationReady': False}
+        root_text = quote(str(root), windows)
         if windows:
             commands = ['Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile "$env:TEMP/dotnet-install.ps1"',
-                        f'& "$env:TEMP/dotnet-install.ps1" -Version {required} -InstallDir \'{root}\' -NoPath']
+                        f'& "$env:TEMP/dotnet-install.ps1" -Version {required} -InstallDir {root_text} -NoPath']
         else:
             commands = ['curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh',
-                        f'bash /tmp/dotnet-install.sh --version {required} --install-dir \'{root}\' --no-path']
+                        f'bash /tmp/dotnet-install.sh --version {required} --install-dir {root_text} --no-path']
         notes.append('Review the Microsoft script before running it. Add the SDK alongside existing SDKs/runtimes '
                      'in this shared root; do not uninstall them. A protected existing root requires administrator '
                      'privileges (sudo on POSIX). Microsoft recommends native installers for development; use the '
                      'exact-version installer from the official download page if that is your existing install method.')
         if not detected_path:
             if windows:
-                commands += [f'[Environment]::SetEnvironmentVariable(\'DOTNET_ROOT\', \'{root}\', \'User\')',
-                             f'[Environment]::SetEnvironmentVariable(\'Path\', \'{root};\' + [Environment]::GetEnvironmentVariable(\'Path\', \'User\'), \'User\')']
+                commands += [f'[Environment]::SetEnvironmentVariable(\'DOTNET_ROOT\', {root_text}, \'User\')',
+                             f'[Environment]::SetEnvironmentVariable(\'Path\', {quote(str(root) + chr(59), True)} + [Environment]::GetEnvironmentVariable(\'Path\', \'User\'), \'User\')']
             else:
                 notes.append(f'Persist export DOTNET_ROOT=\'{root}\' and export PATH="$DOTNET_ROOT:$PATH" '
                              'in the startup file for your existing shell; reopen it.')
@@ -151,7 +270,17 @@ def instructions(name: str, required: str, repository: Path, detected_path: str 
                      'can select their own installed SDKs. Never change rollForward or pins to accommodate PATH.')
     elif name == 'python':
         version = required.removeprefix('>=')
-        if executable('pyenv', repository):
+        if detected_path and not any(part in detected_path.replace('\\', '/').lower() for part in ('/pyenv/', '/.pyenv/', '/uv/python/')):
+            return {'commands': [], 'verification': [location, 'python --version', 'python -c "import sys; print(sys.executable); print(sys.base_prefix)"'],
+                'notes': ['Retain this existing Python installation method. Verify its official update procedure; '
+                          'no replacement or manager switch was authorized by detecting another manager.'],
+                'sources': sources, 'installationReady': False}
+        normalized = detected_path.replace('\\', '/').lower()
+        if detected_path and ('/pyenv/' in normalized or '/.pyenv/' in normalized) and not executable('pyenv', repository):
+            return {'commands': [], 'verification': [location, 'python --version'],
+                'notes': ['Restore/verify the existing pyenv manager before updating its Python; do not switch managers.'],
+                'sources': sources, 'installationReady': False}
+        if executable('pyenv', repository) and (not detected_path or '/pyenv/' in normalized or '/.pyenv/' in normalized):
             commands = [f'pyenv install {version}', f'pyenv global {version}']
             sources.append('https://github.com/pyenv/pyenv')
         else:
@@ -166,12 +295,22 @@ def instructions(name: str, required: str, repository: Path, detected_path: str 
                      'system installs may. Project venvs and uv tool interpreters do not establish device Python readiness.')
         verify = ['python --version', 'python -c "import sys; print(sys.executable); print(sys.base_prefix)"']
     elif name == 'specify':
-        if executable('uv', repository):
+        normalized = detected_path.replace('\\', '/').lower()
+        if detected_path and not any(part in normalized for part in ('/uv/tools/', '/pipx/venvs/')):
+            return {'commands': [], 'verification': [location, 'specify version'],
+                'notes': ['Retain the selected shared Spec Kit installer/manager. Its owner is unknown; '
+                          'no replacement through an unrelated manager was prescribed.'],
+                'sources': sources, 'installationReady': False}
+        if executable('uv', repository) and (not detected_path or '/uv/tools/' in normalized):
             commands = [f'uv tool install specify-cli=={required} --force --no-python-downloads', 'uv tool update-shell']
             sources.append('https://docs.astral.sh/uv/concepts/tools/')
-        elif executable('pipx', repository):
+        elif executable('pipx', repository) and (not detected_path or '/pipx/venvs/' in normalized):
             commands = [f'pipx install specify-cli=={required} --force', 'pipx ensurepath']
             sources.append('https://pipx.pypa.io/stable/docs/')
+        elif detected_path:
+            return {'commands': [], 'verification': [location, 'specify version'],
+                'notes': ['Restore/verify the existing tool manager before updating its shared Spec Kit environment; do not switch managers.'],
+                'sources': sources, 'installationReady': False}
         else:
             commands = uv_setup(windows) + [f'uv tool install specify-cli=={required} --force --no-python-downloads', 'uv tool update-shell']
             sources += ['https://docs.astral.sh/uv/getting-started/installation/', 'https://docs.astral.sh/uv/concepts/tools/']
@@ -186,11 +325,25 @@ def instructions(name: str, required: str, repository: Path, detected_path: str 
 
 def diagnostic(name: str, required: str, authority: str, actual: str | None,
                path: str | None, repository: Path) -> dict:
+    validate_request(name, required)
+    # Resolvers deliberately discard commands which failed readiness. Preserve
+    # the active device path for diagnosis, never as an accepted execution path.
+    if not path:
+        observed = executable('npm.cmd' if name == 'npm' and os.name == 'nt' else name, repository)
+        path = str(observed) if observed else None
+    unknown_observation = actual is None
     if name == 'dotnet' and actual is None and path and shared(Path(path), repository):
         installed = probe([path, '--list-sdks'], repository)
         if installed:
             actual = 'installed SDKs: ' + installed.replace('\n', '; ')
     remedy = instructions(name, required, repository, path or '')
+    verification_only = bool(path and unknown_observation)
+    if verification_only:
+        remedy['commands'] = []
+        remedy['installationReady'] = False
+        remedy['notes'] = ['An active shared executable was found but its selected version was not established. '
+            'Verify access, launcher and version in your own terminal before prescribing an update. '
+            'A failed probe is not evidence that installation or replacement is needed.']
     located = shutil.which('npm.cmd' if name == 'npm' and os.name == 'nt' else name)
     ignored = str(Path(located).resolve()) if located and not shared(Path(located), repository) else None
     if located and name == 'specify':
@@ -198,20 +351,131 @@ def diagnostic(name: str, required: str, authority: str, actual: str | None,
         if binding and not shared(binding, repository): ignored = str(Path(located).resolve()) + ' -> ' + str(binding)
     if ignored:
         remedy['notes'].append('Ignored repository-local executable (not device readiness): ' + ignored)
-    return {'code': 'PKT030', 'status': 'user-terminal-required', 'tool': name,
+    return {'code': 'PKT030', 'status': 'user-terminal-verification-required' if verification_only else 'user-terminal-required', 'tool': name,
             'required': required, 'authority': authority, 'detected': actual,
             'executable': path, 'ignoredExecutable': ignored, 'remediation': remedy,
-            'refresh': REFRESH}
+            'refresh': REFRESH, 'repository': str(repository.resolve())}
+
+
+def preparation_script(value: dict, *, windows: bool | None = None) -> tuple[str, str]:
+    """Serialize only a fresh, closed, owner-generated remedy. Never execute it."""
+    name, required = value['tool'], value['required']
+    validate_request(name, required)
+    if windows is not None and windows != host_windows():
+        raise ValueError('PKT031 prepare scripts only for the inspected host OS')
+    windows = host_windows()
+    # Recreate commands from known providers rather than accepting arbitrary
+    # command arrays from an evidence JSON or caller-authored diagnostic.
+    remedy = instructions(name, required, Path(value['repository']), value.get('executable') or '')
+    verification_only = value.get('status') != 'user-terminal-required' or not value['remediation'].get('commands')
+    commands = [] if verification_only else remedy['commands']
+    notes = list(value['remediation'].get('notes', []))
+    lines = ['# Human-run device preparation; never executed by Program Kit.',
+             '# Tool: ' + name + '; requirement: ' + required,
+             '# Re-run the original dependent readiness check in a fresh terminal afterwards.']
+    lines += ['# ' + line for text in [*notes, *remedy['sources']] for line in str(text).splitlines()]
+    if windows:
+        lines += ["$ErrorActionPreference = 'Stop'"]
+    else:
+        lines = ['#!/usr/bin/env bash', 'set -euo pipefail', *lines]
+    for command in commands:
+        if windows:
+            lines += ['$global:LASTEXITCODE = 0', command,
+                      'if ($LASTEXITCODE -ne 0) { throw "Device preparation command failed; stop and inspect its output." }']
+        else:
+            lines.append(command)
+    if not commands:
+        message = 'Verification-only/manual handoff: no device installation or update command was selected.'
+        lines += ['Write-Host ' + quote(message, True)] if windows else ["printf '%s\\n' " + quote(message, False)]
+    for command in remedy['verification']:
+        lines += (['$global:LASTEXITCODE = 0', command,
+                   'if ($LASTEXITCODE -ne 0) { throw "Device verification failed; rerun the original check after repair." }']
+                  if windows else [command])
+    message = 'Preparation is not readiness. Refresh your terminal/application and rerun the original check; no acceptance was recorded.'
+    lines += ['Write-Host ' + quote(message, True)] if windows else ["printf '%s\\n' " + quote(message, False)]
+    if not commands:
+        lines += ['exit 2']  # Manual/ambiguous verification never manufactures ready.
+    return '\n'.join(lines) + '\n', '.ps1' if windows else '.sh'
+
+
+def write_preparation_script(value: dict) -> Path:
+    content, suffix = preparation_script(value)
+    root = Path(value['repository']).resolve()
+    target = root / 'artifacts/program-kit/device-preparation' / (value['tool'] + '-' + hashlib.sha256(content.encode()).hexdigest()[:12] + suffix)
+    if not root.is_dir() or not target.resolve().is_relative_to(root):
+        raise ValueError('PKT031 preparation artifact must stay in its existing repository')
+    # Consumer ignore rules are owned by that repository. Do not silently add
+    # them, assume our checkout's rules, or write device paths into tracked files.
+    try:
+        ignored = subprocess.run(['git', '-c', 'safe.directory=' + str(root), '-c', 'core.excludesFile=',
+            'check-ignore', '--quiet', '--', target.relative_to(root).as_posix()], cwd=root,
+            capture_output=True, timeout=10, check=False)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ValueError('PKT031 cannot verify the preparation directory is ignored; use the inline script until its repository owner establishes ignore rules') from error
+    if ignored.returncode != 0:
+        raise ValueError('PKT031 preparation directory is not proven ignored; its repository owner must ignore artifacts/program-kit/device-preparation/ before file output')
+    for parent in (target.parent, *target.parent.parents):
+        if parent.is_symlink() or getattr(parent, 'is_junction', lambda: False)():
+            raise ValueError('PKT031 aliased preparation artifact path requires owner reconciliation')
+        if parent == root:
+            break
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if target.exists():
+        if not target.is_file() or target.is_symlink() or target.read_text(encoding='utf-8') != content:
+            raise ValueError('PKT031 existing preparation artifact differs; preserve the human-edited file')
+    else:
+        with target.open('x', encoding='utf-8', newline='\n') as stream:
+            stream.write(content)
+    return target
 
 
 def render(value: dict) -> str:
     remedy = value['remediation']
-    return '\n'.join([f"PKT030 pause dependent execution: {value['tool']} required={value['required']} "
-                      f"pin={value['authority']} detected={value['detected'] or 'missing'} "
-                      f"executable={value['executable'] or 'missing'}",
-                      'Ask the user to run these commands in their own terminal; the agent must never run them:',
-                      *remedy['commands'], *remedy['notes'], 'Verify in a fresh terminal:',
-                      *remedy['verification'], *remedy['sources'], value['refresh']])
+    lines = [f"PKT030 pause dependent execution: {value['tool']} required={value['required']} "
+             f"pin={value['authority']} detected={value['detected'] or 'missing'} "
+             f"executable={value['executable'] or 'missing'}",
+             'Ask the user to run these commands in their own terminal; the agent must never run them:',
+             *remedy['commands'], *remedy['notes'], 'Verify in a fresh terminal:',
+             *remedy['verification'], *remedy['sources'], value['refresh']]
+    try:
+        path = write_preparation_script(value)
+        lines += ['Human preparation script (inspect, then run yourself): ' + str(path)]
+    except (ValueError, OSError) as error:
+        lines += ['Preparation script could not be written; preserve this diagnostic: ' + str(error)]
+        content, suffix = preparation_script(value)
+        lines += ['Inline human preparation script (' + suffix + '; no file written):', content]
+    return '\n'.join(lines)
+
+
+def require_tool(repository: Path, name: str, required: str = 'available', *, authority: str = 'Selected action prerequisite') -> dict:
+    """Fresh read-only admission for a known selected tool, not every device tool."""
+    validate_request(name, required)
+    path = executable(name, repository)
+    args = ['-version'] if name == 'java' else ['version'] if name == 'specify' else ['--version']
+    result = None
+    if path:
+        try:
+            result = subprocess.run([str(path), *args], cwd=repository, capture_output=True,
+                text=True, encoding='utf-8', errors='replace', timeout=30, check=False)
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    text = ((result.stdout or '') + '\n' + (result.stderr or '')) if result else ''
+    match = re.search(r'(?<![0-9])([0-9]+(?:\.[0-9]+){0,3})', text)
+    actual = match.group(1) if match else None
+    compatible = bool(result and result.returncode == 0 and actual)
+    if compatible and required != 'available':
+        actual_parts = tuple(map(int, actual.split('.')))
+        wanted = tuple(map(int, required.removeprefix('>=').split('.')))
+        compatible = actual_parts[:len(wanted)] >= wanted if required.startswith('>=') else actual_parts == wanted
+    if compatible:
+        return {'tool': name, 'required': required, 'executable': str(path), 'version': actual}
+    value = diagnostic(name, required, authority, actual, str(path) if path else None, repository)
+    if path and (result is None or result.returncode != 0 or actual is None):
+        value['status'] = 'user-terminal-verification-required'
+        value['remediation']['commands'] = []
+        value['remediation']['notes'] = ['The executable exists but a successful version probe was not available. '
+            'Run the verification script in your own terminal first; access/daemon/probe failures are not evidence that software needs reinstalling.']
+    raise ValueError(render(value))
 
 
 def require_python(repository: Path, required: str | None = None, authority: str = 'Spec Kit / Program Kit Python >=3.11') -> Path:
@@ -264,8 +528,13 @@ def contributor(repository: Path, *, python_only: bool = False,
     actual = match.group(1) if match else None
     expected, authority = specify_requirement(repository) if exact_specify else ('1.1.1', 'Program Kit requires >=1.1.1,<2')
     if not specify_satisfied(actual, expected, exact_specify and is_contributor(repository)):
-        raise ValueError(render(diagnostic('specify', expected, authority, actual,
-                                          str(specify) if specify else None, repository)))
+        value = diagnostic('specify', expected, authority, actual, str(specify) if specify else None, repository)
+        if specify and actual is None:
+            value['status'] = 'user-terminal-verification-required'
+            value['remediation']['commands'] = []
+            value['remediation']['notes'] = ['The selected Spec Kit executable did not provide a successful recognizable version probe. '
+                'Verify access and the launcher in your own terminal; this is not evidence that reinstallation is required.']
+        raise ValueError(render(value))
     if python_only: return
     import importlib.util
     spec = importlib.util.spec_from_file_location('device_js', template / 'eng/js_toolchain.py')

@@ -12,7 +12,7 @@ import sys
 import uuid
 
 BOUNDARIES = (
-    'originals-sealed', 'Install bootstrap workflow', 'Install governance extension',
+    'originals-sealed', 'Install governance extension',
     'Install building-block extension', 'Install .NET extension', 'Remove prior governance preset',
     'Install governance preset', 'Refresh native phase machinery: codex',
     'Compose installed phase contributions: codex', 'Resolve bundle composition record',

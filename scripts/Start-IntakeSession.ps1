@@ -39,7 +39,7 @@ try {
     else {
         Write-Host "Review evidence: $record"
         Write-Host 'This opens an interactive Codex intake using your normal login and configured model (unless -Model is given). Normal model usage applies.'
-        Write-Host 'The conversation and workspace are saved locally for review. Do not enter secrets. Exit Codex with /quit when finished; bootstrap will not be started.'
+        Write-Host 'The conversation and workspace are saved locally for review. Do not enter secrets. Exit Codex with /quit when finished; founding acceptance will not be performed.'
         if (-not $IdeaFile) {
             $idea = Read-Host 'What product do you want to build? (You can elaborate inside Codex)'
             if ([string]::IsNullOrWhiteSpace($idea)) { throw 'A product idea is required.' }
@@ -48,7 +48,7 @@ try {
         $arguments = @('--cd', $state.workspace, '--sandbox', 'workspace-write',
             '--ask-for-approval', 'on-request', '--no-alt-screen')
         if ($Model) { $arguments += @('--model', $Model) }
-        $arguments += 'Read INTAKE-SESSION.md and follow the installed bootstrap intake skill using product-idea.md. Conduct the interview with me here. Stop at intake; do not launch bootstrap.'
+        $arguments += 'Read INTAKE-SESSION.md and follow the installed product-intake skill using product-idea.md. Conduct the interview with me here. Stop at intake; do not accept the founding baseline or implement features.'
         # Foreground with inherited console: never pipe the TUI or start a detached worker.
         & $codex @arguments
         $sessionExit = $LASTEXITCODE

@@ -43,7 +43,7 @@ affected families. The baseline includes shared archive preparation once, then:
 | Installation | Native bundle installation of actual archives in a clean space-path workspace; all component ownership/registrations, installed governance coherence and representative helpers work on Windows/Linux | Other installation routes, restricted permissions, unusual filesystems |
 | Phases | Real task/phase rules reject invalid prerequisites/graphs; interrupted drafting resumes and preserves completed work | Specification quality, agent obedience, every optional phase branch |
 | Knowledge | API and frontend scopes select correct owners; unrelated decisions stay excluded; missing required binding is rejected | Correctness of upstream guidance, all dependency combinations/runtime compatibility |
-| Bootstrap | Real installed engine and shell validators stop on failure and resume after checkpoint; authoring/review inputs are fictional | Agent reasoning, human decisions, provider behavior, every crash boundary |
+| Founding | Native installed intake skill validates fictional synthesis, constitution ratification and named decision acceptance, rejects stale authority and begins feature intake directly | Conversational quality, actual human approval, runtime compatibility and provider behavior |
 | Upgrade | Actual supported historical source installation advances through the candidate packaged updater; authored files/coherence survive, managed conflicts reject and interrupted profile transactions roll back/retry | Every historical layout, migration combination and filesystem failure |
 | Scaffolding | Real generator emits coherent relationships and runs lightweight drift validation; invalid selection preserves authored files | Native compilation/startup, services, browsers and deployment |
 
@@ -70,6 +70,8 @@ Initial targets are Integrity <=60s, each mechanical family <=120s, initial Base
 bounded hard timeout. A budget overrun is visible and returns a needs-attention result;
 inspect cost, split unnecessary work or revise an unjustified budget in normal review.
 Do not call a timeout, failure, unsupported environment or overrun success.
+Explicit `--check` selections retain each command's budget; aggregate Integrity and
+Baseline targets apply when those suites are selected, not to an arbitrary manual batch.
 
 Ignored `artifacts/validation-runs/<unique>/results.json` records actual content hashes
 (including dirty/untracked files and deletions), interpreter/platform, preparation,

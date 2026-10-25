@@ -22,7 +22,7 @@ timeouts and overruns are not success. Every check owns only the prerequisites i
 Do not install device toolchains from an agent or substitute local runtime copies.
 
 The six representative mechanical families establish an initial baseline with
-`--suite Baseline`. They cover installation, phases, knowledge, bootstrap, upgrade and
+`--suite Baseline`. They cover installation, phases, knowledge, founding intake, upgrade and
 scaffolding, with explicit limits. Expensive native, database, browser and Host checks
 need a concrete affected contract; broad scenario investigations require `--check` and
 `--reason`. Do not rerun broad matrices simply because composition or a shared SDK changed.
@@ -50,9 +50,10 @@ require a concrete maintainer disposition, never an implicit green result.
 
 Deterministic validation never invokes a coding agent. Optional live trials remain
 individually user-authorized; the release-readiness skill grants no paid-worker or
-publication authority. No trial run means no AI acceptance claim. Interactive intake
-and provider account/authority initialization remain human-terminal-owned.
-`Start-IntakeSession.ps1 -PrepareOnly` starts no coding agent or bootstrap. Release
+publication authority. No trial run means no AI acceptance claim. Installation, interactive
+launcher startup and provider account/authority initialization remain human-terminal-owned.
+The installed product-intake skill authors and reviews the baseline in the consumer conversation.
+`Start-IntakeSession.ps1 -PrepareOnly` starts no coding agent or workflow. Release
 trial preparation verifies candidate packages and actual local prerequisites in a
 disposable consumer; it does not create additional release qualification.
 
@@ -93,16 +94,16 @@ fictional consumer answers and create draft artifacts in a disposable consumer. 
 `speckit.program-kit-governance.proxy-intake` command. This is a separate optional tool: default to
 one question round for a quick scan, or perform full draft intake when requested. Setup uses
 `Start-IntakeSession.ps1 -PrepareOnly`; never launch its interactive mode for the proxy.
-Disclose simulated answers, preserve the proxy marker, and stop before confirmation/bootstrap.
+Disclose simulated answers, preserve the proxy marker, and stop before confirmation or acceptance.
 This supplies no paid-worker, live-acceptance, implementation, architecture or release authority.
 The following live-acceptance requirements remain unchanged for actual automated workers.
 
-An explicit later request can extend the same-session rehearsal through bootstrap using
-`speckit.program-kit-governance.proxy-bootstrap`. Its dedicated adapter pauses native command steps
-for the current session, labels review decisions simulated, retains the draft intake and runs real
-validators. This is a separate exception for an adapter that cannot dispatch a coding agent; never
-use ordinary outer Codex bootstrap for a proxy or promote its results to consumer authority.
-Stop before feature implementation. The paid-worker manifest rules still apply to actual workers.
+The bootstrap workflow, proxy-bootstrap adapter and paid bootstrap/workflow phases are retired.
+Use `speckit.program-kit-governance.product-intake` for the founding baseline, then
+`speckit.program-kit-governance.specification-intake` for the selected feature. A simulated
+rehearsal supplies no consumer acceptance, constitution ratification or executed compatibility
+claim. Existing workflow runs, checkpoints and receipts remain read-only history; do not resume,
+recreate or relabel them as a new successful workflow. No replacement paid founding trial is supplied.
 
 Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
 do not report it as skipped when it was not requested. Successful exact-source package CI remains mandatory before publication.
@@ -118,18 +119,20 @@ evidence can inform fixes but never satisfies or substitutes for the publication
 - A user request authorizes only issuance of the exact phase-specific manifest they confirm through
   `New-LiveAcceptanceAuthorization.ps1`; it is not a reusable preference or authorization for a
   different phase.
-- Run `New-LiveBootstrapCheckpoint.ps1` or `Test-LiveBuildingBlockConsumer.ps1` only with the matching
-  unexpired, unconsumed manifest. Building-block authorization must bind the exact parent checkpoint.
+- Run supported building-block, feature or upgrade phases only with the matching unexpired,
+  unconsumed manifest. Each authorization must bind its exact supported parent checkpoint.
+  Retirement does not authorize a fabricated parent or a substitute bootstrap run.
 - Wait for completion, inspect the generated manifest and redacted streams, repair in-scope defects,
   and obtain a new one-use authorization before any rerun.
 - Never add a paid phase to CI or an unattended hook. Never recreate a boolean `-Approved` path.
-- `Test-LiveBootstrap.ps1` and the old Python entry point are retired; historical v1 evidence is
-  read-only and must not be upconverted.
+- `New-LiveBootstrapCheckpoint.ps1`, the bootstrap/workflow issuer and runner phases,
+  `Test-LiveBootstrap.ps1` and the old Python entry point cannot start paid bootstrap execution.
+  Historical evidence is read-only and must not be upconverted.
 
-The live harness is the sole exception to the normal rule against agent-started outer Codex
-bootstrap orchestration. It may exercise that exception only for its generated disposable test
-repository and preserves evidence under `artifacts/live-acceptance/v2/`. Do not copy its environment
-sanitization into consumer setup, bootstrap guidance, or another script.
+Independent user-authorized feature and upgrade trials preserve evidence under
+`artifacts/live-acceptance/v2/`. Their process supervision, sandbox, credential isolation and
+one-use authority rules remain in force. Do not copy harness environment sanitization into
+consumer setup or guidance, and never launch an outer bootstrap workflow from an agent.
 
 ## Failed stable-release recovery
 

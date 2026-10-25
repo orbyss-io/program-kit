@@ -5,7 +5,7 @@ pause the native workflow for correction; they never imply an approved design.
 """
 from __future__ import annotations
 
-import argparse
+import sys
 import hashlib
 import json
 from pathlib import Path
@@ -387,42 +387,6 @@ def recommended_features(root: Path, recommendation: dict):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['require', 'questions', 'ask', 'answer', 'defer', 'first-feature', 'eligibility'])
-    parser.add_argument('--run-id')
-    parser.add_argument('--stage', choices=list(STAGES))
-    parser.add_argument('--repair-stage', choices=list(STAGES))
-    parser.add_argument('--question-id')
-    parser.add_argument('--answer')
-    parser.add_argument('--question')
-    parser.add_argument('--owner')
-    parser.add_argument('--recommendation')
-    parser.add_argument('--kind', choices=['user-answer', 'design-decision', 'artifact-conflict'])
-    parser.add_argument('--entry', action='append', default=[])
-    parser.add_argument('--feature', help='Stable feature ID within the parent roadmap epic')
-    parser.add_argument('--phase', choices=['specification', 'planning', 'implementation', 'delivery', 'production'])
-    parser.add_argument('--rationale')
-    parser.add_argument('--required-now', action='store_true')
-    args = parser.parse_args()
-    try:
-        root = Path.cwd().resolve()
-        if args.command == 'first-feature':
-            result = first_feature(root)
-        elif args.command == 'eligibility':
-            from governance_state import roadmap_records, ROADMAP
-            from bootstrap_lifecycle import phase_eligibility
-            if len(args.entry) != 1 or not args.phase:
-                raise ValueError('Eligibility requires one --entry and --phase')
-            result = phase_eligibility(root, roadmap_records(root / ROADMAP), args.entry[0], args.phase, feature=args.feature)
-        elif args.command == 'defer':
-            result = defer(root, args.run_id, args.question_id, args.entry, args.phase, args.rationale)
-        elif args.command == 'answer':
-            result = answer(root, args.run_id, args.question_id, args.answer)
-        elif args.command == 'ask':
-            result = ask(root, args.run_id, args.question_id, args.question, args.owner, args.stage, args.recommendation,
-                         kind=args.kind, required_now=args.required_now, repair_stage=args.repair_stage)
-        else:
-            result = require(root, args.run_id, args.stage, questions_only=args.command == 'questions')
-        print(json.dumps(result))
-    except (ValueError, OSError) as error:
-        raise SystemExit(str(error))
+    from workflow_lifecycle import RETIREMENT
+    print(RETIREMENT, file=sys.stderr)
+    raise SystemExit(2)

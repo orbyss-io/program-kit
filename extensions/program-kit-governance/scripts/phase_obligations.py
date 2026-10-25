@@ -43,6 +43,35 @@ def intent(root, feature, phase='implementation', affected_paths=()):
     return context(root, feature, phase, affected_paths)
 
 
+def product_decisions(root, feature, phase):
+    """Carry reviewed product decisions through their explicitly chosen feature phase."""
+    from specification_intake import resolve_spec_brief, check_spec, validate_brief
+    _, brief = resolve_spec_brief(root, feature / 'spec.md')
+    selected = [item for item in brief.get('decisions', []) if 'productOpenItem' in item]
+    if not selected:
+        return []
+    validate_brief(brief, brief['roadmapEntry'], brief.get('featureId'))
+    # A source link or an answer is no authority without the actual confirmed brief.
+    check_spec(root, feature / 'spec.md')
+    phases = ('planning', 'after-plan', 'after-tasks', 'implementation', 'delivery')
+    actual = {'tasks': 'after-plan'}.get(phase, phase)
+    if actual not in phases:
+        raise ValueError('Unknown phase for product decision carryover: ' + phase)
+    return [{'id': item['productOpenItem'], 'decision': item['id'], 'question': item['question'],
+             'status': 'pending-decision' if item['disposition'] == 'deferred' else item['disposition'],
+             'owner': item.get('owner', ''), 'trigger': item.get('trigger', ''),
+             'due': item.get('duePhase'),
+             'requiredNow': item['disposition'] == 'deferred' and phases.index(item['duePhase']) <= phases.index(actual)}
+            for item in selected]
+
+
+def require_due_product_decisions(root, feature, phase):
+    pending = [item for item in product_decisions(root, feature, phase) if item['requiredNow']]
+    if pending:
+        raise ValueError('Resolve due product decisions in the affected feature intake and review its changed answers: '
+                         + '; '.join(item['id'] + ' (' + item['owner'] + '): ' + item['question'] for item in pending))
+
+
 def retained_proofs(root, feature, phase):
     """Keep actual executed prerequisites separate from reviewed plan decisions."""
     from feature_context import feature_scope
@@ -191,6 +220,7 @@ def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), sel
             'providerBindings': provider_bindings,
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
+            'productDecisions': product_decisions(root, feature, phase),
             'prerequisites': retained_proofs(root, feature, phase),
             'requirements': applicable_requirements(catalog(), tags, phase)}
 
@@ -261,6 +291,10 @@ def render(value, phase, detailed=False):
     for decision in value.get('decisions', []):
         lines += [f"Decision {decision['id']}: {decision['status']} ({decision['owner']})",
                   decision['task'], decision['diagnostic'], '']
+    for decision in value.get('productDecisions', []):
+        lines += [f"Product question {decision['id']}: {decision['status']}"
+                  + (f" (due {decision['due']}; {decision['owner']})" if decision['due'] else ''),
+                  decision['question'], 'This is a product decision; executed engineering/provider evidence remains separately required.', '']
     for proof in value.get('prerequisites', []):
         lines += [f"Retained prerequisite {proof['id']}: {proof['status']} (due {proof['due']}; {proof['owner']})",
                   proof['task'], 'Gate scope: retained roadmap-feature prerequisite; operation dependency declarations cannot defer or waive it.',
@@ -311,6 +345,7 @@ def text_page(output, page=1, limit=10000):
 
 def check(root, feature, phase, affected_paths=(), operation=None, repair=False, configuration='Debug', framework=None, coding_stage='source'):
     graph_checked, execution = None, None
+    require_due_product_decisions(root, feature, phase)
     from consumer_upgrade import scan, request_scope
     compatibility = scan(root, request_scope(root, feature=feature), {'after-plan': 'planning', 'after-tasks': 'tasks'}.get(phase, phase))
     if not compatibility['canProceed']:
@@ -376,6 +411,7 @@ def validate_planned_architecture(root, feature):
 
 def execute(root, feature, scope='Acceptance', changed_from=None):
     if scope == 'Acceptance':
+        require_due_product_decisions(root, feature, 'delivery')
         from feature_plan_decisions import require_resolved
         require_resolved(root, feature)
         require_due_proofs(root, feature, 'delivery')

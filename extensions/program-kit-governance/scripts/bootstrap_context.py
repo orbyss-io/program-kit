@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import hashlib
 import importlib.util
 import json
@@ -1964,142 +1963,9 @@ def read_sources(project_root: Path, run_id: str, stage: str, page: int) -> dict
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
-    parser = argparse.ArgumentParser(description="Build compact Program Kit bootstrap stage handoffs.")
-    parser.add_argument(
-        "command",
-        choices=(
-            "build",
-            "validate",
-            "validate-output",
-            "inspect-output",
-            "read-brief",
-            "read-sources",
-            "validate-intake",
-            "validate-profile-pins",
-            "validate-architecture-alignment",
-            "validate-architecture-structure",
-            "validate-stage",
-            "record-architecture-blocked",
-            "prepare-architecture-recovery",
-        ),
-    )
-    parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
-    parser.add_argument("--run-id")
-    parser.add_argument("--project-root", default=".")
-    parser.add_argument("--json", action="store_true")
-    parser.add_argument("--reason")
-    parser.add_argument("--owner")
-    parser.add_argument("--resolution")
-    parser.add_argument("--page", type=int, default=1)
-    args = parser.parse_args()
-    project_root = Path(args.project_root).resolve()
-    try:
-        if args.command not in {"validate-output", "inspect-output"} and not args.run_id:
-            raise ContextError(f"--run-id is required for {args.command}")
-        if args.command == "prepare-architecture-recovery":
-            result = prepare_architecture_recovery(project_root, args.run_id)
-        elif args.command == "record-architecture-blocked":
-            record_architecture_blocked(project_root, args.run_id, args.reason, args.owner, args.resolution)
-            check_architecture_blocked(project_root, args.run_id)
-        elif args.command == "validate-intake":
-            payload = validate_intake(project_root, args.run_id)
-            result = {
-                "path": INTAKE_PATH.as_posix(),
-                "bytes": (project_root / INTAKE_PATH).stat().st_size,
-                "fact_count": len(payload["facts"]),
-                "journey_count": len(payload["journeys"]),
-                "capability_count": len(payload["capability_assessments"]),
-                "open_item_count": len(payload["open_items"]),
-            }
-        elif args.command == "validate-profile-pins":
-            authority = validate_profile_pin_decisions(project_root, args.run_id)
-            result = {
-                "selected_profiles": authority["selected_profiles"],
-                "pins": authority["pins"],
-                "source_count": len(authority["sources"]),
-            }
-        elif args.command == "validate-architecture-alignment":
-            payload = validate_architecture_alignment(project_root, args.run_id)
-            result = {
-                "path": INTAKE_PATH.as_posix(),
-                "fact_count": len(payload["facts"]),
-                "journey_count": len(payload["journeys"]),
-                "capability_count": len(payload["capability_assessments"]),
-            }
-        elif args.command == "validate-architecture-structure":
-            result = validate_architecture_structure(project_root, args.run_id)
-        elif args.command == "validate-stage":
-            if not args.stage:
-                raise ContextError("--stage is required for validate-stage")
-            result = validate_stage_batch(project_root, args.run_id, args.stage)
-        elif args.command in {"validate-output", "inspect-output", "read-brief", "read-sources"}:
-            if not args.stage:
-                raise ContextError(f"--stage is required for {args.command}")
-            if args.command == 'read-sources':
-                result = read_sources(project_root, args.run_id, args.stage, args.page)
-            elif args.command == 'read-brief':
-                result = read_brief(project_root, args.run_id, args.stage, args.page)
-            elif args.command == 'inspect-output':
-                result = inspect_stage_output(project_root, args.stage, args.run_id or '')
-            else:
-                result = validate_stage_output(project_root, args.stage, args.run_id or "")
-        else:
-            if not args.stage:
-                raise ContextError(f"--stage is required for {args.command}")
-            if args.command == "build":
-                path, payload = build_context(project_root, args.run_id, args.stage)
-            else:
-                path, payload = validate_context(project_root, args.run_id, args.stage)
-            result = result_payload(project_root, path, payload)
-    except (ContextError, OSError, UnicodeError) as exc:
-        print(f"Program Kit bootstrap context failed: {exc}", file=sys.stderr)
-        return 2
-    if args.json or args.command == "prepare-architecture-recovery":
-        print(json.dumps(result))
-    elif args.command == 'read-sources':
-        print(f"Required sources sha256={result['sha256']} page {result['page']}/{result['pages']}")
-        print(result['text'])
-        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of required sources.')
-    elif args.command == 'read-brief':
-        print(f"Brief {result['path']} sha256={result['sha256']} page {result['page']}/{result['pages']} (character {result['start_character']})")
-        print(result['text'], end='\n')
-        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of brief; all pages are required.')
-    elif args.command == 'inspect-output':
-        print('Advisory sizing only; terminal validation is still required.')
-        for artifact in result['artifacts']:
-            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}; headroom {artifact['headroom_bytes']}; above target {artifact['above_target_bytes']}")
-    elif args.command == "validate-intake":
-        print(f"Program Kit confirmed bootstrap intake is valid: {result['path']}")
-    elif args.command == "validate-profile-pins":
-        print(
-            "Program Kit selected-profile pins are valid: "
-            f"{len(result['pins'])} managed pin(s)"
-        )
-    elif args.command == "validate-architecture-alignment":
-        print("Program Kit architecture remains aligned with the confirmed bootstrap intake")
-    elif args.command == "validate-architecture-structure":
-        print(
-            "Program Kit architecture structural batch passed "
-            f"({len(result['checks'])} checks)"
-        )
-    elif args.command == "validate-stage":
-        print(
-            f"Program Kit {args.stage} terminal validation batch passed "
-            f"({result['check_count']} checks; {result['target_exceeded_count']} above generation target)"
-        )
-        for artifact in result['artifacts']:
-            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}")
-    elif args.command == "validate-output":
-        print(
-            f"Program Kit {args.stage} outputs are within hard byte budgets "
-            f"({result['target_exceeded_count']} above generation target)"
-        )
-    else:
-        print(f"Program Kit {args.stage} context is valid: {result['path']}")
-    return 0
+    from workflow_lifecycle import RETIREMENT
+    print(RETIREMENT, file=sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":

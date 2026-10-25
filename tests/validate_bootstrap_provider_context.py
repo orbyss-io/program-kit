@@ -33,30 +33,38 @@ class ProviderContextTests(unittest.TestCase):
             decisions['identity'].update(provider=provider, scope=scope)
             self.assertIsNone(providers.project(self.root, decisions)['identity_runtime'])
 
-    def test_shipped_probe_and_exporter_pins_match_managed_foundation(self):
+    def test_rendered_probe_and_exporter_pins_match_selected_profile(self):
         import xml.etree.ElementTree as ET
+        from runtime_fixture import retarget_project
         resolver = load_module(RESOLVER)
         current = resolver.new_project_catalog()
-        version = current['families']['foundation']['releaseVersion']
+        retained = resolver.effective_dependency_context(self.root)
+        abi_table = json.loads((resolver.profile_registry() / 'engineering-contracts.json').read_text())['releases']
         files = list((ROOT / 'extensions/program-kit-governance/examples').rglob('*.csproj'))
-        files += list((ROOT / 'tests/fixtures/knowledge-application/components').rglob('*.csproj'))
-        files += list((ROOT / 'tests/fixtures/application-lifecycle').rglob('*.csproj'))
-        packages = ET.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props')
-        shared_pins = {row.get('Include'): row.get('Version') for row in packages.iter('PackageVersion')}
-        checked = 0
-        for path in files:
-            for reference in ET.parse(path).iter('PackageReference'):
-                if reference.get('Include', '').startswith('Orbyss.Foundation.'):
-                    self.assertEqual(version, reference.get('Version').strip('[]'), str(path))
+        # Other integration fixture families retain their own preparation/pin checks.
+        originals = {path: path.read_bytes() for path in files}
+        # These are retained source fixtures. Qualification and consumer recipe
+        # owners retarget disposable copies to the chosen tuple; source defaults
+        # never authorize replacing an existing consumer's selected profile.
+        for catalog in (current, retained['catalog']):
+            version = catalog['families']['foundation']['releaseVersion']
+            abi = abi_table[version]
+            checked = 0
+            for path in files:
+                rendered = ET.fromstring(retarget_project(originals[path], catalog, abi))
+                for reference in rendered.iter('PackageReference'):
+                    identity = reference.get('Include', '')
+                    if not identity.startswith(('Orbyss.Foundation.', 'CShells.', 'Orbyss.Forms.')):
+                        continue
+                    expected = abi['pins'].get(identity) or catalog['packages'].get('nuget:' + identity, {}).get('version')
+                    self.assertIsNotNone(expected, 'No selected dependency authority for ' + identity)
+                    self.assertEqual(expected, reference.get('Version').strip('[]'), str(path))
                     checked += 1
-                elif reference.get('Include', '').startswith('CShells.'):
-                    self.assertEqual(shared_pins['CShells.AspNetCore.Abstractions'],
-                                     reference.get('Version').strip('[]'), str(path))
-                elif reference.get('Include', '').startswith('Orbyss.Forms.'):
-                    self.assertEqual(current['families']['forms']['releaseVersion'], reference.get('Version'), str(path))
-        self.assertGreater(checked, 0)
+            self.assertGreater(checked, 0)
+        self.assertNotEqual(current['families']['foundation']['releaseVersion'], retained['catalog']['families']['foundation']['releaseVersion'])
+        self.assertEqual(originals, {path: path.read_bytes() for path in files})
         tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json'
-        exporter = load_module(RESOLVER).new_project_catalog()['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
+        exporter = current['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
         self.assertEqual(exporter, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
 
     def setUp(self):
@@ -69,6 +77,7 @@ class ProviderContextTests(unittest.TestCase):
         destination.parent.mkdir(parents=True)
         shutil.copyfile(ROOT / self.identity.replace('.specify/', ''), destination)
         for relative in ('references/persistence-runtimes.json',
+                         'templates/dotnet/files/eng/owned_scratch.py',
                          'templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props'):
             source = ROOT / 'extensions/program-kit-dotnet' / relative
             target = self.root / '.specify/extensions/program-kit-dotnet' / relative
@@ -226,6 +235,17 @@ class ProviderContextTests(unittest.TestCase):
                 _, _, contract, cases = validate_recipe(self.root, kind, plan['recipe'])
                 self.assertEqual(probes.CASES[kind], cases)
                 self.assertTrue(contract['dependencyTargets'])
+                effective = load_module(RESOLVER).effective_dependency_context(self.root)
+                import xml.etree.ElementTree as ET
+                for name in contract['dependencyTargets']:
+                    if not name.endswith('.csproj'): continue
+                    rendered_project = self.root / contract['fixtures'][name]
+                    for reference in ET.parse(rendered_project).iter('PackageReference'):
+                        identity = reference.get('Include', '')
+                        package = effective['catalog']['packages'].get('nuget:' + identity)
+                        expected = effective['sharedAbi']['pins'].get(identity) or (package['version'] if package else None)
+                        if expected is not None:
+                            self.assertEqual(expected, reference.get('Version').strip('[]'), name)
                 for source in contract['fixtures'].values():
                     self.assertTrue((self.root / source).is_file())
                 with self.assertRaisesRegex(ValueError, 'already exists'):

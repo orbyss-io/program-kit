@@ -58,7 +58,7 @@ class IntakeSessionTests(unittest.TestCase):
         with patch.dict(module.os.environ, {'CODEX_THREAD_ID': 'synthetic-worker'}), \
              patch.object(module.subprocess, 'run') as run:
             result = module.initialize_owner_access(self.workspace)
-            self.assertIn(result, ('not-required', 'human-terminal-required; workflow preflight verifies cross-account access'))
+            self.assertIn(result, ('not-required', 'human-terminal-required; no persistent access grant from agent preparation'))
             run.assert_not_called()
 
     def test_owner_access_initialization_is_limited_to_new_empty_windows_root(self):
@@ -264,7 +264,7 @@ class IntakeSessionTests(unittest.TestCase):
                     return 2
                 return 0
             with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1234')), patch.object(module, 'run', side_effect=execute):
-                with self.assertRaisesRegex(RuntimeError, 'step 8'):
+                with self.assertRaisesRegex(RuntimeError, 'step 6'):
                     module.install_components('nonexistent-specify', 'git', self.workspace, self.record)
             self.assertEqual(len(calls), expected)
 
@@ -313,8 +313,7 @@ class IntakeSessionTests(unittest.TestCase):
         commands = [call.args[0] for call in run.call_args_list]
         self.assertTrue(any(command[1:3] == ['bundle', 'install'] for command in commands))
         self.assertFalse(any(command[1:3] == ['extension', 'add'] for command in commands))
-        self.assertTrue(any(command[1:3] == ['workflow', 'add'] for command in commands))
-        self.assertTrue(any(command[1:] == ['workflow', 'add', 'program-kit-bootstrap'] for command in commands))
+        self.assertFalse(any(command[1] == 'workflow' for command in commands if len(command) > 1))
         self.assertFalse(any('--dev' in command for command in commands))
         bundle = next(command for command in commands if command[1:3] == ['bundle', 'install'])
         self.assertEqual('program-kit', bundle[3])
@@ -325,20 +324,60 @@ class IntakeSessionTests(unittest.TestCase):
         version = (ROOT / 'VERSION').read_text().strip()
         sums = []
         for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet',
-                     'program-kit-governance-preset', 'program-kit-bootstrap', 'program-kit'):
+                     'program-kit-governance-preset', 'program-kit', 'program-kit-tooling'):
             path = assets / f'{name}-{version}.zip'
             with zipfile.ZipFile(path, 'w') as archive: archive.writestr('synthetic.txt', name)
             sums.append(module.digest(path) + '  ' + path.name)
         (assets / 'SHA256SUMS').write_text('\n'.join(sums))
-        with patch.object(module, 'run') as run:
+        with patch.object(module, 'run') as run, patch.object(module, 'verify_source_assets') as source_check:
             self.assertEqual(assets, module.release_assets(self.record, assets))
             run.assert_not_called()
+            source_check.assert_called_once_with(assets, version)
         inputs = json.loads((self.record / 'installation-inputs.json').read_text())
         self.assertEqual(6, len(inputs['sha256']))
         damaged = assets / f'program-kit-dotnet-{version}.zip'
         damaged.write_bytes(damaged.read_bytes() + b'tampered')
         with self.assertRaisesRegex(ValueError, 'differs from SHA256SUMS'):
             module.release_assets(self.record, assets)
+
+    def test_same_source_witness_rejects_consistent_stale_or_mixed_packages(self):
+        import hashlib
+        assets = self.record / 'source-assets'; assets.mkdir()
+        source = self.record / 'mini-source'; source.mkdir()
+        payloads = {'bundle.yml': b'current composition', 'VERSION': b'candidate',
+                    'extensions/program-kit-governance/extension.yml': b'governance',
+                    'extensions/program-kit-building-blocks/extension.yml': b'blocks',
+                    'extensions/program-kit-dotnet/extension.yml': b'dotnet',
+                    'presets/program-kit-governance-preset/preset.yml': b'preset'}
+        for name, raw in payloads.items():
+            path = source / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+        def package_tooling(values):
+            files = {name: hashlib.sha256(raw).hexdigest() for name, raw in values.items()}
+            encoded = (json.dumps(files, sort_keys=True, indent=2, ensure_ascii=False) + '\n').encode()
+            witness = {'schemaVersion': 1, 'files': files, 'fileSetSha256': hashlib.sha256(encoded).hexdigest()}
+            with zipfile.ZipFile(assets / 'program-kit-tooling-candidate.zip', 'w') as archive:
+                for name, raw in values.items(): archive.writestr(name, raw)
+                archive.writestr('program-kit-source-witness.json', json.dumps(witness))
+        package_tooling(payloads)
+        for identity, name in (('program-kit-governance','extensions/program-kit-governance/extension.yml'),
+                               ('program-kit-building-blocks','extensions/program-kit-building-blocks/extension.yml'),
+                               ('program-kit-dotnet','extensions/program-kit-dotnet/extension.yml'),
+                               ('program-kit-governance-preset','presets/program-kit-governance-preset/preset.yml'),
+                               ('program-kit','bundle.yml')):
+            with zipfile.ZipFile(assets / (identity + '-candidate.zip'), 'w') as archive:
+                archive.writestr(Path(name).name, payloads[name])
+        def guidance(_root, destination, _version, **_options):
+            destination.mkdir(parents=True); return destination
+        with patch.object(module, 'ROOT', source), patch('build_release.bundle_source_files', return_value=[Path(name) for name in payloads]), patch('build_release_guidance.build', side_effect=guidance):
+            module.verify_source_assets(assets, 'candidate')
+            with zipfile.ZipFile(assets / 'program-kit-dotnet-candidate.zip', 'w') as archive:
+                archive.writestr('extension.yml', b'other same-version package')
+            with self.assertRaisesRegex(ValueError, 'Component archive differs'):
+                module.verify_source_assets(assets, 'candidate')
+            stale = dict(payloads, VERSION=b'other candidate')
+            package_tooling(stale)
+            with self.assertRaisesRegex(ValueError, 'differs from the current intake source'):
+                module.verify_source_assets(assets, 'candidate')
 
     def test_install_failure_stops_before_later_steps(self):
         resolver = SimpleNamespace(uv_windows_specify_environment=lambda _: None)

@@ -34,9 +34,9 @@ Artifact-writing workers require explicit --sandbox workspace-write. Codex exec
 defaults to read-only; project config and project trust do not establish this
 dispatch contract. Full filesystem access is not required.
 
-From a normal user-owned PowerShell terminal, use Program Kit's lifecycle entry
-point (run for a new run, resume --run-id <id> for an existing stopped run):
-  python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <id>
+For product founding, invoke $speckit-program-kit-governance-product-intake
+in the current session. The bootstrap workflow is retired. A separately authorized
+feature or upgrade trial must follow its own exact manifest and recovery guidance.
 
 Do not change saved run state, move review gates, disable the sandbox, or grant
 full filesystem access. If Codex rejects workspace-write or its native sandbox

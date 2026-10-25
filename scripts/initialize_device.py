@@ -11,15 +11,16 @@ import subprocess
 import urllib.request
 
 PINS = 'extensions/program-kit-dotnet/templates/dotnet/files'
-INPUTS = ('.nvmrc', '.npm-version', 'global.json', 'eng/device_toolchain.py', 'eng/js_toolchain.py')
+INPUTS = ('eng/device_toolchain.py',)
 
 
 def check(project: Path, pins: Path, authority: str) -> None:
-    print('Program Kit initial device readiness; authoritative pins: ' + authority, flush=True)
+    print('Program Kit initialization prerequisites; release-owned diagnostic source: ' + authority, flush=True)
     spec = importlib.util.spec_from_file_location('initialize_device_policy', pins / 'eng/device_toolchain.py')
     policy = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(policy)
-    policy.contributor(project, pins_directory=pins, exact_specify=False)
+    policy.contributor(project, pins_directory=pins, exact_specify=False, python_only=True)
+    policy.require_tool(project, 'git', authority='Native Spec Kit initialization uses the current Git work tree')
     print('PKT000 shared device tools are ready; initialization may continue. '
           'Repository setup, profile-specific prerequisites and future pin changes retain their own checks.', flush=True)
 

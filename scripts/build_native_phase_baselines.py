@@ -18,14 +18,17 @@ COMPONENTS = (
     ('extensions', 'program-kit-governance', 'extension.yml'),
     ('extensions', 'program-kit-building-blocks', 'extension.yml'),
     ('extensions', 'program-kit-dotnet', 'extension.yml'),
-    ('presets', 'program-kit-governance-preset', 'preset.yml'))
+    ('presets', 'program-kit-governance-preset', 'preset.yml'),
+    ('workflows', 'program-kit-bootstrap', 'workflow.yml'))
 
 
 def capture(root, reference):
     """Exact Git bytes and the historical Windows checkout representation."""
     commit = subprocess.run(['git', 'rev-parse', reference + '^{commit}'], cwd=root,
                             capture_output=True, check=True, text=True).stdout.strip()
-    archive = subprocess.run(['git', 'archive', '--format=zip', commit, 'extensions', 'presets'],
+    directories = subprocess.run(['git', 'ls-tree', '-d', '--name-only', commit, 'extensions', 'presets', 'workflows'],
+                                 cwd=root, capture_output=True, check=True, text=True).stdout.splitlines()
+    archive = subprocess.run(['git', 'archive', '--format=zip', commit, *directories],
                              cwd=root, capture_output=True, check=True).stdout
     components = []
     with zipfile.ZipFile(io.BytesIO(archive)) as package:
@@ -91,11 +94,16 @@ def build():
     history = json.loads((ROOT / 'releases/history.json').read_text(encoding='utf-8'))
     current = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
     references = ['v' + entry['version'] for entry in history['entries'] if entry['version'] != current]
-    references.extend(('711293b2dda187616891df11fe760a3d5d0cf5f5',
+    references.extend(('v0.14.3',  # Last workflow-bearing stable release; retained only for safe removal.
+                       '711293b2dda187616891df11fe760a3d5d0cf5f5',
                        '4b90dc7ea6458fc2fbd6a5ae7e35c552426ad9e8'))
-    components = []
+    # Previously recorded source witnesses are immutable. New exact captures append;
+    # regeneration must never replace an older row or reorder its historical inputs.
+    components = json.loads(OUTPUT.read_text(encoding='utf-8'))['components'] if OUTPUT.is_file() else []
     for reference in references:
-        components.extend(capture(ROOT, reference))
+        for row in capture(ROOT, reference):
+            if row not in components:
+                components.append(row)
     value = {'schemaVersion': 1, 'supportedFrom': history['supportedFrom'],
              'authorityScope': 'Immutable source-byte witnesses for installer ownership; no publication or consumer authority.',
              'components': components}

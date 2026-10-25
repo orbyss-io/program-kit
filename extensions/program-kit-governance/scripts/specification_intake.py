@@ -87,6 +87,43 @@ def nonempty(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+def product_frontier(repository: Path) -> list[dict]:
+    """Expose unresolved product intent without guessing feature relevance from prose."""
+    path = repository / governance.BOOTSTRAP_INTAKE
+    if not path.is_file():
+        return []
+    items = read(path).get('open_items', [])
+    require(isinstance(items, list) and all(isinstance(item, dict) and nonempty(item.get('id')) for item in items),
+            'Product open items require stable identities')
+    require(len({item['id'] for item in items}) == len(items), 'Product open-item IDs must be unique')
+    return [{'source': governance.BOOTSTRAP_INTAKE.as_posix(), 'sha256': digest(item), **item}
+            for item in items]
+
+
+def require_product_carryover(brief: dict, frontier: list[dict], *, complete: bool = True) -> None:
+    """Each source gets a reviewed applicability decision, not an automatic global gate."""
+    known = {item['id']: item for item in frontier}
+    linked = [item for item in brief.get('decisions', []) if 'productOpenItem' in item]
+    identities = [item['productOpenItem'] for item in linked]
+    require(all(isinstance(identity, str) for identity in identities)
+            and len(identities) == len(set(identities)), 'Product frontier links must be unique stable IDs')
+    require(set(identities) <= known.keys(), 'Linked product question was removed or is unknown; review the affected scope')
+    if complete:
+        require(set(identities) == known.keys(),
+                'Review each product frontier item: answer/default, carry with owner and duePhase, or explicitly exclude as unrelated')
+    for item in linked:
+        source = known[item['productOpenItem']]
+        require(item.get('productOpenItemSha256') == source['sha256'],
+                f"Product question {source['id']} changed; review its current condition")
+        require(item.get('disposition') in {'answered', 'default', 'deferred', 'excluded'},
+                f"Product question {source['id']} requires an explicit applicability decision")
+        require(item.get('verification', 'decision') == 'decision',
+                'Product question answers do not establish executed runtime/provider evidence')
+        if item['disposition'] == 'excluded':
+            require(item.get('blocking') is False,
+                    f"Unrelated product question {source['id']} cannot also block this feature")
+
+
 def bootstrap_obligations(repository: Path, entry: str) -> list[dict]:
     """Project selected feature decisions and open architecture obligations, not closed proofs."""
     path = repository / 'docs/architecture/bootstrap-prerequisites.json'
@@ -178,6 +215,7 @@ def context(repository: Path, entry: str, *, later: bool = False, feature: str |
         validate_identity(brief, entry, feature)
     return {'roadmap': {k:v for k,v in record.items() if k != 'Status'},
             'canonicalKnowledge': project_knowledge(repository, brief.get('architectureScope'), feature_id=feature),
+            'productFrontier': product_frontier(repository),
             'bootstrapObligations': [], 'sources': {}}
 
 
@@ -198,6 +236,8 @@ def review_text(brief: dict, basis: dict) -> str:
                   "Depends on: " + (", ".join(item["dependsOn"]) or "none")]
         if item["disposition"] == "deferred":
             lines += [f"Owner / next action: {item['owner']}", f"Trigger: {item['trigger']}", f"Due phase: {item['duePhase']}"]
+        if 'productOpenItem' in item:
+            lines += [f"Product frontier source: {item['productOpenItem']}; SHA256: {item.get('productOpenItemSha256', '')}"]
     if basis.get('canonicalKnowledge'):
         from bootstrap_context import semantic_projection
         lines += ["", "## Canonical architecture scope", "```json",
@@ -207,6 +247,13 @@ def review_text(brief: dict, basis: dict) -> str:
         for item in basis['bootstrapObligations']:
             lines += [f"- {item['id']} ({item['owner']}; {item['trigger']}): {item['task']}",
                       f"  Source IDs: {', '.join(item['source_ids'])}. Rationale: {item['rationale']}"]
+    if basis.get('productFrontier'):
+        lines += ['', '## Product frontier applicability', '']
+        for item in basis['productFrontier']:
+            lines += [f"- {item['id']}: {item['question']}",
+                      f"  Existing disposition: {item['disposition']}; trigger: {item['trigger'] or item['blocks']}",
+                      f"  Source: {item['source']}#{item['id']}; SHA256: {item['sha256']}"]
+        lines += ['Review every item explicitly; unrelated questions can be excluded with rationale.']
     lines += ["", "## Review basis", f"Brief SHA256: {digest(brief)}", f"Context SHA256: {digest(basis)}", ""]
     return "\n".join(lines)
 
@@ -217,6 +264,7 @@ def prepare(repository: Path, entry: str, *, later: bool = False, feature: str |
     validate_brief(brief, entry, feature)
     basis = context(repository, entry, later=later, feature=feature)
     require_bootstrap_carryover(brief, basis['bootstrapObligations'])
+    require_product_carryover(brief, basis['productFrontier'])
     return folder, brief, basis, review_text(brief, basis)
 
 
@@ -293,6 +341,9 @@ def check(repository: Path, entry: str, *, later: bool = False, feature: str | N
             and receipt.get('featureId') == feature,
             'Confirmation belongs to another feature or unsupported schema')
     require(receipt.get('briefHash') == digest(brief), 'Feature intent changed; clarify the affected product choices')
+    # Later unrelated additions do not reconfirm this feature. Its own selected
+    # source conditions still cannot be silently replaced or dropped.
+    require_product_carryover(brief, product_frontier(repository), complete=False)
     synthesis = folder / 'review.md'
     if synthesis.is_file():
         require(hashlib.sha256(synthesis.read_bytes()).hexdigest() == receipt.get('reviewHash'),

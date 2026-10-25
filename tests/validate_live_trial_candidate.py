@@ -1,7 +1,7 @@
 """Development trial receipts never imply Release validation or authorize a paid worker."""
 import copy
 import os
-import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 import zipfile
 from pathlib import Path
@@ -20,7 +20,7 @@ SCHEMAS = ROOT / 'tests/live/schemas/v2'
 
 class TrialTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
+        temporary = FixtureDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.path = self.root / 'trial.json'
@@ -96,33 +96,16 @@ class TrialTests(unittest.TestCase):
         with self.assertRaises(LiveContractError):
             trial.validate_trial_receipt(self.root,self.path,SCHEMAS)
 
-    def test_bootstrap_limit_tracks_verified_seven_eight_and_nine_step_packages(self):
-        path = self.root / 'artifacts/program-kit-bootstrap-0.12.0.zip'
-        for count in (7,8,9):
-            with zipfile.ZipFile(path,'w') as package:
-                package.writestr('workflow.yml', 'steps:\n' + ''.join(f'  - id: step-{number}\n    type: command\n' for number in range(count)))
-            receipt = {'version':'0.12.0','artifacts':[trial.file_record(self.root,path)]}
-            self.assertEqual(bootstrap_session_limit(self.root,receipt),count)
-        path.write_bytes(b'changed archive')
-        with self.assertRaisesRegex(LiveContractError,'WORKFLOW_HASH_MISMATCH'):
-            bootstrap_session_limit(self.root,receipt)
+    def test_bootstrap_limit_refuses_before_reading_package_or_receipt(self):
+        with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+            bootstrap_session_limit(self.root, {})
 
-    def test_bootstrap_authorization_requires_verified_count_and_rejects_limit_change(self):
-        arguments = {'phase':'bootstrap-checkpoint','scenario':{'id':'test','version':'1','digest':'a'*64},
-                     'candidate':{'releaseReceipt':'test','releaseReceiptSha256':'b'*64}, 'checkpoint':None,
-                     'agent_profile':{'integration':'codex','launcherVersion':'test','model':'test','reasoningEffort':'high','sandbox':'workspace-write','timeoutSeconds':60}}
-        schema = load_object(SCHEMAS / 'authorization.schema.json')
-        with self.assertRaisesRegex(LiveContractError,'VERIFIED_WORKFLOW_LIMIT_REQUIRED'):
-            issue_authorization(self.path,schema,**arguments)
-        manifest = issue_authorization(self.path,schema,bootstrap_sessions=8,**arguments)
-        self.assertEqual(manifest['limits']['maximumPaidSessions'],8)
-        expected = {'phase':'bootstrap-checkpoint','scenario_digest':'a'*64,'candidate_receipt_digest':'b'*64,'checkpoint_digest':None,'bootstrap_sessions':8}
-        validate_authorization(self.path,schema,**expected)
-        for wrong in (7,9):
-            manifest['limits']['maximumPaidSessions'] = wrong
-            atomic_write_json(self.path,manifest)
-            with self.assertRaisesRegex(LiveContractError,'SESSION_LIMIT'):
-                validate_authorization(self.path,schema,**expected)
+    def test_bootstrap_authorization_cannot_be_reissued(self):
+        original = self.path.read_bytes()
+        with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+            issue_authorization(self.path, {}, phase='bootstrap-checkpoint', scenario={}, candidate={},
+                                checkpoint=None, agent_profile={}, bootstrap_sessions=8)
+        self.assertEqual(original, self.path.read_bytes())
 
     def test_worker_path_removes_missing_and_duplicate_entries_without_reordering(self):
         first, second = self.root / 'first', self.root / 'second'
@@ -141,24 +124,10 @@ class TrialTests(unittest.TestCase):
             with self.assertRaisesRegex(LiveContractError,'PATH_TOO_LONG'):
                 cli.compact_windows_path(entries)
 
-    def test_runtime_preflight_failure_precedes_authorization_consumption_and_worker(self):
-        fixture, project, packages = self.root/'fixture', self.root/'project', self.root/'packages'
-        fixture.mkdir()
-        (self.root / 'selection-template.json').write_text('{}', encoding='utf-8')
-        (fixture / 'PROJECT_REQUEST.md').write_text('Disposable unit-test request', encoding='utf-8')
-        (fixture / 'docs/architecture').mkdir(parents=True)
-        (fixture / 'docs/architecture/project-intent.md').write_text('Disposable unit-test intent', encoding='utf-8')
-        (packages/'workflow').mkdir(parents=True)
-        (packages/'workflow/workflow.yml').write_text('steps:\n  - id: test-step\n    type: command\n',encoding='utf-8')
-        store = SimpleNamespace(runs=self.root/'runs')
-        authorization = {'limits':{'maximumPaidSessions':1},'candidate':{},'agentProfile':{}}
-        inputs = (self.root,self.root,store,{'selectionTemplate':'selection-template.json'}, {}, {},'a'*64,authorization)
-        with patch.object(cli,'_phase_inputs',return_value=inputs), patch.object(cli,'execution_workspace',return_value=project), \
-             patch.object(cli,'candidate_packages',return_value=packages), patch.object(cli,'copied_fixture',return_value=fixture), \
-             patch.object(cli,'install_candidate_from_receipt',return_value=[]), patch.object(cli,'worker_guidance'), \
-             patch.object(cli,'bootstrap_runtime_preflight',side_effect=LiveContractError('runtime unavailable')), \
-             patch.object(cli,'consume_authorization') as consume, patch.object(cli,'run_supervised') as worker:
-            with self.assertRaisesRegex(LiveContractError,'runtime unavailable'):
+    def test_retired_bootstrap_precedes_authority_consumption_or_worker(self):
+        with patch.object(cli, '_phase_inputs', side_effect=AssertionError('must not inspect authority')), \
+             patch.object(cli, 'consume_authorization') as consume, patch.object(cli, 'run_supervised') as worker:
+            with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
                 cli.bootstrap(SimpleNamespace(authorization='unused'))
             consume.assert_not_called()
             worker.assert_not_called()

@@ -52,7 +52,6 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
         f"program-kit-building-blocks-{version}.zip",
         f"program-kit-dotnet-{version}.zip",
         f"program-kit-governance-preset-{version}.zip",
-        f"program-kit-bootstrap-{version}.zip",
         f"program-kit-{version}.zip",
         f"program-kit-tooling-{version}.zip",
         f"Initialize-ProgramKit-{version}.cmd",

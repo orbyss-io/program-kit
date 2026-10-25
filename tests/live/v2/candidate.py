@@ -15,21 +15,11 @@ from .common import LiveContractError, load_object, safe_relative, sha256_file, 
 from .supervisor import ProcessResult, run_supervised
 
 
-CONTROL_ARCHIVE_KEYS = ("workflow", "bundle")
+CONTROL_ARCHIVE_KEYS = ("bundle",)
 
 
 def bootstrap_session_limit(root: Path, receipt: dict) -> int:
-    relative = f"artifacts/program-kit-bootstrap-{receipt['version']}.zip"
-    records = [record for record in receipt['artifacts'] if record['path'] == relative]
-    archive = root / relative
-    if len(records) != 1 or sha256_file(archive) != records[0]['sha256']:
-        raise LiveContractError('LIVE_CANDIDATE_WORKFLOW_HASH_MISMATCH')
-    with zipfile.ZipFile(archive) as package:
-        workflow = package.read('workflow.yml').decode('utf-8-sig')
-    count = sum(line.strip() == 'type: command' for line in workflow.splitlines())
-    if count < 1:
-        raise LiveContractError('LIVE_CANDIDATE_WORKFLOW_HAS_NO_PAID_STEPS')
-    return count
+    raise LiveContractError('LIVE_BOOTSTRAP_WORKFLOW_RETIRED: use the installed product-intake skill; no bootstrap worker may start')
 
 
 def validate_candidate_receipt(root: Path, receipt_path: Path, schema_root: Path, kind: str = 'release') -> tuple[dict, str]:
@@ -134,7 +124,6 @@ def install_candidate_from_receipt(
         "building-blocks": f"program-kit-building-blocks-{version}.zip",
         "dotnet": f"program-kit-dotnet-{version}.zip",
         "preset": f"program-kit-governance-preset-{version}.zip",
-        "workflow": f"program-kit-bootstrap-{version}.zip",
         "bundle": f"program-kit-{version}.zip",
     }
     listed = {Path(record["path"]).name: record for record in receipt["artifacts"]}
@@ -153,8 +142,6 @@ def install_candidate_from_receipt(
     catalog_commands = [
         specify_bridge_command(root, "extension", "catalog", "add", f"{base_url}/extensions.json", "--name", "program-kit-live-candidate", "--priority", "1", "--install-allowed", loopback_http_only=os.name == "nt"),
         specify_bridge_command(root, "preset", "catalog", "add", f"{base_url}/presets.json", "--name", "program-kit-live-candidate", "--priority", "1", "--install-allowed", loopback_http_only=os.name == "nt"),
-        specify_bridge_command(root, "workflow", "catalog", "add", f"{base_url}/workflows.json", "--name", "program-kit-live-candidate", loopback_http_only=os.name == "nt"),
-        specify_bridge_command(root, "workflow", "add", "program-kit-bootstrap", loopback_http_only=os.name == "nt"),
         specify_bridge_command(root, "bundle", "install", str(packages / "bundle/bundle.yml"), "--integration", "codex", loopback_http_only=os.name == "nt"),
     ]
     try:

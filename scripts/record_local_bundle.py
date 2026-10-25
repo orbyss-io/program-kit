@@ -38,8 +38,9 @@ def main():
     plan=resolve_install_plan(manifest,speckit_version=get_speckit_version(),
         active_integration=detected or args.integration,integration_explicit=detected is None)
     expected={('extensions','program-kit-governance'),('extensions','program-kit-building-blocks'),
-              ('extensions','program-kit-dotnet'),('presets','program-kit-governance-preset'),
-              ('workflows','program-kit-bootstrap')}
+              ('extensions','program-kit-dotnet'),('presets','program-kit-governance-preset')}
+    if (args.release_root / 'workflows/program-kit-bootstrap/workflow.yml').is_file():
+        expected.add(('workflows', 'program-kit-bootstrap'))  # Exact supplied historical source only.
     if plan.bundle_id!='program-kit' or {(item.kind,item.id) for item in plan.components}!=expected:
         raise BundlerError('Local sealing accepts only the exact Program Kit component set')
     result=install_bundle(root,plan,RefreshedLocalInstaller(allow_network=False),manifest=manifest,refresh=True)

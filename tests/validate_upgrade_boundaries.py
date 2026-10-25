@@ -21,6 +21,67 @@ from upgrade_probe_fixtures import render_registered_probes
 
 
 class UpgradeBoundaryTests(unittest.TestCase):
+    def test_retired_catalog_selection_preserves_custom_sources_and_native_order(self):
+        import yaml
+        path = self.root / '.specify/workflow-catalogs.yml'
+        path.parent.mkdir(parents=True)
+        path.write_text(yaml.safe_dump({'catalogs': [
+            {'name': 'custom', 'priority': 1, 'url': 'https://example.invalid/workflows.json'},
+            {'name': 'program-kit-old', 'priority': 3, 'url': 'https://raw.githubusercontent.com/orbyss-io/program-kit/v0.14.2/catalogs/workflows.json'},
+            {'name': 'program-kit-main', 'priority': 2, 'url': 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json'},
+            {'name': 'custom-similar', 'priority': 4, 'url': 'https://example.invalid/orbyss-io/program-kit/main/catalogs/workflows.json'}]}))
+        before = self.snapshot()
+        self.assertEqual([2, 1], upgrade.retired_workflow_catalogs(self.root))
+        self.assertEqual(before, self.snapshot())
+        from specify_cli.workflows.catalog import WorkflowCatalog
+        for index in upgrade.retired_workflow_catalogs(self.root):
+            WorkflowCatalog(self.root).remove_catalog(index)
+        remaining = yaml.safe_load(path.read_text())['catalogs']
+        self.assertEqual(['custom', 'custom-similar'], [row['name'] for row in remaining])
+        self.assertEqual(['https://example.invalid/workflows.json', 'https://example.invalid/orbyss-io/program-kit/main/catalogs/workflows.json'], [row['url'] for row in remaining])
+
+    def historical_workflow(self):
+        import hashlib
+        table = json.loads((ROOT / 'extensions/program-kit-governance/references/native-phase-source-baselines.json').read_text())
+        row = next(row for row in table['components'] if row['kind'] == 'workflows' and row['sourceEncoding'] == 'git-bytes')
+        payload = subprocess.run(['git', 'show', row['sourceCommit'] + ':workflows/program-kit-bootstrap/workflow.yml'],
+                                 cwd=ROOT, capture_output=True, check=True).stdout
+        self.assertEqual(row['files']['workflow.yml'], hashlib.sha256(payload).hexdigest())
+        path = self.root / '.specify/workflows/program-kit-bootstrap/workflow.yml'
+        path.parent.mkdir(parents=True); path.write_bytes(payload)
+        self.write(self.root / '.specify/workflows/workflow-registry.json', {'workflows': {'program-kit-bootstrap': {'version': row['version']}}})
+        self.write(self.root / '.specify/bundle-records.json', {'bundles': []})
+        self.write(self.root / '.specify/workflows/runs/synthetic-failed/state.json', {'status': 'failed'})
+        return path
+
+    def test_retired_workflow_accepts_exact_source_and_preserves_history(self):
+        self.historical_workflow()
+        before = self.snapshot()
+        self.assertTrue(upgrade.retired_workflow_preflight(self.root, ROOT))
+        self.assertEqual(before, self.snapshot())
+
+    def test_retired_workflow_refuses_customization_extra_files_and_shared_owner(self):
+        path = self.historical_workflow()
+        original = path.read_bytes()
+        path.write_bytes(original + b'\n# Consumer edit\n')
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU150.*customization'):
+            upgrade.retired_workflow_preflight(self.root, ROOT)
+        self.assertEqual(before, self.snapshot())
+        path.write_bytes(original)
+        extra = path.with_name('consumer-note.md'); extra.write_text('Preserve me')
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU150.*customization'):
+            upgrade.retired_workflow_preflight(self.root, ROOT)
+        self.assertEqual(before, self.snapshot())
+        extra.unlink()
+        self.write(self.root / '.specify/bundle-records.json', {'bundles': [{'bundle_id': 'consumer-owned',
+            'required_components': [{'kind': 'workflows', 'id': 'program-kit-bootstrap'}]}]})
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU150.*another native bundle'):
+            upgrade.retired_workflow_preflight(self.root, ROOT)
+        self.assertEqual(before, self.snapshot())
+
     def test_structured_unmaterialized_owner_is_deferred_despite_legacy_summary(self):
         self.write(self.root / '.program-kit/managed.json', {
             'persistenceProfile': 'ef-postgresql', 'persistenceOwners': [self.owner]})

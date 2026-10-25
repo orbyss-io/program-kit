@@ -34,7 +34,6 @@ BUNDLE_SOURCE_PREFIXES = (
     "extensions/program-kit-building-blocks/",
     "extensions/program-kit-dotnet/",
     "presets/program-kit-governance-preset/",
-    "workflows/program-kit-bootstrap/",
 )
 BUNDLE_RUNTIME_SCRIPTS = {
     "scripts/initialize_device.py",
@@ -297,10 +296,10 @@ def validate_metadata(root: Path, version: str) -> None:
     building_blocks_extension = load_yaml(root / "extensions/program-kit-building-blocks/extension.yml")
     dotnet_extension = load_yaml(root / "extensions/program-kit-dotnet/extension.yml")
     governance_preset = load_yaml(root / "presets/program-kit-governance-preset/preset.yml")
-    workflow = load_yaml(root / "workflows/program-kit-bootstrap/workflow.yml")
     extensions_catalog = load_json(root / "catalogs/extensions.json")
     presets_catalog = load_json(root / "catalogs/presets.json")
-    workflows_catalog = load_json(root / "catalogs/workflows.json")
+    require_equal("retired workflow catalog", load_json(root / "catalogs/workflows.json")["workflows"], {})
+    require_equal("bundle workflow delivery", bundle.get("provides", {}).get("workflows", []), [])
     bundles_catalog = load_json(root / "catalogs/bundles.json")
 
     require_equal("bundle version", bundle["bundle"]["version"], version)
@@ -308,7 +307,6 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal("building-block extension version", building_blocks_extension["extension"]["version"], version)
     require_equal(".NET extension version", dotnet_extension["extension"]["version"], version)
     require_equal("governance preset version", governance_preset["preset"]["version"], version)
-    require_equal("workflow version", workflow["workflow"]["version"], version)
     initializer_pins = {
         "Initialize-ProgramKit.cmd": f'set "PROGRAM_KIT_REF=v{version}"',
         "Initialize-ProgramKit.sh": f'PROGRAM_KIT_REF="v{version}"',
@@ -333,19 +331,16 @@ def validate_metadata(root: Path, version: str) -> None:
     building_blocks_extension_entry = extensions_catalog["extensions"]["program-kit-building-blocks"]
     dotnet_extension_entry = extensions_catalog["extensions"]["program-kit-dotnet"]
     preset_entry = presets_catalog["presets"]["program-kit-governance-preset"]
-    workflow_entry = workflows_catalog["workflows"]["program-kit-bootstrap"]
     bundle_entry = bundles_catalog["bundles"]["program-kit"]
     require_equal("governance extension catalog version", governance_extension_entry["version"], version)
     require_equal("building-block extension catalog version", building_blocks_extension_entry["version"], version)
     require_equal(".NET extension catalog version", dotnet_extension_entry["version"], version)
     require_equal("governance preset catalog version", preset_entry["version"], version)
-    require_equal("workflow catalog version", workflow_entry["version"], version)
     require_equal("bundle catalog version", bundle_entry["version"], version)
     require_equal("governance extension catalog license", governance_extension_entry["license"], "MIT")
     require_equal("building-block extension catalog license", building_blocks_extension_entry["license"], "MIT")
     require_equal(".NET extension catalog license", dotnet_extension_entry["license"], "MIT")
     require_equal("governance preset catalog license", preset_entry["license"], "MIT")
-    require_equal("workflow catalog license", workflow_entry["license"], "MIT")
     require_equal("bundle catalog license", bundle_entry["license"], "MIT")
 
     tag = f"v{version}"
@@ -368,11 +363,6 @@ def validate_metadata(root: Path, version: str) -> None:
         "governance preset release URL",
         preset_entry["download_url"],
         f"{REPOSITORY}/releases/download/{tag}/program-kit-governance-preset-{version}.zip",
-    )
-    require_equal(
-        "workflow source URL",
-        workflow_entry["url"],
-        f"https://raw.githubusercontent.com/orbyss-io/program-kit/{tag}/workflows/program-kit-bootstrap/workflow.yml",
     )
     require_equal(
         "bundle release URL",
@@ -407,12 +397,14 @@ def main() -> int:
     validate_previous(root)
 
     output.mkdir(parents=True, exist_ok=True)
+    retired = output / f'program-kit-bootstrap-{version}.zip'
+    if retired.is_file():
+        retired.unlink()  # Obsolete output from this builder, never source or consumer history.
     expected = [
         output / f"program-kit-governance-{version}.zip",
         output / f"program-kit-building-blocks-{version}.zip",
         output / f"program-kit-dotnet-{version}.zip",
         output / f"program-kit-governance-preset-{version}.zip",
-        output / f"program-kit-bootstrap-{version}.zip",
         output / f"program-kit-{version}.zip",
         output / f"Initialize-ProgramKit-{version}.cmd",
         output / f"Initialize-ProgramKit-{version}.sh",
@@ -446,23 +438,22 @@ def main() -> int:
     deterministic_zip(root / "extensions/program-kit-building-blocks", expected[1])
     deterministic_zip(root / "extensions/program-kit-dotnet", expected[2])
     deterministic_zip(root / "presets/program-kit-governance-preset", expected[3])
-    deterministic_zip(root / "workflows/program-kit-bootstrap", expected[4])
 
     build_bundle_from_source(root, output)
     tooling = output / f"program-kit-tooling-{version}.zip"
     build_tooling_from_source(root, output)
     expected.append(tooling)
-    if not expected[5].is_file():
-        raise FileNotFoundError(f"Spec Kit did not create {expected[5]}")
-    with zipfile.ZipFile(expected[5], "r") as archive:
+    if not expected[4].is_file():
+        raise FileNotFoundError(f"Spec Kit did not create {expected[4]}")
+    with zipfile.ZipFile(expected[4], "r") as archive:
         entry_count = len(archive.namelist())
     if entry_count > MAX_BUNDLE_ENTRIES:
         raise ValueError(
             f"Program Kit bundle contains {entry_count} entries; Spec Kit permits at most "
             f"{MAX_BUNDLE_ENTRIES}."
         )
-    expected[6].write_bytes((root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8").replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
-    shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[7])
+    expected[5].write_bytes((root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8").replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
+    shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[6])
 
     for path in expected:
         if path.suffix == ".zip":
@@ -471,7 +462,7 @@ def main() -> int:
     expected.extend(build_dependency_qualification_assets(root, output, version))
 
     checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected if path.name != 'SHA256SUMS']
-    expected[8].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
+    expected[7].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
     for path in expected:
         print(f"built {path.relative_to(root)}")
     return 0
