@@ -34,3 +34,8 @@ Preserve the agreed human review points in ordinary native plan/tasks/checklist 
 needs useful independent walkthroughs and an actual human acceptance decision before progressing
 where the user agreed to pause. Implementation guidance belongs to native phases and focused
 engineering helpers; intake supplies no runtime, provider, implementation or release evidence.
+
+For .NET host/exporter choices, apply `principle.dotnet-host-default` in
+references/tool-selection.md. Review a custom-host proposal against actual human opt-out,
+keep unresolved choices visible, and resolve the effective profile before reading versioned
+package knowledge. A proposal, helper pass or profile listing supplies no human acceptance.

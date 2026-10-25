@@ -49,23 +49,41 @@ technology decision and does not add a bootstrap runtime dependency. Invoke
 `speckit-program-kit-governance-view-c4`; never substitute Structurizr Lite or an unpinned `latest`
 image.
 
-When .NET is detected, evaluate CShells and CShells.AspNetCore when the architecture requires runtime
-feature composition, per-shell or per-tenant service isolation, configuration-driven feature sets,
-or dynamic activation and reload. Their presence is not a default architecture choice. Inspect the
-current package maturity, supported target frameworks, abstraction/runtime package split, lifecycle,
-security, routing, unload, and upgrade behavior. Pin all accepted CShells packages to one verified
-version and test the composed shell graph.
+<!-- program-kit:knowledge-rule principle.dotnet-host-default -->
+Selecting .NET selects `Orbyss.Foundation.Host` with CShells and Nuplane as
+Program Kit's default, unless the human explicitly opts out. Dynamic activation, tenancy,
+isolation or reload requirements are not prerequisites for this default. Use the published,
+digest-pinned `ghcr.io/orbyss-io/foundation-host` image and the managed OpenAPI exporter from
+the effective dependency profile; consumers produce feature packages and application bundles.
+Minimal APIs describe endpoint style within that host, not a consumer-owned host.
 
-Use ASP.NET Core Minimal APIs as the default built-in HTTP candidate for a .NET vertical slice when
-HTTP is required. Evaluate public-schema generation and compatibility, route and operation identity,
-authorization, validation, error contracts, cancellation, and OpenAPI behavior. A third-party
-endpoint framework requires a separate capability gap and ADR; it is not implied by vertical slicing.
+Before reporting architecture review clear, compare the proposed host/exporter with the actual
+human decisions in the conversation, intent, plan and cited ADRs. A proposed custom host or custom exporter without
+an explicit human opt-out is an unresolved choice: explain the contradiction and obtain the
+human's decision before treating it as the architecture. An assistant-authored Proposed ADR,
+absence of dynamic requirements, silence or a passing helper supplies no opt-out. An Accepted
+label alone cannot establish human consent either. Preserve a real human opt-out, its rationale
+and the hosting, composition, deployment and exporter responsibilities it changes; support that
+choice without a qualification ceremony. Review the exporter separately against its actual
+supported contracts; a host proposal does not establish incompatibility.
 
-For the Program Kit .NET-to-TypeScript OpenAPI workflow, the managed exporter, oasdiff version in
-`.oasdiff-version`, and isolated `openapi-typescript` default in
-`eng/openapi-defaults.json` are adopted baseline tools rather than candidates requiring a
-new consumer ADR. Run `eng/openapi_init.py` for the first contract. Research is required
-only for an explicit override or an additional capability the managed chain does not provide.
+Resolve profile knowledge before evaluating packages: run installed
+`program-kit-building-blocks/scripts/publisher_knowledge.py --target .` without `--profile`
+first. It follows captured consumer inputs, or the installed index default for a fresh consumer.
+The latter is candidate metadata, not an adopted/restored profile or runtime proof. Read exact
+package facts from that result; use an explicit historical profile only for deliberate comparison,
+never as the current default. Missing/corrupt captured inputs need repair, not a fallback to new pins.
+<!-- /program-kit:knowledge-rule -->
+
+Use ASP.NET Core Minimal APIs as the default built-in HTTP endpoint style when HTTP is required.
+Evaluate schema generation/compatibility, route identity, authorization, validation, error contracts,
+cancellation and OpenAPI behavior within the selected host. A third-party endpoint framework needs
+its own capability gap and decision; vertical slicing does not imply one.
+
+For the Program Kit .NET-to-TypeScript chain, use the effective profile's managed exporter,
+`.oasdiff-version` and isolated `openapi-typescript` defaults. `eng/openapi_init.py` initializes
+that contract. A custom export utility requires an explicit justified choice and examination of
+the real unsupported capability; do not invent one from an unaccepted host proposal.
 
 For modular dependency enforcement, evaluate a deterministic MSBuild/project-graph check and an
 assembly architecture test such as ArchUnitNET. Prefer the smallest combination that can fail CI on

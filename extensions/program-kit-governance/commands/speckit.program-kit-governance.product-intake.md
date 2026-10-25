@@ -63,3 +63,8 @@ an eligibility gate. Carry relevant questions into that feature's normal spec/pl
 future detail stays deferred. Run environment, restore, provider or application checks only when
 the actual action needs them. A pre-spec experiment is justified only when its answer changes
 what should be specified. Preserve failures and evidence limits honestly.
+
+For .NET host/exporter choices, apply `principle.dotnet-host-default` in
+references/tool-selection.md. Review a custom-host proposal against actual human opt-out,
+keep unresolved choices visible, and resolve the effective profile before reading versioned
+package knowledge. A proposal, helper pass or profile listing supplies no human acceptance.

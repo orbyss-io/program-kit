@@ -8,12 +8,14 @@ custom stack or local pattern needs its real product/software contracts and test
 in a toolkit registry. An unsupported generator is a limitation of that automation, not a reason to
 block planning or manual implementation.
 
-When a managed .NET route is chosen, its Foundation host, CShells composition, central package pins
-and selected persistence/web profiles provide a convenient default. Explain the actual package and
+Selecting .NET selects the Foundation host with CShells and Nuplane by default unless the human
+explicitly opts out. This does not depend on a separate decision to use managed tooling or on
+dynamic activation needs. See the host-default rule in `tool-selection.md`. Central package pins
+and selected persistence/web profiles accompany that route. Explain the actual package and
 feed dependencies. A browser-only anonymous product need not invent a .NET backend. Managed BFF/SPA
 profiles implement actual Foundation/.NET contracts and must not be presented as framework-neutral.
 Offer BFF for a same-origin/proxyable browser and SPA/PKCE for a genuinely independent client with
-its real token/CORS/renewal/logout consequences. Respect another suitable stack or host.
+its real token/CORS/renewal/logout consequences. Respect another suitable stack or an explicit human host opt-out; a Proposed ADR is not that decision.
 
 For durable .NET data, explain the selected EF/Npgsql/PostgreSQL default and its actual owner and
 compatibility requirements. Do not infer a storage decision merely from a keyword or a health probe.

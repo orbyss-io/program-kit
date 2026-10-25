@@ -263,6 +263,7 @@
         "compilation-responsibilities"
       ],
       "ruleIds": [
+        "principle.dotnet-host-default",
         "principle.compilation-boundaries",
         "principle.feature-registration",
         "principle.captured-startup-example",
@@ -2953,7 +2954,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "7d280623086facd5fb20ed482ccf0548d0518746b9b825011c981aebf028e742",
+          "sha256": "4b50b1b9a0a1a31b711694658b4fbba537116cebc0923f97b13cfe79d1c8a9d1",
           "kind": "context",
           "owner": "program-kit-governance",
           "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
@@ -4087,7 +4088,29 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
-      "purpose": "Capability fit, primary-source quality and explicit adopted/default/override provenance; retain qualified pins during feature work. Human decision review and actual dependent engineering checks remain separate."
+      "purpose": "Capability fit, primary-source quality and explicit adopted/default/override provenance; retain qualified pins during feature work. Human decision review and actual dependent engineering checks remain separate.",
+      "contentCoverage": {
+        "remaining": {
+          "kind": "manual",
+          "owner": "program-kit-governance",
+          "reason": "Candidate research and operation-specific technical context; the selected .NET host default is separately attributed and never establishes human consent.",
+          "sha256": "8609b9b7df6bc691f04d43a65345273f663cfad758ab9e84897bd7c026d8c972"
+        },
+        "headings": [
+          [
+            1,
+            "Tool and integration selection"
+          ],
+          [
+            2,
+            "Retained ordinary-development selections"
+          ],
+          [
+            2,
+            "Bootstrap candidate research"
+          ]
+        ]
+      }
     },
     {
       "path": "program-kit-governance/references/ui-evaluation-v1.md",
@@ -13511,6 +13534,28 @@
       "bindings": {
         "checks": [
           "tests/validate_knowledge_sources.py"
+        ]
+      }
+    },
+    "principle.dotnet-host-default": {
+      "purpose": "Automatic .NET host default, explicit human opt-out and effective-profile-first package research",
+      "source": "program-kit-governance/references/tool-selection.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.dotnet-host-default"
+      },
+      "owner": "program-kit-governance",
+      "family": "technology",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "dotnet-boundaries"
+      ],
+      "applicability": "Selected .NET backend; the human may explicitly opt out. Review guidance establishes no consent or runtime result.",
+      "bindings": {
+        "checks": [
+          "tests/validate_dotnet_host_guidance.py"
         ]
       }
     }

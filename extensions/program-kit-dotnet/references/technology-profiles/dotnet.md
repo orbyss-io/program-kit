@@ -138,7 +138,10 @@ When .NET is selected, adopt the application-neutral `Orbyss.Foundation.Host` an
 automatic Program Kit default unless intake explicitly opts out. This default uses CShells as the
 runtime composition mechanism; it does not imply that shells are tenants or bounded contexts.
 Disclose independently pinned packages, third-party dependencies and sources as consequential
-technical defaults in the normal plan. Preserve an explicit custom host choice. Architecture review
+technical defaults in the normal plan. Preserve an explicit human custom host choice, not an assistant-authored proposal. Minimal APIs
+are an endpoint style and do not imply a consumer-owned host. The canonical default and review
+procedure is `program-kit-governance/references/tool-selection.md`, including effective-profile
+lookup before package knowledge. Architecture review
 alone does not execute restore or establish runtime compatibility; selected actions own those checks.
 <!-- /program-kit:knowledge-rule -->
 
@@ -152,7 +155,8 @@ security checks, and accepted decisions rather than requiring Program Kit to enu
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule context.dotnet-host-optout-context -->
-An explicit opt-out may select a conventional ASP.NET Core host. Record why the Orbyss Foundation host is
+An explicit human opt-out may select a conventional ASP.NET Core host. A Proposed ADR, or even an
+assistant-authored Accepted label without the actual human decision, is not an opt-out. Record why the Orbyss Foundation host is
 not suitable and which composition, packaging, task, and deployment responsibilities the project
 then owns.
 <!-- /program-kit:knowledge-rule -->

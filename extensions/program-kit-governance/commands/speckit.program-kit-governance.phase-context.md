@@ -22,3 +22,8 @@ or new phase ledger is needed. Drafting does not run application checks or start
 Keep native task generation and configured hooks. After the complete task plan, use the normal
 read-only analysis. The guidance helper is read-only and supplies no implementation or acceptance
 claim; tools selected for an engineering action enforce only the inputs they actually use.
+
+For .NET host/exporter choices, apply `principle.dotnet-host-default` in
+references/tool-selection.md. Review a custom-host proposal against actual human opt-out,
+keep unresolved choices visible, and resolve the effective profile before reading versioned
+package knowledge. A proposal, helper pass or profile listing supplies no human acceptance.

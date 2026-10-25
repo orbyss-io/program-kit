@@ -24,3 +24,8 @@ tests, not compulsory consumer qualification. Optional Foundation selections, co
 scaffolding enforce their real selected inputs and preserve ownership/pins/locks. Unsupported
 automation must be stated honestly. Runtime checks run when the actual dependent action needs
 them, not as a prerequisite to defining architecture or specifications.
+
+For .NET host/exporter choices, apply `principle.dotnet-host-default` in
+references/tool-selection.md. Review a custom-host proposal against actual human opt-out,
+keep unresolved choices visible, and resolve the effective profile before reading versioned
+package knowledge. A proposal, helper pass or profile listing supplies no human acceptance.

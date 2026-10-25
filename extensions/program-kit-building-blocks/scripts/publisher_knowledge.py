@@ -33,10 +33,12 @@ def main():
     registry=blocks.profile_registry(); index=blocks.load_json(registry/'index.json')
     if args.profile:
         identity=args.profile
+        authority='explicit-profile-lookup'
     else:
         from dependency_context import resolve
         selected=resolve(blocks,Path(args.target))
         identity=selected['profile']
+        authority=selected['authority']
         if identity is None: parser.error('Captured consumer profile has no versioned knowledge; repair that exact profile')
         registry=Path(selected['registryPath'])
         index=blocks.load_json(registry/'index.json')
@@ -70,7 +72,10 @@ def main():
             'documents':[p['publisherPath'] for p in manifest['documents']]},indent=2)
     pages=bounded_pages(text)
     if args.page<1 or args.page>len(pages): parser.error('Select an available knowledge page')
-    print(f'Publisher knowledge page {args.page}/{len(pages)}; exact selected profile {identity}')
+    basis = ('candidate metadata, not consumer adoption or restoration'
+             if authority in {'qualified-default', 'captured-draft', 'explicit-profile-lookup'}
+             else 'retained consumer inputs; restoration and runtime compatibility not established')
+    print(f'Publisher knowledge page {args.page}/{len(pages)}; exact selected profile {identity}; source: {authority}; {basis}')
     print(pages[args.page-1],end='')
 
 

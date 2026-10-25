@@ -21,3 +21,8 @@ ready work remains available. After implementation, report actual checks, semant
 work and human dispositions separately. Run complete applicable acceptance at feature closure;
 do not run a whole-app command for each progress update or infer acceptance from checked tasks.
 Use normal native analysis and its read-only output; do not create approval/proof dossiers.
+
+For .NET host/exporter choices, apply `principle.dotnet-host-default` in
+references/tool-selection.md. Review a custom-host proposal against actual human opt-out,
+keep unresolved choices visible, and resolve the effective profile before reading versioned
+package knowledge. A proposal, helper pass or profile listing supplies no human acceptance.

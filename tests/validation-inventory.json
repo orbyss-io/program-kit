@@ -5520,6 +5520,33 @@
       "budgetSeconds": 60,
       "timeoutSeconds": 120,
       "manualOnly": true
+    },
+    {
+      "id": "validate_dotnet_host_guidance",
+      "purpose": "Synthetic .NET/React and ASP.NET Core host-default review routing, Proposed versus actual human choice, read-only explicit opt-out, and fresh/retained exact publisher profile selection; no agent or runtime acceptance.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_host_guidance.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge",
+        "phases",
+        "intake"
+      ],
+      "inputs": [
+        "tests/validate_dotnet_host_guidance.py",
+        "extensions/program-kit-building-blocks/scripts/publisher_knowledge.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
     }
   ]
 }

@@ -4,7 +4,7 @@ import json
 import re
 
 CAPABILITIES = {
-    'dotnet': r'(?<!\w)(?:c#|\.net|dotnet)(?!\w)',
+    'dotnet': r'(?<!\w)(?:c#|asp\.net(?:\s+core)?|\.net|dotnet)(?!\w)',
     'web': r'\b(?:browser|frontend|react|vite|typescript)\b',
     'api': r'\b(?:http|openapi|endpoint|api)\b',
     'persistence': r'\b(?:persistence|database|dbcontext|postgresql|sqlserver|sqlite|entityframeworkcore|entity framework|npgsql)\b',

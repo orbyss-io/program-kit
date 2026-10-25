@@ -55,6 +55,7 @@ def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), sel
     inherited = adopted_context(root, feature)
     local = [path.relative_to(root).as_posix() for path in (
         root / 'AGENTS.md', root / '.specify/memory/constitution.md',
+        root / 'docs/architecture/project-intent.md',
         root / 'docs/architecture/technology-radar.md', feature / 'plan.md', feature / 'tasks.md') if path.is_file()]
     registry = catalog()
     requirements = applicable_requirements(registry, tags, phase)
@@ -95,6 +96,10 @@ def render(value, phase, detailed=False):
         'Choose a suitable stack or local alternative; curated examples are optional. Actual selected tool/API contracts still apply.',
         'Run only the compiler, tests, services and device checks needed by the selected action. Guidance starts none of them.',
         'Use --only <id> for attributable detail; --page continues a long focused reference.', '']
+    if not detailed and 'dotnet' in value.get('responsibilities', []):
+        rule = canonical_rules(['principle.dotnet-host-default'])[0]
+        lines += ['## .NET host decision review', rule['text'],
+                  'Canonical source: ' + rule['provenance']['path'], '']
     if value.get('localGuidance'):
         lines += ['Project choices and review notes: ' + ', '.join(value['localGuidance']),
                   'Read these for local decisions, exceptions and agreed pauses; missing toolkit metadata is not a phase gate.', '']
