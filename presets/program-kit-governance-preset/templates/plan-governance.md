@@ -15,6 +15,12 @@ Check the actual selected SDK/API/package contracts. For a chosen .NET adapter, 
 dependency and native verification helpers on their own terms; do not copy their manifests into an
 unrelated technology. Keep source generation, runtime compatibility and product acceptance distinct.
 
+Use selected framework mechanisms and supported extensions before adding equivalent infrastructure.
+For a new project, runner, wrapper or lifecycle, explain its actual responsibility and any concrete
+capability gap in the selected framework. Correct unjustified replacement proposals during review.
+For EF persistence, plan native migrations/snapshots/history and EF-produced deployment artifacts;
+separate deployment credentials and read-only startup admission do not require a custom engine.
+
 Agree useful runnable review points and the reviewer. Record the expected walkthrough and any
 explicitly permitted work while awaiting review in normal plan/tasks notes. Pause dependent work
 for those reviews; engineering success does not provide human acceptance.

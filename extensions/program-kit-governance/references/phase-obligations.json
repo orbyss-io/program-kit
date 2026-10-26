@@ -197,7 +197,8 @@
         "principle.untrusted-input-qualification",
         "principle.maintained-application-handoff",
         "principle.vertical-cohesion-boundaries",
-        "principle.vertical-proportional-exceptions"
+        "principle.vertical-proportional-exceptions",
+        "principle.framework-native-mechanisms"
       ],
       "operationDecisions": [
         "ownership",
@@ -1062,7 +1063,8 @@
         "principle.persistence-context-lifetime-contract",
         "principle.persistence-secret-migration-tests",
         "context.persistence-primary-guidance-context",
-        "principle.sql-application-role-recovery"
+        "principle.sql-application-role-recovery",
+        "principle.ef-native-migrations"
       ],
       "independentReview": true,
       "operationDecisions": [
@@ -2190,7 +2192,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "7daa738742357d29e6db76e23451e884b18e3a35e1a85d672473d915cbe51e3e",
+          "sha256": "770c67e6001827cfef7e1c1da861b15c11a85ee01c71d18a034330ceea843cbb",
           "kind": "context",
           "owner": "program-kit-dotnet",
           "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
@@ -5368,6 +5370,49 @@
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
       "purpose": "Optional SDK-free recording workflow and explicit environment closure example; no real platform qualification."
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/postgresql-lifecycle/README.md",
+      "phases": [
+        "implementation"
+      ],
+      "enforcement": "Focused PostgreSQL lifecycle validator; no arbitrary agent behavior or production acceptance.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "tests/validate_postgresql_lifecycle.py"
+        ],
+        "sections": [
+          "Author and deploy with EF",
+          "Runtime admission and verification"
+        ],
+        "requirements": [],
+        "review": "Focused PostgreSQL lifecycle validator; no arbitrary agent behavior or production acceptance."
+      },
+      "id": "program-kit-dotnet/references/examples/postgresql-lifecycle/README.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-dotnet/references/examples/postgresql-lifecycle/README.md"
+      },
+      "owner": "program-kit-dotnet",
+      "disposition": "manual",
+      "sections": {
+        "Author and deploy with EF": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Runtime admission and verification": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      },
+      "purpose": "Native EF tooling with selected Foundation context, isolated deployment and least-privilege runtime proof."
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
@@ -6491,6 +6536,7 @@
       },
       "display": "focused-detail",
       "coveredBy": [
+        "principle.framework-native-mechanisms",
         "principle.typed-admission",
         "principle.normalized-label-contract",
         "principle.solid-design-evidence"
@@ -8013,6 +8059,7 @@
       },
       "display": "focused-detail",
       "coveredBy": [
+        "principle.ef-native-migrations",
         "principle.persistence-deployment-activation",
         "principle.persistence-context-lifetime-contract",
         "principle.provider-outcomes",
@@ -13821,6 +13868,51 @@
         "kind": "context",
         "owner": "program-kit-governance",
         "reason": "Applied integration reasoning and external research pointers, not copied platform manuals, runtime qualification or consumer acceptance."
+      }
+    },
+    "principle.framework-native-mechanisms": {
+      "purpose": "Prefer selected framework mechanisms and challenge unjustified replacement infrastructure",
+      "source": "program-kit-governance/references/programming-guardrails.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.framework-native-mechanisms"
+      },
+      "owner": "program-kit-governance",
+      "family": "construction",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "implementation-quality"
+      ],
+      "applicability": "Existing responsibility selection; exact canonical source applicability qualifiers remain controlling.",
+      "bindings": {
+        "checks": [
+          "tests/validate_native_phases.py"
+        ]
+      }
+    },
+    "principle.ef-native-migrations": {
+      "purpose": "Native EF migration authoring, history and deployment with Foundation runtime lifetimes",
+      "source": "program-kit-dotnet/references/persistence-profiles.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.ef-native-migrations"
+      },
+      "owner": "program-kit-dotnet",
+      "family": "persistence",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "persistence-adoption"
+      ],
+      "applicability": "Existing responsibility selection; exact canonical source applicability qualifiers remain controlling.",
+      "bindings": {
+        "checks": [
+          "tests/validate_native_phases.py",
+          "tests/validate_postgresql_lifecycle.py"
+        ]
       }
     }
   },

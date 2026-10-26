@@ -16,6 +16,12 @@ Use compiler/architecture/security/behavior checks appropriate to the selected t
 Optional .NET graph and SDK helpers remain with their engineering owner; a graph pass alone cannot
 establish that ownership labels match real behavior.
 
+Challenge the necessity of new infrastructure as well as its dependencies. Compare each new project,
+runner, wrapper and lifecycle with the selected framework's existing mechanism and supported extension
+points. A task prescribing a replacement does not justify it. Report the concrete unmet requirement
+and evidence, or correct the affected plan/tasks to use the native mechanism before dependent work.
+For EF, separate deployment identity does not imply a custom migration runner or parallel journal.
+
 Keep unresolved findings and agreed human review pauses in normal task/review notes. Independent
 ready work remains available. After implementation, report actual checks, semantic review, remaining
 work and human dispositions separately. Run complete applicable acceptance at feature closure;

@@ -243,5 +243,56 @@ assert 'task_draft' not in sys.modules
         self.assertIn(content, rendered)
 
 
+class FrameworkGuidanceTests(unittest.TestCase):
+    def test_ef_deployment_constraints_do_not_select_a_replacement_engine(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = feature(root)
+            (chosen / 'plan.md').write_text(
+                '# Plan\n.NET EF Core PostgreSQL persistence. Separate deployment credentials; '
+                'least-privilege runtime and no startup DDL.\n'
+                'Proposed T009: build a handwritten migration executable with a custom journal.\n')
+            before = snapshot(root)
+            for action in phase.PHASES:
+                value = phase.check(root, chosen, action)
+                first = phase.text_page(phase.render(value, action))
+                focused = phase.render({**value, 'requirements': [row for row in value['requirements']
+                    if row['id'] == 'persistence-adoption']}, action, True)
+                for output in (first, focused):
+                    for expected in ('model snapshot', '__EFMigrationsHistory', 'IDesignTimeDbContextFactory',
+                                     'do not select a new migration engine', 'separate EF migrations assembly'):
+                        self.assertIn(expected, ' '.join(output.split()))
+                self.assertIn('assistant-authored task', first.lower())
+                self.assertNotIn('deploy the product schema and journal', focused)
+                self.assertNotIn('canProceed', value)
+            self.assertEqual(before, snapshot(root))
+
+    def test_native_mechanism_review_also_reaches_custom_stacks_without_ef(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = feature(root); before = snapshot(root)
+            value = phase.check(root, chosen, 'planning')
+            output = phase.render(value, 'planning')
+            self.assertIn('concrete unmet requirement', output)
+            self.assertIn('supported extension points', output)
+            self.assertNotIn('__EFMigrationsHistory', output)
+            self.assertNotIn('dotnet', value['responsibilities'])
+            self.assertEqual(before, snapshot(root))
+
+    def test_sqlite_guidance_preserves_provider_limits_and_valid_sql_extensions(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = feature(root)
+            (chosen / 'plan.md').write_text('# Plan\nC# with EF Core SQLite persistence.\n')
+            value = phase.check(root, chosen, 'planning')
+            output = ' '.join(phase.render(value, 'planning').split())
+            self.assertIn('SQLite cannot', output)
+            self.assertIn('SQL inside an EF migration', output)
+            self.assertIn('concrete unmet requirement', output)
+
+
 if __name__ == '__main__':
     unittest.main()

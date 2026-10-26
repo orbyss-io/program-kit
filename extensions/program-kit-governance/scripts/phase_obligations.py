@@ -96,6 +96,15 @@ def render(value, phase, detailed=False):
         'Choose a suitable stack or local alternative; curated examples are optional. Actual selected tool/API contracts still apply.',
         'Run only the compiler, tests, services and device checks needed by the selected action. Guidance starts none of them.',
         'Use --only <id> for attributable detail; --page continues a long focused reference.', '']
+    if not detailed:
+        rule = canonical_rules(['principle.framework-native-mechanisms'])[0]
+        lines += ['## Framework responsibility review', rule['text'],
+                  'Canonical source: ' + rule['provenance']['path'], '']
+    if not detailed and any('principle.ef-native-migrations' in row.get('ruleIds', [])
+                            for row in value['requirements']):
+        rule = canonical_rules(['principle.ef-native-migrations'])[0]
+        lines += ['## Selected EF migration workflow', rule['text'],
+                  'Canonical source: ' + rule['provenance']['path'], '']
     if not detailed and 'dotnet' in value.get('responsibilities', []):
         rule = canonical_rules(['principle.dotnet-host-default'])[0]
         lines += ['## .NET host decision review', rule['text'],

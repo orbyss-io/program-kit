@@ -3,11 +3,11 @@
 <!-- program-kit:knowledge-rule principle.sql-application-role-recovery -->
 Explicit SQL deployment is administrator-owned. Before actual startup, grant the exact
 managed application role schema `USAGE` and only the table permissions required by its
-operations, including journal `SELECT` for schema admission. Quote the concrete schema,
+operations, including read access to the selected migration history for schema admission. Quote the concrete schema,
 role and table identifiers; verify using the application's real connection and rerun host
 startup. Do not grant to PUBLIC, grant broad administrator privileges, create product tables
 at startup, or reset retained data to work around admission. Schema admission must fail when
-the application role cannot read the journal, even if the deployment administrator can.
+the application role cannot read that history, even if the deployment administrator can.
 <!-- /program-kit:knowledge-rule -->
 
 Persistence is admitted per domain capability and data owner; it is not inferred from a PostgreSQL
@@ -88,8 +88,30 @@ prerequisite tasks; they do not block saving tasks or reporting architecture-che
 
 ## Architecture and implementation contract
 
+<!-- program-kit:knowledge-rule principle.ef-native-migrations -->
+When EF Core is selected, default to provider-owned EF migrations, the model snapshot and EF migration
+history (`__EFMigrationsHistory`). Separate deployment credentials and no startup DDL change where and
+under whose identity deployment runs; they do not select a new migration engine. Use `dotnet ef` to
+author migrations and produce an EF migration bundle or reviewed provider-supported SQL artifact.
+An EF bundle is already an executable deployment artifact. Do not create a handwritten SQL runner,
+parallel journal, checksum/revision framework or schema-inventory engine without a concrete unmet
+requirement and selected-version evidence recorded in the existing plan or ADR. SQL inside an EF
+migration and a justified separate EF migrations assembly remain legitimate.
+
+Keep EF Design private to the provider and pin `dotnet-ef` to its selected version. Make design-time
+creation explicit, normally with `IDesignTimeDbContextFactory<TContext>` in the provider, without
+starting the application host. Use the same mappings/provider options as runtime; tooling's deployment
+credentials never enter the runtime process. Preserve Foundation's tracked unit/context lifetimes for
+runtime work. The maintained [native EF example](examples/postgresql-lifecycle/README.md) uses the
+selected Foundation context and native EF tooling; it is not a replacement migration runner.
+Check `dotnet ef migrations has-pending-model-changes`, initial/repeated deployment, real EF history,
+least-privilege runtime access and read-only startup compatibility before claiming the workflow works.
+PostgreSQL and SQL Server can use provider-supported idempotent scripts; SQLite cannot. Qualify the
+actual selected provider and context rather than extrapolating the PostgreSQL example.
+<!-- /program-kit:knowledge-rule -->
+
 <!-- program-kit:knowledge-rule principle.persistence-deployment-activation -->
-For selected PostgreSQL, deploy the product schema and journal with a separate deployment
+For selected PostgreSQL, deploy the product schema using the selected migration mechanism with a separate deployment
 identity before admitting application users. Runtime startup verifies its required revision,
 schema usage, each table operation and sequence permission through the actual runtime
 connection; it performs no product DDL. Do not use administrator credentials in the app.
@@ -100,8 +122,8 @@ concurrent. It never transfers object ownership: unmarked targets, foreign owner
 unexpected tables, views, sequences, functions or types require explicit diagnosis.
 `python tests/validate_postgresql_lifecycle.py` builds the selected public packages and
 proves these boundaries against a uniquely owned pinned PostgreSQL container, including
-independently observed cleanup. This fixed synthetic schema is not a general production
-migration or ownership-repair tool; application migrations and least privileges remain
+independently observed cleanup. This fixed synthetic schema and its journal are not a general production
+migration or ownership-repair tool and must not become an EF application's migration default; application migrations and least privileges remain
 with their data owner.
 <!-- /program-kit:knowledge-rule -->
 
@@ -235,10 +257,8 @@ sources and transitive compatibility remain governed by ordinary dependency admi
 Custom `packageAssignments` explicitly separates `provider` and `tests` package IDs from those pins.
 
 For EF, sync also pins `dotnet-ef` to the selected Design version in the existing managed tool manifest.
-Keep EF Design private to the provider. Make design-time context creation explicit, normally with
-`IDesignTimeDbContextFactory<TContext>` in the provider, reading admitted configuration without starting
-the published host. Record `dbContext` when tooling must disambiguate contexts. A factory is not a
-second consumer host. Test fixture deployment may generate and apply a reviewed idempotent script
+The native EF contract above owns design-time creation and deployment. Record `dbContext` when tooling
+must disambiguate contexts. A factory is not a second consumer host. Test fixture deployment may generate and apply a reviewed idempotent script
 against its isolated service before host activation; normal deployment retains its own approval.
 
 Primary evidence checked 2026-09-13: [EF transactions](https://learn.microsoft.com/ef/core/saving/transactions),

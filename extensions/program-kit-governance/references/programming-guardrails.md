@@ -35,6 +35,16 @@ Apply rules proportionally. Pure transformations and trivial adapters should rem
 
 ## Typed boundaries and design evidence
 
+<!-- program-kit:knowledge-rule principle.framework-native-mechanisms -->
+Use the selected framework's native mechanisms and supported extension points before adding equivalent
+infrastructure. During planning and semantic review, challenge every proposed project, wrapper, runner
+and lifecycle owner: what requirement does it meet that the selected mechanism cannot? Inspect exact
+selected-version contracts first. Record a concrete unmet requirement, alternatives and justification
+in the existing plan or ADR before replacing a framework responsibility. An assistant-authored task,
+accepted dependency graph or passing behavioral test is not that justification. Keep legitimate local
+choices and small application-owned policy; no new approval, receipt or fixed decision table is needed.
+<!-- /program-kit:knowledge-rule -->
+
 <!-- program-kit:decision-rule typed-admission -->
 <!-- program-kit:knowledge-rule principle.typed-admission -->
 Known request/response/configuration envelopes use typed contracts after admission. Prove

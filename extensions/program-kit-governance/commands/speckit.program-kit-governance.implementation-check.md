@@ -14,6 +14,8 @@ Before dependent edits resolve consequential product, ownership, contract and ri
 normal spec/ADR/plan/tasks. Investigate accessible facts and routine engineering choices locally.
 Keep the project's stack and local alternatives available. Selected generators enforce their own
 actual recipe/SDK inputs; their unsupported automation does not prevent manual implementation.
+Recheck tasks that introduce infrastructure against the selected framework's native capabilities.
+Resolve unjustified duplication in the plan/tasks; task wording and green checks do not justify it.
 
 Run compiler/analyzers and focused tests at the first coherent increment, then affected regressions
 for changed shared contracts. Verify runtime/provider/database/browser behavior when selected work

@@ -5,6 +5,9 @@ and verification around runnable outcomes; place minimal enabling dependencies b
 consumer. Retain relevant authorization, ownership, storage/migration, provider and recovery checks.
 Use test-first where risk justifies it; check generated scaffolds before dependent behavior. Record
 actual test owners/commands and run affected regressions when shared contracts change.
+Keep implementation tasks aligned with selected framework mechanisms. Challenge a task introducing
+a replacement runner, wrapper or lifecycle before implementing it; record a concrete unmet requirement
+or correct the task. Tests of a custom mechanism alone do not justify its existence.
 
 Use short readable notes for progress, unresolved failures, local choices and agreed review pauses.
 For example:

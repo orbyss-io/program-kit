@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/scripts'))
 import foundation_composition
 import composition_model
 import composition_render
+import persistence_selection
 sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
 from central_packages import central_package_versions
 from owned_scratch import native_path
@@ -53,7 +54,9 @@ def main():
     steps = []
     cases = []
     source_files = [Path(__file__), policy, Path(composition_model.__file__), Path(composition_render.__file__),
-                    Path(composition_run.__file__), ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json',
+                    Path(composition_run.__file__), Path(persistence_selection.__file__),
+                    ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props',
+                    ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json',
                     ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props', *EXAMPLE.iterdir()]
     source_basis = {file.relative_to(ROOT).as_posix():hashlib.sha256(file.read_bytes()).hexdigest()
                     for file in source_files if file.is_file()}
@@ -83,10 +86,30 @@ def main():
         shutil.copyfile(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json', consumer/'global.json')
         shutil.copyfile(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/NuGet.config', consumer/'NuGet.config')
         native_version = central_package_versions(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files')['cshells.abstractions']
-        pin = '-p:SelectedFoundationVersion='+version+';SelectedCShellsVersion='+native_version
+        persistence_profile = ROOT/'extensions/program-kit-dotnet/templates/dotnet/files'
+        ef_version = persistence_selection.packages({'profile':'ef-postgresql'}, persistence_profile)['Microsoft.EntityFrameworkCore.Design']
+        env.update(SelectedFoundationVersion=version, SelectedCShellsVersion=native_version, SelectedEfVersion=ef_version)
+        pin = '-p:SelectedFoundationVersion='+version+';SelectedCShellsVersion='+native_version+';SelectedEfVersion='+ef_version
         run('restore', ['dotnet', 'restore', 'PostgreSqlLifecycle.csproj', pin, '--configfile', 'NuGet.config', '--disable-build-servers'], timeout=300)
         run('locked', ['dotnet', 'restore', 'PostgreSqlLifecycle.csproj', pin, '--locked-mode', '--configfile', 'NuGet.config', '--disable-build-servers'])
         run('build', ['dotnet', 'build', 'PostgreSqlLifecycle.csproj', pin, '--no-restore', '--disable-build-servers', '-m:1'])
+        tools = consumer/'.config/dotnet-tools.json'
+        tools.parent.mkdir()
+        tools.write_text(json.dumps({'version':1, 'isRoot':True, 'tools':{
+            'dotnet-ef':{'version':ef_version, 'commands':['dotnet-ef']}}}))
+        run('ef-tool-restore', ['dotnet','tool','restore','--configfile','NuGet.config'], timeout=180)
+        ef = ['dotnet','tool','run','dotnet-ef','--']
+        ef_args = ['--project','PostgreSqlLifecycle.csproj','--context','NativeMigrationContext','--no-build']
+        run('ef-author-migration', ef+['migrations','add','Initial',*ef_args])
+        assert len(list((consumer/'Migrations').glob('*ModelSnapshot.cs'))) == 1
+        run('ef-build-migration', ['dotnet','build','PostgreSqlLifecycle.csproj',pin,'--no-restore','--disable-build-servers','-m:1'])
+        run('ef-model-drift', ef+['migrations','has-pending-model-changes',*ef_args])
+        script = evidence/'native-ef-migration.sql'
+        run('ef-reviewable-script', ef+['migrations','script','--idempotent','--output',str(script),*ef_args])
+        migration_sql = script.read_text(encoding='utf-8-sig')
+        assert '__EFMigrationsHistory' in migration_sql and 'ef_entries' in migration_sql
+        assert 'journal' not in migration_sql.lower()
+        cases.append('native-ef-design-time-foundation-context-migrations-snapshot-and-model-drift')
         dll = str(consumer/'bin/Debug/net10.0/PostgreSqlLifecycle.dll')
         dll_sha256 = hashlib.sha256(Path(dll).read_bytes()).hexdigest()
         template = ROOT/'extensions/program-kit-dotnet/templates/dotnet'
@@ -153,13 +176,52 @@ GRANT CONNECT,CREATE ON DATABASE "{database}" TO "{deployer}";
 GRANT CONNECT ON DATABASE "{database}" TO "{runtime}";
 ''')
         base = f'Host=127.0.0.1;Port={port};Database={database};'
-        preparation_env = dict(env, PK_FIXTURE_DEPLOYMENT=base+'Username='+deployer+';Password='+deployment_password)
+        deployment_connection = base+'Username='+deployer+';Password='+deployment_password
+        preparation_env = dict(env, PK_FIXTURE_DEPLOYMENT=deployment_connection)
         runtime_env = dict(env, PK_FIXTURE_RUNTIME=base+'Username='+runtime+';Password='+runtime_password)
         assert len({password, deployment_password, runtime_password}) == 3
         result['runtimeDeploymentCredentialDistinct'] = True
         # Runtime children receive no deployment/admin connection variables.
-        for key in ('PK_FIXTURE_DEPLOYMENT','PGPASSWORD','PGUSER','FOUNDATION_POSTGRES_TEST_CONNECTION'):
+        for key in ('PK_FIXTURE_DEPLOYMENT','PK_FIXTURE_EF_DEPLOYMENT','PGPASSWORD','PGUSER','FOUNDATION_POSTGRES_TEST_CONNECTION'):
             runtime_env.pop(key, None)
+        # Native EF deployment is separate from the fixed journal/ownership fixture below.
+        run('ef-runtime-before-deployment',['dotnet',dll,'ef-runtime','not-admitted'],environment=runtime_env,expected=1)
+        assert sql('ef-absence-after-runtime',"SELECT count(*) FROM pg_namespace WHERE nspname='ef_example'") == '0'
+        cases.append('native-ef-runtime-does-not-create-missing-schema')
+        denied_deployment = dict(runtime_env, PK_FIXTURE_EF_DEPLOYMENT=runtime_env['PK_FIXTURE_RUNTIME'])
+        run('ef-runtime-cannot-deploy',ef+['database','update',*ef_args],environment=denied_deployment,expected=1)
+        ef_deployment = dict(env, PK_FIXTURE_EF_DEPLOYMENT=deployment_connection)
+        run('ef-deploy',ef+['database','update',*ef_args],environment=ef_deployment)
+        run('ef-deploy-repeat',ef+['database','update',*ef_args],environment=ef_deployment)
+        assert sql('ef-single-history', 'SELECT count(*) FROM ef_example."__EFMigrationsHistory"') == '1'
+        cases.append('native-ef-repeat-deployment-retains-one-history-entry')
+        sql('ef-runtime-grants',f'''REVOKE ALL ON SCHEMA ef_example FROM PUBLIC;
+GRANT USAGE ON SCHEMA ef_example TO "{runtime}";
+GRANT SELECT ON ef_example."__EFMigrationsHistory" TO "{runtime}";
+GRANT SELECT,INSERT,UPDATE,DELETE ON ef_example.ef_entries TO "{runtime}";
+GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA ef_example TO "{runtime}";''')
+        assert run('ef-native-runtime',['dotnet',dll,'ef-runtime','native-entry'],environment=runtime_env) == 'native-ef-runtime-admitted'
+        assert sql('ef-independent-effect', 'SELECT count(*) FROM ef_example.ef_entries') == '1'
+        cases.append('native-ef-least-privilege-foundation-runtime-effect')
+        sql('ef-runtime-denied-history-write','DELETE FROM ef_example."__EFMigrationsHistory"',user=runtime,success=False)
+        sql('ef-runtime-denied-ddl','CREATE TABLE ef_example.forbidden(id int)',user=runtime,success=False)
+        cases.append('native-ef-runtime-cannot-change-history-or-schema')
+        sql('ef-revoke-delete',f'REVOKE DELETE ON ef_example.ef_entries FROM "{runtime}"')
+        run('ef-missing-table-grant',['dotnet',dll,'ef-runtime','not-written'],environment=runtime_env,expected=1)
+        assert sql('ef-missing-grant-no-effect','SELECT count(*) FROM ef_example.ef_entries') == '1'
+        sql('ef-restore-delete',f'GRANT DELETE ON ef_example.ef_entries TO "{runtime}"')
+        cases.append('native-ef-missing-table-grant-blocks-shell-activation')
+        sql('ef-revoke-history',f'REVOKE SELECT ON ef_example."__EFMigrationsHistory" FROM "{runtime}"')
+        run('ef-missing-history',['dotnet',dll,'ef-runtime','not-written'],environment=runtime_env,expected=1)
+        assert sql('ef-denied-no-effect','SELECT count(*) FROM ef_example.ef_entries') == '1'
+        sql('ef-restore-history',f'GRANT SELECT ON ef_example."__EFMigrationsHistory" TO "{runtime}"')
+        cases.append('native-ef-unreadable-history-denies-before-effect')
+        migration_id = sql('ef-required-migration','SELECT "MigrationId" FROM ef_example."__EFMigrationsHistory"')
+        sql('ef-remove-required-migration','DELETE FROM ef_example."__EFMigrationsHistory"')
+        run('ef-pending-migration',['dotnet',dll,'ef-runtime','not-written'],environment=runtime_env,expected=1)
+        assert sql('ef-pending-no-effect','SELECT count(*) FROM ef_example.ef_entries') == '1'
+        sql('ef-restore-required-migration',f'''INSERT INTO ef_example."__EFMigrationsHistory" VALUES ('{migration_id}','{ef_version}')''')
+        cases.append('native-ef-pending-migration-denies-without-startup-ddl')
         def native(label, mode, environment, success=True):
             return run(label,['dotnet',dll,mode,identity,label],environment=environment,expected=0 if success else 1)
         assert sql('initial-absence',f"SELECT count(*) FROM pg_namespace WHERE nspname='{database}'") == '0'

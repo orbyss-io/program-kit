@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-preview.1 - Unreleased
+
+- Prefer selected framework mechanisms during planning, implementation and semantic review; require a concrete capability gap before replacing them with application infrastructure.
+- Make native EF migrations, model snapshots, history and separate deployment explicit in focused guidance. Retain justified SQL and separate EF migration assemblies.
+- Add a standard EF/Foundation context migration example to the existing PostgreSQL lifecycle qualifier, with separate credentials, least privileges and read-only runtime admission.
+- Clarify startup admission versus schema deployment and align coding guidance documentation with the current native Spec Kit phase entrypoints.
+
 ## 0.14.3 - 2026-10-22 (candidate)
 
 - Separate the native composition bundle from the complete tooling/recovery archive; retain existing component identities and historical source readers.

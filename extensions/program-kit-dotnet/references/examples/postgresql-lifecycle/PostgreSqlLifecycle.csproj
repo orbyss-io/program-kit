@@ -12,5 +12,6 @@
     <PackageReference Include="Orbyss.Foundation.PostgreSql" Version="$(SelectedFoundationVersion)" />
     <PackageReference Include="CShells.Abstractions" Version="$(SelectedCShellsVersion)" />
     <PackageReference Include="CShells" Version="$(SelectedCShellsVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(SelectedEfVersion)" PrivateAssets="all" />
   </ItemGroup>
 </Project>

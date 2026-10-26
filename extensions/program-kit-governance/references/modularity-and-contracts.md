@@ -66,8 +66,10 @@ and complete capability bindings; a graph pass establishes structural consistenc
 Empty repositories and pure Core utilities need no invented runtime projects.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.feature-registration -->
-Features register their own services and lifecycle contributions. A provider contributes its schema
-preparation through the selected existing lifecycle interface; the application owns policy/signing
+Features register their own services and lifecycle contributions. A provider contributes connectivity
+and read-only schema compatibility admission through the selected existing lifecycle interface;
+product schema changes use the selected migration mechanism under deployment control outside startup.
+The application owns policy/signing
 admission and managed workers. Deployment configuration selects implementations. When the affected
 design includes initialization, admission or managed workers, inspect the captured consumer's
 versioned publisher knowledge before choosing the mechanism with `publisher_knowledge.py
@@ -76,13 +78,15 @@ that exact profile, never adoption of today's default.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.captured-startup-example -->
 For the reviewed Foundation Tasks 0.3.1 / CShells 0.0.30-preview.159 baseline, the provider
-registers `AddShellInitializer<PrepareSchema>(LifecyclePhase.Prepare)` and owns its provider scope;
+registers `AddShellInitializer<AdmitSchema>(LifecyclePhase.Prepare)` for read-only compatibility and owns its provider scope;
 application policy/signing admission uses an explicitly ordered `Default` initializer. Foundation's
 manager contributes in `Start`, awaits scoped `IStartupTask` work, then starts shell-singleton workers.
 Use fresh application-owned scopes per worker iteration. Read `CShells.Abstractions --fact README.md`
 and Foundation Tasks' `FoundationTasksFeature.cs` / `ShellTaskManager.cs` through the exact selected
 publisher route before adapting this example to another baseline. Required preparation/admission
 exceptions prevent activation; lifecycle subscribers swallow failures and cannot provide that gate.
+The initializer does not run migrations or create product tables. Deployment separation does not
+justify a custom migration engine or a second history system when the selected framework supplies one.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.lifecycle-admission -->
 Use explicit lifecycle phases for required ordering and failure admission, preserving scoped startup,
