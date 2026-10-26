@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
       - name: Assert exact candidate
@@ -38,7 +38,7 @@ jobs:
         env:
           EXPECTED_COMMIT: ${{ inputs.expected_commit }}
         run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
-      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.1"
+      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.3"
       - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
       - name: Fast integrity
         run: python scripts/run_validation.py --suite Integrity
@@ -85,10 +85,10 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
-      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.1"
+      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.3"
       - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
       - name: Import original build artifact
         run: python scripts/release_candidate.py import-payload
@@ -102,14 +102,14 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
       - name: Import original build artifact
         run: python scripts/release_candidate.py import-payload
       - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
         with:
-          version: v0.76.0
+          version: v0.76.1
       - name: Scan the immutable declared Host dependency
         run: python scripts/release_candidate.py security --payload-manifest artifacts/payload/candidate-payload.json --output artifacts/security
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -126,7 +126,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
       - name: Report elapsed time and per-job cost, including failures
