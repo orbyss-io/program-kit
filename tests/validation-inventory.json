@@ -101,6 +101,8 @@
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.constitution-ratify.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.constitution-review.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.implementation-check.md",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture-check.md",
+        "extensions/program-kit-governance/references/engineering-feedback.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.phase-context.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.specification-intake.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.research.md",
@@ -5339,7 +5341,7 @@
     },
     {
       "id": "validate_native_phases",
-      "purpose": "Native phase bodies remain intact; ordinary tasks, agreed review instructions, custom technology and progressive knowledge need no checkpoint/.NET/old approval state",
+      "purpose": "Native bodies, configured hook dispatch, substantive review/coding/feedback guidance and read-only Analyze survive installation; custom stacks need no checkpoint/.NET/old approval state",
       "platforms": [
         "Windows",
         "Linux"

@@ -195,11 +195,13 @@ class PatternTests(unittest.TestCase):
             self.assertEqual(['principle.source-file-context'], source_quality.guidance(root)['canonicalRuleIds'])
             source = ROOT / 'extensions/program-kit-governance/references/phase-evidence.md'
             original = source.read_text()
+            marker = b'<!-- program-kit:knowledge-rule phase-action.planning -->'
+            self.assertEqual(1, source.read_bytes().count(marker))
             # Mutate only the resolver's read in memory, preserving the actual checkout.
             read = Path.read_bytes
             def changed(path):
                 value = read(path)
-                return value.replace(b'Describe the intended outcome', b'Changed canonical decisions') if path == source else value
+                return value.replace(marker, marker + b'\nChanged canonical decisions.\n') if path == source else value
             before = canonical_rules(['phase-action.planning'])[0]
             with patch.object(Path, 'read_bytes', changed):
                 after = canonical_rules(['phase-action.planning'])[0]

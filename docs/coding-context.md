@@ -22,6 +22,11 @@ prose, selected native files and optional scoped architecture to identify applic
 Its lexical discovery can miss behavior or overselect it. Correct the scoped understanding through
 normal engineering review rather than interpreting an index as semantic analysis.
 
+Planning records consequential decisions in ordinary research, plan or ADR content: applicable
+source and selected-version facts, constraints, chosen approach, useful alternatives, semantic
+commitments and checks. Tasks carry those responsibilities and methods forward, often by linking
+the relevant section. No mandatory table, exact file blueprint or extra architecture model is needed.
+
 The registry resolves attributable source rules. Initial output includes the general framework reuse
 rule and, when installed/applicable, native EF migration guidance. Focused lookup returns the full
 selected rules, including design-time context creation. Optional technology references can be absent;
@@ -42,6 +47,29 @@ artifacts. Deployment credentials and read-only runtime admission remain separat
 For authentication, HTTP clients, serialization and frontend effects/state, use the selected
 framework's actual supported lifecycle/configuration seams before inventing equivalents. This does
 not select a new frontend framework, enable every optional library feature or qualify every stack.
+
+## Apply a decision in code
+
+The native implement append and implementation-check command apply the method in the current task;
+there is no extra routing command to start before coding:
+
+1. Read intended behavior, the semantic owner, selected decisions and relevant existing source.
+2. Load focused applicable pattern, integration/security guidance and exact dependency facts.
+   Use authoritative selected-version documentation for missing facts; correct lexical routing misses.
+3. Identify explicit commitments and the adaptation needed locally. A pattern may be adapted while
+   preserving its commitments; private file/class arrangements can evolve within agreed contracts.
+   Prefer the framework's actual capabilities and supported extensions before adding infrastructure.
+4. Implement the smallest coherent case. Research an exposed unknown or invalid assumption rather
+   than treating task wording as justification for a design.
+5. Run appropriate focused compiler/analyzer, architecture, security and behavior checks. Review
+   actual source against the intended semantics before replicating a new or uncertain approach.
+6. Use the shared [engineering feedback method](../extensions/program-kit-governance/references/engineering-feedback.md)
+   for consequential deviations. Correct the owning documents and dependent tasks, rerun affected
+   review/checks, and preserve unrelated decisions, completed work and agreed human pauses.
+
+This focused technical review does not add a human approval to every task. Exact templates matter
+when a selected generator requires them; catalog qualification and per-task full-app acceptance are
+not prerequisites for local coding. [Pattern guidance](coding-patterns.md) describes optional examples.
 
 ## Verify and review
 

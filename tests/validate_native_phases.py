@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import unittest
+from uuid import uuid4
 from unittest.mock import patch
 
 from owned_fixture import FixtureDirectory
@@ -42,6 +43,27 @@ def feature(root):
     return path
 
 
+def retain_installed_review(root):
+    """Keep only synthetic instruction output before the owned consumer is removed."""
+    target = ROOT / 'artifacts/tests/native-phase-review' / uuid4().hex
+    target.mkdir(parents=True)
+    names = ('plan', 'tasks', 'implement', 'analyze',
+             'program-kit-governance-architecture-check',
+             'program-kit-governance-implementation-check',
+             'program-kit-governance-phase-context')
+    for name in names:
+        shutil.copyfile(root / f'.agents/skills/speckit-{name}/SKILL.md', target / f'{name}.md')
+    shutil.copyfile(root / '.specify/extensions/program-kit-governance/references/engineering-feedback.md',
+                    target / 'engineering-feedback.md')
+    index = ('# Installed native phase guidance\n\n'
+             'Synthetic disposable consumer; installation and deterministic instruction inspection only.\n'
+             'No coding agent ran. These files do not demonstrate semantic judgment, agent obedience,\n'
+             'human acceptance or platform compatibility. Native hook lookups were exercised separately.\n\n')
+    index += ''.join(f'- [{name}]({name}.md)\n' for name in (*names, 'engineering-feedback'))
+    (target / 'index.md').write_text(index, encoding='utf-8')
+    print('Retained installed instruction review: ' + str(target / 'index.md'))
+
+
 class NativePhaseTests(unittest.TestCase):
     def test_native_commands_survive_preset_and_plain_tasks_resume(self):
         from specify_cli._assets import get_speckit_version
@@ -56,7 +78,7 @@ class NativePhaseTests(unittest.TestCase):
                        '--script', 'py', '--ignore-agent-tools'])
             skills = root / '.agents/skills'
             original = {name: (skills / f'speckit-{name}/SKILL.md').read_text(encoding='utf-8').split('---', 2)[2].strip()
-                        for name in ('tasks', 'implement', 'analyze')}
+                        for name in ('plan', 'tasks', 'implement', 'analyze')}
             manager = ExtensionManager(root)
             manager.install_from_directory(ROOT / 'extensions/program-kit-governance', get_speckit_version())
             refresh_integration_events(root)
@@ -86,9 +108,21 @@ class NativePhaseTests(unittest.TestCase):
             self.assertEqual(['speckit.program-kit-governance.architecture-check', 'speckit.analyze'],
                              [row['command'] for row in after])
             self.assertEqual('$speckit-analyze', executor.execute_hook(after[1])['invocation'])
+            after_plan = executor.check_hooks_for_event('after_plan')['hooks']
+            self.assertEqual(['speckit.program-kit-governance.architecture-check'],
+                             [row['command'] for row in after_plan])
+            self.assertEqual('$speckit-program-kit-governance-architecture-check',
+                             executor.execute_hook(after_plan[0])['invocation'])
             for name, native in original.items():
                 installed = (skills / f'speckit-{name}/SKILL.md').read_text(encoding='utf-8')
                 self.assertIn(native, installed, 'Preset replaced the native command: ' + name)
+                if name == 'plan':
+                    self.assertEqual(native, installed.split('---', 2)[2].strip(),
+                                     'Planning must retain the upstream command without another append')
+                    for wording in ('hooks.after_plan', 'actually invoke the hook and wait',
+                                    'Emitting the block alone does not run the hook'):
+                        self.assertIn(wording, installed)
+                    continue
                 marker = {'tasks': '## Program Kit task guidance', 'implement': '## Program Kit implementation guidance',
                           'analyze': '## Program Kit operation review'}[name]
                 self.assertEqual(1, installed.count(marker))
@@ -102,6 +136,33 @@ class NativePhaseTests(unittest.TestCase):
                             'do not force-enable', 'hooks actually invoked'):
                 self.assertIn(wording, tasks)
             self.assertIn('Emitting the block alone does not run the hook', tasks)
+            # These are instruction/packaging assertions, not simulated agent
+            # decisions. The native helper below remains mechanically read-only.
+            for wording in ('semantic commitments', 'local adaptation', 'first coherent',
+                            'Keep Analyze read-only', 'preserving unrelated decisions'):
+                self.assertIn(wording, tasks)
+            architecture = (skills / 'speckit-program-kit-governance-architecture-check/SKILL.md').read_text(encoding='utf-8')
+            for wording in ('actual spec, research, plan, contracts/data model', 'Alternatives',
+                            'selected-version facts', 'genuinely unsettled', 'resume this review',
+                            'An agent recommendation or Proposed ADR does not supply human acceptance',
+                            'not execution'):
+                self.assertIn(wording, architecture)
+            preflight = (skills / 'speckit-program-kit-governance-implementation-check/SKILL.md').read_text(encoding='utf-8')
+            for body in (implementation, preflight):
+                for wording in ('existing source', 'semantic commitments', 'local adaptation',
+                                'smallest coherent case', 'before replicating', 'engineering-feedback.md'):
+                    self.assertIn(wording, ' '.join(body.split()))
+            feedback_path = '.specify/extensions/program-kit-governance/references/engineering-feedback.md'
+            for name in ('tasks', 'implement', 'analyze', 'program-kit-governance-architecture-check',
+                         'program-kit-governance-implementation-check', 'program-kit-governance-phase-context'):
+                body = (skills / f'speckit-{name}/SKILL.md').read_text(encoding='utf-8')
+                self.assertIn('](' + feedback_path + ')', body, name)
+            analyze = (skills / 'speckit-analyze/SKILL.md').read_text(encoding='utf-8')
+            self.assertIn('separate explicit correction step outside Analyze', analyze)
+            feedback = (root / feedback_path).read_text(encoding='utf-8')
+            for wording in ('strictly read-only', 'report its findings first', 'completed task IDs',
+                            'do not silently amend the plan', 'continue independent ready work'):
+                self.assertIn(wording, feedback)
             config = executor.get_project_config()
             config['hooks']['after_tasks'][1]['enabled'] = False
             executor.save_project_config(config)
@@ -109,7 +170,29 @@ class NativePhaseTests(unittest.TestCase):
                              [row['command'] for row in executor.check_hooks_for_event('after_tasks')['hooks']])
             config['hooks']['after_tasks'][1]['enabled'] = True
             executor.save_project_config(config)
+            default_config = executor.get_project_config()
+            config = executor.get_project_config()
+            config['hooks']['after_plan'][0]['enabled'] = False
+            executor.save_project_config(config)
+            self.assertEqual([], executor.check_hooks_for_event('after_plan')['hooks'])
+            config['hooks']['after_plan'][0]['enabled'] = True
+            config['hooks']['after_plan'][0]['condition'] = "env.PROGRAM_KIT_SYNTHETIC_REVIEW == 'enabled'"
+            executor.save_project_config(config)
+            with patch.dict(os.environ, {'PROGRAM_KIT_SYNTHETIC_REVIEW': 'disabled'}):
+                self.assertEqual([], executor.check_hooks_for_event('after_plan')['hooks'])
+            with patch.dict(os.environ, {'PROGRAM_KIT_SYNTHETIC_REVIEW': 'enabled'}):
+                self.assertEqual(1, len(executor.check_hooks_for_event('after_plan')['hooks']))
+            del config['hooks']['after_plan']
+            executor.save_project_config(config)
+            removed = snapshot(root)
+            self.assertEqual([], executor.check_hooks_for_event('after_plan')['hooks'])
+            self.assertNotIn('after_plan', executor.get_project_config()['hooks'])
+            self.assertEqual(removed, snapshot(root), 'Hook lookup recreated a removed hook')
+            executor.save_project_config(default_config)
+            retain_installed_review(root)
             chosen = feature(root)
+            (chosen / 'research.md').write_text('# Research\nSelected local request approach; verify its contract.\n', encoding='utf-8')
+            (chosen / 'data-model.md').write_text('# Request identity\nThe request owner controls identity assignment.\n', encoding='utf-8')
             # Existing poisoned 0.x history is preserved and never parsed as
             # current authority. No .NET extension or engineering adapter exists.
             old = root / 'docs/architecture/bootstrap-prerequisites.json'
@@ -129,7 +212,8 @@ class NativePhaseTests(unittest.TestCase):
             data = json.loads(run(root, [sys.executable, '-B', installed / 'phase_obligations.py', 'project',
                 '--feature-dir', chosen.relative_to(root), '--phase', 'implementation', '--format', 'json']).stdout)
             self.assertNotIn('dotnet', data['responsibilities'])
-            self.assertIn('specs/001-request/plan.md', data['localGuidance'])
+            for name in ('spec.md', 'research.md', 'plan.md', 'data-model.md', 'tasks.md'):
+                self.assertIn('specs/001-request/' + name, data['localGuidance'])
 
 
 class KnowledgeTests(unittest.TestCase):

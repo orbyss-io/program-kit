@@ -13,6 +13,32 @@ missing ownership, contract, policy or risk decisions before dependent edits; in
 facts locally. Keep unrelated ready work available. No general toolkit receipt, confirmed-intake
 hash, roadmap state, coding-unit qualification or hidden delivery checkpoint is a prerequisite.
 
+For the current task or coherent increment, apply this coding method directly:
+
+1. Read its intended behavior, owning responsibility, selected plan/research/ADR decisions and the
+   relevant existing source. Trace important commitments to their reasons and source facts.
+2. Read focused applicable pattern, integration and security guidance and verify exact selected
+   dependency/API facts in the project's manifests, locks and authoritative documentation. The phase
+   reference index is lexical discovery; correct missed or irrelevant context through review rather
+   than loading the entire catalog or treating reference selection as a design verdict.
+3. Identify semantic commitments to preserve and the local adaptation. Prefer actual framework
+   mechanisms and supported extensions before adding wrappers, runners, parsers, projects or
+   lifecycle owners. Adapt private file/class arrangement without reopening accepted meaning.
+4. Implement the smallest coherent case. If code exposes a missing fact or invalid assumption,
+   investigate it with targeted research or an appropriate experiment. Agent-written tasks do not
+   authorize an unjustified design.
+5. Run focused compiler/analyzer, architecture, security and behavior checks as applicable. Review
+   actual source against the chosen semantics before replicating a new or uncertain approach.
+6. Route consequential deviations through the shared
+   [engineering feedback method](.specify/extensions/program-kit-governance/references/engineering-feedback.md),
+   correct the owning documents and affected tasks, then rerun affected review/checks. Preserve
+   unrelated completed work and agreed human pauses; continue independent ready work.
+
+Patterns may be adapted while preserving their explicit commitments. Exact templates apply when a
+selected generator requires them; neither catalog qualification nor a per-task full-app acceptance
+run is required for ordinary coding. A material product or architecture change needs its actual
+decision owner; silently rewriting the plan cannot justify it.
+
 Run the checks the selected action needs: compiler/analyzers and focused tests at the first coherent
 increment, affected regressions for changed shared contracts, and complete applicable acceptance at
 feature closure. Choose verification sequence by risk and the constitution. Existing engineering

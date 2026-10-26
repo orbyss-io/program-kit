@@ -14,6 +14,12 @@ rules. Cite useful source locations and real consequences. Challenge infrastruct
 as dependency directions: identify the selected framework mechanism and any concrete unmet requirement
 before accepting a replacement project, wrapper, runner or lifecycle. Correct faulty task assumptions.
 
+Trace selected methods/patterns from plan/research/ADRs through consuming tasks to actual source.
+Inspect preserved semantic commitments, justified local adaptations and the checks that exercise
+them. Review the first coherent increment of an unfamiliar or uncertain approach before widespread
+replication. This focused technical review does not itself add a human checkpoint. A private
+file/class refinement within agreed contracts does not require renewed architecture acceptance.
+
 Use appropriately scoped independent review when available or agreed. State actual authorship and
 remaining review limits; do not fabricate a reviewer or infer semantic correctness from metadata.
 Relevant effect, trust, lifetime, ownership and failure-path findings remain substantive even when
@@ -31,6 +37,19 @@ For migrations verify native model/snapshot consistency, deploy the actual EF ar
 observe history and durable state independently, and exercise least-privilege runtime admission.
 Tests of a handwritten alternative establish neither its necessity nor native EF compatibility.
 A deterministic routing fixture proves emitted guidance, not arbitrary agent reasoning or obedience.
+
+## Resolve discoveries
+
+Apply the shared [engineering feedback method](../extensions/program-kit-governance/references/engineering-feedback.md)
+to consequential findings, whether discovered by source review, research or execution. Correct the
+owning spec, research/plan/ADR, tasks or code and revisit only affected conclusions and checks. A
+valid plan does not excuse contradictory code, and a previous plan does not defend an invalid
+assumption. Preserve unrelated accepted decisions, completed task IDs/checkmarks and human pauses.
+
+Native Analyze reports findings read-only. Present that report first; authorized file corrections
+are a separate explicit action, followed by relevant review/checks. Keep unresolved findings and
+bounded deferrals in ordinary phase/review notes and the next-action handoff. Missing historical
+status or another bookkeeping file is not an engineering failure or a delivery gate.
 
 ## Hand off and obtain agreed review
 

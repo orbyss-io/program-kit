@@ -9,6 +9,18 @@ Keep implementation tasks aligned with selected framework mechanisms. Challenge 
 a replacement runner, wrapper or lifecycle before implementing it; record a concrete unmet requirement
 or correct the task. Tests of a custom mechanism alone do not justify its existence.
 
+For each consequential approach, link the plan/research/ADR section that establishes its owner,
+method or pattern, preserved semantic commitments, local adaptation and checks. Keep these decisions
+usable in the task that consumes them without duplicating the full research. Put focused source
+review/checks on the first coherent case of a new or uncertain approach before replicating it;
+this technical review adds no automatic human checkpoint or per-task full-app acceptance run.
+Private file/class refinements can evolve within the agreed contracts.
+
+When implementation or review invalidates an assumption, use the shared
+[engineering feedback method](.specify/extensions/program-kit-governance/references/engineering-feedback.md)
+to correct the owning document and dependent tasks. Preserve unrelated decisions, completed IDs and
+checkmarks, and actual human dispositions. A task is not authority to retain an invalid design.
+
 Use short readable notes for progress, unresolved failures, local choices and agreed review pauses.
 For example:
 

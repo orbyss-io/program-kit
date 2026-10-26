@@ -13,3 +13,9 @@ not consumer qualification in Program Kit's curated catalog.
 Confirm that agreed human review pauses and independent walkthroughs are visible in ordinary notes.
 Checked tasks and successful engineering checks never manufacture acceptance. Report unresolved
 findings without changing source or drafting approval records.
+
+After reporting, propose corrections through the shared
+[engineering feedback method](.specify/extensions/program-kit-governance/references/engineering-feedback.md).
+Perform authorized repairs only in a separate explicit correction step outside Analyze, then rerun
+affected review/checks. Do not silently change the plan to justify a deviation or treat missing
+status history as an engineering failure. Preserve unrelated accepted decisions and completed IDs.

@@ -14,6 +14,23 @@ are not independent prerequisites for coding. Revisit a changed product or archi
 decision through normal review. Preserve unaffected work. Real unresolved decisions and
 actual engineering failures still need resolution in their dependent scope.
 
+Specify owns observable behavior; planning owns the research that justifies technical choices.
+The existing after-plan architecture review examines the actual feature documents and accepted
+architecture, explains alternatives and source/version applicability, and resolves material open
+choices before dependent tasks. A reference index supplies context, not that semantic review.
+Keep consequential decisions and their reasons/checks traceable in ordinary research, plan or ADR
+sections; tasks carry the selected responsibilities, pattern commitments and adaptations forward.
+
+During coding, read the task's behavior/owner/decisions and relevant source, consult focused guidance
+and exact dependency facts, then implement/check the smallest coherent case. Review actual source
+against the chosen semantics before replicating a new or uncertain approach. Private file/class
+details can evolve while accepted responsibilities, contracts and failure semantics remain intact.
+Use the shared [engineering feedback method](../extensions/program-kit-governance/references/engineering-feedback.md)
+for discoveries that change product behavior, assumptions, contracts or task dependencies. Correct
+the owning documents and affected work openly, preserve unrelated decisions/completed tasks, and
+rerun relevant review/checks. Native Analyze reports first and stays read-only; any authorized
+repair is a separate explicit step. A proposed ADR supplies no human-approved override.
+
 Select technology guidance and automation proportionally. The recommended stack has a
 convenient default engineering route. A user can choose another technology or build
 approach, document the choice and run its actual checks. Optional generators/runners

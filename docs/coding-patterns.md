@@ -6,6 +6,15 @@ evidence-binding ceremony to choose a suitable local implementation. Preserve th
 framework/API, security and behavior contracts. A framework replacement still needs a concrete
 capability gap and justification in the normal plan or ADR.
 
+When applying a pattern, identify its semantic commitments and the local adaptation in the plan or
+research, then link that decision from consuming tasks. Preserve responsibilities, lifecycle/failure
+semantics and important invariants while refining private files/classes. Use exact templates where
+a selected generator requires them; a local design does not need catalog qualification. Review
+actual source and focused checks at the first coherent increment of a new or uncertain approach
+before replicating it. [The coding method](coding-context.md#apply-a-decision-in-code) carries these
+choices into implementation; consequential discoveries use the shared
+[engineering feedback method](../extensions/program-kit-governance/references/engineering-feedback.md).
+
 ## Inspect declared examples
 
 ```text

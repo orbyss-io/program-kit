@@ -4,7 +4,7 @@ extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
   version: "1.0.0-preview.1"
-  description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
+  description: "Contributes focused knowledge, architecture review and engineering guidance to native Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
   license: "MIT"
@@ -77,10 +77,10 @@ provides:
       description: "Inspect current product context and the next useful action."
     - name: "speckit.program-kit-governance.architecture-check"
       file: "commands/speckit.program-kit-governance.architecture-check.md"
-      description: "Check a specification, plan, or implementation for architecture and ADR drift."
+      description: "Review actual design alternatives, source facts, contracts and implementation; resolve consequential choices."
     - name: "speckit.program-kit-governance.implementation-check"
       file: "commands/speckit.program-kit-governance.implementation-check.md"
-      description: "Apply programming and lifecycle guardrails before implementation."
+      description: "Apply selected decisions and focused coding guidance to the next coherent implementation increment."
   config:
     - name: "program-kit-governance-config.yml"
       template: "config/program-kit.template.yml"
@@ -123,7 +123,7 @@ hooks:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
-    description: "Review substantive design conflicts without evidence dossiers."
+    description: "Review actual design, research, alternatives and checks; resolve material choices and resume native planning."
   before_tasks:
     command: "speckit.program-kit-governance.phase-context"
     priority: 1
@@ -133,21 +133,21 @@ hooks:
     - command: "speckit.program-kit-governance.architecture-check"
       priority: 1
       optional: false
-      description: "Validate the planned compilation graph before affected implementation."
+      description: "Review task coverage of selected responsibilities, methods, dependencies and focused checks."
     - command: "speckit.analyze"
       priority: 5
       optional: false
-      description: "Use normal Spec Kit consistency analysis."
+      description: "Report native read-only consistency findings before any authorized correction."
   before_implement:
     - command: "speckit.program-kit-governance.implementation-check"
       priority: 1
       optional: false
-      description: "Prepare composable coding units, reconcile actual source and validate native project context once before coding."
+      description: "Read the selected task, decisions, source and focused guidance; prepare a coherent increment and its checks."
   after_implement:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
-    description: "Reconcile coding responsibilities at progress/completion; require complete engineering acceptance only at delivery."
+    description: "Review actual implementation and consequential findings; preserve human pauses and run full acceptance at delivery."
 
 tags:
   - "architecture"

@@ -5,6 +5,13 @@ dependency boundaries. Link relevant ADRs/domain/C4 views when useful. Preserve 
 choices and explain substantive changes. A small plan or legitimate custom stack needs no toolkit
 receipt, roadmap status, fixed table format or consumer qualification ceremony.
 
+Make consequential choices traceable in ordinary plan, research or ADR prose: applicable source
+and selected-version facts, constraints, chosen approach, useful rejected alternatives, semantic
+commitments and verification. Separate documented facts from assumptions, decisions and unknowns
+that need an experiment. Link focused references; do not copy manuals or the whole knowledge catalog.
+Plan responsibilities and contracts, including important lifecycle/failure semantics; leave private
+file/class arrangement open to refinement that preserves those commitments.
+
 Choose concrete tests and verification commands at the cheapest reliable level: compiler/analyzers,
 architecture, behavior, security and integration where applicable. Name actual prerequisites for
 the task that needs them. Run providers, databases and application startup only when selected work
@@ -14,6 +21,12 @@ Use qualified examples or optional generators when suitable, or document a local
 Check the actual selected SDK/API/package contracts. For a chosen .NET adapter, use its architecture,
 dependency and native verification helpers on their own terms; do not copy their manifests into an
 unrelated technology. Keep source generation, runtime compatibility and product acceptance distinct.
+
+Carry selected methods/patterns, adaptation points and their checks into the consuming tasks, using
+links where sufficient. For an unfamiliar or uncertain approach, plan a focused source review and
+appropriate checks at its first coherent increment before replicating it. This does not create a
+human approval point unless agreed. A local pattern needs no catalog qualification; a selected
+generator still owns its exact template and input requirements.
 
 Use selected framework mechanisms and supported extensions before adding equivalent infrastructure.
 For a new project, runner, wrapper or lifecycle, explain its actual responsibility and any concrete

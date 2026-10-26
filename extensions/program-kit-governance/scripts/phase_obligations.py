@@ -56,7 +56,8 @@ def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), sel
     local = [path.relative_to(root).as_posix() for path in (
         root / 'AGENTS.md', root / '.specify/memory/constitution.md',
         root / 'docs/architecture/project-intent.md',
-        root / 'docs/architecture/technology-radar.md', feature / 'plan.md', feature / 'tasks.md') if path.is_file()]
+        root / 'docs/architecture/technology-radar.md', feature / 'spec.md', feature / 'research.md',
+        feature / 'plan.md', feature / 'data-model.md', feature / 'tasks.md') if path.is_file()]
     registry = catalog()
     requirements = applicable_requirements(registry, tags, phase)
     extensions = Path(__file__).resolve().parents[2]

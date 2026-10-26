@@ -1,5 +1,5 @@
 ---
-description: Read focused programming guidance before the selected implementation work.
+description: Apply selected decisions and focused programming guidance to the current coding increment.
 scripts:
   py: scripts/implementation_preflight.py
 ---
@@ -9,6 +9,28 @@ reference index. Read relevant details through `phase_obligations.py project --p
 --feature-dir <feature> --only <id>`. Reuse current context; do not repeat unchanged preparation.
 The helper does not start an application, evaluate a whole composition, run tests or require
 bootstrap/intake receipts, a roadmap, hidden coding progress or pattern qualification.
+
+Apply this method to the current task or coherent increment, within the native implement flow:
+
+1. Read the intended behavior, semantic owner, relevant existing source and selected decisions in
+   spec/research/plan/ADRs/tasks. Follow the reasons and source facts behind consequential choices.
+2. Read focused applicable pattern, integration and security guidance; verify exact selected
+   dependency/API facts. Lexical selection is a starting point: correct missed or irrelevant context
+   through source review, without copying the entire catalog into context.
+3. Identify the pattern's semantic commitments and local adaptation. Prefer native framework
+   capabilities and supported extension points before introducing equivalent infrastructure.
+4. Implement the smallest coherent case. Research exposed missing facts or invalid assumptions;
+   task wording is not authority for an unjustified design. Private file/class refinements may
+   evolve while the agreed responsibilities, contracts and failure semantics remain intact.
+5. Run the focused checks below and inspect actual source against intended semantics before
+   replicating a new or uncertain approach. This technical review creates no automatic human pause.
+6. Resolve consequential deviations through the shared
+   [engineering feedback method](references/engineering-feedback.md) and the owning documents,
+   then rerun affected review/checks. Keep independent ready work available and preserve human pauses.
+
+Adapt patterns while preserving their explicit commitments. Catalog qualification is not a local
+design prerequisite; exact templates apply when a selected generator requires them. A file map,
+coding-unit manifest or every-task full-app acceptance run is not required.
 
 Before dependent edits resolve consequential product, ownership, contract and risk choices using
 normal spec/ADR/plan/tasks. Investigate accessible facts and routine engineering choices locally.

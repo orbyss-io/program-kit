@@ -3,19 +3,19 @@
 ## Immediate phase actions
 
 <!-- program-kit:knowledge-rule phase-action.planning -->
-Describe the intended outcome, consequential design decisions and cheapest reliable tests. Planning runs no application checks.
+Specify owns user-observable behavior; planning researches and justifies technical choices using applicable authoritative selected-version sources. Keep consequential decisions, alternatives, constraints and checks traceable in ordinary research/plan/ADR content. Planning runs no application checks.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule phase-action.after-plan -->
-Review ownership, contracts, dependencies and material failure paths. Carry applicable checks and agreed review points into tasks.
+Inspect the actual spec, research, plan, contracts/data model and relevant accepted architecture. Review source applicability, alternatives, semantic ownership, lifecycle/failure behavior and selected coding approaches; present reasons and trade-offs. Resolve material unanswered choices before dependent tasks, then resume the remaining native flow. A reference index is not this review.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule phase-action.tasks -->
-Group runnable outcomes and their exact prerequisites. Choose verification sequence by risk; draft tasks without starting services or executing proofs.
+Group runnable outcomes and their exact prerequisites. Carry selected responsibilities, pattern commitments/adaptations and checks from plan/research/ADRs into relevant tasks. Review the first coherent uncertain increment before replication; draft tasks without starting services or executing proofs.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule phase-action.after-tasks -->
-Use native read-only analysis on the completed task plan. Check coverage, real dependencies, relevant tests and agreed human reviews.
+Use native read-only analysis on the completed task plan. Check coverage, selected decisions, real dependencies, relevant tests and agreed human reviews. Report findings before separate authorized corrections through references/engineering-feedback.md; Analyze itself changes no files.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule phase-action.implementation -->
-Implement coherent outcomes with focused checks. Honor agreed human review pauses; progress saves and resumes are not full acceptance boundaries.
+Read the current task's behavior, owner, decisions and source; load focused applicable pattern/integration/security guidance and exact dependency facts. Preserve commitments while adapting locally, implement the smallest coherent case, check and review its semantics before uncertain replication. Route consequential discoveries through references/engineering-feedback.md and honor agreed human pauses.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule phase-action.delivery -->
 Run complete applicable acceptance at feature closure, review substantive findings and obtain the agreed human dispositions. Report actual execution separately from acceptance.
@@ -27,6 +27,12 @@ Use the compact phase reference index and focused `--only <id>` lookup. Attribut
 source; it does not certify a consumer decision or implementation. Local constitution, ADRs and
 plan/tasks preserve project choices. A suitable custom stack or pattern needs its actual contracts
 and tests, not qualification in Program Kit's curated catalog.
+
+Use the [engineering feedback method](engineering-feedback.md) when a consequential discovery needs
+correction. It identifies the document/code owner, dependent work and relevant rechecks while
+preserving unrelated decisions and completed tasks. Missing status history is not an engineering
+failure. Report native Analyze findings before a separate authorized correction; Analyze stays
+read-only.
 
 Use normal compiler, analyzer, architecture, security and behavior checks for selected work. For a
 chosen .NET route, optional `eng/Invoke-RepositoryVerification.ps1 -Scope Focused` and `-Scope Affected`

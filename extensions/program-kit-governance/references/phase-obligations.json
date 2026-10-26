@@ -3776,10 +3776,95 @@
           ]
         ],
         "remaining": {
-          "sha256": "ed3b87b8d3b391fcae543749d891ea01d9dd396d8a3806a01a0333a98c33ea1e",
+          "sha256": "d1471e3c4124558b19574ea1409c6901ec143dfeeefeab889000c0ab1b71c6f7",
           "kind": "context",
           "owner": "program-kit-governance",
-          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+          "reason": "Current native phase guidance and shared feedback link. Actual project checks, semantic review and agreed human decisions remain separate; this source partition grants no consumer acceptance."
+        }
+      }
+    },
+    {
+      "path": "program-kit-governance/references/engineering-feedback.md",
+      "phases": [
+        "planning",
+        "after-plan",
+        "tasks",
+        "after-tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "Conversational correction through existing phase owners and authored documents; native Analyze reports read-only before separate authorized repair. Registration proves availability, not agent behavior or human acceptance.",
+      "route": {
+        "kind": "phase",
+        "via": [
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture-check.md",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.implementation-check.md",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.phase-context.md",
+          "presets/program-kit-governance-preset/commands/speckit.analyze.md",
+          "presets/program-kit-governance-preset/commands/speckit.implement.md",
+          "presets/program-kit-governance-preset/commands/speckit.tasks.md"
+        ],
+        "sections": [
+          "Find the correction owner",
+          "Resolve and resume"
+        ],
+        "requirements": [],
+        "review": "Conversational correction through existing phase owners and authored documents; native Analyze reports read-only before separate authorized repair. Registration proves availability, not agent behavior or human acceptance."
+      },
+      "id": "program-kit-governance/references/engineering-feedback.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-governance/references/engineering-feedback.md"
+      },
+      "owner": "program-kit-governance",
+      "disposition": "conditional",
+      "sections": {
+        "Find the correction owner": {
+          "disposition": "conditional",
+          "route": "phase",
+          "codingDisposition": {
+            "kind": "manual",
+            "owner": "native phase commands",
+            "reason": "Conversational correction through existing phase owners and authored documents; native Analyze reports read-only before separate authorized repair. Registration proves availability, not agent behavior or human acceptance."
+          }
+        },
+        "Resolve and resume": {
+          "disposition": "conditional",
+          "route": "phase",
+          "codingDisposition": {
+            "kind": "manual",
+            "owner": "native phase commands",
+            "reason": "Conversational correction through existing phase owners and authored documents; native Analyze reports read-only before separate authorized repair. Registration proves availability, not agent behavior or human acceptance."
+          }
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "not-inferred-from-registration"
+      },
+      "purpose": "Resolve consequential discoveries through their existing document/code owners, preserving unrelated work.",
+      "contentCoverage": {
+        "headings": [
+          [
+            1,
+            "Engineering discoveries and corrections"
+          ],
+          [
+            2,
+            "Find the correction owner"
+          ],
+          [
+            2,
+            "Resolve and resume"
+          ]
+        ],
+        "remaining": {
+          "sha256": "62fa60b85ceda9101779d45ee533d7758c47e95d96e64864d22e0c0b8b8a0d88",
+          "kind": "manual",
+          "owner": "program-kit-governance",
+          "reason": "Conversational correction through existing phase owners and authored documents; native Analyze reports read-only before separate authorized repair. Registration proves availability, not agent behavior or human acceptance."
         }
       }
     },

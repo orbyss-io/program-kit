@@ -125,6 +125,26 @@ def main():
             actual = [h for h in config['hooks'][event] if h.get('extension')=='program-kit-governance']
             require([h['command'] for h in actual] == expected and all(h['enabled'] and not h['optional'] for h in actual),
                     'Missing, reordered or optional required hooks: '+event)
+        # Inspect the real archived guidance after native registration, not a
+        # source-only install. This establishes content/dispatch availability,
+        # never execution of the conversational reviewer or coding method.
+        guidance_root = project / '.specify/extensions/program-kit-governance'
+        for name in ('engineering-feedback.md', 'phase-evidence.md'):
+            require((guidance_root / 'references' / name).read_bytes() ==
+                    (expanded / 'program-kit-governance/references' / name).read_bytes(),
+                    'Archive installation changed the shared engineering reference: ' + name)
+        feedback_link = '](.specify/extensions/program-kit-governance/references/engineering-feedback.md)'
+        for name in ('tasks', 'implement', 'analyze', 'program-kit-governance-architecture-check',
+                     'program-kit-governance-implementation-check', 'program-kit-governance-phase-context'):
+            body = (project / f'.github/skills/speckit-{name}/SKILL.md').read_text(encoding='utf-8')
+            require(feedback_link in body, 'Archived command lost its reachable feedback link: ' + name)
+        for name in ('tasks', 'implement', 'analyze'):
+            fragment = (expanded / f'program-kit-governance-preset/commands/speckit.{name}.md').read_text(encoding='utf-8')
+            if fragment.startswith('---\n'):
+                fragment = fragment.split('---', 2)[2]
+            fragment = fragment.strip()
+            installed = (project / f'.github/skills/speckit-{name}/SKILL.md').read_text(encoding='utf-8')
+            require(fragment in installed, 'Archived native append lost guidance: ' + name)
         for relative in ('.specify/presets/program-kit-governance-preset/preset.yml',
                          '.specify/bundle-records.json',
                          '.github/skills/speckit-program-kit-governance-product-intake/SKILL.md',
