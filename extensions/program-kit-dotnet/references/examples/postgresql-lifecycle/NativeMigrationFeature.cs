@@ -14,6 +14,6 @@ public sealed class NativeMigrationFeature(ShellSettings settings) : IShellFeatu
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddFoundationPostgreSql<NativeMigrationContext>(settings, "fixture", options => new(options));
-        services.AddShellInitializer<NativeMigrationAdmission>(LifecyclePhase.Prepare);
+        services.AddShellInitializer<NativeMigrationAdmission>(LifecyclePhase.Prepare, order: 100);
     }
 }

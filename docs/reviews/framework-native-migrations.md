@@ -61,3 +61,20 @@ Execution results, original failures, timing and remaining limitations belong in
 summary with ignored local run links. Package CI independently proves exact archive installation on
 Windows/Linux. Release preparation grants no tag or publication authority. The candidate remains
 the unpublished 1.0.0-preview.1; consumed dependency profiles, pins and locks are unchanged.
+
+## Native execution follow-up
+
+After human installation of the exact existing SDK pin, the first compiled run identified a missing
+order argument in the new initializer registration. The selected CShells XML contract requires the
+phase-and-order overload. The example and matching guidance now supply both; existing generated
+provider registration already did so. The failed build remains at
+`artifacts/postgresql-lifecycle/490aac5d00aa44b9b2546cfebf72bd8b/`.
+
+The corrected focused run passed all 29 required cases in 103.267s (103.647s including selection),
+within its 300-second target. It executed Foundation 0.3.7, native EF authoring/deployment and actual
+runtime startup admission; independent cleanup was observed. Its result is
+`artifacts/validation-runs/20261026T125809Z-18e9036e/results.json`, with detailed streams, generated SQL,
+assembly/package identities and case results under
+`artifacts/postgresql-lifecycle/77c9d5742acc413891df3af9a421ad65/`. Original missing-SDK/pin-lookup
+failures remain separate. This is real native PostgreSQL proof, not arbitrary agent acceptance or
+SQL Server/SQLite qualification. Final fixed-source development/package results belong in the PR.

@@ -78,7 +78,7 @@ that exact profile, never adoption of today's default.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.captured-startup-example -->
 For the reviewed Foundation Tasks 0.3.1 / CShells 0.0.30-preview.159 baseline, the provider
-registers `AddShellInitializer<AdmitSchema>(LifecyclePhase.Prepare)` for read-only compatibility and owns its provider scope;
+registers `AddShellInitializer<AdmitSchema>(LifecyclePhase.Prepare, order: 100)` for read-only compatibility and owns its provider scope;
 application policy/signing admission uses an explicitly ordered `Default` initializer. Foundation's
 manager contributes in `Start`, awaits scoped `IStartupTask` work, then starts shell-singleton workers.
 Use fresh application-owned scopes per worker iteration. Read `CShells.Abstractions --fact README.md`
