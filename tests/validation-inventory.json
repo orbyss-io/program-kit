@@ -314,6 +314,7 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/runtime_closure.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/prepare_hosted_pages.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/shell_composition.py"
       ],
       "dependsOn": []
@@ -869,7 +870,8 @@
       ],
       "inputs": [
         "tests/validate_composition_tooling.py",
-        "tests/composition_fixture.py"
+        "tests/composition_fixture.py",
+        "tests/composition_owner_fixture.py"
       ],
       "needs": [],
       "prerequisites": [],
@@ -2465,7 +2467,7 @@
     },
     {
       "id": "validate_release_bundle",
-      "purpose": "Offline bundle production/admission and published-runtime boundary checks; no agent.",
+      "purpose": "Native selected-root restore/pack/stage, bundle admission and published-runtime boundary checks; no agent.",
       "platforms": [
         "Windows",
         "Linux"
@@ -2474,18 +2476,70 @@
         "{python}",
         "tests/validate_release_bundle.py"
       ],
-      "kind": "unit",
+      "kind": "integration",
       "capabilities": [
         "release"
       ],
       "inputs": [
-        "tests/validate_release_bundle.py"
+        "tests/validate_release_bundle.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py"
       ],
       "needs": [],
-      "prerequisites": [],
+      "prerequisites": ["tool:dotnet"],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "qualify_composition_owner_operation",
+      "purpose": "Actual generated retained-profile Host/Keycloak/PostgreSQL login with external product configuration, separate native EF deployment, read-only provider admission and synthetic permission/owner-isolated operation.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_composition_start.py", "--execute", "--owner-operation", "--engines={engines}"],
+      "kind": "integration",
+      "capabilities": ["scaffolding", "postgresql"],
+      "inputs": ["tests/composition_owner_fixture.py", "tests/fixtures/composition-owner/**"],
+      "reviewInputs": ["tests/validate_composition_start.py", "tests/composition_fixture.py", "tests/validate_private_ef_metadata.py"],
+      "needs": [],
+      "prerequisites": ["module:specify_cli", "tool:docker", "tool:dotnet", "tool:node"],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_openapi_breaking_gate",
+      "purpose": "Actual pinned oasdiff ERR threshold, unapproved/stale rejection, exact fictional review and unchanged-contract preservation; no consumer approval.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_openapi_breaking_gate.py"],
+      "kind": "integration",
+      "capabilities": ["api-client"],
+      "inputs": ["tests/validate_openapi_breaking_gate.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_contracts.py"],
+      "needs": [],
+      "prerequisites": ["tool:oasdiff"],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_private_ef_metadata",
+      "purpose": "Fresh installed descriptor-task packing, native selected-root staging, EF migrations and published Host activation with private EF Design tooling and the BFF baseline.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_private_ef_metadata.py"],
+      "kind": "integration",
+      "capabilities": ["composition-runtime", "postgresql"],
+      "inputs": [
+        "tests/validate_private_ef_metadata.py",
+        "tests/fixtures/private-ef-metadata/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/eng/web-profile.shells.json"
+      ],
+      "needs": [],
+      "prerequisites": ["tool:dotnet", "tool:docker"],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
       "manualOnly": true
     },
     {

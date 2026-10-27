@@ -48,6 +48,61 @@ def intent(root, feature, phase='implementation', affected_paths=()):
     return context(root, feature, phase, affected_paths)
 
 
+def composition_context(root, tags):
+    """Point to an accepted host's existing setup owner; never infer runtime readiness.
+
+    This is bounded Markdown discovery, not architecture validation. Only an
+    explicit accepted decision section supplies this advisory. An alternative,
+    proposed choice or an unrelated frontend task does not select a .NET host.
+    """
+    if 'dotnet' not in tags or not tags.intersection({'api', 'web', 'capabilities'}):
+        return None
+    import re
+    from decision_status import has_decision_status
+    from feature_context import affirmative
+    decisions = []
+    for path in sorted((root / 'docs/architecture/decisions').glob('*.md')):
+        try:
+            if not path.resolve().is_relative_to(root.resolve()) or path.stat().st_size > 1_048_576:
+                continue
+            content = path.read_text(encoding='utf-8')
+        except (OSError, UnicodeError):
+            # This discovery aid cannot validate or waive unreadable decisions.
+            # Ordinary document review retains that responsibility.
+            continue
+        if not has_decision_status(content, 'Accepted'):
+            continue
+        section = re.search(r'^##\s+Decision\s*\n(.*?)(?=^##\s|\Z)', content, re.M | re.S | re.I)
+        chosen = re.sub(r'\s+', ' ', affirmative(section[1])) if section else ''
+        # Require positive selection language, ignoring rejected alternatives
+        # and negated clauses. Unrecognized prose remains a human source-review
+        # responsibility, never authority for automatic adoption.
+        clauses = [re.split(r"\b(?:instead of|rather than|as an alternative to|not|never|don't|reject|avoid)\b",
+                            clause, flags=re.I)[0]
+                   for clause in re.split(r'(?<=[.!?;])\s+', chosen)]
+        host = r'\b(?:Orbyss\.Foundation\.Host|Foundation[ -]+Host)\b'
+        if any(re.search(r'\b(?:use|select|adopt|deploy|run|retain)\b.*' + host, clause, re.I)
+               or re.search(host + r'.*\b(?:selected|adopted|retained|required|default)\b', clause, re.I)
+               for clause in clauses):
+            decisions.append(path.relative_to(root).as_posix())
+    if not decisions:
+        return None
+    active = root / 'eng/foundation-composition.json'
+    state = 'absent'
+    if active.is_file() and active.resolve().is_relative_to(root.resolve()):
+        try:
+            graph = json.loads(active.read_text(encoding='utf-8'))
+            state = 'present' if isinstance(graph, dict) and graph.get('schemaVersion') == 2 else 'legacy-or-unknown'
+        except (ValueError, OSError):
+            state = 'unreadable'
+    elif active.is_file():
+        state = 'outside-repository'
+    return {'decisionSources': decisions, 'activeInput': 'eng/foundation-composition.json',
+            'state': state,
+            'guidance': '.specify/extensions/program-kit-dotnet/references/foundation-compositions.md',
+            'meaning': 'Discovery only: no configuration validation, runtime execution or acceptance.'}
+
+
 def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), selected_tags=None):
     require(phase in PHASES, 'Unknown phase: ' + phase)
     tags = set(selected_tags) if selected_tags is not None else intent(root, feature, phase, affected_paths)
@@ -76,7 +131,8 @@ def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), sel
                           if registry['rules'][identity]['source'] not in missing]
     return {'schemaVersion': 2, 'feature': feature.relative_to(root).as_posix(),
             'phase': phase, 'responsibilities': sorted(tags),
-            'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
+            'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics'],
+                        'composition': composition_context(root, tags)},
             'localGuidance': local, 'requirements': requirements,
             'scope': 'Relevant references and review prompts; no execution or acceptance established.'}
 
@@ -97,6 +153,25 @@ def render(value, phase, detailed=False):
         'Choose a suitable stack or local alternative; curated examples are optional. Actual selected tool/API contracts still apply.',
         'Run only the compiler, tests, services and device checks needed by the selected action. Guidance starts none of them.',
         'Use --only <id> for attributable detail; --page continues a long focused reference.', '']
+    composition = value.get('context', {}).get('composition')
+    if composition:
+        lines += ['## Selected Foundation composition',
+                  'Accepted host decision: ' + ', '.join(composition['decisionSources']),
+                  'Active composition input ' + composition['activeInput'] + ': ' + composition['state'] + '.',
+                  'Read ' + composition['guidance'] + ' before adding setup, authentication, asset or presentation infrastructure.']
+        if composition['state'] == 'present':
+            lines += ['Resume the existing v2 resource graph, native configuration and applicable evidence. '
+                      'Presence is not readiness; rerun only checks whose relevant inputs changed.']
+        else:
+            lines += ['Use the maintained v2 template for a fresh consumer. For an existing consumer, '
+                      'review composition_migrate.py --proposal and dotnet_sync.py --composition-only --check --json; '
+                      'use the configuration-only synchronization preview to '
+                      'retain exact pins, authored source, architecture, shell policy, realm users/clients and local repairs. '
+                      'A legacy --web-profile scaffold alone does not create the active composition.']
+        lines += ['Inherit the exact supplier middleware/protocol evidence; separately check this consumer\'s '
+                  'configuration, native login, permissions and owner-isolated operation when that action needs runtime. '
+                  'Metadata/exporter hashes and Forms browser evidence do not prove that login. '
+                  'This guidance starts no application or supplier test suite and adds no approval receipt.', '']
     if not detailed:
         rule = canonical_rules(['principle.framework-native-mechanisms'])[0]
         lines += ['## Framework responsibility review', rule['text'],

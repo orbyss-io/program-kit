@@ -38,9 +38,10 @@ def source_inputs(repository: Path) -> dict[str, str]:
                 if path.is_file():
                     values[path.relative_to(repository).as_posix()] = sha256(path)
         for frontend in composition_model.resources(graph, 'frontend').values():
-            for path in (repository / frontend['directory']).rglob('*'):
-                if path.is_file() and not {'node_modules', 'dist', 'artifacts', '.git'}.intersection(path.relative_to(repository).parts):
-                    values[path.relative_to(repository).as_posix()] = sha256(path)
+            values.update(composition_model.resource_input_files(repository,
+                {'inputs': [frontend['directory'], *frontend.get('inputs', [])]}, required=False))
+        for authority in composition_model.resources(graph, 'identityAuthority').values():
+            values.update(composition_model.resource_input_files(repository, authority, required=False))
     return dict(sorted(values.items()))
 
 
@@ -71,6 +72,11 @@ def source_scope(repository: Path, staged: Path, values: dict[str, str]) -> dict
     frontend_dirs = [graph['resources'][row['frontendRef']]['directory'] + '/'
                      for row in model.bindings(graph, 'frontend') if row['shellRef'] in shells]
     all_frontends = [row['directory'] + '/' for row in model.resources(graph, 'frontend').values()]
+    selected_frontends = {row['frontendRef'] for row in model.bindings(graph, 'frontend') if row['shellRef'] in shells}
+    all_external = [path for row in model.resources(graph, 'frontend').values() for path in row.get('inputs', [])]
+    selected_external = [path for name in selected_frontends for path in graph['resources'][name].get('inputs', [])]
+    def under(name, paths):
+        return any(name == path or name.startswith(path + '/') for path in paths)
     all_shell_sources = {path for shell in model.resources(graph, 'shell').values()
                          for path in (shell['source'], (Path(shell['source']).parent / 'eng/building-blocks.shells.json').as_posix())}
     selected_sources = {path for shell_id in shells for path in
@@ -78,8 +84,11 @@ def source_scope(repository: Path, staged: Path, values: dict[str, str]) -> dict
                          (Path(graph['resources'][shell_id]['source']).parent / 'eng/building-blocks.shells.json').as_posix())}
     return {name: digest for name, digest in values.items()
             if (name not in all_shell_sources or name in selected_sources) and
+            (not under(name, all_external) or under(name, selected_external)
+             or any(name.startswith(folder) for folder in folders)) and
             ((not name.startswith('src/') and not any(name.startswith(folder) for folder in all_frontends))
-             or any(name.startswith(folder) for folder in [*folders, *frontend_dirs]))}
+             or any(name.startswith(folder) for folder in [*folders, *frontend_dirs])
+             or under(name, selected_external))}
 
 
 def source_configuration(repository: Path, staged: Path | None = None) -> list[dict]:

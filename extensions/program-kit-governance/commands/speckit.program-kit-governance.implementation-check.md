@@ -39,6 +39,15 @@ actual recipe/SDK inputs; their unsupported automation does not prevent manual i
 Recheck tasks that introduce infrastructure against the selected framework's native capabilities.
 Resolve unjustified duplication in the plan/tasks; task wording and green checks do not justify it.
 
+For an accepted Foundation host, inspect the active v2 composition and its focused adoption guidance
+before adding container topology, authentication pages or asset-serving code. Reuse unchanged supplier
+protocol evidence and distinguish it from this consumer's configuration/login and product ownership checks.
+Review composition factories for shell/scope and disposal ownership; a deferred factory at that boundary
+is not service location in business code. Review configuration binding/admission and snapshot lifetime,
+then failure paths: caller cancellation, deadline expiry, deterministic provider rejection and uncertain
+postdispatch effects need their actual semantics. Read the selected provider's typed failure contract.
+Use focused source and behavior checks; this is not a per-task full-application acceptance checklist.
+
 Run compiler/analyzers and focused tests at the first coherent increment, then affected regressions
 for changed shared contracts. Verify runtime/provider/database/browser behavior when selected work
 needs it. Keep actual security, authority and tool/API prerequisites beside their dependent action.

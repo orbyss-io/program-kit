@@ -154,6 +154,11 @@ The public identity issuer remains separate from private administration/transpor
 Link generated `docs/architecture/foundation-configuration.md` and the redacted settings
 view when describing materially configured behavior; distinguish configured projections
 from observed activation-effective options. Preserve the mandatory assurance gates below.
+Those are component/deployment assurance responsibilities at their stated scopes, not a
+request to rebuild the supplier's protocol suite in each consumer or coding task. Exact
+profile activation/exporter hashes and retained Forms browser evidence are not a real
+Keycloak login journey. Use the maintained executable composition's actual native login
+checks, then the consumer's own permission, ownership and customized behavior checks.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule context.publisher-portable-auth-contract -->
@@ -447,6 +452,16 @@ an application feature.
 ## Review and non-claims
 
 <!-- program-kit:knowledge-rule principle.authentication-presentation-contract -->
+First inspect the exact selected publisher capabilities. When the qualified profile
+supplies `Orbyss.Foundation.Web.Presentation` and HostedPages, use the
+[typed executable composition](foundation-compositions.md) to select their native HTML,
+bootstrap, session/recovery controls and admitted asset serving. Configure the supported
+settings and retain product routes, permission/owner predicates, React state and branding.
+Do not copy their asset inventory, MIME routing, authentication HTML or browser modules
+into the application. The application-owned writer example below is for a retained
+publisher without that capability or a justified custom presentation using its public
+extension seam; it is not the default ahead of an available native feature.
+
 Browser presentation is part of application acceptance. Keep authentication machine/API problems
 and `/bff/signed-out` typed JSON as protocol contracts. An application-owned presentation feature
 uses `IAuthenticationErrorWriter` for safe browser callback/access-denied output and provides public

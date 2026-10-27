@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import package_execution
 
@@ -24,6 +25,23 @@ def owned_targets(repository: Path, feature: str | None, selected: list[dict]) -
     prose = '\n'.join((folder / name).read_text(encoding='utf-8')
                       for name in ('plan.md', 'tasks.md') if (folder / name).is_file())
     prose = prose.replace('\\', '/')
+    # Markdown destinations belong to their source document, unlike repository-
+    # relative setup paths in prose/code. Do not reinterpret a valid link as an
+    # escaping root-relative dependency owner.
+    links = re.findall(r'!?\[[^\]\n]*\]\(\s*(<[^>]+>|[^\s)]+)(?:\s+[^)]*)?\)', prose)
+    markdown_paths = set()
+    for destination in links:
+        destination = destination.removeprefix('<').removesuffix('>')
+        parsed = urlsplit(destination)
+        if parsed.scheme.lower() == 'file' or len(parsed.scheme) == 1 or (parsed.netloc and not parsed.scheme):
+            raise ValueError('PKS001 absolute local feature Markdown link is not repository-relative: ' + destination)
+        if parsed.scheme or parsed.netloc or not parsed.path:
+            continue
+        path = (folder / unquote(parsed.path)).resolve()
+        if not path.is_relative_to(root):
+            raise ValueError('PKS001 feature Markdown link escapes repository: ' + destination)
+        markdown_paths.add(path.relative_to(root).as_posix())
+    prose = re.sub(r'!?\[[^\]\n]*\]\([^)]*\)', '', prose)
     references = set(re.findall(r'(?<![\w:/.-])(?:[\w.-]+/)+[\w.-]*', prose))
     references.update(value for value in re.findall(r'`([^`\n]+)`', prose)
                       if '/' in value or value == 'package.json' or value.endswith('.csproj'))
@@ -32,7 +50,7 @@ def owned_targets(repository: Path, feature: str | None, selected: list[dict]) -
     result, scoped_paths = set(), []
     npm_suffixes = {'.js', '.jsx', '.ts', '.tsx', '.css', '.html', '.json', '.vue', '.svelte'}
     dotnet_suffixes = {'.cs', '.fs', '.vb', '.cshtml', '.razor', '.resx', '.props', '.targets', '.json'}
-    for relative in sorted(references):
+    for relative in sorted(references | markdown_paths):
         relative = relative.replace('\\', '/').rstrip('.,;:)')
         if '://' in relative:
             continue

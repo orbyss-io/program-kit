@@ -72,6 +72,21 @@ class UpgradeJourney(unittest.TestCase):
             authored.write_bytes(b'Keep consumer-authored content.\n')
             result = sync(root, *APPROVALS, '--web-profile', 'bff-cookie')
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            # BffCookie 0.3.7 requires these feature activations, independently
+            # of whether the corresponding packages are already restored.
+            required = {'Orbyss.Foundation.Authentication', 'Orbyss.Foundation.WebDefaults',
+                        'Orbyss.Foundation.Json.AspNetCore'}
+            emitted_profile = json.loads((root / 'eng/web-profile.shells.json').read_text())
+            features = emitted_profile['CShells']['Shells']['default']['Features']
+            self.assertTrue(required <= features.keys())
+            composed = subprocess.run([sys.executable, '-I', '-c',
+                'import sys,json; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/"eng")); '
+                'import shell_composition; print(json.dumps(shell_composition.compose(Path.cwd())))'],
+                cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=15)
+            self.assertEqual(0, composed.returncode, composed.stdout + composed.stderr)
+            composed_features = json.loads(composed.stdout)['CShells']['Shells']['default']['Features']
+            self.assertTrue(required <= composed_features.keys())
+            self.assertIn('Orbyss.Foundation.Authentication.BffCookie', composed_features)
             before = snapshot(root)
             environment = dict(os.environ, PROGRAMKIT_TEST_SYNC_FAIL_AFTER_ACTION='2')
             interrupted = sync(root, *APPROVALS, '--web-profile', 'spa-pkce', environment=environment)

@@ -9,5 +9,8 @@ public sealed class NativeMigrationContext(DbContextOptions<NativeMigrationConte
 {
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => modelBuilder.ApplyConfiguration(new NativeMigrationEntryConfiguration());
+    {
+        var configuration = new NativeMigrationEntryConfiguration();
+        modelBuilder.ApplyConfiguration(configuration);
+    }
 }

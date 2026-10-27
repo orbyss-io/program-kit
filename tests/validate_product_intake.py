@@ -88,23 +88,27 @@ def scenario(*, source_payload=True):
             'fictional consumer choices; no managed stack qualification is requested.\n\n'
             '## Decisions and frontier\nUse one request identity; the owner will settle retention when that feature is selected.\n'
             '## Product review\nFictional fixture: synthesis confirmed for this synthetic example, not a real human decision.\n')
-        write(root / '.specify/memory/constitution.md', '# Request service constitution\n\n**Status**: Ratified\n\n'
-            'Fictional ratification: 2026-10-25. No real human acceptance is claimed.\n'
+        write(root / '.specify/memory/constitution.md', '# Request service constitution\n\n**Status**: Draft\n\n'
+            'Synthetic draft awaiting its separately scoped review.\n'
             'Preserve consumer privacy, explicit policy ownership and behavioral test evidence.\n'
             'Review substantive amendments and each useful story with the human; document unresolved concerns.\n')
         adr = root / 'docs/architecture/decisions/request-identity.md'
-        write(adr, '# Request identity\n\n- **Status**: Accepted\n\n'
-            'Fictional settled decision: one stable identity follows the request lifecycle.\n'
+        write(adr, '# Request identity\n\n- **Status**: Proposed\n\n'
+            'Fictional proposed decision: one stable identity follows the request lifecycle.\n'
             'Alternative: generate a separate identity at each transition. Consequence: preserve history.\n')
         future = root / 'docs/architecture/decisions/reporting.md'
         write(future, '# Future reporting\n\n- **Status**: Proposed\n\nReporting scope is unsettled.\n')
         model = json.loads((payload / 'references/architecture-map-minimal.json').read_text(encoding='utf-8'))
-        model['decisions'] = [{'id': 'request-identity', 'status': 'Accepted', 'path': adr.relative_to(root).as_posix()}]
+        model['decisions'] = [{'id': 'request-identity', 'status': 'Proposed', 'path': adr.relative_to(root).as_posix()}]
         model['elements'][1]['decision_refs'] = ['request-identity']
         map_path = root / 'docs/architecture/architecture-map.json'
         projection = root / 'docs/architecture/workspace.dsl'
         write_json(map_path, model)
         map_command = [sys.executable, installed / 'architecture_map.py']
+        missing_projection = json.loads(run(root, [*command, 'review']).stdout)
+        assert 'projection missing' in missing_projection['c4_preparation']['availability']
+        assert 'architecture_map.py export' in missing_projection['c4_preparation']['export_command']
+        assert not projection.exists(), 'Read-only review generated a projection as a hidden side effect'
         run(root, [*map_command, 'validate', '--map', map_path, '--project-root', root, '--verify-sources'])
         run(root, [*map_command, 'export', '--map', map_path, '--output', projection])
         write(root / 'docs/architecture/specification-roadmap.md',
@@ -113,7 +117,41 @@ def scenario(*, source_payload=True):
         assert len(review['review_agenda']) == 8
         assert 'Pause for the actual human decision' in review['confirmation_scope']
         assert 'Review overview' in skill.read_text(encoding='utf-8')
+        assert 'durable decision-guiding' in skill.read_text(encoding='utf-8')
+        assert 'not semantic certification' in skill.read_text(encoding='utf-8')
+        criteria = review['constitution_review']
+        assert 'product-founding.md#constitution-and-consequential-decisions' in criteria['reference']
+        assert any('design/code decision' in question for question in criteria['questions'])
+        assert any('failure semantics' in question for question in criteria['questions'])
+        assert 'No semantic quality' in criteria['authority']
+        founding = root / '.specify/extensions/program-kit-governance/references/product-founding.md'
+        assert 'compiled dependency direction' in founding.read_text(encoding='utf-8')
         assert 'pause before specification intake' in skill.read_text(encoding='utf-8')
+        assert 'offer **View C4**' in skill.read_text(encoding='utf-8')
+        assert '$speckit-program-kit-governance-view-c4' in review['c4_preparation']['offer_after_export']
+        assert [row['topic'] for row in review['decision_requests']] == [
+            'Product confirmation', 'Constitution ratification', 'ADR disposition', 'ADR disposition']
+        assert {row['record_in'] for row in review['decision_requests']} == {
+            'docs/architecture/project-intent.md', '.specify/memory/constitution.md',
+            'docs/architecture/decisions/request-identity.md', 'docs/architecture/decisions/reporting.md'}
+        write_json(EVIDENCE / 'review-prompts.json', review)
+        for relative in ('.specify/memory/constitution.md', 'docs/architecture/decisions/request-identity.md',
+                         'docs/architecture/workspace.dsl'):
+            write(EVIDENCE / 'review-drafts' / relative, (root / relative).read_text())
+        assert '**Status**: Draft' in (root / '.specify/memory/constitution.md').read_text()
+        assert '**Status**: Proposed' in adr.read_text()
+        run(root, [sys.executable, installed / 'governance_state.py', 'validate'], expected=1,
+            contains='does not record explicit human ratification')
+        # Fixture-authored decisions simulate only the named scopes. Helpers
+        # neither ask a real human nor convert a bare product confirmation.
+        constitution = root / '.specify/memory/constitution.md'
+        write(constitution, constitution.read_text().replace('**Status**: Draft', '**Status**: Ratified') +
+            '\nFictional explicit ratification: 2026-10-26; synthetic review only, no real human acceptance.\n')
+        write(adr, adr.read_text().replace('**Status**: Proposed', '**Status**: Accepted') +
+            '\nFictional named ADR acceptance for request identity; future reporting remains Proposed.\n')
+        model['decisions'][0]['status'] = 'Accepted'
+        write_json(map_path, model)
+        run(root, [*map_command, 'export', '--map', map_path, '--output', projection, '--force'])
         spec = root / 'specs/001-request/spec.md'
         write(spec, '# Register a request\n\n## User story\nA requester submits a purpose and receives a stable identity.\n'
             '## Acceptance examples\nValid purpose is recorded; empty purpose is rejected visibly.\n'

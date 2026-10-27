@@ -24,6 +24,139 @@ from composition_fixture import two_apps
 
 
 class MigratedTooling(unittest.TestCase):
+    def test_configuration_environment_projection_is_ephemeral_and_preflights_before_native_effects(self):
+        import composition_run as run
+        from collections import defaultdict
+        feature = next(iter(model.resources(self.graph, 'feature')))
+        shell = next(row['shellRef'] for row in model.bindings(self.graph, 'featureShell') if row['featureRef'] == feature)
+        self.graph['bindings'].append({'kind': 'configurationEnvironment', 'featureRef': feature, 'shellRef': shell,
+            'setting': 'Example:HmacSecret', 'environmentRef': 'PK_TEST_PRODUCT_HMAC'})
+        model.validate(self.graph)
+        binding = model.configuration_environment_bindings(self.graph)[0]
+        declaration = run.configuration_environment_contract(self.root, self.graph)[0]
+        self.assertEqual('native-declaration-not-present', declaration['sourceDeclaration'])
+        self.assertIn('Declarative integration only', declaration['proof'])
+        contract = json.loads((self.root / render.CONTRACT).read_text())
+        resolved = json.loads((self.root / render.RESOLVED).read_text())
+        with patch.dict(os.environ, {'PK_TEST_PRODUCT_HMAC': 'synthetic-hmac-value'}):
+            supplied = run.configuration_environment_values(self.root, self.graph)
+            credentials = defaultdict(lambda: 'synthetic-native-value')
+            document, environment = run.compose_model(self.root, self.graph, contract, resolved, credentials,
+                                                       product_inputs=supplied)
+        service = document['services'][run.service(binding['hostRef'])]
+        placeholder = service['environment'][binding['environmentKey']]
+        self.assertTrue(placeholder.startswith('${PKC_'))
+        self.assertNotIn('synthetic-hmac-value', json.dumps(document))
+        self.assertIn('synthetic-hmac-value', environment.values())
+        self.assertFalse((self.root / 'artifacts/composition/private/credentials.json').exists())
+        fingerprint = run.topology_fingerprint(self.root, self.graph, contract)
+        with patch.dict(os.environ, {'PK_TEST_PRODUCT_HMAC': 'synthetic-hmac-value'}):
+            run.private_credentials(self.root, self.graph, create=True)
+        private = self.root / 'artifacts/composition/private/credentials.json'
+        retained = private.read_bytes()
+        self.assertNotIn(b'synthetic-hmac-value', retained)
+        self.assertNotIn(b'PK_TEST_PRODUCT_HMAC', retained)
+        with patch.dict(os.environ, {'PK_TEST_PRODUCT_HMAC': 'synthetic-rotated-hmac'}):
+            fresh = run.private_credentials(self.root, self.graph)
+            _, environment = run.compose_model(self.root, self.graph, contract, resolved, fresh)
+        self.assertIn('synthetic-rotated-hmac', environment.values())
+        self.assertNotIn('synthetic-hmac-value', environment.values())
+        self.assertEqual(retained, private.read_bytes())
+        self.assertEqual(fingerprint, run.topology_fingerprint(self.root, self.graph, contract))
+        with patch.dict(os.environ, {}, clear=True), \
+             patch.object(run, 'selected', return_value=(self.graph, contract, resolved)), \
+             patch.object(run, 'Commands', side_effect=AssertionError('No native process before product input admission')):
+            with self.assertRaisesRegex(ValueError, 'required product configuration environment input is missing: PK_TEST_PRODUCT_HMAC'):
+                run.prepare(self.root)
+
+    def test_product_input_and_native_credential_namespaces_remain_independent_across_rotation(self):
+        import composition_run as run
+        authority = next(iter(model.resources(self.graph, 'identityAuthority')))
+        native_key = run.variable('identity-admin:' + authority)
+        feature = next(iter(model.resources(self.graph, 'feature')))
+        shell = next(row['shellRef'] for row in model.bindings(self.graph, 'featureShell') if row['featureRef'] == feature)
+        row = {'kind': 'configurationEnvironment', 'featureRef': feature, 'shellRef': shell,
+               'setting': 'Example:HmacSecret', 'environmentRef': native_key}
+        self.graph['bindings'].append(row)
+        contract = json.loads((self.root / render.CONTRACT).read_text())
+        resolved = json.loads((self.root / render.RESOLVED).read_text())
+        private_path = self.root / 'artifacts/composition/private/credentials.json'
+        native_value = None
+        retained = None
+        for reference in (native_key, native_key.lower()):
+            row['environmentRef'] = reference
+            model.validate(self.graph)
+            for product_value in ('synthetic-product-before-rotation', 'synthetic-product-after-rotation'):
+                # Supply both spellings with the same value: Windows treats
+                # environment names case-insensitively; POSIX remains explicit.
+                with self.subTest(reference=reference, product_value=product_value), \
+                     patch.dict(os.environ, {native_key: product_value, native_key.lower(): product_value}):
+                    supplied = run.configuration_environment_values(self.root, self.graph)
+                    credentials = run.private_credentials(self.root, self.graph, create=retained is None)
+                    if retained is None:
+                        retained = private_path.read_bytes()
+                        native_value = json.loads(retained)[native_key]
+                    self.assertEqual(native_value, credentials[native_key])
+                    self.assertNotEqual(product_value, native_value)
+                    self.assertEqual(product_value, supplied[reference])
+                    document, environment = run.compose_model(self.root, self.graph, contract, resolved,
+                                                               credentials, product_inputs=supplied)
+                    binding = model.configuration_environment_bindings(self.graph)[0]
+                    product_key = run.variable('configuration:' + shell + ':' + binding['configurationKey'].casefold())
+                    self.assertEqual(product_value, environment[product_key])
+                    self.assertEqual(native_value, environment[native_key])
+                    # Ambient callers receive the same safe separation.
+                    self.assertEqual(environment, run.compose_model(self.root, self.graph, contract, resolved, credentials)[1])
+                    self.assertEqual(retained, private_path.read_bytes())
+                    self.assertNotIn(product_value, json.dumps(document))
+                    self.assertNotIn(product_value.encode(), retained)
+
+    def test_declared_external_inputs_invalidate_frontend_and_only_its_host(self):
+        import prepare_hosted_pages as frontend
+        graph = deepcopy(self.graph)
+        graph['resources']['policy-web']['inputs'] = ['docs/brand', 'src/SharedWeb/theme.css']
+        (self.root / model.INPUT).write_text(json.dumps(graph))
+        for name in ('.nvmrc', '.npm-version'):
+            shutil.copyfile(TEMPLATE / 'files' / name, self.root / name)
+        folder = self.root / 'docs/brand'; folder.mkdir(parents=True)
+        (folder / 'logo.png').write_bytes(b'synthetic-logo')
+        shared = self.root / 'src/SharedWeb/theme.css'; shared.parent.mkdir(parents=True); shared.write_text('body {}')
+        before = frontend.input_snapshot(self.root, graph, 'policy-web')
+        source = {'docs/brand/logo.png': 'first', 'src/SharedWeb/theme.css': 'theme'}
+        selected = pipeline.runtime_closure.source_scope(self.root, self.root / 'artifacts/runtime/policies', source)
+        other = pipeline.runtime_closure.source_scope(self.root, self.root / 'artifacts/runtime/assessments', source)
+        self.assertEqual(source, selected)
+        self.assertEqual({}, other)
+        (folder / 'logo.png').write_bytes(b'changed-logo')
+        self.assertNotEqual(before, frontend.input_snapshot(self.root, graph, 'policy-web'))
+        (folder / 'added.css').write_text('html {}')
+        added = frontend.input_snapshot(self.root, graph, 'policy-web')
+        self.assertIn('docs/brand/added.css', added)
+        (folder / 'logo.png').unlink()
+        self.assertNotIn('docs/brand/logo.png', frontend.input_snapshot(self.root, graph, 'policy-web'))
+        shared.unlink()
+        with self.assertRaisesRegex(ValueError, 'declared source input is missing'):
+            frontend.input_snapshot(self.root, graph, 'policy-web')
+
+    def test_declared_external_inputs_and_actual_theme_tree_bind_preparation(self):
+        import composition_run as run
+        contract = json.loads((self.root / render.CONTRACT).read_text())
+        before = run.topology_fingerprint(self.root, self.graph, contract)
+        theme = self.root / 'deploy/keycloak/product-identity/themes/program-kit/login/resources/css/product.css'
+        theme.write_text('body { color: blue; }')
+        changed = run.topology_fingerprint(self.root, self.graph, contract)
+        self.assertNotEqual(before, changed)
+        theme.unlink()
+        self.assertEqual(before, run.topology_fingerprint(self.root, self.graph, contract))
+        self.graph['resources']['product-identity']['inputs'] = ['docs/brand']
+        brand = self.root / 'docs/brand'; brand.mkdir(parents=True)
+        logo = brand / 'logo.png'; logo.write_bytes(b'synthetic-original')
+        before = run.topology_fingerprint(self.root, self.graph, contract)
+        logo.write_bytes(b'synthetic-new')
+        self.assertNotEqual(before, run.topology_fingerprint(self.root, self.graph, contract))
+        logo.unlink()
+        self.assertNotEqual(before, run.topology_fingerprint(self.root, self.graph, contract))
+
     def test_reviewed_comparator_is_available_before_first_emitted_build(self):
         import validate_composition_start as fixture
         self.root.joinpath('.oasdiff-version').write_text('1.33.0\n')
@@ -199,6 +332,61 @@ class MigratedTooling(unittest.TestCase):
                     'dotnet', self.root / 'toolchain.json', 'oasdiff', {}, False, False, self.root / 'shells.json')
             self.assertEqual(evidence, validation.call_args.args[2])
             producer.assert_not_called()
+
+
+class OwnerFixtureCleanup(unittest.TestCase):
+    """Failed setup must never become positive cleanup evidence."""
+
+    def test_no_preparation_does_not_claim_disposal(self):
+        import io
+        import time
+        from unittest.mock import Mock
+        from composition_owner_fixture import finish_owner_operation
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); dispose = Mock()
+            result = {'status': 'failed', 'budgetSeconds': 300}
+            with patch('sys.stdout', new=io.StringIO()):
+                finish_owner_operation(root, None, root, dispose, result, time.monotonic())
+            sealed = json.loads((root / 'result.json').read_text())
+            dispose.assert_not_called()
+            self.assertFalse(sealed['cleanupAttempted'])
+            self.assertIsNone(sealed['cleanupComplete'])
+            self.assertEqual('unverified-no-successful-preparation', sealed['cleanupDisposition'])
+            self.assertEqual('failed', sealed['status'])
+
+    def test_successful_disposal_is_observed(self):
+        import io
+        import time
+        from unittest.mock import Mock
+        from composition_owner_fixture import finish_owner_operation
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); dispose = Mock(); preparation = {'project': 'fictional-project'}
+            result = {'status': 'passed', 'budgetSeconds': 300}
+            with patch('sys.stdout', new=io.StringIO()):
+                finish_owner_operation(root, preparation, root, dispose, result, time.monotonic())
+            sealed = json.loads((root / 'result.json').read_text())
+            dispose.assert_called_once_with(root, preparation, root / 'dispose')
+            self.assertTrue(sealed['cleanupAttempted'])
+            self.assertTrue(sealed['cleanupComplete'])
+            self.assertEqual('completed', sealed['cleanupDisposition'])
+            self.assertEqual('passed', sealed['status'])
+
+    def test_disposal_failure_still_seals_failed_result(self):
+        import io
+        import time
+        from unittest.mock import Mock
+        from composition_owner_fixture import finish_owner_operation
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); dispose = Mock(side_effect=RuntimeError('synthetic disposal failure'))
+            result = {'status': 'passed', 'budgetSeconds': 300}
+            with patch('sys.stdout', new=io.StringIO()), self.assertRaisesRegex(RuntimeError, 'synthetic disposal failure'):
+                finish_owner_operation(root, {'project': 'fictional-project'}, root, dispose, result, time.monotonic())
+            sealed = json.loads((root / 'result.json').read_text())
+            self.assertTrue(sealed['cleanupAttempted'])
+            self.assertFalse(sealed['cleanupComplete'])
+            self.assertEqual('failed', sealed['cleanupDisposition'])
+            self.assertEqual('failed', sealed['status'])
+            self.assertIn('elapsedSeconds', sealed)
 
 
 if __name__ == '__main__':

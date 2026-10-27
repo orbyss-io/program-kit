@@ -2073,10 +2073,11 @@
           "extensions/program-kit-dotnet/scripts/composition_model.py",
           "extensions/program-kit-dotnet/scripts/composition_render.py",
           "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
+          "extensions/program-kit-governance/scripts/phase_obligations.py",
           "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py"
         ],
         "sections": [
-          "Typed executable Foundation composition"
+          "Choose the active route before custom setup"
         ],
         "requirements": [],
         "review": "Inspect generated settings/reference, actual selected package roots and named maintained setup evidence. Generation alone proves neither readiness nor product acceptance."
@@ -2089,7 +2090,7 @@
       "owner": "program-kit-dotnet",
       "disposition": "conditional",
       "sections": {
-        "Typed executable Foundation composition": {
+        "Choose the active route before custom setup": {
           "disposition": "conditional",
           "route": "setup"
         }
@@ -5287,10 +5288,10 @@
           ]
         ],
         "remaining": {
-          "sha256": "abae0a5e2c8e6c26f97d216c7c751e5e5ea918148c6db60ce6829733cdf28339",
+          "sha256": "421e2c2ecdd3f292c0d8fa9df283e8cef14752cc44a7c7322eeaa87d8894ea19",
           "kind": "context",
           "owner": "program-kit-governance",
-          "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
+          "reason": "Current intake review preparation: generate the authored map projection, offer local C4 viewing, present drafts and request separately scoped product/constitution/named ADR decisions. Helpers remain read-only and registration grants no human acceptance."
         }
       }
     },

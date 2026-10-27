@@ -826,10 +826,10 @@ def validate_configuration(value):
     return validate_legacy_configuration(value)  # Pure, explicit historical import validation.
 
 
-def materialize(repository, configuration, template_root):
+def materialize(repository, configuration, template_root, *, configuration_only=False):
     import composition_render
     require(configuration.get('schemaVersion') == 2, 'migrate the legacy composition before managed generation')
-    return composition_render.materialize(repository, configuration, template_root)
+    return composition_render.materialize(repository, configuration, template_root, configuration_only=configuration_only)
 
 
 def validate_materialized(repository, configuration, contract, profile, realm=None):

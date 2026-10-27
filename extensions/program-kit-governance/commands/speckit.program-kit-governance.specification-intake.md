@@ -16,6 +16,14 @@ continuing. Do not infer review from a bare "confirm", generated documents or he
 real earlier reviews and explicit deferrals; require no review receipt or intake restart. A direct
 independent feature request does not require a new whole-product intake ceremony.
 
+For that first-feature handoff, also check the actual constitution draft and relevant ADR
+dispositions. If product synthesis was confirmed but ratification or named ADR acceptance was
+never requested, present those drafts and ask for the missing explicit decisions now. Record the
+actual answer in the constitution/ADR before dependent work; do not merely report an approval
+error, fabricate acceptance from "continue", or restart settled intake questions. A scoped answer
+may settle the presented constitution and named ADRs together. Preserve unrelated Proposed ADRs,
+earlier explicit acceptance and bounded deferrals; a missing bookkeeping receipt is not a gate.
+
 Select one useful actor outcome with coherent success and material failure examples, scope,
 non-goals, assumptions and dependencies. Challenge oversized feature boundaries and fragments
 without an independently reviewable outcome. Preserve relevant future questions with owner and

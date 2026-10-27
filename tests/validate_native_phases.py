@@ -328,6 +328,55 @@ assert 'task_draft' not in sys.modules
 
 
 class FrameworkGuidanceTests(unittest.TestCase):
+    def test_foundation_resume_discovers_missing_composition_without_running_setup(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = feature(root)
+            decisions = root / 'docs/architecture/decisions'; decisions.mkdir(parents=True)
+            decision = decisions / '0001-host.md'
+            decision.write_text('# Host\nStatus: Accepted\n\n## Decision\nUse Orbyss.Foundation.Host with CShells.\n')
+            tags = {'all', 'dotnet', 'api'}
+            before = snapshot(root)
+            with patch('subprocess.run', side_effect=AssertionError('Guidance started an application')):
+                value = phase.model(root, chosen, 'implementation', selected_tags=tags)
+                output = phase.render(value, 'implementation')
+            self.assertEqual('absent', value['context']['composition']['state'])
+            for expected in ('eng/foundation-composition.json: absent', 'composition_migrate.py --proposal',
+                             'configuration-only', 'legacy --web-profile', 'Metadata/exporter hashes',
+                             'exact pins', 'adds no approval receipt'):
+                self.assertIn(expected, output)
+            self.assertNotIn('canProceed', value)
+            self.assertEqual(before, snapshot(root))
+            (root / 'eng').mkdir()
+            active = root / 'eng/foundation-composition.json'
+            active.write_text('{"schemaVersion":2,"resources":[]}')
+            before = snapshot(root)
+            with patch('subprocess.run', side_effect=AssertionError('Resume reran supplier tests')):
+                value = phase.model(root, chosen, 'implementation', selected_tags=tags)
+                output = phase.render(value, 'implementation')
+            self.assertEqual('present', value['context']['composition']['state'])
+            self.assertIn('Presence is not readiness', output)
+            self.assertIn('rerun only checks whose relevant inputs changed', output)
+            self.assertEqual(before, snapshot(root))
+            active.write_text('{"schemaVersion":1}')
+            self.assertEqual('legacy-or-unknown', phase.composition_context(root, tags)['state'])
+            active.write_text('broken JSON')
+            self.assertEqual('unreadable', phase.composition_context(root, tags)['state'])
+            decision.write_text('# Host\nStatus: Proposed\n\n## Decision\nUse Orbyss.Foundation.Host.\n')
+            self.assertIsNone(phase.composition_context(root, tags))
+            decision.write_text('# Host\nStatus: Accepted\n\n## Decision\nUse a conventional ASP.NET host instead of Foundation Host.\n')
+            self.assertIsNone(phase.composition_context(root, tags))
+            for text in ('Do not use Foundation Host. Use the existing ASP.NET host.',
+                         "Don't use Orbyss.Foundation.Host.", 'Reject Foundation Host; use an existing host.'):
+                decision.write_text('# Host\nStatus: Accepted\n\n## Decision\n' + text + '\n')
+                self.assertIsNone(phase.composition_context(root, tags))
+            decision.write_text('# Host\nStatus: Accepted\n\n## Decision\nUse Foundation Host, not a custom host.\n')
+            self.assertIsNotNone(phase.composition_context(root, tags))
+            decision.write_text('# Host\nStatus: Accepted\n\n## Decision\nUse Orbyss.Foundation.Host.\n')
+            self.assertIsNone(phase.composition_context(root, {'all', 'web'}))
+            self.assertIsNone(phase.composition_context(root, {'all', 'dotnet'}))
+
     def test_ef_deployment_constraints_do_not_select_a_replacement_engine(self):
         sys.path.insert(0, str(SCRIPTS))
         import phase_obligations as phase

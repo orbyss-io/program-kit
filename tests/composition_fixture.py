@@ -68,13 +68,13 @@ def two_apps(root, dynamic_ports=False, frontends=True):
     return model.validate(value)
 
 
-def accept_fixture(repository, graph, kit_root):
+def accept_fixture(repository, graph, kit_root, profile=None):
     """Fictional Accepted owner/selection authority for actual adapter integration."""
     import dependency_profile
     blocks = dependency_profile.resolver()
     registry = kit_root / 'extensions/program-kit-building-blocks/references/dependency-profiles'
     index = json.loads((registry / 'index.json').read_text())
-    catalog, _ = blocks.qualified_dependency_profile(registry, index['default'],
+    catalog, _ = blocks.qualified_dependency_profile(registry, profile or index['default'],
         json.loads((registry.parent / 'orbyss-building-blocks.json').read_text()))
     authority = {'architectureMap': 'docs/architecture/architecture-map.json', 'decisionIds': ['fixture-foundation']}
     selection = {'schemaVersion': '1.0', 'selectionId': 'golden-selection', 'revision': 1, 'status': 'Accepted',

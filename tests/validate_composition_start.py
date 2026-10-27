@@ -384,7 +384,13 @@ def main():
     parser.add_argument('--single-host', action='store_true', help='qualify the typed single-host build/export boundary')
     parser.add_argument('--foundation-only', action='store_true', help='scaffold without the fictional unfinished product binding, for the ordinary emitted CI gate')
     parser.add_argument('--nested-shell', action='store_true', help='qualify native BFF/HostedPages paths below a non-root shell prefix')
+    parser.add_argument('--owner-operation', action='store_true', help='bounded retained-profile login/owner/secret/native EF deployment journey')
     args = parser.parse_args()
+    if args.owner_operation:
+        if not args.execute or args.tooling or args.foundation_only or args.nested_shell:
+            parser.error('--owner-operation requires --execute and excludes other scenario modes')
+        from composition_owner_fixture import run_owner_operation
+        return run_owner_operation(args, sys.modules[__name__])
     if args.nested_shell and (args.tooling or args.foundation_only):
         parser.error('--nested-shell uses the full native runtime fixture; the root-only typed example is a separate qualifier')
     if args.foundation_only and args.execute:

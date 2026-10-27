@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Linq.Expressions;
 
 namespace ProgramKit.Examples.PostgreSql;
 
@@ -10,8 +11,15 @@ public sealed class NativeMigrationEntryConfiguration : IEntityTypeConfiguration
     public void Configure(EntityTypeBuilder<NativeMigrationEntry> builder)
     {
         builder.ToTable("ef_entries", "ef_example");
-        builder.HasKey(entry => entry.Id);
-        builder.Property(entry => entry.Value).IsRequired();
-        builder.HasIndex(entry => entry.Value).IsUnique();
+        Expression<Func<NativeMigrationEntry, object?>> key = entry => entry.Id;
+        Expression<Func<NativeMigrationEntry, string>> value = entry => entry.Value;
+        Expression<Func<NativeMigrationEntry, object?>> index = entry => entry.Value;
+        builder.HasKey(key);
+        builder
+            .Property(value)
+            .IsRequired();
+        builder
+            .HasIndex(index)
+            .IsUnique();
     }
 }

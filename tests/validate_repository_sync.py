@@ -95,6 +95,31 @@ class CoordinatorTests(unittest.TestCase):
         self.assertFalse(self.decisions.exists())
         self.assertEqual(before, {path.relative_to(self.root): path.read_bytes() for path in self.root.rglob('*') if path.is_file()})
 
+    def test_feature_markdown_links_resolve_from_source_without_escaping_setup_scope(self):
+        self.decisions.unlink()
+        feature = self.root / 'specs/reviewed'
+        feature.mkdir(parents=True)
+        (feature / 'tasks.md').write_text('[Constitution](../../.specify/memory/constitution.md)\n'
+                                         '[Project](../../src/Feature/Feature.csproj#setup)\n'
+                                         'Create src/Other/Other.csproj.\n'
+                                         '[External](https://example.invalid/docs/ignored.csproj)\n')
+        setup = sync.context(self.root, 'planning', 'specs/reviewed')
+        self.assertIn('src/Feature/Feature.csproj', setup['authorityInputs'])
+        self.assertIn('src/Other/Other.csproj', setup['authorityInputs'])
+        self.assertNotIn('.specify/memory/constitution.md', setup['authorityInputs'])
+        self.assertNotIn('docs/ignored.csproj', setup['authorityInputs'])
+        (feature / 'tasks.md').write_text('[Outside](../../../outside/project.csproj)')
+        with self.assertRaisesRegex(ValueError, 'Markdown link escapes repository'):
+            sync.context(self.root, 'planning', 'specs/reviewed')
+        (feature / 'tasks.md').write_text('Create `../outside/project.csproj`.')
+        with self.assertRaisesRegex(ValueError, 'feature task path escapes repository'):
+            sync.context(self.root, 'planning', 'specs/reviewed')
+        for destination in ('file:///C:/outside/project.csproj', 'C:/outside/project.csproj',
+                            '//server/share/project.csproj', '%2e%2e/%2e%2e/%2e%2e/outside/project.csproj'):
+            (feature / 'tasks.md').write_text('[Outside](' + destination + ')')
+            with self.assertRaisesRegex(ValueError, 'Markdown link'):
+                sync.context(self.root, 'planning', 'specs/reviewed')
+
     def test_bootstrap_records_requirements_without_applying_them(self):
         plan = sync.describe(self.root, "bootstrap")
         self.assertTrue(plan["context"]["javascript"])

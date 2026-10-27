@@ -454,9 +454,13 @@ def main() -> int:
     parser.add_argument('--feature-dir', help='Feature admission scope, relative to the consuming repository')
     parser.add_argument('--upgrade-existing', action='store_true',
                         help='Refresh an existing baseline; retain future unmaterialized admissions as obligations')
+    parser.add_argument('--composition-only', action='store_true',
+                        help='Reconcile active v2 composition configuration and its required adapters only; preserve application source and unrelated baseline files')
     parser.add_argument('--inactive-history')
     parser.add_argument('--inactive-history-sha256')
     args = parser.parse_args()
+    if args.composition_only and (args.upgrade_existing or args.inactive_history or args.inactive_history_sha256):
+        parser.error('--composition-only is a separate scope from existing-toolkit or inactive-history upgrades')
 
     if not args.profile_selected:
         print("Refusing to scaffold: the .NET technology profile was not explicitly selected.", file=sys.stderr)
@@ -523,7 +527,10 @@ def main() -> int:
         foundation_configuration = foundation_composition.load_configuration(target)
         if web_profile != 'bff-cookie':
             raise ValueError('PKF001 Foundation composition requires the accepted BFF-cookie profile')
-        foundation_outputs = foundation_composition.materialize(target, foundation_configuration, template_root)
+        foundation_outputs = foundation_composition.materialize(
+            target, foundation_configuration, template_root, configuration_only=args.composition_only)
+    if args.composition_only and foundation_configuration is None:
+        raise ValueError('PKF001 --composition-only requires the active eng/foundation-composition.json v2 model; preview the reviewed proposal before selecting it')
     spa_configuration: dict | None = None
     if web_profile == "spa-pkce":
         configuration_source = target / spa_profile.CONFIGURATION_PATH
@@ -548,11 +555,27 @@ def main() -> int:
                    'deploy/compose.identity.yml', 'deploy/compose.application.yml'}
         entries = [entry for entry in entries if entry['path'] not in retired
                    and not entry['path'].startswith('deploy/keycloak/')]
+    if args.composition_only:
+        # These are the executable adapters bound by the composition contract.
+        # Unrelated engineering repairs and authored baseline policy are outside
+        # this optional native transaction and retain their existing ownership.
+        adapters = {'eng/composition_model.py', 'eng/composition_render.py', 'eng/foundation_composition.py',
+                    'eng/composition_run.py', 'eng/keycloak_composition.py',
+                    'eng/web/composition-readiness.mjs', 'eng/foundation_qualification.py',
+                    'eng/runtime_closure.py', 'eng/prepare_hosted_pages.py', 'eng/release_bundle.py'}
+        central = target / 'Directory.Packages.props'
+        if central.is_file() and not any(item.get('Project') == 'eng/ProgramKit.Foundation.props'
+                                         for item in ElementTree.parse(central).findall('Import')):
+            # Reuse the guarded additive native import below. Preserve authored
+            # central pins and formatting; do not replace the root with a template.
+            adapters.add('Directory.Packages.props')
+        entries = [entry for entry in entries if entry['path'] in adapters]
+        obsolete_files = []
 
     state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
-    engineering_default = dependency_profile.engineering_default(target)
-    persistence = ({'summary': state.get('persistenceProfile', 'none'), 'owners': [], 'installedOwners': [], 'blockers': [], 'deferredAdmissions': []} if inactive
+    engineering_default = None if args.composition_only else dependency_profile.engineering_default(target)
+    persistence = ({'summary': state.get('persistenceProfile', 'none'), 'owners': state.get('persistenceOwners', []), 'installedOwners': [], 'blockers': [], 'deferredAdmissions': []} if inactive or args.composition_only
                    else persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile))
     if args.upgrade_existing:
         if not (target / '.program-kit/managed.json').is_file():
@@ -583,7 +606,7 @@ def main() -> int:
                 and entry.get('contribution') == 'foundation'
                 and entry.get('sourceIdentity') == '../../scripts/foundation_composition.py'
                 and Path(path).suffix in {'.cs', '.csproj', '.ts', '.mjs'})
-    if foundation_configuration is not None:
+    if foundation_configuration is not None and not args.composition_only:
         for path, previous in old_files.items():
             if (path in foundation_outputs or Path(path).suffix != '.csproj'
                     or not foundation_source(path, previous)):
@@ -625,7 +648,7 @@ def main() -> int:
     if not isinstance(migrations, list):
         raise ValueError("The .NET migration catalog has no migrations list.")
     applied_migrations = list(state.get("appliedMigrations", []))
-    if inactive:
+    if inactive or args.composition_only:
         migrations = []
     current_version = str(state.get("programKitVersion", "0.0.0"))
     applicable_migrations: list[dict] = []
@@ -650,7 +673,7 @@ def main() -> int:
     entries.extend({'path':path, 'ownership':ownership, 'contribution':'foundation',
                     'sourceRoot':'../../scripts', 'source':'foundation_composition.py'}
                    for path, (_, ownership) in foundation_outputs.items() if path not in present)
-    if not inactive:
+    if not inactive and not args.composition_only:
         entries.append({'path': 'eng/verification.setup.json', 'ownership': 'managed', 'contribution': 'engineering',
                         'sourceRoot': '../../scripts', 'source': 'dotnet_sync.py'})
     for entry in entries:
@@ -720,6 +743,26 @@ def main() -> int:
             json.loads(foundation_outputs[foundation_composition.CONTRACT][0]),
             desired_by_path['eng/web-profile.shells.json']['content'],
             None)
+        if args.composition_only:
+            import composition_model
+            import composition_render
+            import shell_composition
+            projected = json.loads(desired_by_path['eng/web-profile.shells.json']['content'])
+            selected_contract = json.loads(foundation_outputs[foundation_composition.CONTRACT][0])
+            for shell_id, shell in composition_model.resources(foundation_configuration, 'shell').items():
+                source = target / shell['source']
+                overlay = shell_composition.load(source, required=True)
+                expected_names = {row['name'] for row in composition_model.resources(foundation_configuration, 'shell').values()
+                                  if row['source'] == shell['source']}
+                if set(overlay['CShells']['Shells']) != expected_names:
+                    raise ValueError('PKF001 preserved shell overlay identities conflict with the active v2 model: ' + shell['source'])
+                companion = source.parent / shell_composition.BUILDING_BLOCK_SHELLS
+                selected_overlay = shell_composition.load(companion, required=False)
+                effective_shells = shell_composition.merge_value(
+                    shell_composition.merge_value(projected, overlay), selected_overlay)['CShells']['Shells']
+                composition_render.validate_consumer_shell(
+                    foundation_configuration, shell_id, selected_contract['shells'][shell_id],
+                    effective_shells[shell['name']], selected_contract['environment'])
 
     relocated_sources: dict[str, str] = {}
     created: list[str] = []
@@ -730,10 +773,10 @@ def main() -> int:
     conflicts: list[str] = []
     conflict_details: dict[str, str] = {}
     actions: list[dict] = []
-    next_files: dict[str, dict] = ({p: row for p, row in old_files.items() if p not in desired_by_path} if inactive else {})
+    next_files: dict[str, dict] = ({p: row for p, row in old_files.items() if p not in desired_by_path} if inactive or args.composition_only else {})
 
     architecture_path = target / 'eng/architecture.json'
-    if architecture_path.is_file() and not inactive:
+    if architecture_path.is_file() and not inactive and not args.composition_only:
         try:
             validate_manifest(target, load_json(architecture_path, {}))
         except (ValueError, KeyError, TypeError) as error:
@@ -927,7 +970,7 @@ def main() -> int:
         }
 
     retirement_candidates: dict[str, dict] = {}
-    for relative, previous in old_files.items():
+    for relative, previous in ({} if args.composition_only else old_files).items():
         if relative not in desired_by_path:
             retirement_candidates[relative] = {"previous": previous, "migration": None}
     for relative in obsolete_files:
@@ -1035,6 +1078,14 @@ def main() -> int:
         "appliedMigrations": applied_migrations,
         "desiredManifestDigest": stable_plan_digest({"files": manifest_rows}),
     }
+    if args.composition_only:
+        plan_core['scope'] = 'composition-configuration'
+    if not inactive and foundation_configuration is None and web_profile == 'bff-cookie':
+        plan_core['advisories'] = [{
+            'id': 'PKF101',
+            'message': 'The BFF web profile is a compatibility scaffold; no active v2 application composition is selected. '
+                       'Review templates/dotnet/compositions or preview eng/composition_migrate.py --proposal <reviewed-v2.json>, '
+                       'then preview dotnet_sync.py --composition-only --check --json. This advisory applies no configuration and starts no application.'}]
     if inactive:
         plan_core['inactiveHistory'] = inactive
     legacy_root = target / "eng" / "program-kit"
@@ -1077,6 +1128,10 @@ def main() -> int:
         next_state_value = {**state, 'programKitVersion': extension_version(extension_root),
                             'files': next_files, 'inactiveHistory': inactive,
                             'desiredManifestDigest': plan_core['desiredManifestDigest']}
+    if args.composition_only:
+        # Do not claim an unrelated full baseline/toolchain/profile upgrade or
+        # authenticate preserved consumer bytes as a new Program Kit baseline.
+        next_state_value = {**state, 'files': next_files}
     if engineering_default is not None: next_state_value['newProjectDependencyProfile'] = engineering_default
     next_state = (json.dumps(next_state_value, indent=2, sort_keys=True) + "\n").encode("utf-8")
     state_changed = not state_path.is_file() or state_path.read_bytes() != next_state
@@ -1088,6 +1143,8 @@ def main() -> int:
         print(f"selected .NET SDK: {dotnet_sdk} ({dotnet_sdk_source})")
         print(f"selected web profile: {web_profile}")
         print(f"selected persistence profile: {args.persistence_profile}")
+        for advisory in plan.get('advisories', []):
+            print('advisory ' + advisory['id'] + ': ' + advisory['message'])
         for label, marker, paths in (
             ("created", "+", created),
             ("updated", "~", updated),

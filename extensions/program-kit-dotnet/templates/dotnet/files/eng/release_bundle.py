@@ -414,6 +414,55 @@ def current_project_assets(repository: Path) -> dict[Path, tuple[str, dict]]:
     return result
 
 
+def restored_package_is_runtime(repository: Path, assets: dict, key: str) -> bool:
+    """Exclude tooling only with the exact restored package's own metadata as evidence.
+
+    PrivateAssets controls propagation, not whether the declaring feature uses a package
+    at runtime. Missing cache bytes therefore cannot establish an exclusion; ordinary
+    stage admission still verifies the exact package identity/content before use.
+    """
+    library = assets.get('libraries', {}).get(key, {})
+    if library.get('type') != 'package':
+        return True
+    package_id, version = key.rsplit('/', 1)
+    relative = Path(library.get('path', package_id.lower() + '/' + version.lower()))
+    if relative.is_absolute() or '..' in relative.parts:
+        raise ValueError('PKR014 restored package path escapes its package cache: ' + key)
+    for folder in assets.get('packageFolders', {}):
+        cache = Path(folder).resolve()
+        package = (cache / relative / (package_id.lower() + '.' + version.lower() + '.nupkg')).resolve()
+        if not package.is_relative_to(cache):
+            raise ValueError('PKR014 restored package path escapes its package cache: ' + key)
+        if package.is_file():
+            if tuple(value.casefold() for value in package_identity(package)) != (package_id.casefold(), version.casefold()):
+                raise ValueError('PKR014 restored package metadata identity differs from graph: ' + key)
+            runtime = is_runtime_package(package)
+            if not runtime:
+                expected = library.get('sha512')
+                if not expected or nuget_content_hash(repository, package) != expected:
+                    raise ValueError('PKR014 tooling package metadata bytes differ from restored graph: ' + key)
+            return runtime
+    return True
+
+
+def runtime_reference_kinds(metadata: dict) -> set[str]:
+    # Include/exclude describe consumed assets; suppressParent (PrivateAssets) does not.
+    def kinds(value):
+        return {item.strip().casefold() for item in re.split('[,;]', str(value)) if item.strip()}
+    runtime_kinds = {'runtime', 'native', 'resource'}
+    included = kinds(metadata.get('include', 'all'))
+    excluded = kinds(metadata.get('exclude', ''))
+    if 'all' in included:
+        included = runtime_kinds
+    if 'all' in excluded:
+        return set()
+    return (included - excluded) & runtime_kinds
+
+
+def runtime_reference(metadata: dict) -> bool:
+    return bool(runtime_reference_kinds(metadata))
+
+
 def restored_runtime_dependencies(repository: Path, roots: set[str], projects: dict, participating: set | None = None, selected_versions: dict | None = None) -> set[tuple[str, str]]:
     """Union exact selected-root restore closures, rejecting disagreement instead of upgrading."""
     result = {}
@@ -439,11 +488,7 @@ def restored_runtime_dependencies(repository: Path, roots: set[str], projects: d
         package_id, assets = projects[project]
         if own_root and not assets:
             raise ValueError('PKR014 selected feature has no restored graph; restore before packaging: ' + str(project))
-        direct = set(external_roots)
         if own_root:
-            for framework in assets.get('project', {}).get('frameworks', {}).values():
-                direct.update(identity.casefold() for identity, value in framework.get('dependencies', {}).items()
-                              if str(value.get('suppressParent', '')).casefold() != 'all')
             for framework in assets.get('project', {}).get('restore', {}).get('frameworks', {}).values():
                 for name, reference in framework.get('projectReferences', {}).items():
                     path = Path(reference.get('projectPath') or name)
@@ -465,27 +510,54 @@ def restored_runtime_dependencies(repository: Path, roots: set[str], projects: d
                         raise ValueError('PKR014 selected runtime reference has no exact restored/evaluated version: ' + str(path))
                     include((identity, version))
                     graphs.append((path, True))
-        for target in assets.get('targets', {}).values():
-            keys = {key.rsplit('/', 1)[0].casefold(): key for key in target if '/' in key}
+        for target_name, target in assets.get('targets', {}).items():
+            keys = {}
+            for key in target:
+                if '/' not in key:
+                    raise ValueError('PKR014 restored graph has an invalid library identity: ' + key)
+                identity = key.rsplit('/', 1)[0].casefold()
+                if identity in keys:
+                    raise ValueError('PKR014 restored target has ambiguous package versions: ' + identity)
+                keys[identity] = key
+            direct = {identity: {'runtime', 'native', 'resource'} for identity in external_roots}
+            if own_root:
+                framework_name = target_name.split('/', 1)[0].casefold()
+                frameworks = [value for name, value in assets.get('project', {}).get('frameworks', {}).items()
+                              if framework_name in {name.casefold(), str(value.get('targetAlias', '')).casefold()}]
+                if len(frameworks) != 1:
+                    raise ValueError('PKR014 restored target has no unambiguous framework metadata: ' + target_name)
+                for identity, metadata in frameworks[0].get('dependencies', {}).items():
+                    identity = identity.casefold()
+                    roles = runtime_reference_kinds(metadata)
+                    if roles and identity in keys and restored_package_is_runtime(repository, assets, keys[identity]):
+                        direct.setdefault(identity, set()).update(roles)
             eligible = {identity for identity in external_roots if identity in keys and
                         (identity not in selected_versions or keys[identity].rsplit('/',1)[1] == selected_versions[identity])}
             if not own_root and not eligible:
                 continue
             participating.add(project)
-            pending, visited = list(direct if own_root else eligible), set()
+            pending = list(direct.items()) if own_root else [(identity, {'runtime', 'native', 'resource'}) for identity in eligible]
+            visited = {}
             while pending:
-                identity = pending.pop()
-                if identity in visited:
+                identity, roles = pending.pop()
+                roles = roles - visited.setdefault(identity, set())
+                if not roles:
                     continue
-                visited.add(identity)
+                visited[identity].update(roles)
                 key = keys.get(identity)
                 if key is None:
                     continue
                 value = target[key]
-                if assets.get('libraries', {}).get(key, {}).get('type') == 'package' and any(
-                        value.get(kind) for kind in ('runtime', 'runtimeTargets', 'native', 'resource', 'contentFiles', 'compile', 'dependencies')):
+                # Native-only references must not promote managed-only transitives. Runtime
+                # roots retain compile facades and dependency-only package bundles as before.
+                matching = ('runtime' in roles and any(value.get(kind) for kind in
+                            ('runtime', 'resource', 'contentFiles', 'compile', 'dependencies'))
+                            or 'native' in roles and bool(value.get('native'))
+                            or 'resource' in roles and bool(value.get('resource'))
+                            or any(item.get('assetType') in roles for item in value.get('runtimeTargets', {}).values()))
+                if assets.get('libraries', {}).get(key, {}).get('type') == 'package' and matching:
                     include(tuple(key.rsplit('/', 1)))
-                pending.extend(name.casefold() for name in value.get('dependencies', {}))
+                pending.extend((name.casefold(), roles) for name in value.get('dependencies', {}))
     return set(result.values())
 
 

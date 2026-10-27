@@ -1,0 +1,34 @@
+using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Application.PostgreSql.Migrations
+{
+    /// <inheritdoc />
+    public partial class OwnerInitial : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.EnsureSchema(name: "owner_example");
+            migrationBuilder.CreateTable(
+                name: "owner_notes",
+                schema: "owner_example",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OwnerIssuer = table.Column<string>(type: "text", nullable: false, collation: "C"),
+                    OwnerSubject = table.Column<string>(type: "text", nullable: false, collation: "C"),
+                    Value = table.Column<string>(type: "text", nullable: false),
+                    Digest = table.Column<byte[]>(type: "bytea", nullable: false)
+                },
+                constraints: table => { table.PrimaryKey("PK_owner_notes", x => x.Id); });
+        }
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(name: "owner_notes", schema: "owner_example");
+        }
+    }
+}

@@ -48,6 +48,21 @@ For authentication, HTTP clients, serialization and frontend effects/state, use 
 framework's actual supported lifecycle/configuration seams before inventing equivalents. This does
 not select a new frontend framework, enable every optional library feature or qualify every stack.
 
+For an accepted Foundation host, inspect `eng/foundation-composition.json` and the selected
+[executable composition](../extensions/program-kit-dotnet/references/foundation-compositions.md)
+before implementing setup or the first endpoint. An absent graph alongside that decision calls for
+the maintained fresh template or bounded migration/configuration preview, not another host or
+container topology. Resume the same setup and applicable evidence. Supplier protocol evidence,
+metadata/exporter admission, Forms browser qualification and consumer login/permission/owner tests
+have distinct scopes; none replaces the others. A generic coding hook starts no application.
+
+Review patterns by their responsibility and lifetime, not their spelling. A native EF design-time
+factory or a scoped deferred endpoint factory can be correct; service-provider access spread through
+business methods is a different design. Prefer typed admitted configuration at the owning boundary,
+with explicit validation, reload/snapshot and disposal semantics; do not substitute a global options
+singleton merely to eliminate a factory. Challenge cancellation, deterministic provider rejection
+and postdispatch uncertainty separately, using exact provider contracts and focused negative checks.
+
 ## Apply a decision in code
 
 The native implement append and implementation-check command apply the method in the current task;

@@ -44,7 +44,7 @@ class ReadinessRouting(unittest.TestCase):
                 thread.start()
                 origin = 'http://127.0.0.1:' + str(server.server_port)
                 graph = {'resources': {f'shell-{i}': {'pathBase': prefix}
-                                       for i, prefix in enumerate(prefixes)}}
+                                       for i, prefix in enumerate(prefixes)}, 'bindings': []}
                 hosts = {f'host-{i}': {'shells': [f'shell-{i}'], 'publicOrigin': origin,
                                      'runtimeStage': f'runtime/{i}'} for i in range(len(prefixes))}
                 receipt = {'topologyFingerprint': 'fixture', 'pendingActivationHosts': list(hosts)}

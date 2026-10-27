@@ -1,0 +1,47 @@
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+#nullable disable
+
+namespace ProgramKit.PrivateEfMetadata.Migrations
+{
+    /// <inheritdoc />
+    public partial class Initial : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.EnsureSchema(
+                name: "ef_example");
+
+            migrationBuilder.CreateTable(
+                name: "ef_entries",
+                schema: "ef_example",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Value = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ef_entries", x => x.Id);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ef_entries_Value",
+                schema: "ef_example",
+                table: "ef_entries",
+                column: "Value",
+                unique: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "ef_entries",
+                schema: "ef_example");
+        }
+    }
+}

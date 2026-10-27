@@ -31,6 +31,13 @@ Use a few ordinary authored files, proportional to the actual product:
 - docs/architecture/project-intent.md: purpose, journeys, scope/non-goals, settled decisions with
   provenance, relevant domain meaning, assumptions, unanswered questions with owner/trigger and next action.
 - .specify/memory/constitution.md: substantive principles, testing/review policy and amendment process.
+  Apply the constitution-authoring criteria in references/product-founding.md: durable decision-guiding
+  rules with rationale, applicability and concrete verification, covering actual architectural and
+  quality risks. Challenge domain/dependency ownership, native framework reuse, simple composition,
+  configuration/lifetimes, failure semantics and consequential exceptions as applicable. Keep product
+  identity, roadmap/feature details and proposed defaults in intent/specifications; exact stack versions
+  and local design choices remain in ADR/profile decisions. No fixed principle count, blanket factory
+  ban, universal TDD or IOptions rule is implied. A complete-looking draft is not semantic certification.
   Use native speckit.constitution when helpful. Ratification is an explicit human decision in this document.
 - consequential ADRs: alternatives, rationale, consequences and individual Proposed/Accepted/etc status.
 - a small language-neutral docs/architecture/architecture-map.json for domain/C4 identities and relations.
@@ -49,6 +56,28 @@ for focused helper commands. Existing locks and published dependency knowledge r
 
 ## Confirm meaning and continue
 
+Prepare the actual review material before calling intake complete. When intake authored or updated
+the canonical architecture map, generate its DSL projection as part of this preparation:
+
+```text
+python .specify/extensions/program-kit-governance/scripts/architecture_map.py validate --map docs/architecture/architecture-map.json --project-root . --verify-sources
+python .specify/extensions/program-kit-governance/scripts/architecture_map.py export --map docs/architecture/architecture-map.json --output docs/architecture/workspace.dsl
+```
+
+The export needs no viewer runtime or human architecture acceptance. For an existing established
+generated projection, review the map changes and deliberately use `--force` to refresh it; preserve
+authored standalone DSL and other local representations. Do not create an unnecessary map merely
+to satisfy this step. Export failure is a preparation finding to resolve or explicitly defer with
+its consequence; do not offer a nonexistent file as a working viewer entry point.
+
+Link the actual `docs/architecture/workspace.dsl` and offer **View C4** before asking the human to
+confirm the reviewed architecture. In Codex, name `$speckit-program-kit-governance-view-c4` and
+make the local DSL file available to open. The read-only viewing command does not generate a
+missing projection. If the human chooses viewing, finish that bounded view request and return to
+this pending review before taking their decision. Do not silently substitute an inline diagram
+for the opportunity to use View C4 when a canonical map is present. Missing viewer prerequisites
+still allow a readable diagram alternative or an explicit deferral as described below.
+
 Before asking for confirmation, present a **Review overview** with direct links to the actual
 documents and a readable walkthrough of each applicable item:
 
@@ -62,6 +91,12 @@ documents and a readable walkthrough of each applicable item:
   alternative or obtain an explicit deferral. Never upload private models to an external viewer.
 - Technology choices, disclosed defaults/overrides and relevant environment/provider composition.
 - Constitution principles and ratification, and consequential ADRs with their individual statuses.
+  Present the actual constitution draft's principles, testing/review policy and amendment process;
+  show how each material rule changes a later design/code decision and what evidence would check it.
+  Distinguish durable constraints from product description, unsettled defaults and ADR-level choices;
+  resolve vague or disproportionate rules through the existing review rather than a new checklist gate.
+  Identify each consequential ADR by title/path, current status, alternatives and consequences.
+  Do not leave these as links the human was never invited to review.
 - Assumptions, unanswered questions, proposed deferrals and the recommended first specification.
 
 Keep this proportional: use existing representations and views, do not invent deeper C4 levels,
@@ -70,17 +105,31 @@ changed. `product_intake.py review` can list available artifact links and review
 establish that the human saw or approved them.
 
 Explain exactly what product confirmation covers and which proposals/deferrals remain unsettled.
-Then ask for the human's explicit decision and **pause before specification intake**. Do not start
+Then ask for the human's explicit decision and **pause before specification intake**. Make the
+closing request concrete, in one scoped review round: confirm the presented product synthesis;
+ratify the linked constitution draft; and accept, revise, reject or explicitly defer each named
+ADR. For example: "Do you confirm this product/roadmap synthesis, ratify the constitution draft
+at [actual link], and accept ADR [actual titles/links]? Please identify changes or deferrals for
+any individual item." Replace the example with the actual reviewed scope, not a blanket approval
+of unseen documents. Reuse earlier explicit decisions whose meaning is unchanged. A single
+explicit answer to all those presented scopes can settle them together; product-only confirmation
+cannot silently ratify the constitution or accept unnamed proposals. Do not start
 the first feature in the same response that requests confirmation. A bare earlier "confirm" without
 an inspectable review scope does not establish review of unseen architecture or roadmap: present
 the missing overview and resolve its scope with the human. Record the actual answer/context in
 project-intent.md; record an explicit decision to defer a view honestly rather than claiming review.
 Constitution ratification and each Accepted ADR are distinct decisions: obtain and record those
-actually settled, preserving other proposals. Silence, generated files and successful checks are
+actually settled, preserving other proposals. Record constitution ratification as readable
+`**Status**: Ratified` with the actual decision date/context in the constitution; record each ADR's
+actual disposition and rationale/context in that ADR. Leave unanswered items Draft/Proposed and
+state the missing decision instead of claiming intake is complete. The closing handoff names
+product confirmation, constitution ratification, each reviewed ADR disposition and any unresolved
+or deferred scope separately. Silence, generated files and successful checks are
 not consent. Reopen substantive changed meaning; formatting and unrelated additions do not
 revoke a human decision. A simulated proxy supplies no human acceptance.
 
-Continue directly to speckit.program-kit-governance.specification-intake for the selected feature,
+Continue directly to speckit.program-kit-governance.specification-intake for the selected feature
+after the applicable decisions are settled and recorded,
 then ordinary native speckit.specify/clarify/plan/tasks/implement. No roadmap ID or Ready status is
 an eligibility gate. Carry relevant questions into that feature's normal spec/plan; irrelevant
 future detail stays deferred. Run environment, restore, provider or application checks only when

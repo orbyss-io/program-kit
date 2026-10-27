@@ -16,7 +16,7 @@ public sealed class NativeMigrationAdmission(IPostgreSqlUnitLeaseFactory<NativeM
             || (await context.Database.GetPendingMigrationsAsync(unit.Deadline.Token)).Any()
             || !(await context.Database.GetAppliedMigrationsAsync(unit.Deadline.Token)).Any())
             throw new InvalidOperationException("Deploy the required EF migration before runtime admission.");
-        var admitted = await context.Database.SqlQueryRaw<int>("""
+        const string requiredPrivileges = """
             SELECT CASE WHEN
               has_schema_privilege(current_user,'ef_example','USAGE')
               AND NOT has_schema_privilege(current_user,'ef_example','CREATE')
@@ -29,7 +29,9 @@ public sealed class NativeMigrationAdmission(IPostgreSqlUnitLeaseFactory<NativeM
               AND has_sequence_privilege(current_user,pg_get_serial_sequence('ef_example.ef_entries','Id'),'USAGE')
               AND has_sequence_privilege(current_user,pg_get_serial_sequence('ef_example.ef_entries','Id'),'SELECT')
               THEN 1 ELSE 0 END AS "Value"
-            """).SingleAsync(unit.Deadline.Token);
+            """;
+        var query = context.Database.SqlQueryRaw<int>(requiredPrivileges);
+        var admitted = await query.SingleAsync(unit.Deadline.Token);
         if (admitted != 1) throw new InvalidOperationException("Required runtime privileges are unavailable.");
     }
 }
