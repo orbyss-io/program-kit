@@ -5509,6 +5509,59 @@
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
       "purpose": "Native EF tooling with selected Foundation context, isolated deployment and least-privilege runtime proof."
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/cshells-initializer-ownership/README.md",
+      "phases": [
+        "implementation"
+      ],
+      "enforcement": "On-demand native CShells ownership regression; selected application owners retain security and lifecycle obligations.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "tests/validate_cshells_initializer_ownership.py"
+        ],
+        "sections": [
+          "Problem and supported scope",
+          "Reuse the registration and admission",
+          "Safety and adaptation boundaries",
+          "Focused verification and retirement"
+        ],
+        "requirements": [],
+        "review": "On-demand native CShells ownership regression; selected application owners retain security and lifecycle obligations."
+      },
+      "id": "program-kit-dotnet/references/examples/cshells-initializer-ownership/README.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-dotnet/references/examples/cshells-initializer-ownership/README.md"
+      },
+      "owner": "program-kit-dotnet",
+      "disposition": "manual",
+      "sections": {
+        "Problem and supported scope": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Reuse the registration and admission": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Safety and adaptation boundaries": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Focused verification and retirement": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      },
+      "purpose": "Version-specific non-owning CShells 0.0.31 resource admission with executable ownership/failure/cancellation/drain proof; no product security acceptance."
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",

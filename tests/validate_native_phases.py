@@ -163,6 +163,8 @@ class NativePhaseTests(unittest.TestCase):
                 self.assertIn(wording, architecture)
             preflight = (skills / 'speckit-program-kit-governance-implementation-check/SKILL.md').read_text(encoding='utf-8')
             self.assertIn('](.specify/extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/README.md#fast-provider-test-composition)', preflight)
+            recipe = 'references/examples/cshells-initializer-ownership/'
+            self.assertIn('](.specify/extensions/program-kit-dotnet/' + recipe + 'README.md)', preflight)
             for body in (implementation, preflight):
                 for wording in ('existing source', 'semantic commitments', 'local adaptation',
                                 'smallest coherent case', 'before replicating', 'engineering-feedback.md'):
@@ -232,6 +234,25 @@ class NativePhaseTests(unittest.TestCase):
 
 
 class KnowledgeTests(unittest.TestCase):
+    def test_cshells_workaround_is_in_selected_lifetime_guidance_and_lookup_is_read_only(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = feature(root)
+            (chosen / 'plan.md').write_text('# Plan\n.NET with CShells 0.0.31; a generation-owned resource needs admission.\n')
+            before = snapshot(root)
+            value = phase.check(root, chosen, 'implementation')
+            selected = [row for row in value['requirements'] if row['id'] == 'dotnet-lifetime']
+            self.assertEqual(1, len(selected))
+            focused = phase.render({**value, 'requirements': selected}, 'implementation', True)
+            self.assertIn('CShells 0.0.31', focused)
+            self.assertIn('examples/cshells-initializer-ownership/README.md', focused)
+            self.assertIn('one DI owner', focused)
+            self.assertEqual(before, snapshot(root))
+            (chosen / 'plan.md').write_text('# Plan\nRust with Axum; an independent runtime.\n')
+            value = phase.check(root, chosen, 'implementation')
+            self.assertNotIn('dotnet-lifetime', [row['id'] for row in value['requirements']])
+
     def test_packed_reference_availability_uses_the_existing_logical_source_reader(self):
         sys.path.insert(0, str(SCRIPTS))
         import phase_obligations as phase

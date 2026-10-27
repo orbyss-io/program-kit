@@ -35,6 +35,11 @@ Read the selected CShells APIs before choosing configuration dictionaries or sco
 this first small fixture before expanding a test collection. Reuse passing fixture evidence while
 its relevant inputs/environment are unchanged. Pure domain tests remain in-process tests.
 
+For selected CShells 0.0.31 disposable generation resources, use the
+[verified non-owning admission workaround](../cshells-initializer-ownership/README.md).
+`NativeMigrationAdmission` already separates admission from its native resource owner;
+retain its read-only schema/privilege checks and actual native scope/lease lifetimes.
+
 ## Author and deploy with EF
 
 Use the exact selected SDK, Foundation/CShells packages and EF Design version. Pin local `dotnet-ef`

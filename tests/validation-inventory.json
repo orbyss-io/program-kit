@@ -5671,6 +5671,35 @@
       "timeoutSeconds": 90
     },
     {
+      "id": "validate_cshells_initializer_ownership",
+      "purpose": "Native CShells 0.0.31 non-disposable admission workaround: real resource lifetime, failure/cancellation, tracked-scope reload, rejected replacement, scoped/transient cleanup and known duplicate-owner controls; no consumer or upstream-fix claim.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_cshells_initializer_ownership.py"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "dotnet-runtime"
+      ],
+      "inputs": [
+        "tests/validate_cshells_initializer_ownership.py",
+        "tests/fixtures/cshells-initializer-ownership/**",
+        "extensions/program-kit-dotnet/references/examples/cshells-initializer-ownership/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
       "id": "validate_intake_review",
       "purpose": "Read-only linked product/roadmap/domain/C4 review agenda, scoped confirmation and first-feature pause instructions; no human review or agent obedience claim.",
       "platforms": [

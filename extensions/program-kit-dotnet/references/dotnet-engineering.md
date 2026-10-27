@@ -60,6 +60,12 @@ ownership rules are profile requirements.
 <!-- program-kit:knowledge-rule principle.disposal-ownership -->
 - The creator owns disposal unless ownership is explicitly transferred. DI disposes services it creates; do not
   manually dispose them or register pre-created disposable instances without an owner.
+- For selected CShells 0.0.31, a disposable lifecycle initializer can be disposed before activation
+  completes through the helper's transient alias. Use the verified
+  [non-owning admission pattern](examples/cshells-initializer-ownership/README.md) when a resource
+  must live for the generation: one DI owner, a separate non-disposable typed initializer, awaited
+  failure/cancellation and native teardown. Preserve real scoped/transient lifetimes and cleanup.
+  Do not alias the disposable owner under another DI service or bypass admission/security checks.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.async-teardown -->
 - Use `IAsyncDisposable` when teardown performs asynchronous work. Constructors do not start background work.

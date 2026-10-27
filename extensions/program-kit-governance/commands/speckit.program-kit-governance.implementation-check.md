@@ -47,6 +47,10 @@ is not service location in business code. Review configuration binding/admission
 then failure paths: caller cancellation, deadline expiry, deterministic provider rejection and uncertain
 postdispatch effects need their actual semantics. Read the selected provider's typed failure contract.
 Use focused source and behavior checks; this is not a per-task full-application acceptance checklist.
+When selected CShells 0.0.31 work initializes a generation-owned disposable resource, use the
+[verified non-owning admission example](.specify/extensions/program-kit-dotnet/references/examples/cshells-initializer-ownership/README.md).
+Retain one DI owner, typed non-disposable admission, original failure/cancellation and native drain.
+This version-specific workaround neither bypasses security/admission nor starts another lifecycle.
 For selected native PostgreSQL units, use the [fast provider-test composition](.specify/extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/README.md#fast-provider-test-composition):
 activate the actual CShells shell before resolving its unit factory and use tracked scopes for
 scoped work. A bare ServiceCollection does not supply IShell. This focused database fixture does

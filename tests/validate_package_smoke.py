@@ -111,6 +111,18 @@ def main():
                 'Native bundle required-component registrations are incomplete')
         config = yaml.safe_load((project/'.specify/extensions.yml').read_text(encoding='utf-8'))
         require(set(components[:3]) <= set(config['installed']), 'Missing installed extension registration')
+        # Full bundle installation, rather than standalone governance, owns this
+        # .NET example. Verify original and installed bytes through the native
+        # loose/packed source reader without requiring a runtime or an agent.
+        import asset_sources
+        recipe = 'references/examples/cshells-initializer-ownership/'
+        for name in ('README.md', 'ResourceFeature.cs', 'ResourceAdmission.cs', 'SyntheticResourceOwner.cs',
+                     'ResourceLifetime.cs', 'SyntheticResourceObservation.cs'):
+            expected = (ROOT / 'extensions/program-kit-dotnet' / recipe / name).read_bytes()
+            require(asset_sources.read(expanded / 'program-kit-dotnet' / recipe / name) == expected,
+                    'Archived ownership example differs from source: ' + name)
+            require(asset_sources.read(project / '.specify/extensions/program-kit-dotnet' / recipe / name) == expected,
+                    'Installed ownership example differs from source: ' + name)
         require(config['settings']['auto_execute_hooks'] is True, 'Installed required hooks are disabled')
         require(set(config['hooks']) == {'before_specify', 'after_specify', 'before_plan', 'after_plan',
                     'before_tasks', 'after_tasks', 'before_implement', 'after_implement'},
