@@ -49,6 +49,10 @@ The unattended workflow provisions its own selected tools, explicitly qualifies 
 changed profile, refreshes locks and runs affected contracts. Native/profile
 qualification can remain expensive because it establishes a specific dependency
 contract; it is not repeated for unrelated feature changes or every release.
+The selected public profile also passes two bounded native producer/client checks:
+the numeric JSON contract and the actual emitted operation. These run even when a
+profile was already promoted on the input branch, so a no-op discovery cannot omit
+its generated-client qualification. They do not stage the full application Host.
 After selecting the upgraded Python and requirements, CI explicitly prepares the
 project-local schema runtime. Checks that use it declare `runtime:json-schema` in
 the validation inventory; ordinary integrity/affected validation never installs it.

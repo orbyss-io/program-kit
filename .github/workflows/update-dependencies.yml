@@ -50,6 +50,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
         run: python scripts/update_dependency_profiles.py update --engines=chromium,firefox,webkit
+      - name: Verify released JSON producer and emitted operation client
+        env:
+          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
+        run: >-
+          python scripts/run_validation.py
+          --check validate_openapi_export_client
+          --check validate_typed_operation_contract
+          --reason "Selected public profile JSON schemas and emitted operation/client integration"
       - name: Refresh locks and validate affected capabilities
         env:
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
