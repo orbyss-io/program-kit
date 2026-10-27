@@ -44,3 +44,7 @@ owned states/policy, admitted configuration snapshots, complete deadlines, resou
 actual source/test locations. Review this implementation and its first adverse case before copying
 the pattern to later operations. Do not defer these duties solely to a final SOLID/settings cleanup
 task; source review remains semantic work, not an automatic analyzer certificate or new human gate.
+Make shared failure/retry keys and selected native configuration binding explicit in their first
+owning task, before reuse. Completion requires reviewing changed decisions/private helpers and the
+whole applicable source-readability category, with actual native checks and honest pending findings.
+Do not count a typed wrapper, passing behavior tests or a later review task as completion of those duties.

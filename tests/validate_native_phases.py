@@ -375,13 +375,14 @@ class FrameworkGuidanceTests(unittest.TestCase):
             value = phase.check(root, chosen, 'implementation')
             rendered = phase.render(value, 'implementation')
             for identity in ('principle.first-operation-source-review', 'principle.project-local-placement',
-                             'principle.decision-time-budget', 'principle.typescript-runtime-admission'):
+                             'principle.decision-time-budget', 'principle.typescript-runtime-admission',
+                             'principle.runtime-time-and-io', 'principle.invocation-layout'):
                 canonical = resolve(phase.catalog(), identity, extensions=ROOT / 'extensions')
                 self.assertIn(canonical['text'], rendered, identity)
                 self.assertIn('Canonical source: ' + canonical['provenance']['path'], rendered)
             # Measured assembled context, not a truncating production limit. The
             # essential operation decisions must appear before paginated detail.
-            self.assertLess(len(rendered.encode('utf-8')), 18000)
+            self.assertLess(len(rendered.encode('utf-8')), 22000)
             first = phase.text_page(rendered)
             for phrase in ('scattered state strings', 'Core accepts admitted policy',
                            'one abstraction level', 'project-local placement', 'complete execution deadline'):
@@ -391,6 +392,8 @@ class FrameworkGuidanceTests(unittest.TestCase):
             scoped = phase.render(phase.check(root, chosen, 'implementation'), 'implementation')
             self.assertNotIn('## Current operation: principle.typescript-runtime-admission', scoped)
             self.assertNotIn('## .NET host decision review', scoped)
+            self.assertNotIn('## Current operation: principle.invocation-layout', scoped)
+            self.assertNotIn('## Current operation: principle.runtime-time-and-io', scoped)
 
     def test_foundation_resume_discovers_missing_composition_without_running_setup(self):
         sys.path.insert(0, str(SCRIPTS))

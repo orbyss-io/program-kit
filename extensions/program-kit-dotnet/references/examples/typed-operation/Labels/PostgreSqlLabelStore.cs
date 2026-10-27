@@ -30,6 +30,7 @@ public sealed class PostgreSqlLabelStore<TContext>(IPostgreSqlUnitLeaseFactory<T
             parameters,
             unit.Deadline.Token
         );
-        if (affected != 1) throw new System.InvalidOperationException("The explicitly prepared sample row is unavailable.");
+        if (affected != 1)
+            throw new System.InvalidOperationException("The explicitly prepared sample row is unavailable.");
     }
 }

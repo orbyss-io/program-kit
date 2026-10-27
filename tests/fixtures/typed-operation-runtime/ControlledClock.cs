@@ -26,14 +26,17 @@ internal sealed class ControlledClock : TimeProvider
             callback,
             state
         );
-        timers.Add(timer); timer.Change(dueTime, period);
+        timers.Add(timer);
+        timer.Change(dueTime, period);
         return timer;
     }
     /// <summary>Advances time and optionally delivers due callbacks.</summary>
     public void Advance(TimeSpan duration)
     {
         Ticks += duration.Ticks;
-        if (DelayCallbacks) return;
-        foreach (var timer in timers.ToArray()) timer.Fire(Ticks);
+        if (DelayCallbacks)
+            return;
+        foreach (var timer in timers.ToArray())
+            timer.Fire(Ticks);
     }
 }

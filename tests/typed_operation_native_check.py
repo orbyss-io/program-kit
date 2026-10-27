@@ -4,6 +4,7 @@ This bounded fixture supplies no HTTP/database/semantic-agent acceptance claim.
 """
 from pathlib import Path
 import shutil
+import re
 import subprocess
 import sys
 import uuid
@@ -17,14 +18,17 @@ def check():
     import typed_operation
     directory = ROOT / 'artifacts/t' / ('typed-native-' + uuid.uuid4().hex[:8])
     directory.mkdir(parents=True)
-    (directory / 'Directory.Build.props').write_text('''<Project><PropertyGroup>
-<TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
-<GenerateDocumentationFile>true</GenerateDocumentationFile><TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-<FoundationSourceReadability>true</FoundationSourceReadability><NuGetAudit>false</NuGetAudit>
-</PropertyGroup><ItemGroup><PackageReference Include="Orbyss.Foundation.Analyzers" Version="0.3.7" PrivateAssets="all"/>
+    eng = directory / 'eng'; eng.mkdir()
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props', eng / 'ProgramKit.Build.props')
+    (directory / 'Directory.Build.props').write_text('''<Project><Import Project="eng/ProgramKit.Build.props"/><PropertyGroup>
+<NuGetAudit>false</NuGetAudit>
+</PropertyGroup><ItemGroup><PackageReference Update="Orbyss.Foundation.Analyzers" Version="0.3.7"/>
 </ItemGroup></Project>''', encoding='utf-8')
-    (directory / 'Directory.Build.targets').write_text('<Project/>', encoding='utf-8')
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets', eng / 'ProgramKit.Build.targets')
+    (directory / 'Directory.Build.targets').write_text('<Project><Import Project="eng/ProgramKit.Build.targets"/></Project>', encoding='utf-8')
     (directory / 'NuGet.Config').write_text('<configuration><packageSources><clear/></packageSources></configuration>', encoding='utf-8')
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig', directory / '.editorconfig')
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/global.json', directory / 'global.json')
     shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig', directory / '.editorconfig')
     owners = {key: f'src/{key}/{key}.csproj' for key in ('core', 'runtime', 'api', 'provider', 'test')}
     owners.update(frontend='web/app', generatedTypes='tools/openapi/labels/generated/types.ts')
@@ -91,8 +95,99 @@ def check():
     if negative.returncode == 0 or 'error ORB1008:' not in negative.stdout + negative.stderr:
         raise ValueError('Expected native inline-argument rejection, inspect ' + str(directory))
     print('ACTUAL_NATIVE_ORB1008_NEGATIVE_PASSED')
+    check_source_category(directory, directory / owners['core'])
     print('Native source/check retained: ' + str(directory))
     return 0
+
+
+def check_source_category(directory, project):
+    """Native positive and independent mutation controls for the whole mechanical category.
+
+    This deliberately establishes no automated policy/Options/SOLID semantic review.
+    Each mutation starts from the same compiled positive, so a setup error cannot pass it.
+    """
+    source = project.parent / 'SourceStyleControl.cs'
+    positive = '''namespace NativeStyle;
+
+/// <summary>Independent source-layout control compiled by the actual selected analyzers.</summary>
+internal sealed class SourceStyleControl
+{
+    /// <summary>Immutable input used by both observation branches.</summary>
+    private readonly string field;
+
+    /// <summary>Prepares one immutable input.</summary>
+    public SourceStyleControl(string value)
+    {
+        field = value;
+    }
+
+    /// <summary>Permits a next-line unbraced body, a standalone call and a correctly split chain.</summary>
+    public string Read(bool enabled)
+    {
+        if (enabled)
+            return field
+                .Trim()
+                .ToUpperInvariant();
+        return Echo(field);
+    }
+
+    /// <summary>Leaves private helpers after the public behavior.</summary>
+    private static string Echo(string value) => value;
+
+    /// <summary>Executes an explicitly prepared deferred function.</summary>
+    private static string From(Func<string> read) => read();
+}
+'''
+    command = ['dotnet', 'build', str(project), '--configuration', 'Release', '--no-restore', '--nologo', '-m:1', '--disable-build-servers']
+
+    def build(label, text, diagnostic=None, extra=()):
+        source.write_text(text, encoding='utf-8')
+        result = subprocess.run([*command, *extra], cwd=directory, capture_output=True, text=True, encoding='utf-8', timeout=90)
+        (directory / f'style-{label}.stdout.txt').write_text(result.stdout, encoding='utf-8')
+        (directory / f'style-{label}.stderr.txt').write_text(result.stderr, encoding='utf-8')
+        output = result.stdout + result.stderr
+        compiler_errors = re.findall(r'error\s+(?:CS\d+|AD0001)\b', output)
+        marker = 'error : PKQ003 ' if diagnostic == 'PKQ003' else f'error {diagnostic}:'
+        if compiler_errors or (diagnostic is None and result.returncode) or (diagnostic is not None and
+                (result.returncode == 0 or marker not in output)):
+            raise ValueError(f'Native source control {label} did not establish {diagnostic or "positive compilation"}; inspect {directory}')
+
+    mutations = [
+        ('embedded-body', 'IDE2001', 'if (enabled)\n            return', 'if (enabled) return'),
+        ('chain-first', 'ORB1009', 'field\n                .Trim()', 'field.Trim()'),
+        ('chain-combined', 'ORB1009', '.Trim()\n                .ToUpperInvariant()', '.Trim().ToUpperInvariant()'),
+        ('nested-call', 'ORB1008', 'return Echo(field);', 'return Echo(field.Trim());'),
+        ('constructed-argument', 'ORB1008', 'return Echo(field);', "return Echo(new string('x', 1));"),
+        ('deferred-argument', 'ORB1008', 'return Echo(field);', 'return From(() => Echo(field));'),
+        ('awaited-argument', 'ORB1008', 'return Echo(field);', 'return Echo(await Task.FromResult(field));'),
+        ('parameter-layout', 'ORB1007', 'Echo(string value)', 'Echo(string value, string second = "", string third = "")'),
+        ('constructor-layout', 'ORB1007', 'SourceStyleControl(string value)', 'SourceStyleControl(string value, string second = "", string third = "")'),
+        ('argument-layout', 'ORB1007', 'return Echo(field);', 'return string.Concat(field, field, field);'),
+        ('fields-first', 'ORB1010', '    private readonly string field;\n', ''),
+        ('private-helper-last', 'ORB1004', '    public string Read', '    private string Read'),
+        ('xml-presence', 'ORB1005', '    /// <summary>Prepares one immutable input.</summary>\n', ''),
+        ('one-type', 'ORB1003', '\n}\n', '\n}\n/// <summary>Second declared owner.</summary>\ninternal sealed class Extra {}\n'),
+        ('private-field-name', 'IDE1006', 'field', '_field'),
+    ]
+    try:
+        build('positive', positive)
+        build('disabled-code-style', positive, 'PKQ003', ['-p:EnforceCodeStyleInBuild=false'])
+        for label, diagnostic, old, new in mutations:
+            if old not in positive:
+                raise ValueError('Native source mutation seam missing: ' + label)
+            text = positive.replace(old, new)
+            if label == 'awaited-argument':
+                text = text.replace('public string Read', 'public async Task<string> Read')
+            if label == 'fields-first':
+                text = text.replace('    private static string From', '    private readonly string field;\n\n    /// <summary>Prepared deferred function.</summary>\n    private static string From')
+            if label == 'private-helper-last':
+                # An actual public member follows a private method; private-only types are valid.
+                text = text.replace('    /// <summary>Leaves private helpers', '    /// <summary>Public observation follows a private helper.</summary>\n    public string Observe() => field;\n\n    /// <summary>Leaves private helpers')
+            build(label, text, diagnostic)
+        build('restored-positive', positive)
+    finally:
+        source.unlink(missing_ok=True)
+    print('ACTUAL_NATIVE_SOURCE_CATEGORY_CONTROLS_PASSED: ' + ', '.join(row[0] for row in mutations))
 
 
 if __name__ == '__main__':

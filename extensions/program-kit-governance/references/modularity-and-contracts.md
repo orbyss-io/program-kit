@@ -324,7 +324,10 @@ Export it with `python .specify/extensions/program-kit-governance/scripts/asset_
 
 <!-- program-kit:knowledge-rule principle.owned-identifiers-result-bounds -->
 Use cohesive owner-specific Constants/keys types for route, schema, profile and replay identifiers;
-prefer exported framework constants. Deployment limits belong to typed validated options, and
+prefer exported framework constants. Shared failure/retry codes also have one cohesive semantic owner;
+use their names across decisions and adapters while preserving exact external spellings. Literal
+wire/storage maps and independent compatibility oracles remain legitimate; a solution-wide constants
+sink or a ban on all string literals is not implied. Deployment limits belong to typed validated options, and
 localized text to owned resources. Do not create a solution-wide Constants sink. Preserve canonical
 bytes, hashes and replay versions; runtime `GetHashCode` is not a persistent identity. Large result
 sections page independently and stay bounded through construction, storage, hashing and delivery.

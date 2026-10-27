@@ -35,6 +35,13 @@ apply the selected API's operation folders. Keep provider/browser restrictions o
 and justify native extension use before replacements. These are ordinary design decisions, not a
 mandatory table, file quota or claim that generic SOLID prose proves source correctness.
 
+Carry shared failure/retry key ownership into policy and adapter decisions, including private helpers.
+For .NET feature settings, name native Options binding/validation and actual shell activation before
+immutable snapshot admission; a typed class alone is insufficient. Preserve existing keys/defaults
+and conversion contracts. Plan the whole applicable source-readability category and actual native
+checks, including prepared arguments, chain layout and next-line control-flow bodies; distinguish
+automatic syntax diagnostics from semantic source review.
+
 Use selected framework mechanisms and supported extensions before adding equivalent infrastructure.
 For a new project, runner, wrapper or lifecycle, explain its actual responsibility and any concrete
 capability gap in the selected framework. Correct unjustified replacement proposals during review.

@@ -40,6 +40,10 @@ Before replicating a non-trivial operation, review its first coherent source and
 
 - Name the semantic owner and legal state transitions. Use owned typed states/keys internally and
   explicit unchanged wire/storage mappings; scattered state strings are not a lifecycle model.
+  Shared failure/retry codes are owned semantic keys too: declare them once in a cohesive owner and
+  use those names in policy, provider and adapter decisions. A typed facade over remaining raw-string
+  decisions does not complete that refactor. Boundary maps may contain exact literal spellings;
+  review their placement, and retain independent literal compatibility assertions in tests.
 - Keep pure policy in its semantic owner. Core accepts admitted policy, not implementation-specific parser/browser/platform
   restrictions or optional defaults that silently replace configured snapshots. Providers retain
   their atomic effects and implementation constraints.
@@ -47,6 +51,8 @@ Before replicating a non-trivial operation, review its first coherent source and
   boundaries; a partial file, green analyzer or shorter method does not establish responsibility.
 - Trace effective configuration from its single default source through activation and every consumer.
   Preserve original work snapshots; distinguish adjustable policy, fixed contracts and safeguards.
+  Use the selected stack's native binding/validation mechanism before snapshot admission; a typed
+  settings class or immutable snapshot does not prove native binding. Justify any specific replacement.
 - Carry one complete execution deadline through bounded stages. Own cancellation, fresh scopes,
   retained state, disposal/drain and safe failure observations; cancellation is not actual stop.
 - Admit external values at runtime and test a relevant malformed/denied/fault case. Generated types,
@@ -54,6 +60,10 @@ Before replicating a non-trivial operation, review its first coherent source and
 
 Apply only relevant duties; preserve native mechanisms and agreed review points. This source review
 adds no approval gate, factory per class or mandatory interface for private pure helpers.
+Before completion, review changed decisions/helpers against the whole applicable source/layout
+category; retain findings and pending reviews in task notes. A later review cannot justify known
+omissions in completed work. Human-triggered repairs do not prove earlier detection. For concurrent
+work, identify the active owner and distinguish before, repaired-after and unverified observations.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule principle.framework-native-mechanisms -->

@@ -83,6 +83,12 @@ reference routing and static analysis do not automatically detect or certify the
 [first-operation review](references/programming-guardrails.md#typed-boundaries-and-design-evidence) and
 [project-local placement](references/modularity-and-contracts.md#semantic-capability-contracts).
 
+Include shared failure/retry code ownership in that review. A typed facade over raw-string decisions
+or a typed settings object built by a replacement binding pipeline does not meet the commitment.
+For .NET, inspect native Options binding/validation and actual activation before snapshots. Review
+the full applicable source-readability category and the evidence behind completed task claims; a
+green build cannot establish policy ownership, method coherence or correct framework adoption.
+
 Keep unresolved findings and agreed human review pauses in normal task/review notes. Independent
 ready work remains available. After implementation, report actual checks, semantic review, remaining
 work and human dispositions separately. Run complete applicable acceptance at feature closure;

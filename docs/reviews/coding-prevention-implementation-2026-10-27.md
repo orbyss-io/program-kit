@@ -54,3 +54,92 @@ The new native fixture uses cached selected packages with no restore sources; a 
 The selected analyzer mechanically enforces its released scope. There is no automatic detector here for arbitrary string states, semantic Core provider policy, mixed abstraction, all SOLID violations or useful arbitrary file placement. Those remain explicit source/adverse-behavior review duties. A future mechanical rule outside the selected released contract requires a concrete external Foundation analyzer contribution and qualification; no fabricated enforcement claim is made. Deterministic fixtures establish exercised mechanisms, not agent obedience or human acceptance.
 
 No commit, push, PR, consumer repair, publication, paid worker or provider operation is authorized by this work. This work leaves the consumer untouched for the later jointly defined refactoring plan.
+
+## Follow-up: category enforcement and refactor feedback
+
+The human subsequently authorized Program Kit repairs and commit/push on
+`codex/bootstrap-intake-analysis`. This follow-up does not repair or refresh the active consumer.
+
+The active implementation owner is the chat **Implement US4 refactor plan**, not the earlier
+**Implement current feature tasks** chat initially consulted. Its retained history records the human
+flagging `inspection_unavailable`, the implementation owner's acknowledgement of repeated shared
+failure-code literals as an omission, and their replacement with owner-scoped constants. The later
+coordinator inspected repaired source. A public Core state-to-storage/wire mapping switch was a
+different observation, and does not refute the earlier failure-code omission. The public placement of
+that representation map and remaining provider transition ownership still require their own review.
+This is observed human-triggered correction, not evidence that a scheduled review caught the issue.
+
+Canonical first-operation, planning, tasks, implementation and architecture guidance now require
+shared failure/retry key ownership in actual decisions/private helpers and honest completion evidence.
+The selected .NET guidance explicitly requires Microsoft Options binding/validation at actual shell
+activation before immutable domain/work admission. Preserve existing keys/defaults/conversion semantics;
+Core need not depend on IOptions, and retries retain original admitted snapshots. No blanket string,
+static-method or switch ban, general constants sink or automatic semantic detector is introduced.
+
+The whole source-readability category is in scope, not only method chains:
+
+| Rule | Mechanical owner and exercised proof |
+| --- | --- |
+| Next-line control-flow bodies; simple unbraced bodies allowed | SDK IDE2001 with EnforceCodeStyleInBuild; native positive and same-line negative |
+| Parameter/constructor/call layout | Released ORB1007; native malformed declaration and call controls |
+| Prepared method/constructed/awaited/deferred arguments | Released ORB1008; independent native controls plus the retained inline-array negative |
+| Receiver and every chained invocation on separate lines | Released ORB1009; first-call-beside-receiver and combined-call negatives |
+| Fields first, private helpers last, one type, XML presence | Released ORB1010/ORB1004/ORB1003/ORB1005 native controls |
+| Private fields camelCase without underscore | SDK IDE1006; explicit build-level severity added after its negative initially compiled successfully |
+| Method coherence, purposeful XML, policy/key/configuration ownership, SOLID and native reuse | Mandatory actual source review; no automatic semantic certification claimed |
+
+SDK naming-rule severity alone was insufficient build enforcement. The template now sets IDE1006
+error severity and enables SDK code-style analysis. Native build and task preflight reject disabled
+code-style analysis. The emitted-source fixture uses actual maintained props/targets/EditorConfig and
+the pinned SDK, requires successful positive compilation before intended diagnostic failures, rejects
+incidental compiler/analyzer crashes, and restores a passing positive afterward. Existing editable
+label examples and runtime support use next-line bodies/statements. No external/generated/historical
+source was mass-reformatted. ORB1002 named arguments remain a recommendation.
+
+Complete selected .NET time/options and layout rules are now emitted with canonical provenance in
+ordinary phase context, after existing framework/EF essentials. Scoped Rust work excludes those .NET
+sections. Pagination is preserved; the representative assembled context is about 20 KB, measured
+against a 22 KB regression bound rather than truncating its rules. Installed native-phase review and
+the full native source category have focused regression coverage in the existing inventory.
+
+Retained initial diagnostics include `artifacts/t/native-phases-first.log`,
+`artifacts/t/native-style-second.log`, and the per-control directories under `artifacts/t/typed-native-*`.
+The first exposed rules pushed EF essentials past page one; ordering was corrected. The second
+exposed missing naming build severity. A sandboxed optional formatter also failed connecting to its
+MSBuild named pipe; the source fixes and actual compiler checks do not depend on that formatter.
+Validation outcomes for the final source are reported in the coordinating chat and existing
+`artifacts/validation-runs/` records. These remain local proof, not publication/agent-obedience claims.
+
+The deferred `validate_typed_operation_contract` is cold actual label metadata/client proof, not a
+Host/provider/browser scenario. No schema, route or client shape changed here: the label source changes
+only line layout. Native emitted-label owner compilation/runtime controls and the selected actual
+OpenAPI export/client check cover the changed mechanisms; the extra cold label producer run is not
+claimed. The separate full runtime scenario's earlier PKR014 disposition remains unchanged.
+
+The first follow-up Affected run (`20261027T182237Z-bef7b46e`, 147.564 seconds) retained four failures:
+the expanded source brief exceeded its existing 10 KB budget; the new native negative expected a
+compiler-style code prefix for an MSBuild error that actually rejected correctly; a reused scope
+test expected complete canonical text from the intentionally brief view; and new .NET sections
+displaced host essentials from page one. Repair shortens duplicated enforcement prose without
+dropping duties, recognizes the actual PKQ003 MSBuild error, checks full text through the detailed
+route, and puts existing host/EF essentials before the added .NET source sections. Other checks,
+including the real OpenAPI export/client, passed without timeouts or overruns in that run.
+
+The development-candidate analyzer qualification script gains the same disabled-style flag in its
+existing matrix; its broad candidate/suppression qualification is not needed to establish this
+released-package flag repair. The maintained emitted-source regression exercises the actual updated
+props/targets and rejection using selected released 0.3.7 bytes; no new candidate/profile is promoted.
+
+SDK configuration references checked for this follow-up:
+[IDE2001](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide2001) and
+[build-level naming severity](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/naming-rules).
+
+Final source verification: Integrity passed in 6.915 seconds
+(`20261027T182856Z-1c1f95a5`). All 31 executed Affected checks passed in 173.574 seconds
+(`20261027T182911Z-a7f67330`), with no coverage gaps, overruns, timeouts or source changes during
+execution. The runner correctly retains `needs-attention` for the two explicitly deferred manual
+scenarios discussed above; it is not an unqualified green Affected-suite result. The focused native
+source-category controls also passed independently, including next-line unbraced and standalone-call
+positives, every category mutation, disabled-style rejection and restored positive. The original
+failing runs remain retained. These are Windows local results, not Linux, publication or consumer
+acceptance evidence.

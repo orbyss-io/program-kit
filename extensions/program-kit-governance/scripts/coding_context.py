@@ -373,7 +373,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
             if project.get('status') != 'evaluated':
                 continue
             properties = project.get('properties', {})
-            disabled = [key for key in ('RunAnalyzers', 'RunAnalyzersDuringBuild', 'EnableNETAnalyzers', 'GenerateMSBuildEditorConfigFile')
+            disabled = [key for key in ('RunAnalyzers', 'RunAnalyzersDuringBuild', 'EnableNETAnalyzers', 'EnforceCodeStyleInBuild', 'GenerateMSBuildEditorConfigFile')
                         if properties.get(key, '').lower() == 'false']
             if properties.get('SkipCompilerExecution', '').lower() == 'true':
                 disabled.append('SkipCompilerExecution')

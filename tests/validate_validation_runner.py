@@ -83,6 +83,18 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(['unit'], [c['id'] for c in checks])
         self.assertEqual(['new/subsystem.py'], gaps)
 
+    def test_source_policy_templates_select_released_native_controls(self):
+        definition = runner.load_definition()
+        for name in ('.editorconfig', 'eng/ProgramKit.Build.props', 'eng/ProgramKit.Build.targets'):
+            with self.subTest(template=name):
+                checks, gaps, _ = runner.select_affected(definition,
+                    ['extensions/program-kit-dotnet/templates/dotnet/files/' + name])
+                ids = {check['id'] for check in checks}
+                self.assertFalse(gaps)
+                self.assertIn('validate_coding_scaffolding', ids)
+                self.assertIn('validate_native_source_scope', ids)
+                self.assertNotIn('validate_source_readability_native', ids, 'Candidate qualification remains explicitly selected')
+
     def test_known_capability_without_runnable_coverage_is_still_a_gap(self):
         definition = self.definition()
         definition['capabilities']['uncovered'] = {'inputs': ['uncovered/**'], 'dependsOn': []}

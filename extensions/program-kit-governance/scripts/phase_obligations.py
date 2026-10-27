@@ -199,6 +199,12 @@ def render(value, phase, detailed=False):
         lines += ['## Asynchronous workload research', rule['text'],
                   'Canonical source: ' + rule['provenance']['path'],
                   'Focused source map, replacement contract and conformance questions: --only async-workload', '']
+    if not detailed and 'dotnet' in value.get('responsibilities', []):
+        for identity in ('principle.runtime-time-and-io', 'principle.invocation-layout'):
+            if identity in selected:
+                rule = canonical_rules([identity])[0]
+                lines += ['## Current operation: ' + identity, rule['text'],
+                          'Canonical source: ' + rule['provenance']['path'], '']
     if value.get('localGuidance'):
         lines += ['Project choices and review notes: ' + ', '.join(value['localGuidance']),
                   'Read these for local decisions, exceptions and agreed pauses; missing toolkit metadata is not a phase gate.', '']

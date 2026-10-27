@@ -440,7 +440,7 @@ def evaluate_project(root, relative, configuration='Debug', version=None, framew
             return declared
     from owned_scratch import native_path
     command = ['dotnet', 'msbuild', native_path(path), '-nologo', f'-p:Configuration={configuration}',
-               '-getProperty:AssemblyName,TargetPath,Configuration,ManagePackageVersionsCentrally,TargetFramework,TargetFrameworks,NETCoreSdkVersion,MSBuildProjectFullPath,FoundationSourceReadability,FoundationSourceReadabilityContract,RunAnalyzers,RunAnalyzersDuringBuild,EnableNETAnalyzers,GenerateMSBuildEditorConfigFile,SkipCompilerExecution,NoWarn,WarningsNotAsErrors,DesignTimeBuild,ProvideCommandLineArgs',
+               '-getProperty:AssemblyName,TargetPath,Configuration,ManagePackageVersionsCentrally,TargetFramework,TargetFrameworks,NETCoreSdkVersion,MSBuildProjectFullPath,FoundationSourceReadability,FoundationSourceReadabilityContract,RunAnalyzers,RunAnalyzersDuringBuild,EnableNETAnalyzers,EnforceCodeStyleInBuild,GenerateMSBuildEditorConfigFile,SkipCompilerExecution,NoWarn,WarningsNotAsErrors,DesignTimeBuild,ProvideCommandLineArgs',
                '-getItem:ProjectReference,PackageReference,PackageVersion,FrameworkReference,InternalsVisibleTo,AssemblyAttribute,Compile']
     if version:
         command.append('-p:Version=' + version)

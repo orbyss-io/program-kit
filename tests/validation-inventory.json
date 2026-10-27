@@ -377,6 +377,7 @@
     "source-quality": {
       "inputs": [
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/source_quality.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
         "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
         "extensions/program-kit-dotnet/references/examples/contract-layout/**",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets",
@@ -4807,7 +4808,7 @@
     },
     {
       "id": "validate_coding_scaffolding",
-      "purpose": "Finite qualified realization, emitted C# readability with independent syntax negatives, source/ownership preconditions, consumer customization preservation and transactional negatives. No workers/providers.",
+      "purpose": "Finite qualified realization, emitted C# compiled with selected native layout/naming analyzers, independent category negatives and restored positive; source/ownership preconditions, customization preservation and transactional negatives. No workers/providers.",
       "platforms": [
         "Windows",
         "Linux"
@@ -4827,6 +4828,9 @@
         "tests/fixtures/typed-operation-client/**",
         "tests/fixtures/typed-operation-runtime/**",
         "tests/typed_operation_native_check.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets",
         "tests/coding_label_check.py",
         "tests/scaffold_review_fixture.py",
         "extensions/program-kit-dotnet/scripts/foundation_composition.py",
@@ -4841,6 +4845,20 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_native_source_scope",
+      "purpose": "Actual task-scoped native project evaluation retains Core-only duties and rejects disabled SDK code-style analysis; no source compilation, agents or provider startup.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_coding_context.py", "CodingContextTests.test_actual_native_core_task_does_not_inherit_neighbor_host_units_or_duties"],
+      "kind": "unit",
+      "capabilities": ["source-quality"],
+      "inputs": ["tests/validate_coding_context.py"],
+      "needs": [],
+      "prerequisites": ["tool:dotnet", "module:yaml"],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
     },
     {
       "id": "validate_scaffold_review",

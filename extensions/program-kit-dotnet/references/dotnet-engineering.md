@@ -145,8 +145,13 @@ AsyncLazy abstraction, hide synchronous blocking, or defer mandatory configurati
   previously accepted replay semantics when correcting expiry checks. Test actual feature registration.
   When selected, carry Foundation's `IExecutionDeadline` into PostgreSQL units and capped stages; distinguish
   caller cancellation from `IsExpired`, and neither from postdispatch commit uncertainty.
-- Bind typed options and validate at their actual activation boundary. Root `ValidateOnStart` alone is
-  not evidence for a CShells provider. Define reload and snapshot lifetimes and test invalid configuration.
+- Bind feature settings with Microsoft Options (`AddOptions`, section `Bind`, `Validate`/`IValidateOptions<T>`).
+  Per-property indexers/`GetValue` and custom readers are not options binding. Preserve keys, defaults
+  and conversion semantics through owned mappings; justify and test any necessary custom conversion.
+  Observe required options at actual shell activation: root `ValidateOnStart` alone is not CShells proof.
+  Bind/validate before immutable domain/work snapshots. Core need not reference `IOptions<T>`; retries
+  retain original values, never today's options. Define reload/snapshot lifetimes and test omission,
+  nondefault and invalid configuration.
   Operational pagination default/maximum sizes are owner options, consumed consistently by API defaults,
   application admission and bounded query construction. Positive page size remains an input invariant.
   Do not turn accepted application/protocol ceilings or immutable migration identities into settings.
@@ -259,7 +264,11 @@ the actual native build; declared root settings alone establish no effective-pol
 ## Orbyss style overlay
 
 <!-- program-kit:knowledge-rule principle.invocation-layout -->
-- Private fields use camelCase without an underscore; enforce through EditorConfig naming rules.
+- Private fields use camelCase without an underscore; enforce through EditorConfig naming rules and
+  `dotnet_diagnostic.IDE1006.severity=error`. Naming-rule severity alone does not enforce a build.
+- Put control-flow bodies below their conditions. A simple single-statement `if` may omit braces on
+  the next indented line; complex/ambiguous bodies use braces. Enable SDK IDE2001 as an error with
+  `EnforceCodeStyleInBuild=true` and `csharp_style_allow_embedded_statements_on_same_line_experimental=false`.
 - Use a 120-column target. Methods and constructors with more than two parameters, and calls with more than
   two arguments, must put every parameter/argument on its own line after the opening parenthesis. Close on
   a separate line aligned with the indentation of the line containing the opening parenthesis. Apply the
@@ -281,7 +290,7 @@ the actual native build; declared root settings alone establish no effective-pol
 ## Enforcement classification
 
 <!-- program-kit:knowledge-rule principle.source-enforcement -->
-- Universal: argument/parameter layout, prepared argument values, one invocation per chain line,
+- Universal: next-line control-flow bodies, argument/parameter layout, prepared argument values, one invocation per chain line,
   owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
   resource ownership, immutable production composition, no shell-level `AddHostedService`, coherent method
   abstraction, one declared type per file, private helpers last, and purposeful XML documentation on every
@@ -289,17 +298,17 @@ the actual native build; declared root settings alone establish no effective-pol
 - Conditional: `ValueTask`, PLINQ, structs, records, primary constructors, frozen collections, live unloading,
   and specialized synchronization.
 - Recommendation: line width, contextual named arguments, and sealing internal leaves.
-- Invocation readability remains mandatory. The qualified Foundation `source-readability-v1` contract
-  enforces argument/parameter layout, prepared argument values, invocation-chain layout and fields-first
-  ordering through ORB1007–ORB1010 with `FoundationSourceReadability=true`. An older selected package
-  does not supply that contract: supported adoption stays blocked until an actually qualified release/profile
-  is available. A local source-built candidate is development proof, never a new public pin.
-  Selected mandatory diagnostics cannot be downgraded/suppressed; native build and preflight reject
-  disabled analyzer execution rather than accepting an optimization flag as passing conformance.
-  Analyzer success does not certify semantic ownership, cancellation/cleanup, abstraction or XML purpose;
-  current scoped source review and adverse checks remain due; a green build does not waive that review.
-  Apply them to owned authored source and editable examples/templates; do not reformat external packages,
-  immutable historical evidence or native generated output. Check changes after manual edits too.
+- Qualified Foundation `source-readability-v1` enforces argument/parameter, prepared-value, chain and
+  fields-first layout through ORB1007–ORB1010 with `FoundationSourceReadability=true`. Older packages
+  block supported adoption until a qualified published release/profile exists; local candidates supply
+  development proof, never public pins. Mandatory Foundation diagnostics cannot be suppressed/downgraded;
+  native build/preflight reject disabled analyzer/compiler execution.
+  SDK IDE2001/IDE1006 enforce body layout/naming; ORB1003/ORB1004/ORB1005 enforce one type, helpers-last
+  and XML presence. Check this whole category after manual edits, including nested method, constructed,
+  awaited and deferred arguments; preserve actual diagnostics, not just a passing chain check.
+  Semantic ownership, cancellation/cleanup, abstraction and XML purpose still need scoped source review
+  and adverse checks; a green build does not waive that review. Apply these rules to owned source and
+  editable examples/templates, preserving external packages, historical evidence and native generated output.
 - Prohibited unless ADR: invisible work, sync-over-async, unbounded queues/fan-out, custom schedulers, runtime feed
   mutation, and live reload without drain/unload evidence.
 <!-- /program-kit:knowledge-rule -->

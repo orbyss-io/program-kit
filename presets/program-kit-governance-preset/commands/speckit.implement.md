@@ -37,6 +37,12 @@ For the current task or coherent increment, apply this coding method directly:
    Apply the [first-operation source review](.specify/extensions/program-kit-governance/references/programming-guardrails.md#typed-boundaries-and-design-evidence):
    inspect actual method abstraction, owned state transitions, pure policy/provider split, effective
    configuration and required snapshots, deadline/resource ownership and operation-local placement.
+   Review shared failure/retry keys in actual decisions and private helpers. For .NET settings use
+   native Options binding/validation before immutable snapshots, with actual shell activation evidence.
+   Apply the whole source-readability category after manual edits: parameter/argument layout, prepared
+   values, chains, next-line control-flow bodies, fields/helper ordering, naming, types and documentation.
+   Mark the owning task complete only after its applicable checks and semantic source review; retain
+   omissions as open findings rather than assuming the closure review will supply completed work.
    Trace one relevant adverse case. A green build, folder move or generic compliance claim cannot
    close these semantic questions. Preserve runtime/wire identities and native source inventories.
 6. Route consequential deviations through the shared

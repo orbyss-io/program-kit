@@ -44,19 +44,22 @@ Check(store.Value == "committed" && store.Writes == 1 && store.Reads == 1, "expi
 Check(store.WriteToken == store.ReadToken && store.ReadToken.IsCancellationRequested, "one bounded outer token");
 
 // A non-cooperating write may complete, but no fresh read starts after expiry.
-store.Reset(); store.WriteCost = TimeSpan.FromSeconds(4);
+store.Reset();
+store.WriteCost = TimeSpan.FromSeconds(4);
 Func<Task> lateUpdate = () => operations.UpdateAsync("late-write", CancellationToken.None);
 await Reject<TimeoutException>(lateUpdate);
 Check(store.Value == "late-write" && store.Writes == 1 && store.Reads == 0, "late write cannot start observation");
 
 // A non-cooperating read may return data; freshness still rejects late success.
-store.Reset(); store.ReadCost = TimeSpan.FromSeconds(4);
+store.Reset();
+store.ReadCost = TimeSpan.FromSeconds(4);
 Func<Task> readOperation = () => operations.ReadAsync(CancellationToken.None);
 await Reject<TimeoutException>(readOperation);
 Check(store.Reads == 1, "late read executed only once");
 
 clock.DelayCallbacks = true;
-store.Reset(); store.ReadCost = TimeSpan.FromSeconds(4);
+store.Reset();
+store.ReadCost = TimeSpan.FromSeconds(4);
 await Reject<TimeoutException>(readOperation);
 Check(!store.TokenWasCanceledAtReturn, "delayed callback is independent from monotonic expiry");
 clock.DelayCallbacks = false;
@@ -67,12 +70,14 @@ store.CancelDuringRead = caller;
 Func<Task> callerRead = () => operations.ReadAsync(caller.Token);
 await Reject<OperationCanceledException>(callerRead);
 Check(store.Reads == 1, "caller cancellation stays cancellation");
-store.Reset(); caller.Cancel();
+store.Reset();
+caller.Cancel();
 Func<Task> canceledWrite = () => operations.UpdateAsync("never", caller.Token);
 await Reject<OperationCanceledException>(canceledWrite);
 Check(store.Writes == 0 && store.Reads == 0, "canceled caller has no effects");
 
-store.Reset(); store.ReadCost = TimeSpan.FromSeconds(1);
+store.Reset();
+store.ReadCost = TimeSpan.FromSeconds(1);
 var read = await operations.ReadAsync(CancellationToken.None);
 Check(read == store.Value, "within-budget completion");
 var registeredClock = provider.GetRequiredService<TimeProvider>();
@@ -111,13 +116,20 @@ Console.WriteLine("NATIVE_OUTER_DEADLINE_FRESHNESS_CALLER_AND_CONFIG_PASSED");
 
 static void Check(bool condition, string message)
 {
-    if (!condition) throw new InvalidOperationException(message);
+    if (!condition)
+        throw new InvalidOperationException(message);
 }
 
 static async Task Reject<T>(Func<Task> operation) where T : Exception
 {
-    try { await operation(); }
-    catch (T) { return; }
+    try
+    {
+        await operation();
+    }
+    catch (T)
+    {
+        return;
+    }
     throw new InvalidOperationException("Expected " + typeof(T).Name);
 }
 
@@ -126,7 +138,8 @@ static async Task CheckBudgetBoundary(string? configured, TimeSpan expected)
     var boundaryClock = new ControlledClock();
     var boundaryStore = new Store(boundaryClock) { ReadCost = expected };
     var boundaryValues = new Dictionary<string, string?>();
-    if (configured is not null) boundaryValues["Sample:Execution:Timeout"] = configured;
+    if (configured is not null)
+        boundaryValues["Sample:Execution:Timeout"] = configured;
     var boundaryBuilder = new ConfigurationBuilder();
     var boundaryConfiguration = boundaryBuilder
         .AddInMemoryCollection(boundaryValues)

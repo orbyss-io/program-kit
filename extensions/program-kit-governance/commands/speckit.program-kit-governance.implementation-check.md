@@ -78,3 +78,7 @@ Before expanding the first coherent operation, apply the canonical
 Inspect method abstraction, state/policy ownership, admitted configuration snapshots, deadlines,
 resource cleanup and actual source/test locations. Exercise a relevant adverse case; no source
 review certificate, automatic semantic detector or additional human gate is created by this helper.
+Trace shared failure/retry codes through actual policy/provider/adapter decisions. Check native
+configuration binding before snapshot admission; .NET uses its Options pipeline at the actual shell
+activation boundary. Review the entire applicable source-readability category, not just chains or
+one diagnostic, and retain specific unreviewed work before marking the owning task complete.

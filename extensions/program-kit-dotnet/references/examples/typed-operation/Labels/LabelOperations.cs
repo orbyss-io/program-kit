@@ -54,7 +54,8 @@ public sealed class LabelOperations(
     private static void EnsureCurrent(IExecutionDeadline deadline, CancellationToken caller)
     {
         caller.ThrowIfCancellationRequested();
-        if (deadline.IsExpired) throw new OperationCanceledException(deadline.Token);
+        if (deadline.IsExpired)
+            throw new OperationCanceledException(deadline.Token);
         deadline.Token.ThrowIfCancellationRequested();
     }
 }

@@ -59,7 +59,15 @@ class CodingContextTests(unittest.TestCase):
             import phase_obligations as phase
             output = phase.render(value, 'implementation')
             self.assertLess(len(output.encode('utf-8')), BRIEF_LIMITS['core'])
-            assert_complete_required_text(self, catalog(), value['requirements'], output, ROOT / 'extensions')
+            assert_complete_required_text(self, catalog(), value['requirements'],
+                phase.render(value, 'implementation', detailed=True), ROOT / 'extensions')
+
+            core = root / 'src/Core/Core.csproj'
+            core.write_text(core.read_text().replace('</PropertyGroup>',
+                '<EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild></PropertyGroup>'))
+            disabled = prepare(root, feature, task_ids=['T001'])
+            self.assertTrue(any(b.get('code') == 'PKQ003' and 'EnforceCodeStyleInBuild' in b.get('disabled', [])
+                                for b in disabled['coding']['blockers']))
 
     def test_shared_domain_persistence_is_design_knowledge_not_core_source_effect(self):
         with FixtureDirectory(native=True) as name:

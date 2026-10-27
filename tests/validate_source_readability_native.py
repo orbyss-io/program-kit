@@ -230,7 +230,7 @@ def main():
         results.append(execute(owner, ['dotnet', 'build', str(project), '--no-restore', '--nologo',
             '-p:SkipCompilerExecution=true', '-p:ProvideCommandLineArgs=true'],
             'skipped-compiler-with-options-without-design-time-reject', 1, ['PKQ003']))
-        for property_name in ('RunAnalyzers', 'RunAnalyzersDuringBuild', 'EnableNETAnalyzers', 'GenerateMSBuildEditorConfigFile'):
+        for property_name in ('RunAnalyzers', 'RunAnalyzersDuringBuild', 'EnableNETAnalyzers', 'EnforceCodeStyleInBuild', 'GenerateMSBuildEditorConfigFile'):
             results.append(execute(owner, ['dotnet', 'build', str(project), '--no-restore', '--nologo', '-p:' + property_name + '=false'],
                                    'disabled-' + property_name, 1, ['PKQ003']))
         results.append(execute(owner, ['dotnet', 'build', str(project), '--no-restore', '--nologo',

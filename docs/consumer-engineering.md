@@ -67,6 +67,11 @@ test ownership at that increment, preserving compilation boundaries and proporti
 Correct applicable source findings then; final settings/SOLID reconciliation is not permission to
 repeat them. The canonical programming guardrails and selected technology specialization own the
 details. These are source-review obligations, not a new approval ledger or an automatic semantic gate.
+Shared failure/retry keys and native configuration binding belong to that first review too. For .NET,
+bind and validate owner options at actual activation before copying immutable work policy. Check all
+applicable source-layout diagnostics after manual changes, and inspect policy decisions/private helpers
+before completing their owning task. A typed facade, green build or future closure review does not
+establish those semantic duties. Preserve the active owner's before/after evidence when work overlaps.
 
 Generated diagrams, focused guidance and local check output are regenerable views.
 Keep one useful source for architectural meaning rather than maintaining duplicate

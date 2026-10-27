@@ -24,20 +24,28 @@ internal sealed class Store(ControlledClock clock) : ILabelStore
     /// <summary>Commits a fake effect without obeying cancellation so the runtime must check freshness.</summary>
     public Task WriteAsync(string value, CancellationToken token)
     {
-        Writes++; WriteToken = token; Value = value; clock.Advance(WriteCost);
+        Writes++;
+        WriteToken = token;
+        Value = value;
+        clock.Advance(WriteCost);
         return Task.CompletedTask;
     }
     /// <summary>Returns a potentially stale result without obeying cancellation.</summary>
     public Task<string> ReadAsync(CancellationToken token)
     {
-        Reads++; ReadToken = token; clock.Advance(ReadCost); CancelDuringRead?.Cancel();
+        Reads++;
+        ReadToken = token;
+        clock.Advance(ReadCost);
+        CancelDuringRead?.Cancel();
         TokenWasCanceledAtReturn = token.IsCancellationRequested;
         return Task.FromResult(Value);
     }
     /// <summary>Clears observations while preserving the last committed value.</summary>
     public void Reset()
     {
-        Writes = Reads = 0; WriteCost = ReadCost = TimeSpan.Zero; CancelDuringRead = null;
+        Writes = Reads = 0;
+        WriteCost = ReadCost = TimeSpan.Zero;
+        CancelDuringRead = null;
         TokenWasCanceledAtReturn = false;
     }
 }

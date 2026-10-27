@@ -86,6 +86,10 @@ durable-effect qualification must prove that the selected provider supplies the 
 Declare applicable native settings metadata using its maintained producer/inspection
 contract. A typed options class alone supplies no independently verified settings
 manifest. Preserve original source hashes and review actual generated changes.
+Native `AddOptions/Bind/Validate` binding precedes immutable policy admission; copying a validated
+work snapshot does not replace binding or require `IOptions` in Core. Required API options are
+observed at actual shell activation. SDK IDE2001 and Foundation ORB1007–ORB1010 check different
+parts of the source-layout contract; a passing invocation-chain check does not cover the category.
 For new declarations, adapt `settings.source.template.json` for the API and
 `runtime.settings.source.template.json` for the runtime to the actual package and
 feature identities. After restore, run
