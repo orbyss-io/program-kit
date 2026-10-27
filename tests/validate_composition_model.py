@@ -301,6 +301,7 @@ class ResourceModel(unittest.TestCase):
 
     def test_feature_capability_packages_use_exact_selected_profile_and_remain_optional(self):
         import composition_render as renderer
+        from dependency_profile import resolver
         import xml.etree.ElementTree as ET
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary); graph = example()
@@ -308,7 +309,9 @@ class ResourceModel(unittest.TestCase):
             feature['capabilityPackages'] = ['Orbyss.Foundation.Tasks', 'Orbyss.Foundation.Tasks.Abstractions']
             files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
             contract = json.loads(files[renderer.CONTRACT][0])['shells']['application-shell']
-            self.assertEqual('0.3.7', contract['packages']['Orbyss.Foundation.Tasks'])
+            catalog = resolver().effective_dependency_context(root)['catalog']
+            selected_version = catalog['packages']['nuget:Orbyss.Foundation.Tasks']['version']
+            self.assertEqual(selected_version, contract['packages']['Orbyss.Foundation.Tasks'])
             references = {row.get('Include') for row in ET.fromstring(files[feature['path']][0]).iter('PackageReference')}
             self.assertIn('Orbyss.Foundation.Tasks', references)
             self.assertIn('Orbyss.Foundation.Tasks.Abstractions', references)
