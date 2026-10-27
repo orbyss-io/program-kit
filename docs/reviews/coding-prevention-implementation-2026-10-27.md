@@ -1,5 +1,49 @@
 # Coding prevention implementation and review
 
+## Coordinated release and adoption — 2026-10-28
+
+Foundation **0.3.8** is public: all 30 runtime packages, the matching Host image and versioned publisher
+knowledge. [Foundation PR #22](https://github.com/orbyss-io/dotnet-foundation/pull/22) passed Windows/Linux CI;
+[Release 40595962430](https://github.com/orbyss-io/dotnet-foundation/actions/runs/40595962430) completed on
+`2b5f6737e558977fd17cd83fe1e03d0b96aa0df4`, including public NuGet byte verification and both image scans.
+The published immutable Host is `ghcr.io/orbyss-io/foundation-host@sha256:bf27d204ee972b6aadf3b156b493773e7c6e6ae9a3bf010a30b46c6d88b5e93a`.
+
+Program Kit's qualified active default is now
+`foundation-0.3.8-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2`.
+Independent Build/exporter/analyzer versions remain 0.3.3/0.2.7/0.3.8. All 13 historical profile entries and
+existing consumer locks remain unchanged. New captured publisher knowledge includes all new registration,
+permission, problem-status and numeric-schema capabilities; no local development package is selected.
+The maintained updater also advances active source pins, including SDK 10.0.403, Node 26.12.1,
+npm 12.2.1, Python 3.15.2 and Spec Kit 1.2.4. It installs no device software.
+
+The original maintenance run 40599066603 qualified native packages/tools, all three browser engines,
+the actual public Host and publisher knowledge. Its later affected run retained two stale test failures:
+a literal Tasks 0.3.7 expectation and an expected nullable-schema defect that 0.3.8 correctly repaired.
+Both original assertions were independently reproduced before repair. Tests now read the selected package
+pin and independently check the untouched corrected nullable export, requiredness and compiled number/null
+client. A separately named intentionally malformed native producer still rejects with PKO222. Historical
+0.3.7 raw evidence remains blocking; its replay is labelled static evidence, not a new old-runtime run.
+
+[Maintenance 40602186328](https://github.com/orbyss-io/program-kit/actions/runs/40602186328) passed lock refresh,
+affected checks and public Host security scanning. Its exact package CI passed build, security and clean
+Windows/Linux installation. [Program Kit PR #61](https://github.com/orbyss-io/program-kit/pull/61) retains the
+reviewable branch; no Program Kit product publication or main merge is claimed here.
+
+The final [maintenance run 40603167832](https://github.com/orbyss-io/program-kit/actions/runs/40603167832)
+also passed the genuine released numeric producer/client and emitted operation/client checks with its exact
+prepared tools: 19.209s and 24.039s, 43.433s total. These bounded checks now remain in the maintained workflow
+even when discovery finds an already-promoted profile. They do not stage the full application Host.
+
+Local final Affected diagnostics `20261027T232709Z-37e1c992` retain 43 passed checks and one client-toolchain
+pause: this device has Node 26.12.0/npm 12.2.0, below the new pins. There were no coverage gaps, overruns or
+source changes during that run. Its two manually selected scenarios were independently exercised: full
+numeric runtime/export/client qualification and cold emitted-label export/client compilation. Exact new-tool
+client qualification passed in the final CI run above; no temporary runtime copy or pin downgrade masked the
+local limitation. The separate earlier full-runtime PKR014 scenario remains outside these claims.
+
+The halted trial consumer was not edited, refreshed or resumed. Consumer refactoring and human acceptance
+remain the next separately agreed work.
+
 ## API contracts, configuration and method layout follow-through
 
 This later increment uses Program Kit base `40220694` and the isolated Foundation implementation branch;
