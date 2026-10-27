@@ -30,6 +30,23 @@ coding hooks supply read-only guidance and never start this sequence. On resume,
 reuse the graph, setup and applicable evidence; repeat only affected checks when
 relevant inputs change. Preserve agreed human story reviews.
 
+## First engineering increment
+
+Make initial composition adoption an explicit bounded increment around the first product operation,
+before expanding product implementation. Prepare the graph/configuration before adding an endpoint.
+Keep it in the current feature unless a reusable platform is itself an independently scoped outcome.
+Its result is the active graph with exact pins and generated configuration. Include a realm and real
+login check only when identity is selected, a product permission/owner check where that boundary
+applies, and separate native schema deployment/read-only admission plus a small real provider fixture
+when persistence is selected. Do not add identity or a database to an unrelated worker composition.
+Do not expand setup into supplier-wide protocol requalification.
+Use the [fast PostgreSQL fixture](examples/postgresql-lifecycle/README.md#fast-provider-test-composition)
+for later provider work; it does not need the complete identity/browser topology.
+Retain authored realm users/client identities and product overlays when adopting an existing consumer.
+On resume, reuse applicable setup/evidence and correct stale operative tasks openly, preserving history.
+This is an engineering result, not a new human approval gate or an instruction for generic hooks to
+start services. The agreed story reviews and actual security/deployment prerequisites still apply.
+
 Profile activation/exporter hashes establish their declared metadata/admission
 scope. Retained Forms browser evidence establishes its Forms scope. The maintained
 `validate_composition_start.py --execute` scenarios separately exercise actual

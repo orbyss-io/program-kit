@@ -65,13 +65,15 @@ def normalize_generated_migration(value):
 
 def validate_generated_migration(value, expected):
     require(normalize_generated_migration(value) == normalize_generated_migration(expected),
-            'Native generated migration changed; review exact schema/types/nullability/identity/PK/index/Down before adapting it')
+            'Native generated migration changed; review exact schema/types/nullability/identity/PK/index/Down')
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-version', help='Exact Foundation.Build version; default is the maintained pin')
     parser.add_argument('--build-package', type=Path, help='Explicit local Foundation.Build candidate nupkg')
+    parser.add_argument('--analyzer-version', help='Exact analyzer version; default is the maintained pin')
+    parser.add_argument('--analyzer-package', type=Path, help='Explicit local analyzer candidate, never a public adoption claim')
     parser.add_argument('--expect-tooling-conflict', action='store_true',
                         help='Require successful native packing followed by the original EF Design PKR014 staging failure; no runtime qualification')
     args = parser.parse_args()
@@ -127,8 +129,6 @@ def main():
                       and not {'__pycache__', 'node_modules', 'artifacts'}.intersection(path.relative_to(TEMPLATE).parts)],
                     *[path for path in (ROOT / 'extensions/program-kit-dotnet/scripts').rglob('*.py')],
                     *[path for path in (ROOT / 'extensions/program-kit-building-blocks/scripts').rglob('*.py')],
-                    ROOT / 'tests/fixtures/private-ef-metadata/ReviewedInitial.cs',
-                    ROOT / 'tests/fixtures/private-ef-metadata/ReviewedEntryColumns.cs',
                     ROOT / 'tests/fixtures/private-ef-metadata/NativeInitial.expected.cs.txt',
                     ROOT / 'extensions/program-kit-governance/scripts/compatibility_process.py',
                     Path(runtime_fixture.__file__), Path(runtime_probe.__file__), Path(foundation_composition.__file__),
@@ -157,6 +157,12 @@ def main():
                       if row.get('Include') == 'Orbyss.Foundation.Build']
         require(len(build_pins) == 1, 'Selected engineering builder pin is absent or ambiguous')
         build_pins[0].set('Version', build_version)
+        analyzer_version = args.analyzer_version or pins['orbyss.foundation.analyzers']
+        analyzer_pins = [row for row in engineering_pins.iter('PackageVersion')
+                         if row.get('Include') == 'Orbyss.Foundation.Analyzers']
+        require(len(analyzer_pins) == 1, 'Selected analyzer pin is absent or ambiguous')
+        analyzer_pins[0].set('Version', analyzer_version)
+        result['selectedAnalyzer'] = analyzer_version
         engineering_pins.write(consumer / 'eng/ProgramKit.Packages.props', encoding='utf-8', xml_declaration=True)
         central = ET.parse(consumer / 'Directory.Packages.props')
         group = ET.SubElement(central.getroot(), 'ItemGroup')
@@ -180,6 +186,19 @@ def main():
             ET.SubElement(source, 'package', pattern='Orbyss.Foundation.Build')
             config.write(consumer / 'NuGet.config', encoding='utf-8', xml_declaration=True)
             result['candidateSha256'] = hashlib.sha256(candidate.read_bytes()).hexdigest()
+        if args.analyzer_package:
+            candidate = args.analyzer_package.resolve()
+            require(archive_identity(candidate) == ('Orbyss.Foundation.Analyzers', analyzer_version),
+                    'Analyzer candidate identity differs from explicit selection')
+            feed = consumer / 'analyzer-candidate-feed'
+            feed.mkdir()
+            shutil.copyfile(candidate, feed / candidate.name)
+            config = ET.parse(consumer / 'NuGet.config')
+            ET.SubElement(config.getroot().find('packageSources'), 'add', key='explicit-analyzer-candidate', value=str(feed))
+            source = ET.SubElement(config.getroot().find('packageSourceMapping'), 'packageSource', key='explicit-analyzer-candidate')
+            ET.SubElement(source, 'package', pattern='Orbyss.Foundation.Analyzers')
+            config.write(consumer / 'NuGet.config', encoding='utf-8', xml_declaration=True)
+            result['analyzerCandidateSha256'] = hashlib.sha256(candidate.read_bytes()).hexdigest()
         feature = consumer / 'src/ProgramKit.PrivateEfMetadata'
         feature.mkdir(parents=True)
         for source in source_files[2:]:
@@ -219,31 +238,42 @@ def main():
             expected = (ROOT / 'tests/fixtures/private-ef-metadata/NativeInitial.expected.cs.txt').read_text()
             validate_generated_migration(original, expected)
             shutil.copytree(feature / 'Migrations', evidence / 'native-generated-migrations')
-            # The raw EF migration is retained above. Its generated inline delegates
-            # conflict with the mandatory source-readability contract. This fixture
-            # supplies a reviewed equivalent using the same native EF operations;
-            # identity, generated designer and model snapshot remain untouched.
-            shutil.copyfile(ROOT / 'tests/fixtures/private-ef-metadata/ReviewedInitial.cs', migrations[0])
             retained = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-                        for path in (feature / 'Migrations').glob('*.cs') if path != migrations[0]}
-            shutil.copyfile(ROOT / 'tests/fixtures/private-ef-metadata/ReviewedEntryColumns.cs',
-                            feature / 'ReviewedEntryColumns.cs')
-            result['migrationReviewAdaptation'] = {
-                'meaning': 'Synthetic reviewed readable equivalent of native EF Up/Down; raw output retained; no analyzer suppression or human acceptance claim',
-                'rawMigrationSha256': hashlib.sha256(original_bytes).hexdigest(),
-                'reviewedMigrationSha256': hashlib.sha256(migrations[0].read_bytes()).hexdigest(),
-                'retainedIdentityDesignerSnapshot': retained}
+                        for path in (feature / 'Migrations').glob('*.cs')}
             run('migration-build', build)
             require(retained == {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-                    for path in (feature / 'Migrations').glob('*.cs') if path != migrations[0]},
-                    'Native migration identity/designer/snapshot changed during review adaptation')
+                    for path in (feature / 'Migrations').glob('*.cs')},
+                    'Native EF migration/designer/snapshot bytes changed during build')
+            result['nativeMigrationBytesPreserved'] = retained
+            control = feature / 'AuthoredMigrationControl.cs'
+            control.write_text('''using Microsoft.EntityFrameworkCore.Migrations;
+namespace ProgramKit.PrivateEfMetadata;
+/// <summary>Challenges authored work inside a real migration override.</summary>
+public sealed class AuthoredMigrationControl : Migration
+{
+    /// <inheritdoc />
+    protected override void Up(MigrationBuilder builder) => builder.Sql(GetSql());
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder builder) { }
+    /// <summary>Represents authored work that must remain prepared separately.</summary>
+    private static string GetSql() => "select 1";
+}
+''', encoding='utf-8')
+            rejected = run('authored-migration-reject', build, success=False)
+            require('error ORB1008' in rejected and not re.search(r'error (CS[0-9]+|AD0001)', rejected),
+                    'Authored migration rejection must reach the selected layout diagnostic, not a compiler failure')
+            control.unlink()
+            run('migration-repaired-build', build)
+            require(retained == {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                    for path in (feature / 'Migrations').glob('*.cs')}, 'Native generated bytes were not preserved')
+            result['cases'].append('raw-native-migration-build-and-authored-code-rejection')
             run('ef-no-model-drift', [*ef, 'migrations', 'has-pending-model-changes', *ef_args])
             run('ef-reviewable-script', [*ef, 'migrations', 'script', '--idempotent', '--output', evidence / 'migration.sql', *ef_args])
             migration_sql = (evidence / 'migration.sql').read_text(encoding='utf-8-sig')
             require(all(text in migration_sql for text in ('__EFMigrationsHistory', 'ef_entries',
                     'IX_ef_entries_Value', 'GENERATED BY DEFAULT AS IDENTITY')),
                     'Native EF script lost required model operations')
-            result['cases'].append('native-ef-tooling-reviewed-migration-snapshot-and-model-drift')
+            result['cases'].append('native-ef-tooling-unmodified-migration-snapshot-and-model-drift')
         profile = consumer / 'eng/web-profile.shells.json'
         document = json.loads(profile.read_text())
         shell = document['CShells']['Shells']['default']

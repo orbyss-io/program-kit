@@ -15,6 +15,13 @@ usable in the task that consumes them without duplicating the full research. Put
 review/checks on the first coherent case of a new or uncertain approach before replicating it;
 this technical review adds no automatic human checkpoint or per-task full-app acceptance run.
 Private file/class refinements can evolve within the agreed contracts.
+For a large task, name small observable increments and their real prerequisites/checks. Settings
+belong beside their first consumer; complete inventory reconciliation belongs at closure. A first
+working provider case does not waive the agreed contention, expiry, drain, restart or ownership checks.
+After an authorized design correction, reconcile operative tasks with the current plan, preserving
+IDs, checkmarks and linked history. Keep the current status/next increment concise; task counts are
+not a delivery percentage. Expected behavioral red tests lead into implementation, while unexpected
+failures constrain dependent work. Continue ready work until an actual agreed review or blocker.
 
 When implementation or review invalidates an assumption, use the shared
 [engineering feedback method](.specify/extensions/program-kit-governance/references/engineering-feedback.md)

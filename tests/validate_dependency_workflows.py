@@ -48,9 +48,11 @@ class ProfilePreparationTests(unittest.TestCase):
                          for path in self.registry.rglob('*') if path.is_file()}
         self.latest={family:'99.0.0' for family in self.current['families']}
         self.exporter='99.0.1'
+        self.analyzer='99.0.2'
 
     def observed(self,pin,cache):
         if pin['name']=='Orbyss.Foundation.OpenApi.Exporter': return {'latest':self.exporter}
+        if pin['name']=='Orbyss.Foundation.Analyzers': return {'latest':self.analyzer}
         family=next(family for family,details in maintenance.read_json(ROOT/'maintenance-policy.json')['families'].items()
                     if details==pin['name'])
         return {'latest':self.latest[family]}
@@ -81,8 +83,8 @@ class ProfilePreparationTests(unittest.TestCase):
         for key,package in self.current['packages'].items():
             self.assertEqual({field:value for field,value in package.items() if field!='version'},
                              {field:value for field,value in target['packages'][key].items() if field!='version'},key)
-            self.assertEqual(self.exporter if package['packageId']=='Orbyss.Foundation.OpenApi.Exporter'
-                             else self.latest[package['family']],target['packages'][key]['version'],key)
+            tools={'Orbyss.Foundation.OpenApi.Exporter':self.exporter,'Orbyss.Foundation.Analyzers':self.analyzer}
+            self.assertEqual(tools.get(package['packageId'],self.latest[package['family']]),target['packages'][key]['version'],key)
         for key,family in self.current['families'].items():
             self.assertEqual({field:value for field,value in family.items() if field not in {'releaseVersion','toolVersions'}},
                              {field:value for field,value in target['families'][key].items() if field not in {'releaseVersion','toolVersions'}},key)
@@ -99,6 +101,7 @@ class ProfilePreparationTests(unittest.TestCase):
     def test_current_public_versions_do_not_create_duplicate_candidate(self):
         self.latest={family:details['releaseVersion'] for family,details in self.selected['families'].items()}
         self.exporter=self.selected['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter']
+        self.analyzer=self.selected['artifacts']['nuget:Orbyss.Foundation.Analyzers']
         directory,sync=self.prepare()
         self.assertIsNone(directory)
         sync.assert_called_once_with(self.selected)

@@ -107,6 +107,7 @@ class OfficialToolBindingTests(unittest.TestCase):
         base = blocks.load_json(blocks.default_catalog(Path(blocks.__file__)))
         selected = blocks.dependency_profile_value(base, 'synthetic-official-tools')
         selected['artifacts']['nuget:Orbyss.Foundation.Build'] = '0.2.0'
+        selected['artifacts']['nuget:Orbyss.Foundation.Analyzers'] = '0.3.8'
         profile = self.root / 'profile.json'
         fixtures.write_json(profile, selected)
         lock = self.root / 'native.lock.json'
@@ -120,6 +121,8 @@ class OfficialToolBindingTests(unittest.TestCase):
             actual = [node.attrib['Version'] for node in central.iter('PackageVersion')
                       if node.attrib.get('Include') == 'Orbyss.Foundation.Build']
             self.assertEqual(['0.2.0'], actual)
+            self.assertEqual(['0.3.8'], [node.attrib['Version'] for node in central.iter('PackageVersion')
+                                      if node.attrib.get('Include') == 'Orbyss.Foundation.Analyzers'])
             self.assertEqual(str(work / 'dotnet-home'), kwargs['env'].get('DOTNET_CLI_HOME'))
             configuration = ET.parse(work / 'NuGet.config').getroot()
             self.assertIsNotNone(configuration.find('fallbackPackageFolders/clear'))
@@ -129,6 +132,36 @@ class OfficialToolBindingTests(unittest.TestCase):
             with self.assertRaises(RestoreObserved):
                 self.native.qualify(profile, work, catalog_path=self.root / 'catalog.json', native_lock=lock,
                                     qualification_recipe=self.root / 'recipe.json')
+
+    def test_same_version_analyzer_override_is_verified_before_pack(self):
+        base = blocks.load_json(blocks.default_catalog(Path(blocks.__file__)))
+        selected = blocks.dependency_profile_value(base, 'synthetic-same-version-analyzer')
+        selected['artifacts']['nuget:Orbyss.Foundation.Build'] = '0.2.0'
+        analyzer = 'Orbyss.Foundation.Analyzers'
+        version = selected['families']['foundation']['releaseVersion']
+        selected['families']['foundation'].setdefault('toolVersions', {})[analyzer] = version
+        selected['artifacts']['nuget:' + analyzer] = version
+        profile = self.root / 'profile.json'
+        fixtures.write_json(profile, selected)
+        lock = self.root / 'native.lock.json'; lock.write_text('{}')
+        work = self.root / 'work'
+        class AnalyzerBindingObserved(Exception):
+            pass
+        def official(cache, identity, pin, destination):
+            if identity == analyzer:
+                self.assertEqual(work / 'cache', cache)
+                self.assertEqual(version, pin)
+                raise AnalyzerBindingObserved()
+            return {}
+        with patch.object(self.native.profile_catalogs, 'qualification_inputs', return_value={'catalog': base, 'nativeLock': lock}), \
+                patch.object(self.native.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')) as process, \
+                patch.object(self.native, 'require_resolved_tool') as resolved, \
+                patch.object(self.native, 'official_tool_binary', side_effect=official):
+            with self.assertRaises(AnalyzerBindingObserved):
+                self.native.qualify(profile, work, catalog_path=self.root / 'catalog.json', native_lock=lock,
+                                    qualification_recipe=self.root / 'recipe.json')
+        resolved.assert_any_call(work / 'Feature/obj/project.assets.json', work / 'cache', analyzer, version)
+        self.assertEqual(1, process.call_count, 'Independent analyzer must be verified immediately after restore')
 
     def package(self, identity='Orbyss.Foundation.Build', version='0.2.0'):
         package = self.root / 'cache' / identity.lower() / version / (identity.lower() + '.' + version + '.nupkg')
@@ -216,9 +249,10 @@ class OfficialToolBindingTests(unittest.TestCase):
     def test_sealer_rechecks_retained_official_restored_archives_and_native_provenance(self):
         sys.path.insert(0, str(ROOT / 'scripts'))
         from build_dependency_qualification import verify_official_tool_evidence
-        selected, tools = {'artifacts': {}}, {}
+        selected, tools = {'artifacts': {}, 'families': {'foundation': {'releaseVersion': '0.3.7'}}}, {}
         paths = []
-        for identity, version in ((self.native.BUILD, '0.2.0'), (self.native.TOOL, '0.2.4')):
+        for identity, version in ((self.native.BUILD, '0.2.0'), (self.native.TOOL, '0.2.4'),
+                                  ('Orbyss.Foundation.Analyzers', '0.3.8')):
             package = self.package(identity, version)
             cache = self.root / 'cache'
             if identity == self.native.TOOL:
@@ -497,6 +531,56 @@ class CatalogProfileTests(unittest.TestCase):
 
     def qualified(self, supplied=None):
         return blocks.qualified_dependency_profile(self.registry, IDENTITY, supplied or self.base)
+
+    def test_analyzer_usage_guide_keeps_its_exact_package_commit_after_fact_rehash(self):
+        runtime_commit, analyzer_commit = 'a'*40, 'b'*40
+        knowledge = self.registry / 'synthetic-knowledge'
+        knowledge.mkdir()
+        def fact(path, value):
+            fixtures.write_json(path, value)
+            return {'path': path.relative_to(self.registry).as_posix(), 'sha256': blocks.raw_sha256(path)}
+        packages = []
+        for index, (key, version) in enumerate(self.selected['artifacts'].items()):
+            if not key.startswith('nuget:Orbyss.Foundation.'):
+                continue
+            identity = key.removeprefix('nuget:')
+            commit = analyzer_commit if identity == 'Orbyss.Foundation.Analyzers' else runtime_commit
+            packages.append({'id': identity, 'version': version,
+                **fact(knowledge / ('package-'+str(index)+'.json'), {'repository': {'commit': commit}})})
+        document = fact(knowledge / 'migration-guide.json', {'synthetic': 'analyzer-owned usage guide'})
+        document.update(publisherPath='docs/ef-migration-authoring.md', sourceCommit=analyzer_commit,
+            url='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+analyzer_commit+'/docs/ef-migration-authoring.md')
+        runtime = fact(knowledge / 'runtime-guide.json', {'synthetic': 'runtime-owned usage guide'})
+        runtime.update(publisherPath='docs/authentication.md', sourceCommit=runtime_commit,
+            url='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+runtime_commit+'/docs/authentication.md')
+        facts = {'profileId': IDENTITY, 'releaseVersion': self.selected['families']['foundation']['releaseVersion'],
+                 'sourceCommit': runtime_commit, 'packages': packages, 'documents': [document, runtime]}
+        def retain(value):
+            self.entry['knowledge'] = fact(knowledge / 'index.json', value)
+            self.save_index()
+        retain(facts)
+        self.assertEqual(self.selected, self.qualified()[1])
+        # Each negative rehashes the enclosing knowledge/index registration, so
+        # rejection must come from ownership/provenance rather than stale hashes.
+        for label, change in (
+                ('wrong-package-commit', {'sourceCommit': 'c'*40,
+                    'url': 'https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+'c'*40+'/docs/ef-migration-authoring.md'}),
+                ('wrong-url', {'url': document['url'].replace(analyzer_commit, runtime_commit)}),
+                ('runtime-substitution', {'sourceCommit': runtime_commit,
+                    'url': document['url'].replace(analyzer_commit, runtime_commit)})):
+            altered = copy.deepcopy(facts)
+            altered['documents'][0].update(change)
+            retain(altered)
+            with self.subTest(label=label), self.assertRaisesRegex(blocks.ResolverError, 'exact package/runtime source commit'):
+                self.qualified()
+        altered = copy.deepcopy(facts)
+        altered['documents'][1].update(sourceCommit=analyzer_commit,
+            url=runtime['url'].replace(runtime_commit, analyzer_commit))
+        retain(altered)
+        with self.assertRaisesRegex(blocks.ResolverError, 'exact package/runtime source commit'):
+            self.qualified()
+        retain(facts)
+        self.assertEqual(self.selected, self.qualified()[1])
 
     def test_prepared_foundation_contract_catalog_is_additive_complete_and_unregistered(self):
         registry = Path(filesystem_path(blocks.profile_registry()))

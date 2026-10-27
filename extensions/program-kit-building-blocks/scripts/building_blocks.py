@@ -1630,8 +1630,13 @@ def named_official_tool_bindings(source: dict, selected: dict) -> dict:
     tools = require_object(source.get('officialTools'), 'named qualification officialTools')
     public_source = 'https://api.nuget.org/v3/index.json'
     expected = {'Orbyss.Foundation.Build', 'Orbyss.Foundation.OpenApi.Exporter'}
+    analyzer = 'Orbyss.Foundation.Analyzers'
+    if ('nuget:' + analyzer in selected['artifacts'] and
+            (analyzer in selected['families']['foundation'].get('toolVersions', {}) or
+             selected['artifacts']['nuget:' + analyzer] != selected['families']['foundation']['releaseVersion'])):
+        expected.add(analyzer)
     if set(tools) != expected:
-        fail('PKB611', 'named qualification requires exact official Build and exporter bindings')
+        fail('PKB611', 'named qualification requires exact official Build, exporter and independently selected analyzer bindings')
     for identity, binding in tools.items():
         binding = require_object(binding, 'named qualification official tool')
         version = selected['artifacts'].get('nuget:' + identity)
@@ -1800,8 +1805,11 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
                          for item in facts.get('packages',[])}
         for document in facts.get('documents',[]):
             relative=document.get('publisherPath','')
-            owners=[identity for identity in package_commits if relative.startswith('src/'+identity+'/')]
-            expected_commit=package_commits[owners[0]] if len(owners)==1 else facts.get('sourceCommit')
+            # Maintained usage guides outside src retain their explicit package
+            # owner when that tool ships independently of the runtime family.
+            owner={'docs/ef-migration-authoring.md': 'Orbyss.Foundation.Analyzers'}.get(relative)
+            owners=[owner] if owner else [identity for identity in package_commits if relative.startswith('src/'+identity+'/')]
+            expected_commit=package_commits.get(owners[0]) if len(owners)==1 else facts.get('sourceCommit')
             if (document.get('sourceCommit')!=expected_commit or not re.fullmatch(r'[a-f0-9]{40}',str(expected_commit))
                     or document.get('url')!='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+expected_commit+'/'+relative):
                 fail('PKB611','publisher guidance differs from its exact package/runtime source commit')

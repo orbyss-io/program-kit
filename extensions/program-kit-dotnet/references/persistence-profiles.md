@@ -104,6 +104,9 @@ starting the application host. Use the same mappings/provider options as runtime
 credentials never enter the runtime process. Preserve Foundation's tracked unit/context lifetimes for
 runtime work. The maintained [native EF example](examples/postgresql-lifecycle/README.md) uses the
 selected Foundation context and native EF tooling; it is not a replacement migration runner.
+For fast real provider tests, follow its [shell/unit fixture](examples/postgresql-lifecycle/README.md#fast-provider-test-composition):
+activate CShells before resolving native units; bare DI lacks the shell lifecycle. Use tracked
+scopes for scoped services. This test does not require the entire BFF/Keycloak application.
 Check `dotnet ef migrations has-pending-model-changes`, initial/repeated deployment, real EF history,
 least-privilege runtime access and read-only startup compatibility before claiming the workflow works.
 PostgreSQL and SQL Server can use provider-supported idempotent scripts; SQLite cannot. Qualify the

@@ -38,6 +38,22 @@ validate the inputs needed for their selected operation; their configuration doe
 become a prerequisite for using knowledge. Starting an entire application is not a
 universal before-coding step.
 
+An accepted maintained Foundation composition should have one explicit first engineering increment:
+active graph, exact pins and generated configuration. Include realm/login checks only for selected
+identity, product permission/owner checks where applicable, and native schema deployment/read-only
+admission plus a small real provider fixture for selected persistence. Do not introduce identity or
+a database into an unrelated composition. Reuse that fixture without repeating the Host/identity suite.
+This normally belongs in the first feature, not a mandatory separate setup spec or human gate.
+
+Make large tasks executable as small observable increments with actual prerequisites. Compile the
+first integration against known local APIs before replicating it; pair meaningful expected red tests
+with implementation and add all agreed adverse cases before claiming readiness. Implement settings
+beside their first consumer and reconcile the full inventory at closure. Preserve safety invariants.
+After an authorized architectural correction, reconcile operative task wording/dependencies while
+preserving IDs, completed work and history. Keep concise current status and links to prior evidence
+in the existing documents. Continue authorized ready work until an agreed review, genuine blocker or
+completion; saving progress alone adds no pause. Test counts and task counts do not measure delivery.
+
 Source, tests, native project/package files and locks, selected eng/deployment inputs
 and CI enforce the software. Compiler/analyzer diagnostics, meaningful architecture,
 security and behavioral checks retain their actual authority. A structural graph check

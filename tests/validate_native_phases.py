@@ -45,6 +45,7 @@ def feature(root):
 
 def retain_installed_review(root):
     """Keep only synthetic instruction output before the owned consumer is removed."""
+    from specify_cli.presets import PresetResolver
     target = ROOT / 'artifacts/tests/native-phase-review' / uuid4().hex
     target.mkdir(parents=True)
     names = ('plan', 'tasks', 'implement', 'analyze',
@@ -55,11 +56,14 @@ def retain_installed_review(root):
         shutil.copyfile(root / f'.agents/skills/speckit-{name}/SKILL.md', target / f'{name}.md')
     shutil.copyfile(root / '.specify/extensions/program-kit-governance/references/engineering-feedback.md',
                     target / 'engineering-feedback.md')
+    # Templates are composed by the native resolver, not rewritten in core storage.
+    (target / 'tasks-template.md').write_text(
+        PresetResolver(root).resolve_content('tasks-template', 'template'), encoding='utf-8')
     index = ('# Installed native phase guidance\n\n'
              'Synthetic disposable consumer; installation and deterministic instruction inspection only.\n'
              'No coding agent ran. These files do not demonstrate semantic judgment, agent obedience,\n'
              'human acceptance or platform compatibility. Native hook lookups were exercised separately.\n\n')
-    index += ''.join(f'- [{name}]({name}.md)\n' for name in (*names, 'engineering-feedback'))
+    index += ''.join(f'- [{name}]({name}.md)\n' for name in (*names, 'tasks-template', 'engineering-feedback'))
     (target / 'index.md').write_text(index, encoding='utf-8')
     print('Retained installed instruction review: ' + str(target / 'index.md'))
 
@@ -69,7 +73,7 @@ class NativePhaseTests(unittest.TestCase):
         from specify_cli._assets import get_speckit_version
         from specify_cli.events import refresh_integration_events
         from specify_cli.extensions import ExtensionManager
-        from specify_cli.presets import PresetManager
+        from specify_cli.presets import PresetManager, PresetResolver
         with FixtureDirectory() as directory:
             root = Path(directory)
             site = Path(__import__('specify_cli').__file__).parent.parent
@@ -130,12 +134,22 @@ class NativePhaseTests(unittest.TestCase):
             implementation = (skills / 'speckit-implement/SKILL.md').read_text(encoding='utf-8')
             self.assertIn('Pause dependent product work until actual acceptance', implementation)
             self.assertIn('silence', implementation.lower())
+            # The append must clarify upstream test-first/halt wording without
+            # replacing the native command or inventing another review boundary.
+            method = ' '.join(implementation.split())
+            self.assertIn('expected behavioral red test is followed by its implementation', method)
+            self.assertIn('Finishing an internal task or saving progress alone is not a new pause boundary', method)
             tasks = (skills / 'speckit-tasks/SKILL.md').read_text(encoding='utf-8')
             for wording in ('finish the native `hooks.after_tasks` dispatch', '$speckit-analyze',
                             'not execution', 'Returning from architecture-check',
                             'do not force-enable', 'hooks actually invoked'):
                 self.assertIn(wording, tasks)
             self.assertIn('Emitting the block alone does not run the hook', tasks)
+            task_method = ' '.join(tasks.split())
+            self.assertIn('a bounded setup increment', task_method)
+            self.assertIn('It adds no approval receipt', task_method)
+            template = ' '.join(PresetResolver(root).resolve_content('tasks-template', 'template').split())
+            self.assertIn('preserving IDs, checkmarks and linked history', template)
             # These are instruction/packaging assertions, not simulated agent
             # decisions. The native helper below remains mechanically read-only.
             for wording in ('semantic commitments', 'local adaptation', 'first coherent',
@@ -148,6 +162,7 @@ class NativePhaseTests(unittest.TestCase):
                             'not execution'):
                 self.assertIn(wording, architecture)
             preflight = (skills / 'speckit-program-kit-governance-implementation-check/SKILL.md').read_text(encoding='utf-8')
+            self.assertIn('](.specify/extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/README.md#fast-provider-test-composition)', preflight)
             for body in (implementation, preflight):
                 for wording in ('existing source', 'semantic commitments', 'local adaptation',
                                 'smallest coherent case', 'before replicating', 'engineering-feedback.md'):

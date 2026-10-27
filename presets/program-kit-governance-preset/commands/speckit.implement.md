@@ -27,6 +27,11 @@ For the current task or coherent increment, apply this coding method directly:
 4. Implement the smallest coherent case. If code exposes a missing fact or invalid assumption,
    investigate it with targeted research or an appropriate experiment. Agent-written tasks do not
    authorize an unjustified design.
+   Name that case's observable result and use existing local APIs/examples before expanding it.
+   Compile/check its first small integration before replicating registration, settings or storage
+   code. For a large safety-sensitive provider, establish one authorized binding, generated staging
+   and exact-hash/no-overwrite publication case, then extend contention, expiry, drain and restart
+   checks. The first case is engineering progress, not permission to accept an incomplete provider.
 5. Run focused compiler/analyzer, architecture, security and behavior checks as applicable. Review
    actual source against the chosen semantics before replicating a new or uncertain approach.
 6. Route consequential deviations through the shared
@@ -44,6 +49,15 @@ increment, affected regressions for changed shared contracts, and complete appli
 feature closure. Choose verification sequence by risk and the constitution. Existing engineering
 wrappers are optional conveniences; documented direct project commands remain valid. Reuse passing
 checks only while their relevant inputs/environment are unchanged; retain failures honestly.
+The risk-based sequence above governs generic test-first ordering: an expected behavioral red test
+is followed by its implementation, not treated as a blocker requiring another user prompt. Compiler,
+tooling and unrelated setup failures do not establish that red test. Investigate unexpected failures
+and stop dependent effects when necessary, while continuing independent ready work.
+
+On resume, read the concise current status and follow links to relevant history. Reconcile stale
+operative tasks and missing dependencies through the owning documents without erasing completed
+work. Implement settings needed by the current consumer now; finish the complete inventory at
+closure. Avoid repeatedly rereading unchanged catalogs or requalifying unchanged supplier behavior.
 
 Start a runtime, provider, browser or database only for an action/test that needs it. A generic
 before-coding hook must not start the entire application. Missing device software needs a suitable
@@ -60,3 +74,5 @@ remain due before feature acceptance. Reopen affected decisions when substantive
 Report completed and remaining work, actual commands/results and any reused evidence. Distinguish
 engineering results, semantic review and human acceptance. A progress save or resume is not a full
 acceptance boundary and does not require another broad matrix.
+Continue authorized ready increments until an agreed human review, genuine unresolved blocker or
+completion. Finishing an internal task or saving progress alone is not a new pause boundary.

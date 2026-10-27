@@ -22,6 +22,21 @@ New external inputs belong in `maintenance-policy.json`. Foundation publishes
 independently; Program Kit consumes public releases and never republishes an already
 public Foundation artifact.
 
+Foundation's analyzer may be released independently of its runtime family. Use
+`python scripts/update_dependency_profiles.py prepare --tool Orbyss.Foundation.Analyzers`
+to observe only that tool and retain every other selected package/Host pin. Preparation
+records its exact version in the Foundation family's `toolVersions` and names the new
+profile with `-analyzer-<version>` when it differs from the runtime. This does not edit
+historical profiles or consumer locks. Normal preparation continues to discover all
+maintained families and independent tools.
+
+After public publication, qualify that returned candidate with the ordinary `qualify`
+command and promote only successful evidence. An independently selected analyzer binds
+its native restored archive, exact public NuGet archive and provenance through the
+existing `officialTools` proof alongside Build/exporter. Its package-owned sources and
+`docs/ef-migration-authoring.md` come from the analyzer's own publisher commit; runtime
+guidance retains the selected runtime commit. This adds no supplier-wide acceptance gate.
+
 Use `python scripts/update_dependencies.py --development` for fast integrity only.
 Use `python scripts/update_dependencies.py --changed-from <base>` for affected update
 checks. These commands do not refresh locks or install toolchains. Explicit

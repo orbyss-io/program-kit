@@ -300,6 +300,12 @@ def qualify(profile_path: Path, work: Path, *, catalog_path: Path | None = None,
     if explicit:
         require_resolved_tool(feature.parent / 'obj/project.assets.json', work / 'cache', BUILD, build_version)
         official_tools[BUILD] = official_tool_binary(work / 'cache', BUILD, build_version, work / 'official-archives')
+        analyzer = 'Orbyss.Foundation.Analyzers'
+        analyzer_version = selected['artifacts']['nuget:' + analyzer]
+        if (analyzer in selected['families']['foundation'].get('toolVersions', {}) or
+                analyzer_version != selected['families']['foundation']['releaseVersion']):
+            require_resolved_tool(feature.parent / 'obj/project.assets.json', work / 'cache', analyzer, analyzer_version)
+            official_tools[analyzer] = official_tool_binary(work / 'cache', analyzer, analyzer_version, work / 'official-archives')
     closure = work / 'closure'
     steps.append(run('consumer-build-pack', ['dotnet', 'pack', str(feature), '--no-restore', '-c', 'Release', '-o', str(closure)]))
     descriptors, artifacts = {}, {}

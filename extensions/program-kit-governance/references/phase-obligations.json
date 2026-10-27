@@ -2077,7 +2077,8 @@
           "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py"
         ],
         "sections": [
-          "Choose the active route before custom setup"
+          "Choose the active route before custom setup",
+          "First engineering increment"
         ],
         "requirements": [],
         "review": "Inspect generated settings/reference, actual selected package roots and named maintained setup evidence. Generation alone proves neither readiness nor product acceptance."
@@ -2091,6 +2092,10 @@
       "disposition": "conditional",
       "sections": {
         "Choose the active route before custom setup": {
+          "disposition": "conditional",
+          "route": "setup"
+        },
+        "First engineering increment": {
           "disposition": "conditional",
           "route": "setup"
         }
@@ -5469,6 +5474,7 @@
           "tests/validate_postgresql_lifecycle.py"
         ],
         "sections": [
+          "Fast provider-test composition",
           "Author and deploy with EF",
           "Runtime admission and verification"
         ],
@@ -5483,6 +5489,10 @@
       "owner": "program-kit-dotnet",
       "disposition": "manual",
       "sections": {
+        "Fast provider-test composition": {
+          "disposition": "manual",
+          "route": "manual"
+        },
         "Author and deploy with EF": {
           "disposition": "manual",
           "route": "manual"

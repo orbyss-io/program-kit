@@ -5,6 +5,8 @@ import hashlib
 import io
 import subprocess
 import tarfile
+import shutil
+import zipfile
 from pathlib import Path
 import tempfile
 import os
@@ -21,6 +23,99 @@ spec.loader.exec_module(m)
 
 
 class UpdateTests(unittest.TestCase):
+    def test_analyzer_only_preparation_preserves_all_other_pins_and_history(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import update_dependency_profiles as updater
+        registry = self.root / 'registry'
+        shutil.copytree(updater.REGISTRY, registry)
+        index = updater.blocks.load_json(registry / 'index.json')
+        _, selected = updater.blocks.qualified_dependency_profile(registry, index['default'],
+            updater.blocks.load_json(updater.blocks.default_catalog(Path(updater.blocks.__file__))))
+        before = {path: path.read_bytes() for path in registry.rglob('*') if path.is_file()}
+        analyzer = 'Orbyss.Foundation.Analyzers'
+        with patch.object(updater, 'REGISTRY', registry), \
+                patch.object(updater.maintenance, 'observe', return_value={'latest': '99.0.1'}) as observed, \
+                patch.object(updater, 'require_published_foundation', return_value={'unitFixture': 'not publication evidence'}), \
+                patch.object(updater, 'sync_publisher_engineering'):
+            candidate = updater.prepare(tool=analyzer)
+        observed.assert_called_once_with({'kind': 'nuget', 'name': analyzer, 'channel': 'stable'}, {})
+        profile = updater.blocks.load_json(candidate / 'profile.json')
+        self.assertEqual(['nuget:' + analyzer], [key for key in selected['artifacts']
+            if selected['artifacts'][key] != profile['artifacts'][key]])
+        self.assertEqual('99.0.1', profile['families']['foundation']['toolVersions'][analyzer])
+        self.assertEqual(selected['families']['foundation']['releaseVersion'], profile['families']['foundation']['releaseVersion'])
+        self.assertIn('-analyzer-99.0.1', profile['id'])
+        self.assertTrue(all(path.read_bytes() == data for path, data in before.items()))
+
+    def test_independent_analyzer_requires_exact_public_tool_binding_without_changing_historical_shape(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import update_dependency_profiles as updater
+        selected = {'families': {'foundation': {'releaseVersion': '0.3.7'}}, 'artifacts': {
+            'nuget:Orbyss.Foundation.Build': '0.3.3',
+            'nuget:Orbyss.Foundation.OpenApi.Exporter': '0.2.7',
+            'nuget:Orbyss.Foundation.Analyzers': '0.3.7'}}
+        def binding(identity):
+            version = selected['artifacts']['nuget:' + identity]
+            return {'id': identity, 'version': version, 'sha256': 'a'*64,
+                'source': 'https://api.nuget.org/v3/index.json', 'nativeSource': 'https://api.nuget.org/v3/index.json',
+                'archiveUrl': 'https://api.nuget.org/v3-flatcontainer/' + identity.lower() + '/' + version + '/' + identity.lower() + '.' + version + '.nupkg',
+                'nativeProvenanceSha256': 'b'*64}
+        tools = {identity: binding(identity) for identity in ('Orbyss.Foundation.Build', 'Orbyss.Foundation.OpenApi.Exporter')}
+        def source():
+            return {'officialTools': tools, 'officialToolsSha256': hashlib.sha256(
+                (json.dumps(tools, indent=2, sort_keys=True) + '\n').encode()).hexdigest()}
+        self.assertEqual(tools, updater.blocks.named_official_tool_bindings(source(), selected))
+        # A later runtime can catch up numerically to an independent analyzer;
+        # the explicit ownership override must still retain its source proof.
+        selected['families']['foundation']['toolVersions'] = {'Orbyss.Foundation.Analyzers': '0.3.7'}
+        with self.assertRaisesRegex(updater.blocks.ResolverError, 'exact official'):
+            updater.blocks.named_official_tool_bindings(source(), selected)
+        tools['Orbyss.Foundation.Analyzers'] = binding('Orbyss.Foundation.Analyzers')
+        self.assertEqual(tools, updater.blocks.named_official_tool_bindings(source(), selected))
+        tools.pop('Orbyss.Foundation.Analyzers')
+        selected['artifacts']['nuget:Orbyss.Foundation.Analyzers'] = '0.3.8'
+        selected['families']['foundation']['toolVersions']['Orbyss.Foundation.Analyzers'] = '0.3.8'
+        with self.assertRaisesRegex(updater.blocks.ResolverError, 'exact official'):
+            updater.blocks.named_official_tool_bindings(source(), selected)
+        tools['Orbyss.Foundation.Analyzers'] = binding('Orbyss.Foundation.Analyzers')
+        self.assertEqual(tools, updater.blocks.named_official_tool_bindings(source(), selected))
+        tools['Orbyss.Foundation.Analyzers']['version'] = '0.3.7'
+        with self.assertRaisesRegex(updater.blocks.ResolverError, 'exact selected versions'):
+            updater.blocks.named_official_tool_bindings(source(), selected)
+
+    def test_independent_analyzer_capture_uses_its_own_commit_and_only_owned_guidance(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import update_dependency_profiles as updater
+        import capture_lifecycle_knowledge
+        registry = self.root / 'registry'; directory = registry / 'candidate'
+        native = self.root / 'native'; (native / 'official-archives').mkdir(parents=True)
+        directory.mkdir(parents=True)
+        m.write_json(directory / 'packages.lock.json', {})
+        runtime_commit, analyzer_commit = 'a'*40, 'b'*40
+        versions = {'Orbyss.Foundation.WebDefaults': '0.3.7', 'Orbyss.Foundation.Analyzers': '0.3.8'}
+        for identity, version in versions.items():
+            commit = analyzer_commit if identity.endswith('.Analyzers') else runtime_commit
+            with zipfile.ZipFile(native / 'official-archives' / (identity.lower()+'.'+version+'.nupkg'), 'w') as archive:
+                archive.writestr(identity+'.nuspec', '<package><metadata><id>'+identity+'</id><version>'+version+
+                    '</version><repository type="git" commit="'+commit+'" /></metadata></package>')
+        tree = {'tree': [{'path': path, 'type': 'blob'} for path in (
+            'README.md', 'docs/authentication.md', 'docs/ef-migration-authoring.md', 'docs/plans/private.md',
+            'src/Orbyss.Foundation.Analyzers/Analyzer.cs', 'src/Other.Package/Notes.md')]}
+        profile = {'id': 'synthetic-independent-analyzer', 'artifacts': {'nuget:'+key: value for key,value in versions.items()},
+                   'families': {'foundation': {'releaseVersion': '0.3.7'}}}
+        with patch.object(updater, 'REGISTRY', registry), patch.object(capture_lifecycle_knowledge, 'capture'), \
+                patch.object(updater.maintenance, 'fetch', return_value=tree), \
+                patch.object(updater.urllib.request, 'urlopen', side_effect=lambda *args, **kwargs: io.BytesIO(b'synthetic public guidance')):
+            result = updater.publisher_knowledge(directory, native, profile, {'inputs': {'hostImage': 'synthetic-image'}})
+        knowledge = updater.blocks.load_json(registry / result['path'])
+        self.assertEqual(runtime_commit, knowledge['sourceCommit'])
+        migration = [row for row in knowledge['documents'] if row['publisherPath'] == 'docs/ef-migration-authoring.md']
+        self.assertEqual([analyzer_commit], [row['sourceCommit'] for row in migration])
+        self.assertTrue(all(row['sourceCommit'] == runtime_commit for row in knowledge['documents']
+                            if row['publisherPath'] == 'docs/authentication.md'))
+        self.assertFalse(any(row['publisherPath'] in ('docs/plans/private.md', 'src/Other.Package/Notes.md')
+                             for row in knowledge['documents']))
+
     def test_browser_retention_rejects_changed_fixture_inputs(self):
         sys.path.insert(0,str(ROOT/'scripts'))
         import update_dependency_profiles as updater

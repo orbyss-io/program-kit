@@ -47,6 +47,17 @@ is not service location in business code. Review configuration binding/admission
 then failure paths: caller cancellation, deadline expiry, deterministic provider rejection and uncertain
 postdispatch effects need their actual semantics. Read the selected provider's typed failure contract.
 Use focused source and behavior checks; this is not a per-task full-application acceptance checklist.
+For selected native PostgreSQL units, use the [fast provider-test composition](.specify/extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/README.md#fast-provider-test-composition):
+activate the actual CShells shell before resolving its unit factory and use tracked scopes for
+scoped work. A bare ServiceCollection does not supply IShell. This focused database fixture does
+not need the full Host/Keycloak/browser topology. Reuse the known fixture and selected APIs.
+
+Name one observable result for the next increment and compile its first small integration before
+expanding it. Pair meaningful expected red tests with implementation; setup/compiler failures are
+not behavioral evidence. Add the remaining agreed adverse cases before accepting the provider.
+Reconcile superseded operative task wording/dependencies while preserving completed IDs and history;
+keep a concise current status with links to prior evidence. Continue authorized ready increments
+until an agreed human review, genuine unresolved blocker or completion.
 
 Run compiler/analyzers and focused tests at the first coherent increment, then affected regressions
 for changed shared contracts. Verify runtime/provider/database/browser behavior when selected work

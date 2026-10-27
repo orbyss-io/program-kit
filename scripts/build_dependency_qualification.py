@@ -48,7 +48,7 @@ def verify_official_tool_evidence(native: Path, source: dict, selected: dict) ->
     for identity, binding in tooling.items():
         package = native / 'official-archives' / (identity.lower() + '.' + binding['version'].lower() + '.nupkg')
         require(package.is_file() and blocks.raw_sha256(package) == binding['sha256'], 'official tooling archive changed or is missing')
-        cache = native / ('cache' if identity == 'Orbyss.Foundation.Build' else 'tool-cache')
+        cache = native / ('tool-cache' if identity == 'Orbyss.Foundation.OpenApi.Exporter' else 'cache')
         restored = list(cache.rglob(package.name))
         require(restored and all(blocks.raw_sha256(path) == binding['sha256'] for path in restored), 'restored tooling archive changed or is missing')
         provenance = [path.parent / '.nupkg.metadata' for path in restored]

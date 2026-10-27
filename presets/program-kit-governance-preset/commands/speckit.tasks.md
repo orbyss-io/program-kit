@@ -12,6 +12,20 @@ Group work around small runnable user outcomes. Put minimal enabling work beside
 name real dependencies instead of imposing a blanket foundation phase. Security, authorization,
 ownership, persistence/migration and provider prerequisites belong before the tasks that need them.
 A larger coherent journey can remain intact when its scope and rationale are explicit.
+Make each active increment's observable result, actual prerequisites and cheapest reliable check
+clear. A task combining contracts, schema, replay, provider behavior and UI can contain named small
+increments; its checkbox count is not a delivery percentage. Implement settings beside their first
+consumer and reconcile the full inventory at closure. Do not make unborn feature owners an upfront
+dependency. Include durable authority/identity prerequisites for storage and recovery explicitly.
+
+For an accepted maintained Foundation composition, put a bounded setup increment around the first
+product operation, before expanding product implementation: active graph, exact pins and generated
+configuration. Include realm/login checks only when identity is selected, product permission/owner
+checks where that boundary applies, and native schema deployment/read-only admission plus a small
+real provider fixture when persistence is selected. Reuse supplier evidence within its declared
+scope. This normally belongs in the
+current feature; a separate setup spec is useful only for an independently scoped platform outcome.
+It adds no approval receipt, generic full-app preflight or new human review boundary.
 These scoped dependencies take precedence over blanket layer-first/foundation examples in the core
 command. The constitution's testing policy takes precedence over generic optional-test examples.
 
@@ -29,6 +43,15 @@ the first coherent increment, and retain affected regressions for shared changes
 For a new or uncertain approach, put source review and the focused checks on its first coherent
 case before widespread replication. This is a technical review; add a human pause only where one
 has actually been agreed. Qualified catalog patterns and generators are optional.
+Avoid a single test task that requires designing every adversarial mechanism before the first
+working case. Pair one meaningful regression with its implementation, then extend the agreed failure
+cases before claiming readiness. Keep all accepted safety obligations and actual-provider evidence.
+
+On resume or an authorized architectural correction, reconcile the operative task wording and
+dependencies with the current plan. Preserve IDs, completed checkmarks, authored work and historical
+evidence; explain superseded instructions instead of leaving them as competing directions. Keep a
+short current status and next increment near the top, linking longer history rather than repeating
+it. This is ordinary tasks prose, not a new progress schema or a reason to regenerate the task list.
 
 Record any agreed human review point in plain tasks.md notes: outcome, reviewer, when to pause and
 any explicitly permitted work while waiting. Requester acceptance is separate from test results.
