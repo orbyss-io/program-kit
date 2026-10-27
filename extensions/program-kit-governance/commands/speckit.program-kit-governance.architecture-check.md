@@ -73,6 +73,16 @@ points. A task prescribing a replacement does not justify it. Report the concret
 and evidence, or correct the affected plan/tasks to use the native mechanism before dependent work.
 For EF, separate deployment identity does not imply a custom migration runner or parallel journal.
 
+Inspect the first coherent operation before replication: its method bodies, authoritative state
+types/keys and transitions, pure policy versus provider effects, effective configuration and required
+snapshots, complete deadlines and resource teardown. Review the actual project-local placement and
+mirrored tests; do not accept unrelated root accumulation merely because files compile. The selected
+.NET API uses Operations/<Operation>; a small cohesive project may stay flat. Challenge a malformed,
+denied, stale or faulted case through its actual check owner. These are semantic review duties;
+reference routing and static analysis do not automatically detect or certify them. See the canonical
+[first-operation review](references/programming-guardrails.md#typed-boundaries-and-design-evidence) and
+[project-local placement](references/modularity-and-contracts.md#semantic-capability-contracts).
+
 Keep unresolved findings and agreed human review pauses in normal task/review notes. Independent
 ready work remains available. After implementation, report actual checks, semantic review, remaining
 work and human dispositions separately. Run complete applicable acceptance at feature closure;

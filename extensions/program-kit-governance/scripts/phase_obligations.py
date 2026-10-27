@@ -153,6 +153,15 @@ def render(value, phase, detailed=False):
         'Choose a suitable stack or local alternative; curated examples are optional. Actual selected tool/API contracts still apply.',
         'Run only the compiler, tests, services and device checks needed by the selected action. Guidance starts none of them.',
         'Use --only <id> for attributable detail; --page continues a long focused reference.', '']
+    if not detailed:
+        selected = {identity for row in value['requirements'] for identity in row.get('ruleIds', [])}
+        essentials = ('principle.first-operation-source-review', 'principle.project-local-placement',
+                      'principle.decision-time-budget', 'principle.typescript-runtime-admission')
+        for identity in essentials:
+            if identity in selected:
+                rule = canonical_rules([identity])[0]
+                lines += ['## Current operation: ' + identity, rule['text'],
+                          'Canonical source: ' + rule['provenance']['path'], '']
     composition = value.get('context', {}).get('composition')
     if composition:
         lines += ['## Selected Foundation composition',

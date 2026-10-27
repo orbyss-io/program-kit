@@ -2,6 +2,7 @@
 from pathlib import Path
 import json
 import os
+import subprocess
 import sys
 import unittest
 from unittest.mock import patch
@@ -32,6 +33,7 @@ class ScaffoldTests(unittest.TestCase):
                 if key == 'test':
                     refs.append(self.owners['runtime'])
                 packages = {'api':['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'],
+                            'runtime':['Orbyss.Foundation.Execution'],
                             'provider':['Orbyss.Foundation.PostgreSql']}.get(key, [])
                 items = ''.join(f'<PackageReference Include="{name}" Version="0.3.7"/>' for name in packages)
                 items += ''.join(f'<ProjectReference Include="{os.path.relpath(root / ref, project.parent)}"/>' for ref in refs)
@@ -52,6 +54,24 @@ class ScaffoldTests(unittest.TestCase):
             self.assertFalse(plan['conflicts'])
             self.assertEqual(before, {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()})
             self.assertFalse((root / 'docs/architecture').exists(), 'No consumer qualification/approval files are needed')
+            for legacy_path in ('src/core/ILabelOperations.cs', 'src/runtime/LabelOperations.cs',
+                                'src/provider/PostgreSqlLabelStore.cs', 'src/api/LabelEndpoint.cs'):
+                old = root / legacy_path
+                old.write_bytes(b'// Preserve independently authored partial legacy adoption.\n')
+                preserved = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+                conflict, candidate = scaffold.preview(root, root / 'specs/001-label', 'typed-label', self.owners)
+                self.assertIn(legacy_path, [r['path'] for r in conflict['conflicts'] if r.get('kind') == 'legacy-placement'])
+                with self.assertRaisesRegex(ValueError, 'consumer source preserved'):
+                    scaffold.apply(root, conflict, candidate, conflict['planDigest'])
+                self.assertEqual(preserved, {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()})
+                old.unlink()
+            # A partial legacy file appearing after an inspected preview also
+            # rejects the creation path before a nested duplicate is written.
+            old = root / 'src/core/ILabelStore.cs'; old.write_bytes(b'// Late authored type.\n')
+            with self.assertRaisesRegex(ValueError, 'earlier recipe locations'):
+                scaffold.apply(root, plan, outputs, plan['planDigest'])
+            self.assertFalse((root / 'src/core/Labels/ILabelStore.cs').exists())
+            old.unlink()
             api = root / self.owners['api']
             api.write_text(api.read_text().replace('Version="0.3.7"', 'Version="0.3.5"'))
             rejected = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
@@ -69,16 +89,46 @@ class ScaffoldTests(unittest.TestCase):
 
     def test_exact_source_owner_split_and_generated_client_import(self):
         output = typed_operation.render(self.owners, ROOT / 'extensions')
-        self.assertIn('src/core/ILabelOperations.cs', output)
-        self.assertIn('src/runtime/LabelOperations.cs', output)
-        self.assertIn('src/provider/PostgreSqlLabelStore.cs', output)
-        api = output['src/api/LabelEndpoint.cs'].decode()
+        self.assertIn('src/core/Labels/ILabelOperations.cs', output)
+        self.assertIn('src/runtime/Labels/LabelOperations.cs', output)
+        self.assertIn('src/provider/Labels/PostgreSqlLabelStore.cs', output)
+        api = output['src/api/Operations/WriteLabel/Endpoint.cs'].decode()
         self.assertIn('ILabelOperations operations', api)
         self.assertNotIn('ILabelStore', api)
         self.assertNotIn('store.WriteAsync', api)
         self.assertIn('RequestAborted', api)
+        read = output['src/api/Operations/ReadLabel/Endpoint.cs'].decode()
+        self.assertIn('ReadSampleLabel', read)
+        self.assertNotIn('MapPost', read)
+        self.assertNotIn('MapGet', api)
+        self.assertIn('Representation/LabelResponse.cs', '\n'.join(output))
         self.assertIn(b'../../../tools/openapi/labels/generated/types', output['web/app/src/client.ts'])
         self.assertFalse(any(p.endswith('.csproj') for p in output), 'no hidden project mutations')
+
+    def test_actual_emitted_browser_adapter_admits_runtime_values(self):
+        output = typed_operation.render(self.owners, ROOT / 'extensions')
+        with FixtureDirectory() as directory:
+            root = Path(directory)
+            source = root / 'client.ts'
+            source.write_bytes(output['web/app/src/client.ts'])
+            probe = ROOT / 'tests/fixtures/typed-operation-client/probe.mjs'
+            result = subprocess.run(['node', str(probe), str(source)], cwd=root,
+                capture_output=True, text=True, encoding='utf-8', timeout=30)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            self.assertIn('EMITTED_CLIENT_VALID_TOLERANT_AND_BOUNDARY_ADMISSION_PASSED', result.stdout)
+
+    def test_actual_emitted_native_owners_and_outer_deadline(self):
+        from typed_operation_native_check import check
+        self.assertEqual(0, check())
+
+    def test_cold_contract_mode_rejects_ignored_preparation_or_comparison(self):
+        for arguments in (['--prepare-only'], ['--prepare-oasdiff'], ['--oasdiff', 'absent-tool']):
+            with self.subTest(arguments=arguments):
+                result = subprocess.run([sys.executable, str(ROOT / 'tests/validate_typed_operation.py'),
+                    '--export-client-only', *arguments], cwd=ROOT, capture_output=True,
+                    text=True, encoding='utf-8', timeout=10)
+                self.assertEqual(2, result.returncode)
+                self.assertIn('--export-client-only excludes comparison/tool preparation modes', result.stderr)
 
     def test_submitted_commands_and_escaping_paths_are_not_adapters(self):
         for change in ({'command': 'anything'}, {'api': '../outside.csproj'}, {'runtime': self.owners['api']},
@@ -89,7 +139,9 @@ class ScaffoldTests(unittest.TestCase):
     def test_native_contracts_must_belong_to_the_actual_consuming_owner(self):
         api=[{'id':p,'version':'0.3.6'} for p in ('Orbyss.Foundation.Json.AspNetCore','Orbyss.Foundation.Web.ProblemDetails')]
         provider=[{'id':'Orbyss.Foundation.PostgreSql','version':'0.3.6'}]
-        projects={self.owners['api']:{'packages':api},self.owners['provider']:{'packages':provider}}
+        runtime=[{'id':'Orbyss.Foundation.Execution','version':'0.3.6'}]
+        projects={self.owners['api']:{'packages':api},self.owners['provider']:{'packages':provider},
+                  self.owners['runtime']:{'packages':runtime}}
         scaffold.native_contracts(projects,self.owners)
         with self.assertRaisesRegex(ValueError,'neighboring package'):
             scaffold.native_contracts({self.owners['api']:{'packages':[]},self.owners['provider']:{'packages':api+provider}},self.owners)

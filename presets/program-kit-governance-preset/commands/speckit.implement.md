@@ -34,6 +34,11 @@ For the current task or coherent increment, apply this coding method directly:
    checks. The first case is engineering progress, not permission to accept an incomplete provider.
 5. Run focused compiler/analyzer, architecture, security and behavior checks as applicable. Review
    actual source against the chosen semantics before replicating a new or uncertain approach.
+   Apply the [first-operation source review](.specify/extensions/program-kit-governance/references/programming-guardrails.md#typed-boundaries-and-design-evidence):
+   inspect actual method abstraction, owned state transitions, pure policy/provider split, effective
+   configuration and required snapshots, deadline/resource ownership and operation-local placement.
+   Trace one relevant adverse case. A green build, folder move or generic compliance claim cannot
+   close these semantic questions. Preserve runtime/wire identities and native source inventories.
 6. Route consequential deviations through the shared
    [engineering feedback method](.specify/extensions/program-kit-governance/references/engineering-feedback.md),
    correct the owning documents and affected tasks, then rerun affected review/checks. Preserve

@@ -60,6 +60,14 @@ security and behavioral checks retain their actual authority. A structural graph
 does not prove semantic ownership; tests do not supply human product acceptance.
 Program Kit need not be installed to build or deploy the resulting application.
 
+Review the first coherent source before replicating its pattern: method abstraction, typed state
+ownership, pure policy/provider separation, effective configuration and admitted snapshots, complete
+deadlines and actual resource teardown. Establish navigable project-local placement and mirrored
+test ownership at that increment, preserving compilation boundaries and proportional small projects.
+Correct applicable source findings then; final settings/SOLID reconciliation is not permission to
+repeat them. The canonical programming guardrails and selected technology specialization own the
+details. These are source-review obligations, not a new approval ledger or an automatic semantic gate.
+
 Generated diagrams, focused guidance and local check output are regenerable views.
 Keep one useful source for architectural meaning rather than maintaining duplicate
 approval projections. Version-specific publisher knowledge and SDK contracts remain

@@ -521,7 +521,8 @@ public sealed class {type_name} : IShellFeature
 }}
 '''
     else:
-        source = f'''using CShells;
+        source = f'''using System;
+using CShells;
 using CShells.Features;
 using CShells.Lifecycle;
 using Microsoft.EntityFrameworkCore;
@@ -537,7 +538,12 @@ public sealed class ProviderFeature(ShellSettings settings) : IShellFeature
     /// <summary>Registers provider-owned preparation. Product migrations remain explicit.</summary>
     public void ConfigureServices(IServiceCollection services)
     {{
-        services.AddFoundationPostgreSql<ApplicationDbContext>(settings, "application", options => new(options));
+        Func<DbContextOptions<ApplicationDbContext>, ApplicationDbContext> createContext = options => new(options);
+        services.AddFoundationPostgreSql<ApplicationDbContext>(
+            settings,
+            "application",
+            createContext
+        );
         services.AddShellInitializer<ProviderPrepare>(LifecyclePhase.Prepare, order: 100);
     }}
 }}

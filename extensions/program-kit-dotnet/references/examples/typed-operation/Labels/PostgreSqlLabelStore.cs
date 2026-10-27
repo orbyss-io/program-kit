@@ -24,9 +24,10 @@ public sealed class PostgreSqlLabelStore<TContext>(IPostgreSqlUnitLeaseFactory<T
     {
         await using var unit = await leases.BeginUnitAsync(cancellationToken);
         await using var context = await unit.Factory.CreateDbContextAsync(unit.Deadline.Token);
+        object[] parameters = [value];
         var affected = await context.Database.ExecuteSqlRawAsync(
             "UPDATE sample_labels SET value = {0}, revision = revision + 1 WHERE id = 1",
-            [value],
+            parameters,
             unit.Deadline.Token
         );
         if (affected != 1) throw new System.InvalidOperationException("The explicitly prepared sample row is unavailable.");

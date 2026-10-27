@@ -4227,11 +4227,20 @@
       ],
       "inputs": [
         "tests/validate_typed_operation.py",
-        "tests/validate_composition_start.py"
+        "tests/validate_composition_start.py",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/**",
+        "extensions/program-kit-dotnet/scripts/typed_operation.py",
+        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "extensions/program-kit-dotnet/scripts/composition_render.py"
       ],
       "needs": [],
       "prerequisites": [
-        "tool:dotnet"
+        "tool:dotnet",
+        "tool:git",
+        "tool:docker",
+        "tool:node",
+        "tool:npm",
+        "tool:pwsh"
       ],
       "suites": [],
       "budgetSeconds": 300,
@@ -4241,6 +4250,40 @@
         "tests/validate_typed_operation.py",
         "tests/validate_composition_start.py"
       ]
+    },
+    {
+      "id": "validate_typed_operation_contract",
+      "purpose": "Cold actual moved label API/Core through native metadata producer/exporter, exact route identities and real generated paths plus compiled emitted browser client; no Host staging/provider/runtime acceptance.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_typed_operation.py",
+        "--export-client-only"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "api-client"
+      ],
+      "inputs": [
+        "tests/validate_typed_operation.py",
+        "tests/validate_numeric_schema.py",
+        "tests/fixtures/typed-operation-contract/**",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/**",
+        "extensions/program-kit-dotnet/scripts/typed_operation.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:node",
+        "tool:npm"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 300,
+      "manualOnly": true
     },
     {
       "id": "validate_emitted_ci",
@@ -4781,13 +4824,19 @@
         "tests/validate_coding_scaffolding.py",
         "tests/csharp_readability_check.py",
         "tests/fixtures/csharp-readability/**",
+        "tests/fixtures/typed-operation-client/**",
+        "tests/fixtures/typed-operation-runtime/**",
+        "tests/typed_operation_native_check.py",
         "tests/coding_label_check.py",
-        "tests/scaffold_review_fixture.py"
+        "tests/scaffold_review_fixture.py",
+        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "extensions/program-kit-dotnet/scripts/composition_render.py"
       ],
       "needs": [],
       "prerequisites": [
         "tool:dotnet",
-        "tool:git"
+        "tool:git",
+        "tool:node"
       ],
       "suites": [],
       "budgetSeconds": 120,
@@ -4795,7 +4844,7 @@
     },
     {
       "id": "validate_scaffold_review",
-      "purpose": "Retained installed F4 fixture: qualified selection, inspectable source creation, independent actual application positives/negatives and manual edit/completion boundaries.",
+      "purpose": "Installed-layout native preview/apply, actual analyzer builds, independent application positive/missing-effect negative and authored legacy/customization preservation; no retired task lifecycle.",
       "platforms": [
         "Windows",
         "Linux"
@@ -4811,7 +4860,7 @@
       ],
       "inputs": [
         "tests/scaffold_review_fixture.py",
-        "tests/coding_label_check.py"
+        "tests/fixtures/typed-operation-runtime/**"
       ],
       "needs": [],
       "prerequisites": [

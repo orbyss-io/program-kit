@@ -29,10 +29,44 @@ def composition(environment='Production'):
 
 
 class Guidance(unittest.TestCase):
+    def test_selected_execution_source_routes_without_magic_product_wording(self):
+        from feature_context import context
+        with FixtureDirectory() as name:
+            root = Path(name); feature = root / 'specs/001-documents'; feature.mkdir(parents=True)
+            (feature / 'plan.md').write_text('C# document evidence in src/Documents/Documents.csproj.')
+            project = root / 'src/Documents/Documents.csproj'; project.parent.mkdir(parents=True)
+            project.write_text('<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="Orbyss.Foundation.Tasks.Abstractions" Version="0.3.7"/></ItemGroup></Project>')
+            source = project.with_name('Inspection.cs')
+            positive = ('internal sealed class Inspection : IRecurringTask { }',
+                        'internal sealed class Inspection : IBackgroundTask { }',
+                        'services.AddFoundationRecurringTask<Inspection>();',
+                        'services.AddFoundationBackgroundTask<Inspection>();')
+            for body in positive:
+                source.write_text(body); before = snapshot(root)
+                for event in phase.PHASES:
+                    self.assertIn('async-workload', context(root, feature, event), event)
+                self.assertEqual(before, snapshot(root))
+            negative = ('internal sealed class Prepare : IStartupTask { }',
+                        'using Orbyss.Foundation.Tasks; internal sealed class Pure { }',
+                        '// services.AddFoundationRecurringTask<Inspection>();\nclass Pure { }',
+                        'class Pure { string note = "class Inspection : IRecurringTask { }"; }',
+                        'class Handler { async Task Read() { await Query(); } }')
+            for body in negative:
+                source.write_text(body)
+                self.assertNotIn('async-workload', context(root, feature, 'implementation'), body)
+            source.write_text(positive[0])
+            self.assertNotIn('async-workload', context(root, feature, 'planning', actual_source=[]))
+            other = root / 'src/Core/Core.csproj'; other.parent.mkdir(parents=True)
+            other.write_text('<Project Sdk="Microsoft.NET.Sdk"/>')
+            other.with_name('Policy.cs').write_text('class Policy { int Evaluate() => 1; }')
+            self.assertNotIn('async-workload', context(root, feature, 'implementation',
+                affected_paths=['src/Core/Policy.cs'], prose_override='C# policy in src/Core/Core.csproj.'))
+
     def test_early_plain_language_routing_without_backend_or_toolkit_state(self):
         for text in ('Process background jobs.', 'Use durable dispatch with a transactional outbox.',
                      'Queue consumers process queued work.', 'Compare WebJobs and Kubernetes Jobs.',
-                     'Use replaceable execution providers with Development Docker.'):
+                     'Use replaceable execution providers with Development Docker.',
+                     'A recovery worker reconciles queued inspection.', 'Recurring jobs resume durable work.'):
             with self.subTest(text=text), FixtureDirectory() as name:
                 root = Path(name); feature = root / 'specs/001-batch'; feature.mkdir(parents=True)
                 (feature / 'spec.md').write_text(text, encoding='utf-8')

@@ -129,6 +129,19 @@ lifecycle justifies the boundary.
 
 ## Semantic capability contracts
 
+<!-- program-kit:knowledge-rule principle.project-local-placement -->
+Make project-local placement navigable from the owning operation or cohesive semantic responsibility.
+Keep related request/result, policy, admission, mapping and tests near that owner within their accepted
+compilation projects. Mirror useful operation/capability ownership in tests. Reserve project roots
+for project declarations, thin composition and genuinely project-wide inputs; a small cohesive project
+may remain flat. Do not accumulate unrelated root files merely because one type per file is required.
+Avoid catch-all Helpers/Managers/Models folders, a folder per type, arbitrary file quotas or new layer
+projects. The selected .NET API specialization uses Operations/<Operation>; other layouts are local
+architecture choices. First establish one useful arrangement before replicating it. File moves retain
+public identities and reconcile source metadata, native includes, tooling paths and affected checks;
+folders alone do not repair semantic ownership or broad partial classes.
+<!-- /program-kit:knowledge-rule -->
+
 <!-- program-kit:knowledge-rule principle.semantic-capability-boundary -->
 Core declares behavior in domain language rather than prescribing repositories, stores, units of
 work, generic CRUD, or implementation technology. Prefer names such as `IActiveCatalogItemLookup`,

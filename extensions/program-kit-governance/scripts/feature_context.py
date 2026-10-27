@@ -17,7 +17,7 @@ CAPABILITIES = {
     'pdf-decoding': r'\b(?:pdfpig|flatedecode|finite pdf decod(?:er|ing))\b',
     'recording-ocr': r'\b(?:recording.only ocr|offline ocr sdk)\b',
     'snapshot-query': r'\bimmutable snapshot quer(?:y|ies)\b',
-    'async-workload': r'\b(?:background (?:jobs?|workloads?|processing)|asynchronous (?:jobs?|workloads?|processing)|durable dispatch|transactional outbox|queue consumers?|queued work|replaceable (?:execution |workload )?providers?|container apps jobs?|webjobs|kubernetes jobs?)\b',
+    'async-workload': r'\b(?:background (?:jobs?|workloads?|processing)|asynchronous (?:jobs?|workloads?|processing)|durable dispatch|transactional outbox|queue consumers?|queued (?:work|inspection|processing)|recurring (?:jobs?|workloads?)|(?:inspection|processing|recovery) workers?|replaceable (?:execution |workload )?providers?|container apps jobs?|webjobs|kubernetes jobs?)\b',
     'browser-effects': r'\b(?:async|await|promise|settimeout|setinterval|queuemicrotask|requestanimationframe|abortcontroller|abortsignal|arraybuffer|filereader|getdocument|fetch|websocket|worker|createobjecturl)\b|\.then\s*\(',
 }
 
@@ -335,6 +335,21 @@ def frontend_only_declaration(prose):
     return False
 
 
+def owns_async_execution(sources):
+    """Discover selected .NET execution owners, not mere async or package presence.
+
+    This bounded lexical signal does not establish registration/lifetime correctness.
+    Startup tasks, imported abstractions, comments and strings supply no work owner.
+    """
+    for source in sources:
+        code = re.sub(r'//[^\n]*|/\*.*?\*/|@?"(?:""|\\.|[^"\\])*"', ' ', source, flags=re.S)
+        if re.search(r'\bAddFoundation(?:Background|Recurring)Task\s*<', code):
+            return True
+        if re.search(r'\b(?:class|record)\s+\w+[^;{]*:\s*[^;{]*\bI(?:Background|Recurring)Task\b', code):
+            return True
+    return False
+
+
 def context(root, feature, phase, affected_paths=(), prose_override=None, actual_source=None,
             include_inherited=True, inherited_runtime=True):
     prose = '\n'.join(affirmative(path.read_text(encoding='utf-8'))
@@ -349,16 +364,21 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
                 or any(str(item).replace('\\', '/') == p.relative_to(root).as_posix()
                        or str(item).replace('\\', '/').startswith(p.parent.relative_to(root).as_posix() + '/')
                        for item in affected_paths)]
-    engineering, source = [], []
+    engineering, source, execution_sources = [], [], []
     for project in selected:
         engineering.append(project.read_text(encoding='utf-8'))
-        if phase in ('implementation', 'delivery'):
-            for path in project.parent.rglob('*.cs'):
-                if {'bin', 'obj'} & set(path.parts):
-                    continue
-                if not affected_paths or any(path.relative_to(root).as_posix() == p or
-                    path.relative_to(root).as_posix().startswith(p.rstrip('/') + '/') for p in affected_paths):
-                    source.append(path.read_text(encoding='utf-8'))
+        for path in project.parent.rglob('*.cs'):
+            if {'bin', 'obj'} & set(path.parts):
+                continue
+            if not affected_paths or any(path.relative_to(root).as_posix() == p or
+                path.relative_to(root).as_posix().startswith(p.rstrip('/') + '/') for p in affected_paths):
+                body = path.read_text(encoding='utf-8')
+                # Existing selected execution ownership matters before planning
+                # repeats its architecture. Other source effects retain their
+                # ordinary implementation/delivery selection boundary.
+                execution_sources.append(body)
+                if phase in ('implementation', 'delivery'):
+                    source.append(body)
     for package in frontend_packages(root, prose, affected_paths):
         engineering.append(package.read_text(encoding='utf-8'))
         if phase in ('implementation', 'delivery'):
@@ -367,6 +387,7 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
                     source.append(path.read_text(encoding='utf-8'))
     if actual_source is not None:
         source = actual_source
+        execution_sources = actual_source
     content = '\n'.join([prose, *engineering, *source]).lower()
     selected_paths = {*affected_paths, *(p.relative_to(root).as_posix() for p in selected),
                       *(p.relative_to(root).as_posix() for p in frontend_packages(root, prose, affected_paths))}
@@ -381,7 +402,10 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
     if not inherited_runtime:
         inherited_tags -= {'persistence', 'api'}
     tags = {'all'} | inherited_tags
-    tags.update(tag for tag, pattern in CAPABILITIES.items() if re.search(pattern, content))
+    tags.update(tag for tag, pattern in CAPABILITIES.items()
+                if re.search(pattern, prose.lower() if tag == 'async-workload' else content))
+    if owns_async_execution(execution_sources):
+        tags.add('async-workload')
     identity = r'\b(?:sign[ -]?in|sign[ -]?out|login|logout|password[ -]reset|account[ -]recovery|credential[ -]recovery)\b'
     presentation = r'\b(?:screens?|pages?|forms?|styling|accessibility)\b'
     # User-visible identity screens need UI guidance before frontend source exists.

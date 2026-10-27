@@ -6,12 +6,26 @@ Export the exact installed optional sources into a new owned artifact directory:
 python .specify/extensions/program-kit-governance/scripts/asset_sources.py --repository . --component program-kit-dotnet --subtree references/examples/typed-operation
 ```
 
-Place `ILabelStore.cs` and `ILabelOperations.cs` in the accepted Core project,
-`LabelOperations.cs` and `LabelServices.cs` in its runtime implementation,
-`PostgreSqlLabelStore.cs` in the selected PostgreSQL provider, and the remaining
-`Label*.cs` files in its API. Each named type has its own file. The endpoint owns
-strict request admission, cancellation and response mapping; the application
-capability owns write-then-read orchestration. That observation is not an atomic
+Preserve the adapter's project-local layout:
+
+```text
+Core/Labels/{ILabelStore,ILabelOperations}.cs
+Runtime/Labels/{LabelOperations,LabelServices,LabelExecutionOptions}.cs
+PostgreSql/Labels/PostgreSqlLabelStore.cs
+Api/Operations/ReadLabel/Endpoint.cs
+Api/Operations/WriteLabel/{Endpoint,LabelRequest}.cs
+Api/Representation/LabelResponse.cs
+Api/Configuration/LabelApiOptions.cs
+Api/LabelEndpoints.cs
+Tests/Labels/LabelOperationsTests.cs
+```
+
+Each endpoint owns its actual route, admission and mapping. The read operation is
+bodyless, so it needs no request DTO. Both operations deliberately share the same
+public label representation; its explicit shared owner preserves the existing CLR
+and wire identities. `LabelEndpoints` is thin composition. Tests mirror the runtime
+capability's ownership. The application capability owns write-then-read orchestration.
+That observation is not an atomic
 write/read snapshot and supplies no general transaction or retry guarantee.
 Declare the real
 Core project references in the native projects and `eng/architecture.json`. Register
@@ -31,7 +45,10 @@ own bounded JSON profiles. Merge these values under that shell's `Configuration`
 
 ```json
 {
-  "Sample": { "Api": { "Prefix": "configured-" } },
+  "Sample": {
+    "Api": { "Prefix": "configured-" },
+    "Execution": { "Timeout": "00:00:30" }
+  },
   "Foundation": {
     "Json": {
       "Profiles": {
@@ -43,7 +60,18 @@ own bounded JSON profiles. Merge these values under that shell's `Configuration`
 }
 ```
 
-The owning runtime feature calls `LabelServices.Configure`.
+The owning runtime feature prepares `configuration = settings.GetConfigurationRoot()`
+before calling `LabelServices.Configure(services, configuration)` and directly
+references the selected `Orbyss.Foundation.Execution` package. It owns
+one native outer deadline for the entire operation, preserving the original caller
+cancellation separately from expiry. Both provider units receive the bounded outer
+token; neither starts a fresh total budget. Completion freshness is checked after
+each await, including a provider that returns after cancellation. Expiry does not
+prove that work stopped, undo a write or authorize retry. This BCL-only store port
+propagates the total cancellation cap, not `IExecutionDeadline` identity or native
+provider deadline classification. The runtime's thirty-second default is an explicit
+sample I/O safeguard, configurable at `Sample:Execution:Timeout`, never semantic Core
+policy. Invalid durations fail before effects; product policy requires its actual owner.
 API and runtime depend on Core rather than each other's implementation. Shell
 configuration selects both features and the provider. Registration is authored
 integration, never inferred from generated source presence.
@@ -58,10 +86,11 @@ durable-effect qualification must prove that the selected provider supplies the 
 Declare applicable native settings metadata using its maintained producer/inspection
 contract. A typed options class alone supplies no independently verified settings
 manifest. Preserve original source hashes and review actual generated changes.
-For a new declaration, adapt `settings.source.template.json` to the actual package
-and feature identities. After restore, run
+For new declarations, adapt `settings.source.template.json` for the API and
+`runtime.settings.source.template.json` for the runtime to the actual package and
+feature identities. After restore, run
 `dotnet msbuild <api-project> -t:FoundationInspectSettingsSourceBindings -p:Configuration=Release`
-with the released Foundation Build producer. Review its separate
+for each owning project with the released Foundation Build producer. Review its separate
 `obj/Release/<tfm>/orbyss-foundation/settings-source-bindings.json` report and merge
 the complete current source inventory into `sourceSha256`. Set
 `FoundationSettingsMetadataSource` to `settings.source.json` in the owning project.
@@ -107,4 +136,8 @@ parenthesis on its own line; argument values are prepared before calls; fluent
 chains start below the receiver and put each invocation on its own line. The named
 endpoint factory still resolves dependencies only in the request scope. Named route
 handlers retain their explicit service-binding attributes. Review these mandatory
-conventions after ordinary edits too; current build analyzers do not certify them.
+conventions after ordinary edits too. The selected Foundation source-readability
+analyzer mechanically checks its documented rules, including prepared deferred
+arguments. The maintained fixture compiles actual emitted owners with that analyzer;
+it does not certify state ownership, method abstraction, provider policy or arbitrary
+file placement. Review those semantics and adverse behavior in the first operation.

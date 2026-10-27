@@ -28,6 +28,13 @@ appropriate checks at its first coherent increment before replicating it. This d
 human approval point unless agreed. A local pattern needs no catalog qualification; a selected
 generator still owns its exact template and input requirements.
 
+Make that first operation inspectable: name its state/transition owner, pure policy versus provider
+effects, effective configuration/default source and required admitted snapshots, deadline/scope/drain
+owner, and first adverse case. Choose a small project-local responsibility tree with mirrored tests;
+apply the selected API's operation folders. Keep provider/browser restrictions out of semantic Core
+and justify native extension use before replacements. These are ordinary design decisions, not a
+mandatory table, file quota or claim that generic SOLID prose proves source correctness.
+
 Use selected framework mechanisms and supported extensions before adding equivalent infrastructure.
 For a new project, runner, wrapper or lifecycle, explain its actual responsibility and any concrete
 capability gap in the selected framework. Correct unjustified replacement proposals during review.

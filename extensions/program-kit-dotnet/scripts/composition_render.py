@@ -396,13 +396,22 @@ def provider_scaffold(project, registrations, contract):
     registration_lines = []
     for context, policy in sorted(declarations.items()):
         registration_lines.extend([
-            f'        services.AddFoundationPostgreSql<{context}>(settings, "{policy}", options => new(options));',
+            f'        Func<DbContextOptions<{context}>, {context}> create{context} = options => new(options);',
+            f'        services.AddFoundationPostgreSql<{context}>(',
+            '            settings,',
+            f'            "{policy}",',
+            f'            create{context}',
+            '        );',
             f'        services.AddShellInitializer<{context}Prepare>(LifecyclePhase.Prepare, order: 100);'])
         files[str(folder / (context + '.cs'))] = files[str(folder / 'ApplicationDbContext.cs')].replace(b'ApplicationDbContext', context.encode())
         files[str(folder / (context + 'Prepare.cs'))] = files[str(folder / 'ProviderPrepare.cs')].replace(
             b'ApplicationDbContext', context.encode()).replace(b'ProviderPrepare', (context + 'Prepare').encode())
-    feature = feature.replace('        services.AddFoundationPostgreSql<ApplicationDbContext>(settings, "application", options => new(options));\n'
-                              '        services.AddShellInitializer<ProviderPrepare>(LifecyclePhase.Prepare, order: 100);', '\n'.join(registration_lines))
+    registration = ('        Func<DbContextOptions<ApplicationDbContext>, ApplicationDbContext> createContext = options => new(options);\n'
+                    '        services.AddFoundationPostgreSql<ApplicationDbContext>(\n'
+                    '            settings,\n            "application",\n            createContext\n        );\n'
+                    '        services.AddShellInitializer<ProviderPrepare>(LifecyclePhase.Prepare, order: 100);')
+    require(feature.count(registration) == 1, 'native provider registration source changed; preserve and qualify the composition producer')
+    feature = feature.replace(registration, '\n'.join(registration_lines))
     files[feature_path] = feature.encode()
     files.pop(str(folder / 'ProviderPrepare.cs'))
     if 'ApplicationDbContext' not in declarations:

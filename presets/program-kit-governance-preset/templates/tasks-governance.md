@@ -39,3 +39,8 @@ This table is optional. Existing prose or another readable task format is suffic
 actual acceptance, change requests and bounded deferrals when the human provides them. Reviews
 already agreed in the constitution or plan remain binding. Do not infer acceptance from checkmarks,
 tests or time. No hidden checkpoint, timing ledger, hash receipt or toolkit state is needed.
+Carry the first coherent operation's concrete semantic and file-placement decisions into its tasks:
+owned states/policy, admitted configuration snapshots, complete deadlines, resource teardown and the
+actual source/test locations. Review this implementation and its first adverse case before copying
+the pattern to later operations. Do not defer these duties solely to a final SOLID/settings cleanup
+task; source review remains semantic work, not an automatic analyzer certificate or new human gate.

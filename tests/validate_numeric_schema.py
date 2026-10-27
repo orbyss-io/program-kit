@@ -131,13 +131,19 @@ def official_export(evidence, catalog, blocks):
     return tool / 'document.json', timing
 
 
-def generated_client(evidence, document):
+def generate_typescript(evidence, document, *, adapter=None):
+    expected_document = evidence / 'official-exporter/document.json'
+    if document.resolve() != expected_document.resolve():
+        raise ValueError('Generate only from the exact retained official exporter document')
     generator = evidence / 'client'; generator.mkdir(exist_ok=True)
     defaults = json.loads((TEMPLATE / 'eng/openapi-defaults.json').read_text())['typescriptGenerator']
     typescript = json.loads((TEMPLATE.parent / 'web-profiles/common/eng/web/package.json').read_text())['devDependencies']['typescript']
     (generator / 'package.json').write_text(json.dumps({'name': 'numeric-parity', 'version': '1.0.0', 'private': True,
         'scripts': {'generate': 'openapi-typescript ../official-exporter/document.json -o types.ts'},
         'devDependencies': {defaults['package']: defaults['version']}}))
+    if adapter is not None:
+        (generator / 'src').mkdir()
+        (generator / 'src/client.ts').write_bytes(adapter)
     # Use maintained exact shared-tool selection, cache and TLS admission.
     # This disposable fixture must not inherit CMD's overlong-PATH failure or
     # infer npm's installation layout from the discovered launcher.
@@ -167,24 +173,43 @@ def generated_client(evidence, document):
     # emitted pipeline does: openapi-typescript currently requires TypeScript5,
     # while supported application code uses its independently pinned compiler.
     compiler = evidence / 'compiler'; compiler.mkdir(exist_ok=True)
+    compiler_dependencies = {'typescript': typescript}
+    if adapter is not None:
+        application_package = json.loads((TEMPLATE.parent / 'hosted-pages/web/package.json').read_bytes())
+        compiler_dependencies = application_package['devDependencies']
+        typescript = compiler_dependencies['typescript']
     (compiler / 'package.json').write_text(json.dumps({'name': 'generated-client-compiler',
-        'version': '1.0.0', 'private': True, 'devDependencies': {'typescript': typescript}}))
+      'version': '1.0.0', 'private': True, 'devDependencies': compiler_dependencies}))
+    compile_arguments = ['../client/types.ts']
+    if adapter is not None:
+        profile = json.loads((TEMPLATE.parent / 'hosted-pages/web/tsconfig.json').read_bytes())
+        profile['include'] = ['../client/types.ts', '../client/src/client.ts']
+        (compiler / 'tsconfig.json').write_text(json.dumps(profile))
+        compile_arguments = ['--project', 'tsconfig.json']
     for name, arguments in (
         ('compiler-lock', ['install', '--package-lock-only', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
         ('compiler-ci', ['ci', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
-        ('client-compile', ['exec', '--', 'tsc', '--noEmit', '--strict', '--skipLibCheck', '../client/types.ts'])):
+        ('client-compile', ['exec', '--', 'tsc', '--noEmit', '--strict', '--skipLibCheck',
+            *compile_arguments])):
         run(evidence, name, [*npm, *arguments], compiler, environment=environment)
+    return {'generator': defaults, 'compiler': typescript, 'toolchainEvidence': str(evidence / 'artifacts/program-kit/toolchain.json'),
+            'inheritedPathCharacters': inherited_path_characters,
+            'npmPathCharacters': len(environment.get('PATH', '')),
+            'lockSha256': hashlib.sha256((generator / 'package-lock.json').read_bytes()).hexdigest(),
+            'typesSha256': hashlib.sha256((generator / 'types.ts').read_bytes()).hexdigest(),
+            **({'compiledActualAdapterSha256': hashlib.sha256(adapter).hexdigest()} if adapter is not None else {})}
+
+
+def generated_client(evidence, document):
+    result = generate_typescript(evidence, document)
+    generator = evidence / 'client'
     types = (generator / 'types.ts').read_text()
     for property in ('amount', 'count', 'revision'):
         import re
         lines = re.findall(r'\b' + property + r'\??: ([^;]+);', types)
         assert lines and all('number' in line and 'string' not in line for line in lines), (property, lines)
     assert 'amounts: number[]' in types
-    return {'generator': defaults, 'compiler': typescript, 'toolchainEvidence': str(evidence / 'artifacts/program-kit/toolchain.json'),
-            'inheritedPathCharacters': inherited_path_characters,
-            'npmPathCharacters': len(environment.get('PATH', '')),
-            'lockSha256': hashlib.sha256((generator / 'package-lock.json').read_bytes()).hexdigest(),
-            'typesSha256': hashlib.sha256((generator / 'types.ts').read_bytes()).hexdigest()}
+    return result
 
 
 def main():

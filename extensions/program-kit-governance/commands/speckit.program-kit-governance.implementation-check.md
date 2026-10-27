@@ -72,3 +72,9 @@ Honor the review points actually agreed in the constitution or plan/tasks. Prese
 and pause dependent product work for actual acceptance or an explicit scoped deferral. Record the
 human's decision in readable notes; agent checks cannot manufacture it. Keep failures, limitations
 and substantive semantic findings visible through ordinary review. No parallel delivery engine is used.
+Before expanding the first coherent operation, apply the canonical
+[source review](references/programming-guardrails.md#typed-boundaries-and-design-evidence) and
+[project-local placement](references/modularity-and-contracts.md#semantic-capability-contracts).
+Inspect method abstraction, state/policy ownership, admitted configuration snapshots, deadlines,
+resource cleanup and actual source/test locations. Exercise a relevant adverse case; no source
+review certificate, automatic semantic detector or additional human gate is created by this helper.

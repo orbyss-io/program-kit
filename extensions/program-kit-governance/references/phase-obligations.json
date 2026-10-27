@@ -198,7 +198,8 @@
         "principle.maintained-application-handoff",
         "principle.vertical-cohesion-boundaries",
         "principle.vertical-proportional-exceptions",
-        "principle.framework-native-mechanisms"
+        "principle.framework-native-mechanisms",
+        "principle.first-operation-source-review"
       ],
       "operationDecisions": [
         "ownership",
@@ -255,7 +256,8 @@
         "principle.consumer-meaning-ownership",
         "principle.domain-integration-delivery",
         "principle.architecture-semantic-evidence",
-        "principle.dependency-ownership-contract"
+        "principle.dependency-ownership-contract",
+        "principle.project-local-placement"
       ]
     },
     {
@@ -373,7 +375,8 @@
         "context.source-example-export-context",
         "principle.retained-runtime-boundaries",
         "principle.retained-engineering-selections",
-        "context.selected-web-runtime-specialization"
+        "context.selected-web-runtime-specialization",
+        "principle.project-local-placement"
       ]
     },
     {
@@ -645,7 +648,8 @@
         "principle.actual-building-block-use",
         "adapter.foundation-response",
         "adapter.foundation-settings",
-        "adapter.hosted-pages"
+        "adapter.hosted-pages",
+        "principle.project-local-placement"
       ],
       "operationDecisions": [
         "activation-drain",
@@ -6688,7 +6692,8 @@
         "principle.framework-native-mechanisms",
         "principle.typed-admission",
         "principle.normalized-label-contract",
-        "principle.solid-design-evidence"
+        "principle.solid-design-evidence",
+        "principle.first-operation-source-review"
       ],
       "contextDisposition": {
         "kind": "context",
@@ -7601,7 +7606,8 @@
       },
       "display": "focused-detail",
       "coveredBy": [
-        "principle.semantic-capability-boundary"
+        "principle.semantic-capability-boundary",
+        "principle.project-local-placement"
       ],
       "contextDisposition": {
         "kind": "context",
@@ -14061,6 +14067,54 @@
         "checks": [
           "tests/validate_native_phases.py",
           "tests/validate_postgresql_lifecycle.py"
+        ]
+      }
+    },
+    "principle.first-operation-source-review": {
+      "purpose": "First operation source review",
+      "source": "program-kit-governance/references/programming-guardrails.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.first-operation-source-review"
+      },
+      "owner": "program-kit-governance",
+      "family": "construction",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "implementation-quality"
+      ],
+      "applicability": "Current non-trivial operation; proportional responsibility and selected technology qualifiers apply.",
+      "bindings": {
+        "checks": [
+          "tests/validate_knowledge_sources.py",
+          "tests/validate_native_phases.py"
+        ]
+      }
+    },
+    "principle.project-local-placement": {
+      "purpose": "Project local placement",
+      "source": "program-kit-governance/references/modularity-and-contracts.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.project-local-placement"
+      },
+      "owner": "program-kit-governance",
+      "family": "construction",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "architecture-authority",
+        "dotnet-boundaries",
+        "capability-adoption"
+      ],
+      "applicability": "Current non-trivial operation; proportional responsibility and selected technology qualifiers apply.",
+      "bindings": {
+        "checks": [
+          "tests/validate_knowledge_sources.py",
+          "tests/validate_native_phases.py"
         ]
       }
     }

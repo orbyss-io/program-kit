@@ -271,7 +271,7 @@ the actual native build; declared root settings alone establish no effective-pol
 - In a method chain, put the receiver on its own line and every invocation on a following indented line,
   starting with the first invocation. Never leave the first call beside the receiver or combine calls on
   one line. A single unchained invocation may stay on the receiver's line.
-- Named-argument Policy B: require names for ambiguous booleans, enums, null/default literals, adjacent same-typed
+- Named-argument Policy B: prefer names for ambiguous booleans, enums, null/default literals, adjacent same-typed
   primitives, and project-defined calls with four or more arguments. Keep one- and two-argument obvious calls
   positional. Public parameter renames remain a source-compatibility concern.
 - Built-in formatting and analyzers remain primary. `Orbyss.Foundation.Analyzers` supplies only semantic Program Kit
