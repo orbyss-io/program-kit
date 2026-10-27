@@ -79,8 +79,8 @@ def native_contracts(projects, owners):
             'declare native JSON/public problem contracts in the API, Execution in runtime and PostgreSQL in its provider; neighboring package declarations cannot supply these owners')
     version = api['Orbyss.Foundation.Web.ProblemDetails'] or ''
     parts = version.split('.')
-    require(len(parts) == 3 and all(p.isdigit() for p in parts) and tuple(map(int, parts)) >= (0, 3, 6),
-            'typed-label requires qualified Foundation public problem contract 0.3.6 or later; preserve pins and qualify the dependency through its normal owner')
+    require(len(parts) == 3 and all(p.isdigit() for p in parts) and tuple(map(int, parts)) >= (0, 3, 8),
+            'typed-label requires qualified Foundation runtime 0.3.8 or later for descriptive JSON/endpoint/problem-status APIs; preserve pins and qualify the dependency through its normal owner')
     require({api['Orbyss.Foundation.Json.AspNetCore'], provider['Orbyss.Foundation.PostgreSql'], runtime['Orbyss.Foundation.Execution']} == {version},
             'selected native API/provider contracts differ; adopt one compatible qualified release through the dependency owner')
 

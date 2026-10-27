@@ -1,5 +1,12 @@
 # Typed first operation
 
+This revised recipe requires a qualified Foundation runtime **0.3.8 or later** in its actual API/runtime/provider
+owners: descriptive JSON contracts, scoped endpoint registration and problem-status metadata use that release's
+APIs. The finite adapter rejects older or incompatible native pins before writes; it never upgrades a preserved
+consumer lock. Qualify/adopt the dependency through its normal owner first. Consumers retaining older releases
+may continue ordinary manual implementation with that release's supported APIs and the same engineering rules;
+do not copy these newer helper calls into an incompatible project or treat manual editing as a version bypass.
+
 Export the exact installed optional sources into a new owned artifact directory:
 
 ```sh
@@ -15,7 +22,7 @@ PostgreSql/Labels/PostgreSqlLabelStore.cs
 Api/Operations/ReadLabel/Endpoint.cs
 Api/Operations/WriteLabel/{Endpoint,LabelRequest}.cs
 Api/Representation/LabelResponse.cs
-Api/Configuration/{LabelApiOptions,LabelApiOptionsValidator}.cs
+Api/Configuration/{LabelApiOptions,LabelApiOptionsValidator,LabelApiOptionsAdmission}.cs
 Api/LabelEndpoints.cs
 Tests/Labels/LabelOperationsTests.cs
 ```
@@ -109,7 +116,12 @@ contract. A typed options class alone supplies no independently verified setting
 manifest. Preserve original source hashes and review actual generated changes.
 Native `AddOptions/Bind` and the separate `IValidateOptions<LabelApiOptions>` validator precede immutable policy admission; copying a validated
 work snapshot does not replace binding or require `IOptions` in Core. Required API options are
-observed at actual shell activation. SDK IDE2001 and Foundation ORB1007–ORB1010 check different
+observed by the non-disposable scoped `LabelApiOptionsAdmission` at native CShells preparation (order -1000),
+before request activation and later protected work. Its only dependency is `IOptions<LabelApiOptions>`;
+it resolves no product/store provider. Effect owners must keep protected work after required admission.
+Native lifecycle enumeration may construct initializer objects before ordered execution; their constructors
+must perform no I/O. Cold metadata export does not run shell initializers. Root `ValidateOnStart` alone is
+not shell activation proof. SDK IDE2001 and Foundation ORB1007–ORB1010 check different
 parts of the source-layout contract; a passing invocation-chain check does not cover the category.
 For new declarations, adapt `settings.source.template.json` for the API and
 `runtime.settings.source.template.json` for the runtime to the actual package and

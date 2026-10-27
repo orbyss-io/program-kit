@@ -1,4 +1,5 @@
 using CShells;
+using CShells.Lifecycle;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -19,5 +20,6 @@ public sealed class LabelApiOptions
         var section = configuration.GetSection("Sample:Api");
         options.Bind(section);
         services.AddSingleton<IValidateOptions<LabelApiOptions>, LabelApiOptionsValidator>();
+        services.AddScoped<IShellInitializer, LabelApiOptionsAdmission>();
     }
 }

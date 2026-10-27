@@ -54,6 +54,37 @@ and lock/knowledge refresh, actual released-package cold OpenAPI export/generate
 `validate_coding_scaffolding` and final full Affected selection against `40220694`. New API source alone cannot
 qualify old public pins. No consumer toolkit refresh, app restart or refactor was performed in this increment.
 
+Parent review subsequently found a compatibility omission: the revised finite recipe emitted APIs introduced
+in Foundation 0.3.8 while `coding_scaffold.native_contracts` still admitted 0.3.6. The existing native preflight
+now requires a stable qualified runtime at least 0.3.8 and retains its same-release/actual-owner checks.
+An old API declaration is rejected before rendering a usable preview or writing business files; no pin or
+consumer lock is rewritten. The README states this prerequisite and retains ordinary manual implementation
+against an older release's supported APIs, without presenting the newer helper calls as compatible.
+
+Focused compatibility proof: five existing/new scaffold tests passed (10.322s), including actual native MSBuild
+preview inputs, 0.3.7 rejection with a byte-for-byte unchanged source/lock snapshot, same-owner requirements,
+stable 0.3.8+ positives and older/malformed/prerelease negatives. These tests use fictional project declarations
+to test preflight; they do not claim public package availability or compile the emitted new-runtime sources.
+Output is retained at `artifacts/api-ergonomics-recipe-version-guard.log`. The full emitted native fixture and
+released-package export remain the coordinator's post-publication adoption checks.
+
+Parent semantic review also found that the earlier API-options activation claim had no observation owner:
+binding plus `IValidateOptions<T>` alone deferred validation until an endpoint first read `Value`. The actual
+example now registers non-disposable scoped `LabelApiOptionsAdmission : IShellInitializer` in native preparation
+(order -1000). Its sole dependency is `IOptions<LabelApiOptions>`; it performs no provider construction or I/O.
+The renderer includes the admission file under API Configuration. Later protected effects must follow required
+admission; native initializer object enumeration/construction is distinct from ordered work execution.
+
+The maintained scaffold test now compiles the actual binder/validator/admission sources with a real selected
+CShells registry. Missing/null/empty/oversized configuration rejects with the API owner's actual native
+`OptionsValidationException`, publishes no failed generation and executes no later Start-phase observation.
+Valid nondefault configuration remains unchanged and the later phase executes once. This does not claim that
+arbitrary provider constructors are never created or that a real database was qualified. Cold exporter
+qualification still belongs to the coordinator's actual released-package route, which must keep initializers
+unexecuted. The focused native activation, emitted-source layout and renderer inclusion tests passed (3 tests,
+`artifacts/api-ergonomics-options-final.log`). Original setup and sandbox DNS failures remain in preceding
+options-activation logs; the approved external-process run restored declared public dependencies and passed.
+
 The user authorized the research plan's Program Kit prevention changes in a fresh implementation agent, with parent coordination and independent review. They explicitly retained trial-consumer refactoring for a later joint plan. The consumer remains read-only evidence.
 
 Working checkout: `C:/Users/tech_/Code/program-kit/artifacts/worktrees/bootstrap-intake-analysis`, branch `codex/bootstrap-intake-analysis`, baseline `88477de14db70837f342f87854d375c4e0ce1f69`. The untracked [audit](trial-consumer-coding-system-audit-2026-10-27.md) and ignored evidence are preserved. The main checkout and unrelated work are untouched.

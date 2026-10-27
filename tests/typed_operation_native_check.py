@@ -8,8 +8,71 @@ import re
 import subprocess
 import sys
 import uuid
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def check_api_options_activation():
+    """Activate the actual emitted options binder/validator/initializer through the native registry.
+
+    This narrow fixture needs CShells and the selected analyzer, not unpublished Foundation runtime APIs.
+    Its later-phase observation proves ordering of executed work, not absence of initializer construction.
+    """
+    sys.path[:0] = [str(ROOT / 'extensions/program-kit-dotnet/scripts'),
+                   str(ROOT / 'extensions/program-kit-governance/scripts')]
+    import dependency_profile
+    blocks = dependency_profile.resolver()
+    catalog = blocks.new_project_catalog()
+    pins = blocks.effective_dependency_context(ROOT)['sharedAbi']['pins']
+    native_fixture = ROOT / 'tests/fixtures/cshells-initializer-ownership/OwnershipProbe.csproj'
+    native_reference = ET.parse(native_fixture).find('.//PackageReference[@Include="CShells"]')
+    native_version = native_reference.attrib['Version'].strip('[]')
+    if native_version != pins['CShells.Abstractions']:
+        raise ValueError('Qualify actual CShells activation against the newly selected ABI before running this fixture')
+    directory = ROOT / 'artifacts/t' / ('typed-options-' + uuid.uuid4().hex[:8])
+    directory.mkdir(parents=True)
+    template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
+    for name in ('Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props'):
+        (directory / name).write_text('<Project/>', encoding='utf-8')
+    for name in ('.editorconfig', 'global.json'):
+        shutil.copyfile(template / name, directory / name)
+    (directory / 'NuGet.Config').write_text('<configuration><packageSources><clear/>'
+        '<add key="nuget.org" value="https://api.nuget.org/v3/index.json"/>'
+        '</packageSources></configuration>', encoding='utf-8')
+    source = ROOT / 'extensions/program-kit-dotnet/references/examples/typed-operation/Configuration'
+    for name in ('LabelApiOptions.cs', 'LabelApiOptionsValidator.cs', 'LabelApiOptionsAdmission.cs'):
+        shutil.copyfile(source / name, directory / name)
+    for path in (ROOT / 'tests/fixtures/typed-operation-runtime/Options').glob('*.cs'):
+        shutil.copyfile(path, directory / path.name)
+    analyzer = catalog['packages']['nuget:Orbyss.Foundation.Analyzers']['version']
+    project = directory / 'OptionsProbe.csproj'
+    project.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType>'
+        '<TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings>'
+        '<Nullable>enable</Nullable><GenerateDocumentationFile>true</GenerateDocumentationFile>'
+        '<TreatWarningsAsErrors>true</TreatWarningsAsErrors><EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>'
+        '<FoundationSourceReadability>true</FoundationSourceReadability><NuGetAudit>false</NuGetAudit>'
+        '</PropertyGroup><ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App"/>'
+        '<PackageReference Include="CShells" Version="' + native_version + '"/>'
+        '<PackageReference Include="CShells.Abstractions" Version="' + pins['CShells.Abstractions'] + '"/>'
+        '<PackageReference Include="Orbyss.Foundation.Analyzers" Version="' + analyzer + '" PrivateAssets="all"/>'
+        '</ItemGroup></Project>', encoding='utf-8')
+    commands = [
+        ['dotnet', 'build', str(project), '--configuration', 'Release', '--nologo', '-m:1', '--disable-build-servers'],
+        ['dotnet', 'run', '--no-build', '--project', str(project), '--configuration', 'Release'],
+    ]
+    for index, command in enumerate(commands):
+        result = subprocess.run(command, cwd=directory, capture_output=True, text=True, encoding='utf-8', timeout=90)
+        (directory / f'{index}.stdout.txt').write_text(result.stdout, encoding='utf-8')
+        (directory / f'{index}.stderr.txt').write_text(result.stderr, encoding='utf-8')
+        print(result.stdout, end=''); print(result.stderr, end='')
+        if result.returncode:
+            print('Native options source/check retained: ' + str(directory))
+            return result.returncode
+    if 'ACTUAL_NATIVE_API_OPTIONS_ACTIVATION_PASSED' not in result.stdout:
+        raise ValueError('Successful native setup did not execute actual API options activation controls')
+    print('Native options source/check retained: ' + str(directory))
+    return 0
 
 
 def check():
