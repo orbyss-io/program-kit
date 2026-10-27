@@ -1,7 +1,7 @@
-using System;
 using CShells;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ProgramKit.Examples.TypedOperation;
 
@@ -17,9 +17,7 @@ public sealed class LabelApiOptions
         var options = services.AddOptions<LabelApiOptions>();
         var configuration = settings.GetConfigurationRoot();
         var section = configuration.GetSection("Sample:Api");
-        Func<LabelApiOptions, bool> valid = value => value.Prefix.Length is > 0 and <= 32;
-        options
-            .Bind(section)
-            .Validate(valid, "Sample:Api:Prefix is required.");
+        options.Bind(section);
+        services.AddSingleton<IValidateOptions<LabelApiOptions>, LabelApiOptionsValidator>();
     }
 }

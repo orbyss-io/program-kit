@@ -16,17 +16,24 @@ def check():
     sys.path[:0] = [str(ROOT / 'extensions/program-kit-dotnet/scripts'),
                    str(ROOT / 'extensions/program-kit-governance/scripts')]
     import typed_operation
+    import dependency_profile
+    blocks = dependency_profile.resolver()
+    catalog = blocks.new_project_catalog()
+    shared_pins = blocks.effective_dependency_context(ROOT)['sharedAbi']['pins']
     directory = ROOT / 'artifacts/t' / ('typed-native-' + uuid.uuid4().hex[:8])
     directory.mkdir(parents=True)
     eng = directory / 'eng'; eng.mkdir()
     shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props', eng / 'ProgramKit.Build.props')
+    analyzer_version = catalog['packages']['nuget:Orbyss.Foundation.Analyzers']['version']
     (directory / 'Directory.Build.props').write_text('''<Project><Import Project="eng/ProgramKit.Build.props"/><PropertyGroup>
 <NuGetAudit>false</NuGetAudit>
-</PropertyGroup><ItemGroup><PackageReference Update="Orbyss.Foundation.Analyzers" Version="0.3.7"/>
+</PropertyGroup><ItemGroup><PackageReference Update="Orbyss.Foundation.Analyzers" Version="''' + analyzer_version + '''"/>
 </ItemGroup></Project>''', encoding='utf-8')
     shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets', eng / 'ProgramKit.Build.targets')
     (directory / 'Directory.Build.targets').write_text('<Project><Import Project="eng/ProgramKit.Build.targets"/></Project>', encoding='utf-8')
-    (directory / 'NuGet.Config').write_text('<configuration><packageSources><clear/></packageSources></configuration>', encoding='utf-8')
+    (directory / 'NuGet.Config').write_text('<configuration><packageSources><clear/>'
+        '<add key="nuget.org" value="https://api.nuget.org/v3/index.json"/>'
+        '</packageSources></configuration>', encoding='utf-8')
     shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig', directory / '.editorconfig')
     shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/global.json', directory / 'global.json')
     shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig', directory / '.editorconfig')
@@ -55,11 +62,11 @@ def check():
     commands = []
     for owner, names in packages.items():
         project = directory / owners[owner]; project.parent.mkdir(parents=True, exist_ok=True)
-        items = ''.join(f'<PackageReference Include="{name}" Version="0.3.7"/>' for name in names)
+        items = ''.join(f'<PackageReference Include="{name}" Version="{catalog["packages"]["nuget:" + name]["version"]}"/>' for name in names)
         if owner != 'core':
             items += '<ProjectReference Include="../core/core.csproj"/><FrameworkReference Include="Microsoft.AspNetCore.App"/>'
         if owner in ('api', 'provider'):
-            items += '<PackageReference Include="CShells.Abstractions" Version="0.0.31"/>'
+            items += '<PackageReference Include="CShells.Abstractions" Version="' + shared_pins['CShells.Abstractions'] + '"/>'
         project.write_text('<Project Sdk="Microsoft.NET.Sdk"><ItemGroup>' + items + '</ItemGroup></Project>', encoding='utf-8')
     test = directory / owners['test']; test.parent.mkdir(parents=True, exist_ok=True)
     test.write_text('''<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType>
@@ -131,11 +138,28 @@ internal sealed class SourceStyleControl
         return Echo(field);
     }
 
+    /// <summary>Infers an ordinary initialized local before invoking a helper.</summary>
+    public string Prepared()
+    {
+        var prepared = field;
+        return Echo(prepared);
+    }
+
+    /// <summary>Keeps an inferred expression local on the provider-translatable query path.</summary>
+    public IQueryable<string> Query(IQueryable<string> values)
+    {
+        var expression = CreateExpression();
+        return values.Where(expression);
+    }
+
     /// <summary>Leaves private helpers after the public behavior.</summary>
     private static string Echo(string value) => value;
 
     /// <summary>Executes an explicitly prepared deferred function.</summary>
     private static string From(Func<string> read) => read();
+
+    /// <summary>Preserves expression-tree target typing at the factory boundary.</summary>
+    private static System.Linq.Expressions.Expression<Func<string, bool>> CreateExpression() => value => value.Length > 0;
 }
 '''
     command = ['dotnet', 'build', str(project), '--configuration', 'Release', '--no-restore', '--nologo', '-m:1', '--disable-build-servers']
@@ -153,6 +177,7 @@ internal sealed class SourceStyleControl
             raise ValueError(f'Native source control {label} did not establish {diagnostic or "positive compilation"}; inspect {directory}')
 
     mutations = [
+        ('inferred-local', 'IDE0007', 'var prepared = field;', 'string prepared = field;'),
         ('embedded-body', 'IDE2001', 'if (enabled)\n            return', 'if (enabled) return'),
         ('chain-first', 'ORB1009', 'field\n                .Trim()', 'field.Trim()'),
         ('chain-combined', 'ORB1009', '.Trim()\n                .ToUpperInvariant()', '.Trim().ToUpperInvariant()'),

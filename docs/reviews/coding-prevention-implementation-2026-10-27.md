@@ -1,5 +1,59 @@
 # Coding prevention implementation and review
 
+## API contracts, configuration and method layout follow-through
+
+This later increment uses Program Kit base `40220694` and the isolated Foundation implementation branch;
+earlier results below retain their original scope. The trial consumer's US4 remains halted and untouched.
+
+Review these concrete Program Kit owners:
+
+- `extensions/program-kit-dotnet/references/examples/typed-operation/Operations/{ReadLabel,WriteLabel}/Endpoint.cs`
+  own route/name, native handler binding and prepared failure-status metadata. Composition registers/maps only.
+  The two operations intentionally register the same shared `LabelResponse.Contract`; matching declarations
+  are idempotent. Request/response declarations name supported capacity and actual configured profile keys.
+  `AddJsonEndpoint` preserves deferred scoped activation for cold metadata export; no fake provider is added.
+- `Configuration/LabelApiOptionsValidator.cs` implements native `IValidateOptions<T>`, including null/empty/long
+  rejection. The real typed-operation renderer includes it. The contract namespaces, schema identities,
+  `/api/sample-label` path, operation names and response status sets remain unchanged.
+- Canonical `dotnet-engineering.md`, `secure-web-profiles.md` and programming guardrails cover operation-owned
+  contracts/mappings, shared semantic permission keys, inferred locals, whitespace phases, provider query
+  factories and meaningful reusable construction. They prohibit neither simple loops nor legitimate target
+  typing. Method extraction and semantic ownership remain review duties, not automatic analyzer claims.
+- The emitted `.editorconfig` enables the standard SDK var preferences and IDE0007 error. Maintained native
+  source-category controls compile the positive inferred local plus typed expression factory/IQueryable path,
+  then reject an explicit eligible local alongside the existing layout/prepared-value/chain negatives.
+  The native fixture now reads active package/ABI pins and a declared public feed rather than fixed old pins.
+
+Foundation adds descriptive registration and numeric schema repair in the existing Json/Json.AspNetCore,
+Authentication and Web.ProblemDetails owners. Its committed review is
+`docs/validation-api-contract-ergonomics-2026-10-27.md` at source `5101abcb38e5c1f7dedc44ae574771784eb46761`.
+That note indexes the strict/loose nullable-number reproduction, actual-profile/native producer controls,
+custom converter limits, supported versus deployment budgets, permissions and the original application JSON
+capacity initializer's purpose. This is a bounded numeric correction, not universal serializer/schema parity.
+
+Retained local verification:
+
+- Final Program Kit Integrity: passed 7.410s, `artifacts/validation-runs/20261027T221430Z-f5f62fe4/results.json`.
+  Final knowledge/guidance regressions: passed 27.438s,
+  `artifacts/validation-runs/20261027T221430Z-ac9880fd/results.json`.
+- Native source-category controls passed all 16 mutations, including SDK IDE0007, after a successful positive
+  and restored positive. `artifacts/api-ergonomics-native-var.log` and `artifacts/t/typed-native-a43bddf7/style-*`
+  retain the output. This focused reuse used its existing SDK 10.0.402/analyzer 0.3.7 fixture; released-profile
+  qualification must rerun the maintained full fixture with the final adopted pins.
+- Existing syntax oracle: 49 actual new Foundation/emitted C# files, 14 adverse controls, zero violations;
+  `artifacts/readability-problem-statuses-final2.log`. Foundation's actual HTTP JSON/admission and problem-status
+  metadata controls passed; its independent parent validation/release remains separately owned.
+- Original independent Affected report `20261027T220652Z-0e013c9d` remains needs-attention: expanded guidance
+  exceeded the established brief limit, and sandbox privileges prevented an owned test junction. Guidance was
+  condensed without raising limits; all 25 knowledge tests passed. The focused junction case passed outside
+  the sandbox (`artifacts/api-ergonomics-junction-external.log`), 1 test/0.015s. The original composition-model
+  run also exceeded its budget; a focused case does not turn that run into a pass.
+
+The coordinator still owns public Foundation 0.3.8 publication/availability, every affected Program Kit profile
+and lock/knowledge refresh, actual released-package cold OpenAPI export/generated-client qualification,
+`validate_coding_scaffolding` and final full Affected selection against `40220694`. New API source alone cannot
+qualify old public pins. No consumer toolkit refresh, app restart or refactor was performed in this increment.
+
 The user authorized the research plan's Program Kit prevention changes in a fresh implementation agent, with parent coordination and independent review. They explicitly retained trial-consumer refactoring for a later joint plan. The consumer remains read-only evidence.
 
 Working checkout: `C:/Users/tech_/Code/program-kit/artifacts/worktrees/bootstrap-intake-analysis`, branch `codex/bootstrap-intake-analysis`, baseline `88477de14db70837f342f87854d375c4e0ce1f69`. The untracked [audit](trial-consumer-coding-system-audit-2026-10-27.md) and ignored evidence are preserved. The main checkout and unrelated work are untouched.

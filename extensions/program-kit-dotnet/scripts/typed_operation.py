@@ -10,7 +10,7 @@ FILES = {
     'runtime': ('Labels/LabelOperations.cs', 'Labels/LabelServices.cs', 'Labels/LabelExecutionOptions.cs'),
     'api': ('Operations/ReadLabel/Endpoint.cs', 'Operations/WriteLabel/Endpoint.cs',
             'Operations/WriteLabel/LabelRequest.cs', 'Representation/LabelResponse.cs',
-            'Configuration/LabelApiOptions.cs', 'LabelEndpoints.cs'),
+            'Configuration/LabelApiOptions.cs', 'Configuration/LabelApiOptionsValidator.cs', 'LabelEndpoints.cs'),
     'provider': ('Labels/PostgreSqlLabelStore.cs',),
 }
 

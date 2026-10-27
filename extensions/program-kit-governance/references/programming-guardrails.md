@@ -49,6 +49,9 @@ Before replicating a non-trivial operation, review its first coherent source and
   their atomic effects and implementation constraints.
 - Keep each method at one abstraction level. Extract meaningful policy, parsing, mapping and lifetime
   boundaries; a partial file, green analyzer or shorter method does not establish responsibility.
+  Keep the operation's endpoint/binding/contracts/mappings navigable together and leave composition thin.
+  Group method phases with meaningful whitespace and prepare named values before calls; inspect the whole
+  selected layout category after manual changes, not only the last reported chaining violation.
 - Trace effective configuration from its single default source through activation and every consumer.
   Preserve original work snapshots; distinguish adjustable policy, fixed contracts and safeguards.
   Use the selected stack's native binding/validation mechanism before snapshot admission; a typed

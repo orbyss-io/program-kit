@@ -9,6 +9,12 @@ configuration, operational, and test behavior. An application `.Api` implementat
 ownership, wire contracts, stable permission/policy metadata or an explicit anonymous declaration,
 and its business outcomes; it does not create an application-root web-boundary feature.
 
+Keep endpoint/binding/wire contracts/mappings together per operation; composition registers/maps only.
+Shared permission keys belong to semantic feature contracts. Reuse descriptive JSON definitions for native
+registration/OpenAPI while retaining typed readers/results and cold DI. Supported intervals differ from active
+budgets; schemas do not replace runtime admission. Preserve binding/status/schema identities. See the
+[operation contract recipe](examples/typed-operation/README.md) for the complete integration and limits.
+
 The profile contract version is recorded in `docs/architecture/bootstrap-decisions.json` and
 `eng/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
 behavior change requires a new profile version.

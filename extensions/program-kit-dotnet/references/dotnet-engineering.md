@@ -196,43 +196,30 @@ admission as defined in `programming-guardrails.md`.
 ## Method bodies and extraction
 
 <!-- program-kit:knowledge-rule principle.method-coherence -->
-Write a non-trivial method as one coherent operation. Use this sequence when the phases apply; do not add empty
-sections, comments, temporary variables, or helper calls merely to make the shape visible:
+Write a non-trivial method at one abstraction level. Use applicable phases without empty sections or ceremony:
 
-1. Validate inputs, authorization, preconditions, and other trust-boundary assumptions. Prefer guard clauses so
-   the valid path remains unindented. Do not repeat guarantees already established by the type system or caller's
-   accepted contract.
-2. Prepare the operation state. Compute derived values and acquire short-lived resources as close as practical to
-   their first use. Keep simple expressions inline when a local name adds no meaning.
-3. Perform the operation at one level of abstraction. Make state changes and external effects explicit, ordered,
-   cancellable, and owned.
-4. Validate the result and postconditions when the method establishes an invariant or crosses a trust boundary.
-   Do not defensively re-check values that were just produced by a trusted, strongly typed operation.
-5. Return the result on an explicit final line when there is a result. `void`, throwing, expression-bodied, and
-   `Try...` methods naturally omit or adapt phases that do not apply.
+1. Guard inputs, authority and preconditions; keep the valid path unindented. Do not repeat accepted guarantees.
+2. Prepare meaningful values and acquire short-lived resources near use. Name locals only when they add meaning.
+3. Perform explicit, ordered, cancellable effects with clear ownership.
+4. Check postconditions at an invariant/trust boundary; do not revalidate trusted results mechanically.
+5. Return on an explicit final line; void, throwing, expression-bodied and Try methods adapt naturally.
 
-Preparation or logic is complex enough to extract when it represents a nameable concept and any of these signals
-is present:
+Use blank lines between related admission, resource/deadline, query/materialization, mapping and return phases,
+not every statement. Extract substantial queries into provider-owned IQueryable/Expression factories; infer
+locals with var without replacing expression trees with Func or client evaluation. Keep the same live context,
+transaction and deadline. Extract multi-step loop projections and repeated construction from one complex
+source into purposeful mappings. Share helpers only when meaning/invariants match; argument count does not
+justify public helpers or Core depending on persistence rows. Simple loops/expressions need no automatic split.
 
-- it mixes a lower-level algorithm, parsing, mapping, policy decision, I/O, or resource lifetime into a method
-  that otherwise reads at a higher level;
-- it introduces multiple branches, loops, exception paths, or intermediate values that must be understood
-  together;
-- it has an independent contract worth focused tests, is reused, or is likely to change for a different reason
-  than the calling operation;
-- its side effects, failure modes, cancellation, or ownership rules deserve a boundary of their own; or
-- the caller cannot describe the prepared value with one precise local name without also explaining how it is
-  built.
+Extract a nameable policy, parsing, mapping, algorithm, I/O or lifetime concept when it mixes abstraction levels,
+contains branches/loops/failure paths needing joint understanding, has a reusable/testable contract or independent
+reason to change, or deserves its own effect/cancellation/ownership boundary. Return a complete meaningful value;
+do not disguise a durable concept as an unnamed tuple parameter bag.
 
-Cyclomatic complexity is a warning signal, not the definition: review a method at 10 and normally refactor before
-it exceeds 15. Also refactor a low-branch method when it mixes abstraction levels or hides a resource boundary.
-Conversely, do not extract a transparent expression or create a pass-through helper solely to reduce line count.
-An extracted preparation helper returns the complete prepared value, preferably as an existing domain/value type;
-do not use a tuple as an unnamed parameter bag when the values form a durable concept.
-
-Order fields first, followed by constructors and the type's externally meaningful members. Put private helper
-methods at the bottom of the type, in the order in which the higher-level flow first uses them. A private method is
-not automatically justified: it must make the caller easier to read or own an independently meaningful contract.
+Cyclomatic complexity is a warning signal, not the definition: review at 10, normally refactor before 15.
+Low-branch methods can still mix responsibilities; avoid pass-through helpers solely to reduce lines.
+Order fields, constructors and meaningful external members first; private helpers last, ordered by first use.
+Every helper must clarify its caller or own an independent meaningful contract.
 <!-- /program-kit:knowledge-rule -->
 
 ## Source files and documentation
@@ -266,6 +253,10 @@ the actual native build; declared root settings alone establish no effective-pol
 <!-- program-kit:knowledge-rule principle.invocation-layout -->
 - Private fields use camelCase without an underscore; enforce through EditorConfig naming rules and
   `dotnet_diagnostic.IDE1006.severity=error`. Naming-rule severity alone does not enforce a build.
+- Prefer `var` for initialized local variables; use named typed expression/query factories when inference
+  otherwise changes the native execution contract. The standard SDK `csharp_style_var_*` preferences and
+  IDE0007 enforce eligible inferred locals; required target typing remains valid. Group related method phases
+  with blank lines; meaningful phase grouping remains a source-review duty.
 - Put control-flow bodies below their conditions. A simple single-statement `if` may omit braces on
   the next indented line; complex/ambiguous bodies use braces. Enable SDK IDE2001 as an error with
   `EnforceCodeStyleInBuild=true` and `csharp_style_allow_embedded_statements_on_same_line_experimental=false`.
@@ -290,27 +281,23 @@ the actual native build; declared root settings alone establish no effective-pol
 ## Enforcement classification
 
 <!-- program-kit:knowledge-rule principle.source-enforcement -->
-- Universal: next-line control-flow bodies, argument/parameter layout, prepared argument values, one invocation per chain line,
-  owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
-  resource ownership, immutable production composition, no shell-level `AddHostedService`, coherent method
-  abstraction, one declared type per file, private helpers last, and purposeful XML documentation on every
-  declared type and member.
-- Conditional: `ValueTask`, PLINQ, structs, records, primary constructors, frozen collections, live unloading,
-  and specialized synchronization.
-- Recommendation: line width, contextual named arguments, and sealing internal leaves.
-- Qualified Foundation `source-readability-v1` enforces argument/parameter, prepared-value, chain and
-  fields-first layout through ORB1007–ORB1010 with `FoundationSourceReadability=true`. Older packages
-  block supported adoption until a qualified published release/profile exists; local candidates supply
-  development proof, never public pins. Mandatory Foundation diagnostics cannot be suppressed/downgraded;
-  native build/preflight reject disabled analyzer/compiler execution.
-  SDK IDE2001/IDE1006 enforce body layout/naming; ORB1003/ORB1004/ORB1005 enforce one type, helpers-last
-  and XML presence. Check this whole category after manual edits, including nested method, constructed,
-  awaited and deferred arguments; preserve actual diagnostics, not just a passing chain check.
-  Semantic ownership, cancellation/cleanup, abstraction and XML purpose still need scoped source review
-  and adverse checks; a green build does not waive that review. Apply these rules to owned source and
-  editable examples/templates, preserving external packages, historical evidence and native generated output.
-- Prohibited unless ADR: invisible work, sync-over-async, unbounded queues/fan-out, custom schedulers, runtime feed
-  mutation, and live reload without drain/unload evidence.
+- Universal: invocation/layout, method-coherence and documentation rules above, one type/file, fields-first,
+  helpers-last, owned/observed async work, cancellation, bounded concurrency, safe teardown and immutable
+  composition. No shell-level AddHostedService.
+- Conditional: ValueTask, PLINQ, structs/records, primary constructors, frozen collections, live unloading and
+  specialized synchronization. Recommendations: line width, contextual named arguments and sealed leaves.
+- Qualified Foundation source-readability-v1 enforces layout/prepared arguments/chains/fields through
+  ORB1007–ORB1010 with FoundationSourceReadability=true. Older packages block adoption until qualified public
+  release/profile; local candidates never supply public pins. Mandatory diagnostics cannot be suppressed or
+  downgraded; native build/preflight reject disabled analyzer/compiler execution.
+  SDK IDE2001/IDE1006/IDE0007 enforce body layout/naming/eligible var; ORB1003/ORB1004/ORB1005 enforce one
+  type/helpers-last/XML presence. Check the entire category after manual edits, including nested constructed,
+  awaited and deferred arguments. Preserve actual diagnostics, not just a passing chain check.
+  Semantic ownership, cancellation/cleanup, abstraction and XML purpose need scoped review/adverse checks;
+  a green build does not waive that review. Apply to owned editable source/examples/templates; preserve
+  external packages, historical evidence and native generated output.
+- Prohibited unless ADR: invisible work, sync-over-async, unbounded queues/fan-out, custom schedulers, runtime
+  feed mutation and live reload without drain/unload proof.
 <!-- /program-kit:knowledge-rule -->
 
 ## Primary references

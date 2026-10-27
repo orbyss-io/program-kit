@@ -15,12 +15,21 @@ PostgreSql/Labels/PostgreSqlLabelStore.cs
 Api/Operations/ReadLabel/Endpoint.cs
 Api/Operations/WriteLabel/{Endpoint,LabelRequest}.cs
 Api/Representation/LabelResponse.cs
-Api/Configuration/LabelApiOptions.cs
+Api/Configuration/{LabelApiOptions,LabelApiOptionsValidator}.cs
 Api/LabelEndpoints.cs
 Tests/Labels/LabelOperationsTests.cs
 ```
 
-Each endpoint owns its actual route, admission and mapping. The read operation is
+Each endpoint owns its actual route, admission, handler binding and mapping. Place operation-only
+request/response models and mapping helpers in that operation's folder; share representations
+under an explicit shared owner only when their meaning is genuinely shared. There is no mandatory
+Constants bag or extra model for a bodyless operation. Stable route/name constants may live on the
+endpoint. Shared permission tokens belong to the feature's semantic public contract, so API and
+Web consumers do not reference each other's endpoint implementations. Where permissions apply,
+use `RequirePermission(FeaturePermissions.Read)` with the real canonical permission owner;
+the helper preserves native authorization and does not grant permissions.
+
+The read operation is
 bodyless, so it needs no request DTO. Both operations deliberately share the same
 public label representation; its explicit shared owner preserves the existing CLR
 and wire identities. `LabelEndpoints` is thin composition. Tests mirror the runtime
@@ -39,7 +48,9 @@ ProblemDetails features and direct package references. The public
 `FoundationProblemEnvelope` is supplied by the new Foundation closure; consume its
 released package rather than copying an internal writer shape. Endpoint metadata
 declares actual admission, authentication/authorization and server errors alongside
-the typed success contract. Strict request DTO metadata disallows unknown members.
+the typed success contract. A prepared owned status array feeds `ProducesFoundationProblemStatuses`, which
+describes the existing bounded envelope without inventing runtime failure definitions or handlers.
+Strict request DTO metadata disallows unknown members.
 Its shell configuration sets `Sample:Api:Prefix` explicitly and selects the example's
 own bounded JSON profiles. Merge these values under that shell's `Configuration`:
 
@@ -75,18 +86,28 @@ policy. Invalid durations fail before effects; product policy requires its actua
 API and runtime depend on Core rather than each other's implementation. Shell
 configuration selects both features and the provider. Registration is authored
 integration, never inferred from generated source presence.
+`LabelRequest.Contract` and `LabelResponse.Contract` describe the actual JSON profiles and supported
+capacity with named factories. Register that same definition with `AddJsonContract` and map it with
+`WithJsonRequest`/`WithJsonResponse`: runtime admission and `x-foundation-json-contracts` retain one
+source. Both operations register the shared response; identical registrations are idempotent,
+while conflicting profile/requirements fail. The extension's intervals describe supported capacity,
+not the current deployment's byte/depth budget. JSON Schema describes wire shapes; actual readers
+and result factories still enforce parser/range, byte/depth and output admission. Preserve native
+binding attributes on the mapped endpoint method, including optional headers and raw duplicate
+header cardinality; co-locating a request DTO never authorizes unbounded native body binding.
+
 The contract's supported maximum and configured budget must agree. Binding this
 small contract to a larger default profile correctly fails shell activation.
 No provider is created,
 schema deployed or operation executed while registering or exporting metadata.
-The scoped endpoint factory resolves its real provider port only for an admitted
+`AddJsonEndpoint` registers the scoped endpoint with deferred constructor activation. It resolves its real provider port only for an admitted
 request. This preserves cold metadata export when runtime-only providers are
 excluded; never register a fake provider to make export pass. Actual request and
 durable-effect qualification must prove that the selected provider supplies the port.
 Declare applicable native settings metadata using its maintained producer/inspection
 contract. A typed options class alone supplies no independently verified settings
 manifest. Preserve original source hashes and review actual generated changes.
-Native `AddOptions/Bind/Validate` binding precedes immutable policy admission; copying a validated
+Native `AddOptions/Bind` and the separate `IValidateOptions<LabelApiOptions>` validator precede immutable policy admission; copying a validated
 work snapshot does not replace binding or require `IOptions` in Core. Required API options are
 observed at actual shell activation. SDK IDE2001 and Foundation ORB1007–ORB1010 check different
 parts of the source-layout contract; a passing invocation-chain check does not cover the category.
@@ -138,7 +159,7 @@ The editable C# sources follow the canonical `dotnet-engineering.md` Orbyss styl
 overlay: more than two parameters/arguments use one per line and an aligned closing
 parenthesis on its own line; argument values are prepared before calls; fluent
 chains start below the receiver and put each invocation on its own line. The named
-endpoint factory still resolves dependencies only in the request scope. Named route
+endpoint registration still resolves dependencies only in the request scope. Named route
 handlers retain their explicit service-binding attributes. Review these mandatory
 conventions after ordinary edits too. The selected Foundation source-readability
 analyzer mechanically checks its documented rules, including prepared deferred
