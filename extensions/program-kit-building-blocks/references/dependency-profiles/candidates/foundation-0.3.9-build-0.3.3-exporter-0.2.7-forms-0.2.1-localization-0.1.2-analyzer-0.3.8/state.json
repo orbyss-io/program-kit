@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "profile": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/profile.json",
+    "sha256": "1b38eae34f2a64a4b75f90669ddf1a62ebf9a34253caa080aab441aacbadf1ba"
+  },
+  "catalog": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/catalog.json",
+    "sha256": "4ce1a5e50d8426bb870d90dcb5f9fc105cd18a0a27764ff5db4b75c59a00b054"
+  },
+  "snapshot": {
+    "path": "catalogs/candidate-6d2cc615/target-4ce1a5e50d8426bb870d90dcb5f9fc105cd18a0a27764ff5db4b75c59a00b054.json",
+    "sha256": "4ce1a5e50d8426bb870d90dcb5f9fc105cd18a0a27764ff5db4b75c59a00b054",
+    "base": {
+      "path": "catalogs/candidate-6d2cc615/base-8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae.json",
+      "sha256": "8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae"
+    }
+  },
+  "identity": "foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8",
+  "status": "qualified",
+  "publisherRelease": {
+    "commit": "f663ab74f0b83be84ff9bdd8f16d92eae49d5a09",
+    "workflow": "https://github.com/orbyss-io/dotnet-foundation/actions/runs/40722524484"
+  },
+  "recipe": {
+    "path": "candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/recipe-7b5daeb5.json",
+    "sha256": "05e7e6989a49231cc6ac58cf8039cddb5c201a03266dc39a7b119f1fafc78a05"
+  },
+  "proof": {
+    "path": "candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/qualification.json",
+    "sha256": "27f6a5f4b4cb0322d4156775085ff821a2220a7619bd68b4ad569852c07bd0ab"
+  },
+  "lockSha256": "0cad430a072306d2343df460da9f36787196cdae52c9978e7900a1e90484610e",
+  "knowledge": {
+    "path": "candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/knowledge/index.json",
+    "sha256": "8a05647668ae097261b78cbdea379e8d5423d9a06fdbbe2234df966d80decf9c"
+  }
+}

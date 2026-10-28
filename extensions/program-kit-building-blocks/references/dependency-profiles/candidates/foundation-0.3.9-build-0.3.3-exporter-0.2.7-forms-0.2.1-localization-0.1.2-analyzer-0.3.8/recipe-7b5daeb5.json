@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "qualification-b49a2bad",
+  "profile": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/profile.json",
+    "sha256": "1b38eae34f2a64a4b75f90669ddf1a62ebf9a34253caa080aab441aacbadf1ba",
+    "id": "foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8"
+  },
+  "families": {
+    "forms": {
+      "releaseVersion": "0.2.1"
+    },
+    "foundation": {
+      "releaseVersion": "0.3.9",
+      "toolVersions": {
+        "Orbyss.Foundation.OpenApi.Exporter": "0.2.7",
+        "Orbyss.Foundation.Analyzers": "0.3.8"
+      }
+    },
+    "foundation-build": {
+      "releaseVersion": "0.3.3"
+    },
+    "localization": {
+      "releaseVersion": "0.1.2"
+    }
+  },
+  "catalogSnapshot": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-6d2cc615/target-4ce1a5e50d8426bb870d90dcb5f9fc105cd18a0a27764ff5db4b75c59a00b054.json",
+    "sha256": "4ce1a5e50d8426bb870d90dcb5f9fc105cd18a0a27764ff5db4b75c59a00b054",
+    "base": {
+      "path": "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-6d2cc615/base-8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae.json",
+      "sha256": "8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae"
+    }
+  },
+  "nativeLock": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/packages.lock.json",
+    "sha256": "0cad430a072306d2343df460da9f36787196cdae52c9978e7900a1e90484610e"
+  },
+  "executor": {
+    "path": "tests/validate_default_dependency_profile.py",
+    "sha256": "808f9aad7e05a3f08cda3e0964d1f22e02a0e86c878c99c303644d929916572f"
+  }
+}

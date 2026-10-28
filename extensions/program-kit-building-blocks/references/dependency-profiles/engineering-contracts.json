@@ -80,6 +80,14 @@
         "CShells.Abstractions": "0.0.31",
         "CShells.AspNetCore.Abstractions": "0.0.31"
       }
+    },
+    "0.3.9": {
+      "sourceCommit": "f663ab74f0b83be84ff9bdd8f16d92eae49d5a09",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/f663ab74f0b83be84ff9bdd8f16d92eae49d5a09/Directory.Packages.props",
+      "pins": {
+        "CShells.Abstractions": "0.0.31",
+        "CShells.AspNetCore.Abstractions": "0.0.31"
+      }
     }
   }
 }
