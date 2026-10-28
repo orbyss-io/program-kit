@@ -99,7 +99,7 @@ class HostGuidance(unittest.TestCase):
             installed=root/'.specify/extensions/program-kit-governance'
             shutil.copytree(SCRIPTS.parent,installed,ignore=shutil.ignore_patterns('__pycache__'))
             result=subprocess.run([sys.executable,str(installed/'scripts/phase_obligations.py'),'check',
-                '--feature-dir',str(feature),'--phase','after-plan'],cwd=root,capture_output=True,
+                '--feature-dir',str(feature.relative_to(root)),'--phase','after-plan'],cwd=root,capture_output=True,
                 text=True,encoding='utf-8',timeout=30)
             self.assertEqual(0,result.returncode,result.stdout+result.stderr)
             self.assertIn('Orbyss.Foundation.Host',result.stdout)

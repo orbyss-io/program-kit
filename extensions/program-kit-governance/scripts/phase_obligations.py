@@ -157,6 +157,8 @@ def render(value, phase, detailed=False):
         selected = {identity for row in value['requirements'] for identity in row.get('ruleIds', [])}
         essentials = ('principle.first-operation-source-review', 'principle.project-local-placement',
                       'principle.decision-time-budget', 'principle.typescript-runtime-admission')
+        if phase in ('planning', 'after-plan') and 'dotnet' in value.get('responsibilities', []):
+            essentials = ('principle.compilation-boundaries', *essentials)
         for identity in essentials:
             if identity in selected:
                 rule = canonical_rules([identity])[0]

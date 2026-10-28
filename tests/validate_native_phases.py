@@ -57,13 +57,14 @@ def retain_installed_review(root):
     shutil.copyfile(root / '.specify/extensions/program-kit-governance/references/engineering-feedback.md',
                     target / 'engineering-feedback.md')
     # Templates are composed by the native resolver, not rewritten in core storage.
-    (target / 'tasks-template.md').write_text(
-        PresetResolver(root).resolve_content('tasks-template', 'template'), encoding='utf-8')
+    for name in ('plan-template', 'tasks-template'):
+        (target / (name + '.md')).write_text(
+            PresetResolver(root).resolve_content(name, 'template'), encoding='utf-8')
     index = ('# Installed native phase guidance\n\n'
              'Synthetic disposable consumer; installation and deterministic instruction inspection only.\n'
              'No coding agent ran. These files do not demonstrate semantic judgment, agent obedience,\n'
              'human acceptance or platform compatibility. Native hook lookups were exercised separately.\n\n')
-    index += ''.join(f'- [{name}]({name}.md)\n' for name in (*names, 'tasks-template', 'engineering-feedback'))
+    index += ''.join(f'- [{name}]({name}.md)\n' for name in (*names, 'plan-template', 'tasks-template', 'engineering-feedback'))
     (target / 'index.md').write_text(index, encoding='utf-8')
     print('Retained installed instruction review: ' + str(target / 'index.md'))
 
@@ -161,6 +162,21 @@ class NativePhaseTests(unittest.TestCase):
                             'An agent recommendation or Proposed ADR does not supply human acceptance',
                             'not execution'):
                 self.assertIn(wording, architecture)
+            plan_template = ' '.join(PresetResolver(root).resolve_content('plan-template', 'template').split())
+            for body in (plan_template, ' '.join(architecture.split())):
+                for wording in ('pure Core policy, HTTP adaptation, runtime coordination',
+                                'compilation projects', 'principle.compilation-boundaries',
+                                'HTTP binding, transport validation and response mapping',
+                                'empty Runtime/Calculations projects'):
+                    self.assertIn(wording, body)
+                self.assertIn('pure calculations may remain in core', body.lower())
+            phase_context = (skills / 'speckit-program-kit-governance-phase-context/SKILL.md').read_text(encoding='utf-8')
+            for body in (architecture, phase_context):
+                method = ' '.join(body.split())
+                self.assertIn('If a relevant read is truncated, recover the missing guidance', method)
+                self.assertIn('bounded source sections', method)
+                self.assertIn('before claiming that review', method)
+                self.assertIn('avoid combining large source dumps', method)
             preflight = (skills / 'speckit-program-kit-governance-implementation-check/SKILL.md').read_text(encoding='utf-8')
             self.assertIn('](.specify/extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/README.md#fast-provider-test-composition)', preflight)
             recipe = 'references/examples/cshells-initializer-ownership/'
@@ -231,6 +247,17 @@ class NativePhaseTests(unittest.TestCase):
             self.assertNotIn('dotnet', data['responsibilities'])
             for name in ('spec.md', 'research.md', 'plan.md', 'data-model.md', 'tasks.md'):
                 self.assertIn('specs/001-request/' + name, data['localGuidance'])
+            # The first page also carries the canonical boundary in an actual
+            # installed governance-only consumer; no .NET generator is required.
+            (chosen / 'plan.md').write_text('# Plan\nC# .NET HTTP API with owned save workflow and PostgreSQL provider.\n')
+            before = snapshot(root)
+            for action in ('planning', 'after-plan'):
+                output = run(root, [sys.executable, '-B', installed / 'phase_obligations.py', 'check',
+                    '--feature-dir', chosen.relative_to(root), '--phase', action]).stdout
+                self.assertIn('Separate Core, runtime implementation, API and provider compilation projects', output)
+                self.assertIn('when those responsibilities exist', output)
+                self.assertIn('pure Core utilities need no invented runtime projects', output)
+                self.assertEqual(before, snapshot(root), 'Planning guidance changed the consumer')
 
 
 class KnowledgeTests(unittest.TestCase):
@@ -364,6 +391,40 @@ assert 'task_draft' not in sys.modules
 
 
 class PlanningGuidanceTests(unittest.TestCase):
+    def test_compilation_responsibilities_are_visible_before_planning_detail(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        from knowledge_sources import resolve
+        identity = 'principle.compilation-boundaries'
+        canonical = resolve(phase.catalog(), identity, extensions=ROOT / 'extensions')
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = feature(root)
+            (chosen / 'spec.md').write_text('# Current responsibility\nPreserve owned behavior.\n')
+            cases = (
+                ('C# .NET HTTP API: Api coordinates SaveProject workflow, deadlines and provider results.', True),
+                ('C# .NET HTTP API forwards one atomic provider operation through a Core capability.', True),
+                ('C# .NET pure Core arithmetic library without HTTP or persistence.', True),
+                ('Rust pure arithmetic library without HTTP or persistence.', False),
+            )
+            for prose, selected in cases:
+                (chosen / 'plan.md').write_text(prose)
+                before = snapshot(root)
+                for action in ('planning', 'after-plan'):
+                    with self.subTest(prose=prose, action=action):
+                        value = phase.check(root, chosen, action)
+                        output = phase.render(value, action)
+                        first = phase.text_page(output)
+                        if selected:
+                            self.assertIn(canonical['text'], first)
+                            self.assertEqual(1, output.count(canonical['text']))
+                            self.assertIn('Canonical source: ' + canonical['provenance']['path'], first)
+                            self.assertIn('when those responsibilities exist', first)
+                            self.assertIn('pure Core utilities need no invented runtime projects', first)
+                        else:
+                            self.assertNotIn('## Current operation: ' + identity, output)
+                        self.assertNotIn('canProceed', value)
+                self.assertEqual(before, snapshot(root))
+
     def test_dutch_browser_intent_routes_ui_without_selecting_a_stack(self):
         sys.path.insert(0, str(SCRIPTS))
         import phase_obligations as phase

@@ -12,6 +12,14 @@ that need an experiment. Link focused references; do not copy manuals or the who
 Plan responsibilities and contracts, including important lifecycle/failure semantics; leave private
 file/class arrangement open to refinement that preserves those commitments.
 
+For selected .NET work, reconcile pure Core policy, HTTP adaptation, runtime coordination and
+provider effects with their compilation projects using `principle.compilation-boundaries` in
+`modularity-and-contracts.md`. Explain where actual workflows live; project names and folders alone
+do not establish ownership. HTTP binding, transport validation and response mapping belong at the
+API boundary. Pure calculations may remain in Core. Add a runtime implementation only when that
+responsibility exists; do not invent empty Runtime/Calculations projects or new business contexts.
+This is part of the existing structure decision, not a fixed project count or another review gate.
+
 Choose concrete tests and verification commands at the cheapest reliable level: compiler/analyzers,
 architecture, behavior, security and integration where applicable. Name actual prerequisites for
 the task that needs them. Run providers, databases and application startup only when selected work

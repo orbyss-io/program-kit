@@ -10,6 +10,9 @@ The result is a compact attributable index. Use `--only <id>` for a relevant unr
 and `--page <n>` to continue long detail. Read only the sources needed for the current decision.
 Lexical selection is a starting point: inspect actual source and correct missing or irrelevant
 context. An index does not perform research, judge a design, invoke coding methods or run checks.
+If a relevant read is truncated, recover the missing guidance through bounded source sections or
+the focused lookup and its continuation before claiming that review. A command naming a file does
+not establish that its contents were returned or applied; avoid combining large source dumps.
 
 Use the project's constitution, ADRs, plan and local guidance for its choices and agreed reviews.
 Support a suitable custom stack or manual alternative. Curated patterns are useful defaults;

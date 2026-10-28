@@ -17,6 +17,9 @@ constitution and applicable accepted architecture/ADRs. Trace consequential choi
 they serve and the selected dependency versions. Read focused authoritative documentation, relevant
 coding patterns, security guidance and Program Kit integration knowledge; do not load a whole catalog.
 Use the phase index as a starting point and correct missing or irrelevant context through inspection.
+If a relevant read is truncated, recover the missing guidance through bounded source sections or
+`--only <id>` with its `--page <n>` continuation before claiming that review. A command naming a file
+does not establish that its contents were returned or applied; avoid combining large source dumps.
 
 Review in proportion to the uncertainty and consequences:
 
@@ -29,6 +32,14 @@ Review in proportion to the uncertainty and consequences:
   Application/process owners coordinate business workflow; providers own concrete mechanisms, SDKs,
   platform identifiers and reconciliation state. Keep infrastructure capabilities at their cohesive
   semantic boundary rather than placing every shared contract in a business-domain Core.
+- For selected .NET work, reconcile actual pure Core policy, HTTP adaptation, runtime coordination
+  and provider effects with compilation projects under `principle.compilation-boundaries` in
+  `references/modularity-and-contracts.md` (`--only dotnet-boundaries`). Trace a concrete workflow to
+  its owner; an API folder or an `implementation` role does not justify mixing these responsibilities.
+  HTTP binding, transport validation and response mapping remain API concerns; pure calculations may
+  remain in Core. Require a runtime implementation only when that responsibility exists, without
+  inventing empty Runtime/Calculations projects or business contexts. Review within the existing
+  plan disposition; a graph check cannot establish semantic ownership.
 - Selected coding approaches, their important invariants and permitted adaptation, and the focused
   checks that can challenge them. A local design needs actual contracts and checks, not catalog approval.
 - Technical risks and useful early experiments. Plan review is not compilation, runtime execution,

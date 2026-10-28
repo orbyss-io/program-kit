@@ -101,7 +101,7 @@ class Guidance(unittest.TestCase):
             installed = root / '.specify/extensions/program-kit-governance'
             shutil.copytree(source, installed, ignore=shutil.ignore_patterns('__pycache__'))
             result = subprocess.run([sys.executable, str(installed / 'scripts/phase_obligations.py'), 'project',
-                '--feature-dir', str(feature), '--phase', 'planning', '--only', 'async-workload'],
+                '--feature-dir', str(feature.relative_to(root)), '--phase', 'planning', '--only', 'async-workload'],
                 cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=30)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             self.assertIn('learn.microsoft.com', result.stdout)

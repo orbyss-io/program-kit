@@ -148,6 +148,15 @@ Start from `templates/dotnet/compositions/application-foundation.json` or its
 owners, feature paths, assigned endpoints/clients and database bindings. The retained
 `foundation-bff-keycloak*.json` files are version 1 migration fixtures and are rejected
 by normal generation/execution.
+
+These v2 examples are minimal activation compositions, not complete application project designs.
+Their HTTP feature does not acquire workflow ownership merely because its role is `implementation`.
+Reconcile actual responsibilities with `principle.compilation-boundaries` in
+`program-kit-governance/references/modularity-and-contracts.md`: when application workflows need
+runtime coordination, add their owned feature with `responsibility: "runtime"` and its shell binding;
+retain `responsibility: "http"` for HTTP adaptation. Pure calculations may remain in Core. No empty
+Runtime/Calculations project or additional business context is required by the example.
+
 Define stable typed resources (features, shells, hosts, database servers/databases,
 identity authorities/clients/protected resources, frontends), explicit bindings and
 environment placement. Link them to the consumer's Accepted architecture and
