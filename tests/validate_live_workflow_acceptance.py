@@ -1,118 +1,130 @@
-"""Deterministic paid-workflow guards; never starts a coding agent."""
+"""Offline retirement boundaries and retained one-use phase authorization; no workers."""
 from __future__ import annotations
 
-import copy
-import os
-import sys
-import tempfile
-from owned_fixture import FixtureDirectory, native_path
+import argparse
+import json
 from pathlib import Path
+import shutil
+import subprocess
+import sys
+import unittest
 from unittest.mock import patch
+from owned_fixture import FixtureDirectory
 
-import yaml
-import validate_workflow_resumption as fixture
-from live.v2.authorization import issue_authorization, validate_authorization
-from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, load_object
-from live.v2.workflow_acceptance import driver, reserve_dispatch, reported_usage, reviewed_input, parent_checkpoint
-from specify_cli.workflows.step.command import CommandStep
-from specify_cli.workflows.step.shell import ShellStep
+from live.v2 import authorization as auth, cli, workflow_acceptance as workflow
+from live.v2.bootstrap_provisioning import BootstrapProvisioner
+from live.v2.common import LiveContractError, load_object, validate
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def rejects(action, code):
-    try:
-        action()
-    except LiveContractError as error:
-        assert code in str(error), str(error)
-    else:
-        raise AssertionError('Expected ' + code)
+class RetiredPaidBootstrapTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = FixtureDirectory(prefix='retired-paid-bootstrap-')
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.schema = load_object(ROOT / 'tests/live/schemas/v2/authorization.schema.json')
+        self.profile = {'integration':'codex', 'launcherVersion':'fictional-test', 'model':'fictional-test',
+                        'reasoningEffort':'high', 'sandbox':'workspace-write', 'timeoutSeconds':60}
+        self.arguments = {'scenario':{'id':'fictional-test', 'version':'1', 'digest':'a'*64},
+                          'candidate':{'releaseReceipt':'fictional-test.json', 'releaseReceiptSha256':'b'*64},
+                          'checkpoint':{'checkpointId':'fictional-test', 'digest':'c'*64},
+                          'agent_profile':self.profile}
 
+    def test_retired_authority_stops_before_any_read_write_or_consumption(self):
+        for phase in auth.RETIRED_PHASES:
+            with self.subTest(phase=phase):
+                path = self.root / (phase + '.json')
+                path.write_text('fictional preserved original', encoding='utf-8')
+                before = path.read_bytes()
+                with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+                    auth.issue_authorization(path, {}, phase=phase, bootstrap_sessions=8, **self.arguments)
+                with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+                    auth.validate_authorization(path, {}, phase=phase, scenario_digest='a'*64,
+                                                candidate_receipt_digest='b'*64, checkpoint_digest=None)
+                with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+                    auth.consume_authorization(path, {'phase':phase}, self.root / 'consumed')
+                self.assertEqual(before, path.read_bytes())
+                self.assertFalse((self.root / 'consumed').exists())
+                with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+                    auth.session_limit(phase, 8)
 
-def main():
-    previous = Path.cwd()
-    schema = load_object(ROOT / 'tests/live/schemas/v2/authorization.schema.json')
-    with FixtureDirectory(prefix='program-kit-live-workflow-') as temporary:
-        base = Path(temporary)
-        profile = {'integration': 'codex', 'launcherVersion': 'test-only', 'model': 'test-only',
-                   'reasoningEffort': 'test-only', 'sandbox': 'workspace-write', 'timeoutSeconds': 60}
-        scenario = {'id': 'test-only', 'version': '1', 'digest': '1' * 64}
-        candidate = {'releaseReceipt': 'test-only.json', 'releaseReceiptSha256': '2' * 64}
-        binding = {'fixture': 'test-only', 'version': '1', 'parentManifest': None, 'verdictInput': None, 'verdict': None}
-        for phase in ('workflow-fresh', 'workflow-failure', 'workflow-resume'):
-            checkpoint = {'checkpointId': 'test-only', 'digest': '3' * 64} if phase == 'workflow-resume' else None
-            path = base / (phase + '.json')
-            manifest = issue_authorization(path, schema, phase=phase, scenario=scenario, candidate=candidate,
-                agent_profile=profile, checkpoint=checkpoint, workflow=binding)
-            assert manifest['limits']['maximumPaidSessions'] == 8
-            validate_authorization(path, schema, phase=phase, scenario_digest='1' * 64,
-                                   candidate_receipt_digest='2' * 64, checkpoint_digest='3' * 64 if checkpoint else None)
-        rejects(lambda: reviewed_input(None, 'approve'), 'FUTURE_VERDICT_FORBIDDEN')
-        rejects(lambda: reviewed_input({'review': {'input': 'bootstrap_verdict', 'options': ['approve', 'reject']}}, None), 'ACTUAL_GATE_VERDICT_REQUIRED')
-        counter = base / 'counter.json'
-        reserve_dispatch(counter, 1, 'fixture', 'producer')
-        before = counter.read_bytes()
-        rejects(lambda: reserve_dispatch(counter, 1, 'fixture', 'second'), 'SESSION_LIMIT_EXCEEDED')
-        assert counter.read_bytes() == before
-        event = '{"type":"turn.completed","usage":{"input_tokens":12,"output_tokens":3}}'
-        usage = reported_usage({'step_results': {'producer': {'output': {'stdout': event}}}},
-                               [{'step': 'producer', 'run_id': 'fixture'}], 'fixture')
-        assert usage['tokens'] == {'input_tokens': 12, 'output_tokens': 3} and usage['cost'] is None
-        project = base / 'project'
-        project.mkdir()
-        evidence = base / 'evidence'
-        evidence.mkdir()
-        # Parent admission must accept the current usage-ledger version while
-        # retaining inventory and cleanup checks. Schema shape is checked separately.
-        import live.v2.workflow_acceptance as acceptance
-        disposable = base / 'artifacts/live-v2-w/parent'
-        disposable.mkdir(parents=True)
-        parent_path = base / 'parent.json'
-        parent = {'schemaVersion': '2.2', 'kind': 'workflow-lifecycle',
-                  'workspace': 'artifacts/live-v2-w/parent', 'projectInventory': [],
-                  'process': {'cleanupComplete': True, 'logsDrained': True},
-                  'native': {'status': 'paused', 'run_id': 'fixture'}, 'review': None}
-        atomic_write_json(parent_path, parent)
-        with patch.object(acceptance, 'validate'), patch.object(acceptance, 'schemas', return_value=ROOT / 'tests/live/schemas/v2'), \
-             patch.object(acceptance, 'review_gate', return_value=None):
-            assert parent_checkpoint(base, parent_path)[0]['schemaVersion'] == '2.2'
-            (disposable / 'changed.txt').write_text('changed')
-            rejects(lambda: parent_checkpoint(base, parent_path), 'PARENT_CHANGED')
-        os.chdir(project)
-        try:
-            fixture.setup(project)
-            installed = project / '.specify/workflows/program-kit-bootstrap/workflow.yml'
-            installed.write_text(yaml.safe_dump(fixture.definition(fixture.ready_tail()).data), encoding='utf-8')
-            consumed = load_object(base / 'workflow-failure.json')
-            job = {'project': str(project), 'nativeRun': 'controlled-native', 'sourceRun': None, 'faultPending': True,
-                   'consumedAuthorization': str(base / 'workflow-failure.json'),
-                   'consumption': {'authorizationSha256': canonical_sha256(consumed)}}
-            atomic_write_json(evidence / 'job.json', job)
-            original_shell = ShellStep.execute
-            def execute(self, config, context):
-                config = copy.deepcopy(config)
-                config['run'] = config['run'].replace('python ', f'"{sys.executable}" ', 1)
-                return original_shell(self, config, context)
-            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
-                (project / fixture.g.READINESS_REPORT).write_text('**Status**: READY\n\nCurrent test authority agrees.\n', encoding='utf-8')
-                return {'exit_code': 0, 'stdout': event, 'stderr': ''}
-            with patch.object(CommandStep, '_try_dispatch', dispatch), patch.object(ShellStep, 'execute', execute):
-                assert driver(evidence / 'job.json') == 2
-            result = load_object(evidence / 'native-result.json')
-            assert result['status'] == 'failed' and result['current_step'] == 'require-readiness'
-            assert (evidence / 'fault.json').is_file()
-            assert len(load_object(evidence / 'dispatches.json')['dispatches']) == 1
-            assert not (project / fixture.g.BOOTSTRAP_COMPLETION).exists()
-            try:
-                driver(evidence / 'job.json')
-            except FileExistsError:
-                pass
-            else:
-                raise AssertionError('A consumed driver job was replayed')
-        finally:
-            os.chdir(previous)
-    print('Live workflow authorization, real native controlled-failure guard, dispatch budget and replay tests passed; no coding agents started.')
+    def test_retired_python_dispatch_and_provisioner_never_touch_inputs(self):
+        with patch.object(cli, '_phase_inputs', side_effect=AssertionError('must not inspect inputs')), \
+             patch.object(cli, 'run_supervised', side_effect=AssertionError('must not dispatch')):
+            for operation in (lambda: cli.bootstrap(argparse.Namespace()),
+                              lambda: workflow.issue(argparse.Namespace()),
+                              lambda: workflow.run(argparse.Namespace()),
+                              lambda: workflow.driver(self.root / 'missing-job.json'),
+                              lambda: workflow.reserve_dispatch(self.root / 'counter.json', 8, 'old', 'step'),
+                              lambda: workflow.controlled_fault(self.root, self.root, None),
+                              lambda: BootstrapProvisioner(self.root / 'missing-project', self.root / 'evidence')):
+                with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+                    operation()
+        self.assertEqual([], list(self.root.iterdir()))
+
+    def test_retired_cli_commands_refuse_without_reading_missing_authority(self):
+        for relative, arguments in (
+            ('tests/live/v2/cli.py', ['bootstrap']),
+            ('tests/live/v2/cli.py', ['session-limit', '--phase', 'bootstrap-checkpoint', '--release-receipt', 'missing.json']),
+            ('tests/live/v2/workflow_acceptance.py', ['run', '--authorization', 'missing.json']),
+            ('tests/live/v2/workflow_acceptance.py', ['driver', '--job', 'missing.json']),
+            ('tests/live/v2/workflow_acceptance.py', ['authorize', '--phase', 'workflow-resume'])):
+            result = subprocess.run([sys.executable, str(ROOT / relative), *arguments], cwd=self.root,
+                                    capture_output=True, text=True, timeout=30)
+            self.assertEqual(3, result.returncode, result.stdout + result.stderr)
+            self.assertIn('LIVE_BOOTSTRAP_WORKFLOW_RETIRED', result.stderr)
+            self.assertIn('$speckit-program-kit-governance-product-intake', result.stderr)
+        self.assertEqual([], list(self.root.iterdir()))
+
+    def test_powershell_retirement_precedes_receipt_model_and_authorization_lookup(self):
+        shell = shutil.which('pwsh') or shutil.which('powershell')
+        if not shell:
+            self.skipTest('PowerShell is unavailable; Python boundaries are independently checked')
+        for relative, arguments in (
+            ('scripts/New-LiveBootstrapCheckpoint.ps1', []),
+            ('scripts/New-LiveBootstrapCheckpoint.ps1', ['-Authorization', 'missing.json']),
+            ('scripts/New-LiveAcceptanceAuthorization.ps1', ['-Phase', 'bootstrap-checkpoint']),
+            ('scripts/New-LiveAcceptanceAuthorization.ps1', ['-Phase', 'workflow-resume'])):
+            result = subprocess.run([shell, '-NoProfile', '-NonInteractive', '-File', str(ROOT / relative), *arguments],
+                                    cwd=self.root, capture_output=True, text=True, timeout=30)
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn('LIVE_BOOTSTRAP_WORKFLOW_RETIRED', result.stdout + result.stderr)
+        self.assertEqual([], list(self.root.iterdir()))
+
+    def test_independent_phases_retain_checkpoint_binding_limits_and_one_use(self):
+        self.assertEqual({'building-block-consumer', 'feature-intake', 'feature-planning', 'feature-plan-tasks',
+                          'feature-setup', 'feature-delivery', 'upgrade-consumer', 'upgrade-continuation'}, auth.PHASES)
+        for phase in auth.PHASES:
+            with self.subTest(phase=phase):
+                path = self.root / (phase + '.json')
+                manifest = auth.issue_authorization(path, self.schema, phase=phase, **self.arguments)
+                self.assertEqual(1, manifest['limits']['maximumPaidSessions'])
+                checked = auth.validate_authorization(path, self.schema, phase=phase, scenario_digest='a'*64,
+                                                       candidate_receipt_digest='b'*64, checkpoint_digest='c'*64)
+                with self.assertRaisesRegex(LiveContractError, 'CHECKPOINT_MISMATCH'):
+                    auth.validate_authorization(path, self.schema, phase=phase, scenario_digest='a'*64,
+                                                candidate_receipt_digest='b'*64, checkpoint_digest='d'*64)
+                auth.consume_authorization(path, checked, self.root / 'consumed')
+                with self.assertRaisesRegex(LiveContractError, 'REPLAYED'):
+                    auth.consume_authorization(path, manifest, self.root / 'consumed')
+        with self.assertRaisesRegex(LiveContractError, 'CHECKPOINT_REQUIRED'):
+            auth.issue_authorization(self.root / 'missing-parent.json', self.schema, phase='feature-intake',
+                                     **{**self.arguments, 'checkpoint':None})
+
+    def test_historical_authorization_schema_remains_readable_without_execution_authority(self):
+        path = self.root / 'historical.json'
+        manifest = auth.issue_authorization(path, self.schema, phase='building-block-consumer', **self.arguments)
+        manifest.update(phase='bootstrap-checkpoint', checkpoint=None)
+        manifest['limits']['maximumPaidSessions'] = 8
+        path.write_text(json.dumps(manifest), encoding='utf-8')
+        before = path.read_bytes()
+        validate(load_object(path), self.schema)
+        self.assertEqual(before, path.read_bytes())
+        with self.assertRaisesRegex(LiveContractError, 'LIVE_BOOTSTRAP_WORKFLOW_RETIRED'):
+            auth.consume_authorization(path, manifest, self.root / 'consumed')
+        self.assertEqual(before, path.read_bytes())
 
 
 if __name__ == '__main__':
-    main()
+    unittest.main()

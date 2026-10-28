@@ -145,7 +145,7 @@ class WireCapabilities(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'no scoped registered'):
                 admission.check_registered(root)
 
-    def test_after_plan_rechecks_single_registered_document_and_preserves_history(self):
+    def test_explicit_registered_wire_check_preserves_history_without_phase_gate(self):
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
         import phase_obligations
         with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as name:
@@ -157,16 +157,13 @@ class WireCapabilities(unittest.TestCase):
             (root / 'baseline.json').write_bytes(b'original immutable compatibility history')
             document = self.document(); document['components']['schemas']['Problem']['properties']['retryMode'] = {'type': 'string'}
             (root / 'openapi.json').write_text(json.dumps(document))
-            import consumer_upgrade
-            with patch.object(consumer_upgrade, 'scan', return_value={'canProceed': True}), \
-                 patch.object(consumer_upgrade, 'request_scope'), \
-                 patch.object(phase_obligations, 'validate_planned_architecture'), \
-                 patch.object(phase_obligations, 'intent', return_value={'api'}), \
-                 patch.object(phase_obligations, 'adopted_context', return_value={'sources': []}), \
-                 patch.object(phase_obligations, 'foundation_applicability', return_value={'wireCapabilities': self.capabilities}), \
-                 patch.object(admission, 'selected', return_value=self.capabilities):
+            # Guidance starts no producer validation. The explicitly selected
+            # wire operation still rejects the concrete unsupported field.
+            with patch.object(admission, 'check_registered', side_effect=AssertionError('Implicit wire check')):
+                phase_obligations.check(root, feature, 'after-plan')
+            with patch.object(admission, 'selected', return_value=self.capabilities):
                 with self.assertRaisesRegex(ValueError, 'Problem/properties/retryMode'):
-                    phase_obligations.check(root, feature, 'after-plan')
+                    admission.check_registered(root, feature)
             self.assertEqual(b'original immutable compatibility history', (root / 'baseline.json').read_bytes())
             self.assertIn('T007 and T012 retained', (feature / 'plan.md').read_text())
 
@@ -185,6 +182,30 @@ class WireCapabilities(unittest.TestCase):
                         None, 'dotnet', root / 'toolchain.json', 'oasdiff', {}, False, False, shell)
                 self.assertEqual(1, producer.call_count)
                 client.assert_not_called()
+
+    def test_registered_planning_contract_without_runtime_files(self):
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
+        import composition_model
+        with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as name:
+            root = Path(name)
+            (root / 'eng').mkdir()
+            graph = composition_model.from_legacy(json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json').read_text()))
+            (root / 'eng/foundation-composition.json').write_text(json.dumps(graph))
+            (root / 'eng/openapi-contracts.json').write_text(json.dumps({'contracts': ['contract.json']}))
+            (root / 'contract.json').write_text(json.dumps({'identity': 'catalog', 'features': [], 'artifact': 'proposed.json', 'shell': 'default'}))
+            document = self.document()
+            (root / 'proposed.json').write_text(json.dumps(document))
+            with patch.object(admission, 'selected', return_value=self.capabilities):
+                results = admission.check_registered(root, stage='planning')
+                self.assertTrue(results[0]['admitted'])
+                self.assertFalse(results[0]['runtimeEvidence'])
+                with self.assertRaisesRegex(ValueError, 'PKC001'):
+                    admission.check_registered(root, stage='producer')
+                document['paths'] = {}
+                (root / 'proposed.json').write_text(json.dumps(document))
+                with self.assertRaisesRegex(ValueError, 'PKO22'):
+                    admission.check_registered(root, stage='planning')
+            self.assertFalse((root / 'shells.json').exists())
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

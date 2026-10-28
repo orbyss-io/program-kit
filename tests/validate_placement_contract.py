@@ -3,6 +3,8 @@ import copy
 import json
 from pathlib import Path
 import shutil
+import subprocess
+import sys
 import tempfile
 from owned_fixture import FixtureDirectory
 import unittest
@@ -113,6 +115,98 @@ class PlacementContractTests(unittest.TestCase):
         del target['placement']
         self.validate(target)
         self.assertTrue(self.schema_accepts(target))
+
+    def provenance_selection(self, target, status='Accepted'):
+        return {**copy.deepcopy(self.selection), 'status': status, 'targets': [target],
+                'instances': [{'id': 'synthetic-placement', 'composition': 'domain_events'}]}
+
+    def test_accepted_planned_origins_survive_materialization_without_rewriting(self):
+        for kind, path, fields in (
+            ('repository', 'Directory.Build.props', {}),
+            ('dotnet-project', 'src/Reservations/Reservations.csproj', {}),
+            ('npm-package', 'web/package.json', {}),
+            ('cshell-shell', 'shells.json', {'shell': 'reservations'}),
+            ('dotnet-tool-manifest', '.config/dotnet-tools.json', {}),
+            ('host-image', 'runtime/hostsettings.json', {}),
+        ):
+            with self.subTest(kind=kind):
+                selection = self.provenance_selection(self.target(kind, path, **fields))
+                original = copy.deepcopy(selection)
+                self.blocks.validate_placements(self.root, selection, require_all=True)
+                target = self.root / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(b'Synthetic scaffold-owned bytes\n')
+                for required in (False, True):
+                    self.blocks.validate_placements(self.root, selection, require_all=required)
+                self.assertEqual(original, selection)
+                self.assertEqual(b'Synthetic scaffold-owned bytes\n', target.read_bytes())
+                draft = {**selection, 'status': 'Draft'}
+                with self.assertRaisesRegex(self.blocks.ResolverError, 'PKB306.*already observed'):
+                    self.blocks.validate_placements(self.root, draft, require_all=True)
+                draft['targets'][0]['placement']['state'] = 'observed'
+                self.blocks.validate_placements(self.root, draft, require_all=True)
+
+    def test_accepted_origins_keep_provenance_identity_and_file_kind_checks(self):
+        target = self.target('dotnet-project', 'src/Reservations/Reservations.csproj')
+        project = self.root / target['path']; project.parent.mkdir(parents=True)
+        project.write_text('<Project />')
+        base = self.provenance_selection(target)
+        cases = (
+            ('unknown owner', 'PKB306', lambda t: t['placement'].update(owner='unknown')),
+            ('inactive decision', 'PKB306', lambda t: t['placement'].update(decisionIds=['unknown'])),
+            ('case changed', 'PKB301', lambda t: t.update(path='src/reservations/Reservations.csproj')),
+            ('file absent', 'PKB306', lambda t: (t.update(path='src/Missing.csproj'), t['placement'].update(state='observed'))),
+            ('wrong file kind', 'PKB300', lambda t: t.update(path='src/Reservations')),
+            ('wrong target kind', 'PKB303', lambda t: t.update(kind='npm-package')),
+            ('outside repository', 'PKB300', lambda t: t.update(path='../Escaped.csproj')),
+            ('internal target', 'PKB300', lambda t: t.update(path='.specify/Hidden.csproj')),
+        )
+        for name, code, change in cases:
+            with self.subTest(case=name):
+                selection = copy.deepcopy(base); change(selection['targets'][0])
+                with self.assertRaisesRegex(self.blocks.ResolverError, code):
+                    self.blocks.validate_placements(self.root, selection, require_all=True)
+        adr = self.root / 'docs/decision.md'; original = adr.read_bytes()
+        adr.write_bytes(original + b'Changed semantic decision\n')
+        with self.assertRaisesRegex(self.blocks.ResolverError, 'PKB306.*stale decision'):
+            self.blocks.validate_placements(self.root, base, require_all=True)
+        adr.write_bytes(original)
+        for field in ('placement', 'instances'):
+            with self.subTest(missing=field):
+                selection = copy.deepcopy(base)
+                if field == 'placement': selection['targets'][0].pop(field)
+                else: selection[field] = []
+                with self.assertRaisesRegex(self.blocks.ResolverError, 'PKB306'):
+                    self.blocks.validate_placements(self.root, selection, require_all=True)
+
+    def test_accepted_cli_preserves_planned_origin_after_repository_and_project_scaffold(self):
+        catalog = self.blocks.load_json(blocks_test.CATALOG)
+        selection_path, map_path = blocks_test.accepted_fixture(self.blocks, self.root, catalog)
+        selection = self.blocks.load_json(selection_path)
+        selection['targets'].append({'id': 'repository', 'kind': 'repository', 'path': 'Directory.Build.props',
+                                     'role': 'build', 'scope': 'application'})
+        for target in selection['targets']:
+            target['placement'] = {'state': 'planned', 'owner': 'reservations',
+                                   'decisionIds': ['use-building-blocks'], 'rationale': 'Accepted synthetic placement'}
+        architecture = self.blocks.load_json(map_path)
+        architecture['elements'] = [{'id': 'reservations', 'ownership': 'Reservations', 'decision_refs': ['use-building-blocks']}]
+        adr = self.root / 'docs/decision.md'; adr.write_text('# Synthetic placement\nStatus: Accepted\n')
+        architecture['decisions'] = [{'id': 'use-building-blocks', 'status': 'Accepted',
+                                     'path': 'docs/decision.md', 'sha256': self.blocks.raw_sha256(adr)}]
+        blocks_test.write_json(selection_path, selection); blocks_test.write_json(map_path, architecture)
+        blocks_test.refresh_registration(selection_path, map_path)
+        original = {path: path.read_bytes() for path in (selection_path, map_path, adr)}
+        project = self.root / selection['targets'][0]['path']
+        project.unlink()
+        def validate():
+            result = subprocess.run([sys.executable, str(blocks_test.RESOLVER), 'validate-accepted',
+                '--target', str(self.root), '--require-placement-provenance'], capture_output=True, text=True, timeout=45)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        validate()
+        project.write_text('<Project Sdk="Microsoft.NET.Sdk" />\n')
+        (self.root / 'Directory.Build.props').write_text('<Project />\n')
+        validate()
+        self.assertTrue(all(path.read_bytes() == payload for path, payload in original.items()))
 
     def test_legacy_image_build_requires_review_without_mutating_accepted_selection(self):
         target = self.target('host-image', 'Dockerfile')

@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
       - name: Require exact main source and configured human approval
@@ -72,7 +72,7 @@ jobs:
               out.write('Windows/Linux package installation and current Host security scan passed. Review the PR validation summary and its disclosed behavioral gaps before approving. Local behavioral execution is maintainer reported.\n\n')
               for asset in p['assets']:
                   out.write('- `' + asset['name'] + '` — `' + asset['sha256'] + '`\n')
-              out.write('\nApproval accepts those validation claims and limitations, creates the stable tag, authorizes publication of these exact bytes, and verifies the real public initializer and one previous-version upgrade.\n')
+              out.write('\nApproval accepts those validation claims and limitations, creates the inspected version tag, authorizes publication of these exact bytes, and verifies the real explicitly tagged public initializer.\n')
           PY
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
@@ -98,19 +98,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
       - name: Prepare actual public installer prerequisites
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.2.1"
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc
-      - name: Select installer npm prerequisite
-        run: npm install --global "npm@$(cat extensions/program-kit-dotnet/templates/dotnet/files/.npm-version)" --ignore-scripts --no-audit --no-fund
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.2.4"
       - name: Recheck inspected source after approval
         env:
           EXPECTED_COMMIT: ${{ inputs.expected_commit }}
@@ -121,7 +113,7 @@ jobs:
           EXPECTED_PAYLOAD: ${{ needs.inspect.outputs.payload }}
           SECURITY_AT: ${{ needs.inspect.outputs.security_at }}
         run: python scripts/release_candidate.py verify-promotion --run-id "$RUN_ID" --output artifacts/promotion --expected-payload "$EXPECTED_PAYLOAD" --security-observed-at "$SECURITY_AT"
-      - name: Create stable tag after human approval
+      - name: Create inspected tag after human approval
         env:
           RELEASE_TAG: ${{ needs.inspect.outputs.tag }}
         run: python scripts/publish_candidate.py --tag "$RELEASE_TAG" --directory artifacts/promotion --create-tag
@@ -133,7 +125,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ needs.inspect.outputs.tag }}
         run: python scripts/publish_candidate.py --tag "$RELEASE_TAG" --directory artifacts/promotion --verify-public-only
-      - name: Verify actual public initializer and one prior-release upgrade
+      - name: Verify actual explicitly tagged public initializer
         run: python tests/validate_public_delivery.py --directory artifacts/promotion --budget-seconds 120
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

@@ -143,7 +143,6 @@ def candidate_catalogs(root: Path, artifacts: Path | None) -> Iterator[str]:
         f"program-kit-dotnet-{version}.zip": artifacts / f"program-kit-dotnet-{version}.zip",
         f"program-kit-governance-preset-{version}.zip": artifacts / f"program-kit-governance-preset-{version}.zip",
         f"program-kit-{version}.zip": artifacts / f"program-kit-{version}.zip",
-        f"program-kit-bootstrap-{version}.yml": root / "workflows/program-kit-bootstrap/workflow.yml",
     }
     missing = [str(path) for path in required.values() if not path.is_file()]
     if missing:
@@ -359,9 +358,6 @@ def manifest_version(path: Path, section: str) -> str:
 
 def installed_versions(project: Path) -> dict[str, str]:
     specify = project / ".specify"
-    registry = json.loads(
-        (specify / "workflows/workflow-registry.json").read_text(encoding="utf-8")
-    )
     records = json.loads((specify / "bundle-records.json").read_text(encoding="utf-8"))
     bundle = next(record for record in records["bundles"] if record["bundle_id"] == "program-kit")
     extension_record = next(
@@ -392,13 +388,15 @@ def installed_versions(project: Path) -> dict[str, str]:
         "extension": manifest_version(
             specify / "extensions/program-kit-governance/extension.yml", "extension"
         ),
-        "workflow": manifest_version(
-            specify / "workflows/program-kit-bootstrap/workflow.yml", "workflow"
-        ),
-        "workflow registry": registry["workflows"]["program-kit-bootstrap"]["version"],
+        "preset": manifest_version(specify / "presets/program-kit-governance-preset/preset.yml", "preset"),
         "bundle record": bundle["version"],
         "bundle extension record": extension_record["version"],
     }
+    workflow = specify / 'workflows/program-kit-bootstrap/workflow.yml'
+    if workflow.is_file():
+        registry = json.loads((specify / 'workflows/workflow-registry.json').read_text(encoding='utf-8'))
+        versions['workflow'] = manifest_version(workflow, 'workflow')
+        versions['workflow registry'] = registry['workflows']['program-kit-bootstrap']['version']
     if dotnet_extension_record is not None:
         versions["dotnet extension"] = manifest_version(
             specify / "extensions/program-kit-dotnet/extension.yml", "extension"
@@ -428,197 +426,62 @@ def installed_component_bytes(project: Path) -> dict[str, str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate upgrading the previous stable Program Kit release to the current one."
-    )
-    parser.add_argument(
-        "--candidate-dir",
-        type=Path,
-        help="Use locally built candidate archives instead of the public current-release catalogs.",
-    )
-    parser.add_argument(
-        "--previous-dir",
-        type=Path,
-        help="Use cached previous-release archives instead of its public catalogs.",
-    )
+    parser = argparse.ArgumentParser(description='Upgrade the actual previous public release through the candidate packaged sequential updater.')
+    parser.add_argument('--candidate-dir', type=Path, help='Actual local release-builder archives; otherwise use public release bytes')
+    parser.add_argument('--previous-dir', type=Path, help='Cached immutable previous-release archives instead of public catalogs')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    current_version = (root / "VERSION").read_text(encoding="utf-8").strip()
-    previous_version, previous_tag = previous_stable(root, current_version)
-    source_workflow = yaml.safe_load(
-        (root / "workflows/program-kit-bootstrap/workflow.yml").read_text(
-            encoding="utf-8"
-        )
-    )
-    expected_steps = [step["id"] for step in source_workflow.get("steps", [])]
-    artifacts = args.candidate_dir.resolve() if args.candidate_dir else None
-    previous_artifacts = args.previous_dir.resolve() if args.previous_dir else None
-    with candidate_catalogs(root, artifacts) as current_catalogs, previous_release_catalogs(
-        root, previous_tag, previous_version, previous_artifacts
-    ) as previous_catalogs, tempfile.TemporaryDirectory(
-        prefix="program-kit-public-upgrade-"
-    ) as directory:
-        project = Path(directory)
-        run(
-            "specify",
-            "init",
-            ".",
-            "--force",
-            "--non-interactive",
-            "--integration",
-            "codex",
-            "--ignore-agent-tools",
-            cwd=project,
-        )
-        replace_catalogs(project, previous_catalogs)
-
-        # Reproduce a genuine installation of the immediately preceding stable release, including
-        # the Spec Kit 1.0.1 workflow-preinstallation workaround.
-        run("specify", "workflow", "add", "program-kit-bootstrap", cwd=project)
-        run("specify", "bundle", "install", "program-kit", cwd=project)
-        initial = installed_versions(project)
-        if set(initial.values()) != {previous_version}:
-            raise AssertionError(
-                f"Expected a coherent v{previous_version} installation, got {initial}"
-            )
-
-        # Older initializers registered immutable release-tag catalogs. Replace
-        # them through the public CLI before updating so "latest" can advance.
-        run("specify", "extension", "catalog", "remove", "program-kit", cwd=project)
-        run("specify", "preset", "catalog", "remove", "program-kit", cwd=project)
-        run("specify", "workflow", "catalog", "remove", "0", cwd=project)
-        run("specify", "bundle", "catalog", "remove", "program-kit", cwd=project)
-        run(
-            "specify", "extension", "catalog", "add", f"{current_catalogs}/extensions.json",
-            "--name", "program-kit", "--install-allowed", cwd=project,
-        )
-        run(
-            "specify", "preset", "catalog", "add", f"{current_catalogs}/presets.json",
-            "--name", "program-kit", "--install-allowed", cwd=project,
-        )
-        run(
-            "specify", "workflow", "catalog", "add", f"{current_catalogs}/workflows.json",
-            "--name", "program-kit", cwd=project,
-        )
-        run(
-            "specify", "bundle", "catalog", "add", f"{current_catalogs}/bundles.json",
-            "--id", "program-kit", "--policy", "install-allowed", cwd=project,
-        )
-
-        native_owned = {
-            'eng/consumer-owned-verification.txt': 'Consumer-owned verification policy; preserve on rejected update.\n',
-            'src/Product/Ownership.cs': '// Consumer-owned product ownership fixture; preserve exact bytes.\n',
-        }
-        for name, content in native_owned.items():
-            path = project / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding='utf-8')
-        before_rejection = installed_component_bytes(project)
-        before_versions = installed_versions(project)
-        authoritative_metadata = {'.specify/extensions/.registry', '.specify/presets/.registry',
-                                  '.specify/workflows/workflow-registry.json', '.specify/extensions.yml',
-                                  '.specify/integration.json', '.specify/bundle-records.json'}
-        if not authoritative_metadata.issubset(before_rejection):
-            raise AssertionError('Unsafe-update fixture omitted actual installed ownership/registration metadata')
-        # Spec Kit 1.1.1 rejects the unsafe bundle-first order when an older
-        # separately owned workflow remains installed.
-        try:
-            run(
-            "specify",
-            "bundle",
-            "update",
-            "program-kit",
-            "--integration",
-            "codex",
-            cwd=project,
-            input_text="y\n",
-            )
-        except subprocess.CalledProcessError as error:
-            diagnostic=(error.stdout or '')+(error.stderr or '')
-            # Rich wraps this diagnostic according to terminal width/version lengths.
-            diagnostic_words = ' '.join(diagnostic.split())
-            if 'pins workflow' not in diagnostic_words or 'independently installed' not in diagnostic_words or 'cannot be replaced' not in diagnostic_words:
-                raise AssertionError('Unsafe update failed for an unintended reason: '+diagnostic) from error
+    current = (root / 'VERSION').read_text(encoding='utf-8').strip()
+    previous, tag = previous_stable(root, current)
+    with previous_release_catalogs(root, tag, previous, args.previous_dir.resolve() if args.previous_dir else None) as catalogs, tempfile.TemporaryDirectory(prefix='program-kit-public-upgrade-') as temporary:
+        workspace = Path(temporary)
+        project = workspace / 'consumer app'; project.mkdir()
+        run('specify', 'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py', '--ignore-agent-tools', cwd=project)
+        replace_catalogs(project, catalogs)
+        # Reproduce actual historical initializer behavior and its native registrations.
+        run('specify', 'workflow', 'add', 'program-kit-bootstrap', cwd=project)
+        run('specify', 'bundle', 'install', 'program-kit', '--integration', 'codex', cwd=project)
+        if set(installed_versions(project).values()) != {previous}:
+            raise AssertionError('Prior public component versions are incoherent')
+        from validate_public_delivery import prepare_prior_consumer
+        class Preparation:
+            def run(self, _name, command, target):
+                run(*map(str, command), cwd=target)
+        prepare_prior_consumer(Preparation(), project)
+        authored = {'consumer-notes.txt': b'Keep the consumer decision.\n',
+            '.specify/workflows/runs/historical-failed/state.json': b'{"status":"failed","synthetic":true}\n',
+            '.specify/workflows/runs/historical-failed/workflow.yml': (project / '.specify/workflows/program-kit-bootstrap/workflow.yml').read_bytes()}
+        for relative, raw in authored.items():
+            path = project / relative; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+        name = f'program-kit-tooling-{current}.zip'
+        if args.candidate_dir:
+            archive = args.candidate_dir.resolve() / name
         else:
-            raise AssertionError('Bundle-first update did not reject the separately owned old workflow')
-        if installed_versions(project) != before_versions or installed_component_bytes(project) != before_rejection:
-            raise AssertionError('Rejected bundle-first update changed installed components or native bytes')
-        if not set(native_owned).issubset(before_rejection):
-            raise AssertionError('Unsafe-update preservation fixture did not capture native consumer files')
-        print(f'Rejected bundle-first update preserved {len(before_rejection)} installed/native file hashes and all component versions.')
-        print('Preserved ownership/registration metadata: ' + ', '.join(sorted(authoritative_metadata)))
-        # Reproduce the still-relevant partial installation through a real
-        # independent component update, then require the kit coherence guard.
-        run('specify','extension','update','program-kit-governance',cwd=project,input_text='y\n')
-        mixed = installed_versions(project)
-        if mixed["workflow"] != previous_version or mixed["extension"] != current_version:
-            raise AssertionError(f"Regression did not reproduce the mixed installation: {mixed}")
-
-        governance = (
-            project
-            / ".specify/extensions/program-kit-governance/scripts/governance_state.py"
-        )
-        preflight = subprocess.run(
-            [sys.executable, str(governance), "validate-installation"],
-            cwd=project,
-            text=True,
-            capture_output=True,
-        )
-        output = preflight.stdout + preflight.stderr
-        if preflight.returncode == 0:
-            raise AssertionError("Mixed-version installation unexpectedly passed preflight")
-        for phrase in (
-            "version-incoherent",
-            "upgrade_program_kit.py",
-        ):
-            if phrase not in output:
-                raise AssertionError(f"Preflight output is missing {phrase!r}: {output}")
-
-        # Apply the documented repair in the mandatory order.
-        run(
-            "specify",
-            "workflow",
-            "update",
-            "program-kit-bootstrap",
-            cwd=project,
-            input_text="y\n",
-        )
-        run(
-            "specify",
-            "bundle",
-            "update",
-            "program-kit",
-            "--integration",
-            "codex",
-            cwd=project,
-            input_text="y\n",
-        )
-        repaired = installed_versions(project)
-        if set(repaired.values()) != {current_version}:
-            raise AssertionError(
-                f"Upgrade repair did not converge on v{current_version}: {repaired}"
-            )
-        run(sys.executable, str(governance), "validate-installation", cwd=project)
-
-        extensions = yaml.safe_load(
-            (project / ".specify/extensions.yml").read_text(encoding="utf-8")
-        )
-        hooks = set(extensions.get("hooks", {}))
-        if hooks != EXPECTED_HOOKS:
-            raise AssertionError(f"Installed hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
-
-        workflow = yaml.safe_load(
-            (
-                project / ".specify/workflows/program-kit-bootstrap/workflow.yml"
-            ).read_text(encoding="utf-8")
-        )
-        step_ids = [step["id"] for step in workflow.get("steps", [])]
-        if step_ids != expected_steps:
-            raise AssertionError(f"Installed workflow steps {step_ids} != {expected_steps}")
-
-    print(
-        f"Live public-catalog v{previous_version} to v{current_version} upgrade test passed."
-    )
+            import urllib.request
+            base = f'https://github.com/orbyss-io/program-kit/releases/download/v{current}/'
+            with urllib.request.urlopen(base + 'SHA256SUMS', timeout=30) as response:
+                sums = dict((line.split(maxsplit=1)[1].lstrip('*'), line.split(maxsplit=1)[0]) for line in response.read().decode().splitlines())
+            with urllib.request.urlopen(base + name, timeout=60) as response:
+                raw = response.read()
+            if hashlib.sha256(raw).hexdigest() != sums.get(name):
+                raise AssertionError('Public tooling differs from the published checksum')
+            archive = workspace / name; archive.write_bytes(raw)
+        from validate_package_smoke import extract
+        release = workspace / 'candidate'; extract(archive, release)
+        run(sys.executable, str(release / 'scripts/upgrade_program_kit.py'), '--release-root', str(release),
+            '--target', str(project), '--integration', 'codex', cwd=project)
+        if set(installed_versions(project).values()) != {current}:
+            raise AssertionError('Packaged updater did not converge all current component versions')
+        if (project / '.specify/workflows/program-kit-bootstrap').exists():
+            raise AssertionError('Retired workflow is still actively installed')
+        for relative, raw in authored.items():
+            if (project / relative).read_bytes() != raw:
+                raise AssertionError('Upgrade changed historical/authored bytes: ' + relative)
+        run(sys.executable, str(project / '.specify/extensions/program-kit-governance/scripts/governance_state.py'), 'validate-installation', cwd=project)
+        record = next(row for row in json.loads((project / '.specify/bundle-records.json').read_text())['bundles'] if row['bundle_id'] == 'program-kit')
+        if len(record['required_components']) != 4 or any(row['kind'] == 'workflows' for row in record['required_components']):
+            raise AssertionError('Current native bundle retained retired workflow ownership')
+    print(f'Public v{previous} to v{current} packaged upgrade and preserved history passed.')
     return 0
 
 

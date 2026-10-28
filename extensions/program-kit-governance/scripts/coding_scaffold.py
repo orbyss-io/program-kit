@@ -14,7 +14,6 @@ import sys
 if __name__ == '__main__':
     sys.dont_write_bytecode = True
 
-from coding_context import prepare
 from coding_patterns import decode
 
 
@@ -74,56 +73,68 @@ def native_contracts(projects, owners):
     """Inspect the consuming owners; a neighboring package cannot supply their APIs."""
     api = {p['id']: p.get('version') for p in projects.get(owners['api'], {}).get('packages', [])}
     provider = {p['id']: p.get('version') for p in projects.get(owners['provider'], {}).get('packages', [])}
+    runtime = {p['id']: p.get('version') for p in projects.get(owners['runtime'], {}).get('packages', [])}
     require({'Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'} <= api.keys()
-            and 'Orbyss.Foundation.PostgreSql' in provider,
-            'declare native JSON/public problem contracts in the API and PostgreSQL in its provider; neighboring package declarations cannot supply these owners')
+            and 'Orbyss.Foundation.PostgreSql' in provider and 'Orbyss.Foundation.Execution' in runtime,
+            'declare native JSON/public problem contracts in the API, Execution in runtime and PostgreSQL in its provider; neighboring package declarations cannot supply these owners')
     version = api['Orbyss.Foundation.Web.ProblemDetails'] or ''
     parts = version.split('.')
-    require(len(parts) == 3 and all(p.isdigit() for p in parts) and tuple(map(int, parts)) >= (0, 3, 6),
-            'typed-label requires qualified Foundation public problem contract 0.3.6 or later; preserve pins and qualify the dependency through its normal owner')
-    require({api['Orbyss.Foundation.Json.AspNetCore'], provider['Orbyss.Foundation.PostgreSql']} == {version},
+    require(len(parts) == 3 and all(p.isdigit() for p in parts) and tuple(map(int, parts)) >= (0, 3, 8),
+            'typed-label requires qualified Foundation runtime 0.3.8 or later for descriptive JSON/endpoint/problem-status APIs; preserve pins and qualify the dependency through its normal owner')
+    require({api['Orbyss.Foundation.Json.AspNetCore'], provider['Orbyss.Foundation.PostgreSql'], runtime['Orbyss.Foundation.Execution']} == {version},
             'selected native API/provider contracts differ; adopt one compatible qualified release through the dependency owner')
 
 
+def native_context(root, owners, configuration, framework):
+    """Evaluate only this explicit generator's real project inputs; never restore/build."""
+    from dotnet_adapter import bootstrap
+    bootstrap()
+    from repository_architecture import evaluate_project, is_build_reference
+    projects = []
+    for key in ('core', 'runtime', 'api', 'provider', 'test'):
+        relative = owners[key]
+        project = confined(root, relative)
+        require(project.is_file(), 'selected generator project is missing: ' + relative)
+        value = evaluate_project(root, relative, configuration, framework=framework)
+        properties, items = value['Properties'], value['Items']
+        if properties.get('TargetFrameworks'):
+            require(framework in properties['TargetFrameworks'].split(';'),
+                    'select an actual target framework for the multi-target generator input: ' + relative)
+        versions = {item['Identity']: item.get('Version') for item in items.get('PackageVersion', [])}
+        packages = [{'id': item['Identity'], 'version': item.get('VersionOverride') or item.get('Version') or versions.get(item['Identity'])}
+                    for item in items.get('PackageReference', [])]
+        references = []
+        for item in items.get('ProjectReference', []):
+            if is_build_reference(item):
+                continue
+            target = Path(item.get('FullPath') or project.parent / item['Identity']).resolve()
+            require(target.is_relative_to(root.resolve()), 'generator project reference escapes repository')
+            references.append(target.relative_to(root.resolve()).as_posix())
+        projects.append({'path': relative, 'status': 'evaluated', 'properties': properties,
+                         'packages': packages, 'projectReferences': references})
+    return {'projects': projects, 'configuration': configuration, 'framework': framework}
+
+
 def preview(root, feature, unit_id, owners, *, operation=None, configuration='Debug', framework=None):
-    from typed_operation import render, RECIPE, ADAPTER
+    from typed_operation import render, RECIPE, ADAPTER, legacy_locations
     extensions = Path(__file__).resolve().parents[2]
     outputs = render(owners, extensions)
-    # Use explicit affected paths to select *all* declared owners, then reconcile
-    # the original task baseline as for manual editing. No second pattern selector.
-    paths = list(owners[k] for k in ('core', 'runtime', 'api', 'provider', 'test')) + [owners['frontend'] + '/package.json']
-    prepared = prepare(root, feature, operation=operation, affected_paths=paths, reconcile=True,
-                       configuration=configuration, framework=framework)
-    coding = prepared['coding']
-    require(coding['canProceed'], 'coding context blocked; inspect phase_obligations.py reconcile for the existing owner/repair')
-    selected = next((u for u in coding['skills'] if u['id'] == unit_id), None)
-    require(selected is not None, 'selected unit is unavailable in this scope; inspect ordinary preparation')
-    require(selected.get('pattern', {}).get('qualification', {}).get('status') == 'qualified',
-            'realization requires the selected qualified F3 pattern; manual editing retains normal duties')
-    require(RECIPE in selected['recipes'], 'selected unit has no supported typed-label recipe binding; use its compatible manual route or qualify a maintained adapter')
-    require(selected['pattern']['semanticId'] == 'typed-label', 'selected pattern has a different semantic owner; no recipe-name inference')
-    require(selected.get('realization', {}).get('available'), 'selected qualification omits adapter/source inputs; inspect the prepared realization route and qualify its missing inputs')
-    require(all(coding['facts'].get(k) for k in ('request', 'model-owner', 'contract-owner', 'effective-projects', 'verification-owner')),
-            'resolve accepted model/contract, evaluated project and verification owners before source realization')
-    projects = {p['path']: p for p in coding['projects']}
+    require(unit_id == 'typed-label', 'this finite adapter supports --unit typed-label; other patterns use manual editing or their own generator')
+    prepared = native_context(root, owners, configuration, framework)
+    projects = {p['path']: p for p in prepared['projects']}
     native_contracts(projects, owners)
     graph = json.loads(confined(root, 'eng/architecture.json').read_text(encoding='utf-8'))['runtimeComposition']['projects']
     declarations = {p['path']: p for p in graph}
-    adopted = json.loads(confined(root, 'docs/architecture/building-block-selection.json').read_text(encoding='utf-8'))
-    placed = {p['path']: p.get('placement', {}).get('owner') for p in adopted.get('targets', [])}
-    require(adopted.get('status') == 'Accepted' and all(placed.get(owners[k]) for k in ('core', 'runtime', 'api', 'provider', 'test')),
-            'declare accepted source/test placement through the existing architecture owner')
-    require(len({placed[owners[k]] for k in ('core', 'runtime', 'api', 'provider', 'test')}) == 1,
-            'typed-label adapter requires one accepted semantic owner; cross-context adaptation needs review')
     roles = {'core': 'core', 'runtime': 'implementation', 'api': 'implementation', 'provider': 'provider', 'test': 'test'}
     for key, role in roles.items():
         p = projects.get(owners[key], {})
-        require(p.get('status') == 'evaluated' and p.get('role') == role, 'evaluate the actual ' + key + ' project owner')
+        require(p.get('status') == 'evaluated' and declarations.get(owners[key], {}).get('role') == role,
+                'declare and evaluate the actual ' + key + ' generator project owner')
         expected_refs = {owners['core']} if key in ('runtime', 'api', 'provider') else {owners['core'], owners['runtime']}
         if key != 'core':
             require(expected_refs <= set(p['projectReferences']) & set(declarations[owners[key]].get('projectReferences', [])),
                     'declare native compile references for the ' + key + ' owner')
-    require(any(p['package']['path'] == owners['frontend'] + '/package.json' for p in coding['frontendProjects']), 'prepare the selected native frontend')
+    require(confined(root, owners['frontend'] + '/package.json').is_file(), 'select the actual native frontend package')
     contracts_path = confined(root, 'eng/openapi-contracts.json')
     contracts = json.loads(contracts_path.read_text(encoding='utf-8')).get('contracts', [])
     contract_paths = []
@@ -139,7 +150,11 @@ def preview(root, feature, unit_id, owners, *, operation=None, configuration='De
     require(any(r.get('kind') == 'runtime' for r in declarations[owners['runtime']].get('responsibilities', [])), 'declare runtime orchestration responsibility')
     require(any(r.get('kind') == 'http' for r in declarations[owners['api']].get('responsibilities', [])), 'declare HTTP responsibility')
     require(any(r.get('kind') == 'persistence' for r in declarations[owners['provider']].get('responsibilities', [])), 'declare provider responsibility')
-    actions, conflicts = [], []
+    legacy = [{'path': path, 'sha256': snapshot(root, path)} for path in legacy_locations(owners)]
+    actions, conflicts = [], [
+        {'path': row['path'], 'owner': 'consumer source owner', 'kind': 'legacy-placement',
+         'repair': 'Preserved earlier recipe source. Refactor its authored placement explicitly before creating duplicate types; no automatic move, deletion or replacement.'}
+        for row in legacy if row['sha256'] is not None]
     for relative, content in sorted(outputs.items()):
         path = confined(root, relative)
         before = path.read_bytes() if path.is_file() else None
@@ -164,7 +179,8 @@ def preview(root, feature, unit_id, owners, *, operation=None, configuration='De
              'adapters': {p.name: digest(p.read_bytes()) for p in (Path(__file__), Path(__file__).with_name('coding_context.py'),
                           extensions / 'program-kit-dotnet/scripts/typed_operation.py', extensions / 'program-kit-dotnet/scripts/reconciliation.py')}}
     body = {'schemaVersion': 1, 'adapter': ADAPTER, 'unit': unit_id, 'basis': basis,
-            'actions': actions, 'conflicts': conflicts, 'evaluation': selected['evaluation'],
+            'actions': actions, 'conflicts': conflicts, 'legacySources': legacy,
+            'evaluation': {'scope': 'Actual selected project/SDK/API inputs and source proposal only; no consumer acceptance.'},
             'requiredIntegration': [
                 'Owning runtime feature calls LabelServices.Configure; provider feature registers ILabelStore using its actual native context.',
                 'API feature calls LabelEndpoints.Configure/Map. Select features through shell configuration; no peer implementation reference.',
@@ -180,6 +196,8 @@ def apply(root, plan, outputs, expected):
     import reconciliation
     require(plan['planDigest'] == expected, 'preview inputs changed; inspect a fresh preview before applying')
     require(not plan['conflicts'], 'conflicting consumer source preserved; inspect preview diffs and use ordinary editing')
+    require(all(snapshot(root, row['path']) == row['sha256'] for row in plan.get('legacySources', [])),
+            'preview inputs changed at earlier recipe locations; preserve authored source and inspect a fresh preview')
     require(not reconciliation.pending_transactions(root), 'recover pending native sync transaction before realization')
     operations = [{'kind': 'create', 'path': row['path'], 'content': outputs[row['path']], 'expectedHash': row['expectedHash']}
                   for row in plan['actions'] if row['kind'] == 'create']

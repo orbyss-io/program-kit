@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "environment": "Development",
+  "scope": "Development.tenant-a",
+  "requirements": [
+    {"capability": "execution", "contractVersion": "1"},
+    {"capability": "exchange", "contractVersion": "1"}
+  ],
+  "bindings": [
+    {"capability": "execution", "contractVersion": "1", "provider": "Recording.execution", "version": "1.0.0", "scope": "Development.tenant-a", "package": "Recording.execution", "feature": "execution"},
+    {"capability": "exchange", "contractVersion": "1", "provider": "Recording.exchange", "version": "1.0.0", "scope": "Development.tenant-a", "package": "Recording.exchange", "feature": "exchange"}
+  ],
+  "packages": [
+    {"id": "Recording.execution", "version": "1.0.0", "dependencies": [], "developmentOnly": true, "privileges": []},
+    {"id": "Recording.exchange", "version": "1.0.0", "dependencies": [], "developmentOnly": true, "privileges": []}
+  ],
+  "features": [
+    {"id": "execution", "package": "Recording.execution", "dependencies": []},
+    {"id": "exchange", "package": "Recording.exchange", "dependencies": []}
+  ],
+  "packageRoots": [],
+  "featureRoots": ["execution", "exchange"],
+  "packaged": ["Recording.execution", "Recording.exchange"],
+  "activated": ["execution", "exchange"],
+  "fixtures": [],
+  "privileges": [],
+  "compatiblePairs": [["Recording.execution@1.0.0", "Recording.exchange@1.0.0"]]
+}

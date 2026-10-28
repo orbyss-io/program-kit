@@ -3,6 +3,7 @@ import copy
 import json
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -18,7 +19,7 @@ SCHEMA = load_object(ROOT / 'tests/live/schemas/v2/authorization.schema.json')
 
 class StageTests(unittest.TestCase):
     def test_each_paid_stage_requires_exact_parent_and_one_session(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             for phase in stages.PHASES:
                 path = root / (phase + '.json')
@@ -57,7 +58,7 @@ class StageTests(unittest.TestCase):
             stages.validate_parent(parent,'upgrade-consumer','fresh-candidate',binding,'c'*64,ROOT)
 
     def test_worker_cannot_supply_its_own_intake_confirmation(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             confirmation = root / '.program-kit/specification-intake/RM01/confirmation.json'
             confirmation.parent.mkdir(parents=True)
@@ -81,7 +82,7 @@ class StageTests(unittest.TestCase):
             self.assertEqual(materialize.call_args.args[1:3], (path, project))
 
     def test_baseline_graph_relocation_requires_exact_parent_and_current_manifest(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             project = Path(directory)
             candidate = project / 'specs/RM01/candidate.json'
             atomic_write_json(candidate, {'dependencies':{'react':'19.2.8'}})
@@ -98,7 +99,7 @@ class StageTests(unittest.TestCase):
                 stages.relocate_graph(project, parent)
 
     def test_upgrade_rehydrates_locked_dependencies_without_reinterpreting_old_request(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             project = Path(directory)
             atomic_write_json(project / '.specify/feature.json', {'feature_directory':'specs/RM01'})
             atomic_write_json(project / 'artifacts/program-kit/building-block-restore-request.json',

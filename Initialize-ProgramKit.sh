@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-PROGRAM_KIT_REF="v0.14.3"
+PROGRAM_KIT_REF="v1.0.0-preview.1"
 program_kit_stage="prerequisite checks"
 trap 'status=$?; printf "ERROR: Program Kit initialization stopped during %s with exit code %s. Preserve the output and partial installation for diagnosis.\n" "$program_kit_stage" "$status" >&2; exit "$status"' ERR
 
@@ -117,9 +117,16 @@ else
   "$SPECKIT_PYTHON" "$program_kit_device_preflight" --ref "$PROGRAM_KIT_REF" --project-root "$current_root"
 fi
 
-if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
+# Spec Kit already declares this parser. A separate resolver interpreter needs
+# the same library; keep its exact selection and let the human prepare it.
+if ! "$SPECKIT_PYTHON" -c "from importlib.metadata import version; from packaging.specifiers import SpecifierSet; assert version('packaging') in SpecifierSet('>=23')" >/dev/null 2>&1; then
+  printf 'ERROR: The selected resolver Python requires packaging>=23 for dependency range checks. Prepare this declared library in your own terminal, then rerun the initializer:\n  "%s" -m pip install "packaging>=23"\n' "$SPECKIT_PYTHON" >&2
+  exit 2
+fi
+program_kit_yaml_probe="import yaml; from packaging.specifiers import SpecifierSet; from packaging.version import Version; assert Version(yaml.__version__) in SpecifierSet('>=6,<7')"
+if ! "$SPECKIT_PYTHON" -c "$program_kit_yaml_probe" >/dev/null 2>&1; then
   if ! "$SPECKIT_PYTHON" -m pip --version >/dev/null 2>&1; then
-    printf 'ERROR: PyYAML is missing and python -m pip is unavailable. Install pip for this Python interpreter, then install PyYAML>=6,<7 and rerun the initializer.\n' >&2
+    printf 'ERROR: PyYAML is missing or outside >=6,<7 and pip is unavailable for "%s". Prepare PyYAML>=6,<7 for that exact interpreter in your own terminal and rerun the initializer.\n' "$SPECKIT_PYTHON" >&2
     exit 2
   fi
   printf 'Installing the PyYAML dependency required by the Spec Kit Python resolver...\n'
@@ -127,8 +134,8 @@ if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
     printf 'ERROR: PyYAML could not be installed for the python command. Install PyYAML>=6,<7 for that interpreter and rerun the initializer.\n' >&2
     exit 2
   fi
-  if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
-    printf 'ERROR: PyYAML is still unavailable to the python command after installation.\n' >&2
+  if ! "$SPECKIT_PYTHON" -c "$program_kit_yaml_probe" >/dev/null 2>&1; then
+    printf 'ERROR: PyYAML>=6,<7 is still unavailable to "%s" after installation.\n' "$SPECKIT_PYTHON" >&2
     exit 2
   fi
 fi
@@ -143,46 +150,36 @@ native_program_kit() {
     "${release_options[@]}" --native-launcher "$(command -v specify)" --native-arguments "$@"
 }
 
-program_kit_stage="step 1/8"
-printf '[1/8] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"
+program_kit_stage="step 1/6"
+printf '[1/6] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"
 native_program_kit init . --force --non-interactive --integration "$program_kit_integration" --script py
 
-program_kit_stage="step 2/8"
-printf '[2/8] Registering the Program Kit extension catalog...\n'
+program_kit_stage="step 2/6"
+printf '[2/6] Registering the Program Kit extension catalog...\n'
 specify extension catalog add "${catalog_root}/extensions.json" --name program-kit --install-allowed
 
-program_kit_stage="step 3/8"
-printf '[3/8] Registering the Program Kit preset catalog...\n'
+program_kit_stage="step 3/6"
+printf '[3/6] Registering the Program Kit preset catalog...\n'
 specify preset catalog add "${catalog_root}/presets.json" --name program-kit --install-allowed
 
-program_kit_stage="step 4/8"
-printf '[4/8] Registering the Program Kit workflow catalog...\n'
-specify workflow catalog add "${catalog_root}/workflows.json" --name program-kit
-
-program_kit_stage="step 5/8"
-printf '[5/8] Registering the Program Kit bundle catalog...\n'
+program_kit_stage="step 4/6"
+printf '[4/6] Registering the Program Kit bundle catalog...\n'
 specify bundle catalog add "${catalog_root}/bundles.json" --id program-kit --policy install-allowed
 
-program_kit_stage="step 6/8"
-printf '[6/8] Installing the bootstrap workflow...\n'
-specify workflow add program-kit-bootstrap
-
-program_kit_stage="step 7/8"
-printf '[7/8] Installing Program Kit...\n'
+program_kit_stage="step 5/6"
+printf '[5/6] Installing Program Kit...\n'
 native_program_kit bundle install program-kit --integration "$program_kit_integration"
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py setup
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py record-copy
 
-program_kit_stage="step 8/8"
-printf '[8/8] Switching Program Kit catalogs to the update channel...\n'
+program_kit_stage="step 6/6"
+printf '[6/6] Switching Program Kit catalogs to the update channel...\n'
 specify extension catalog remove program-kit
 specify preset catalog remove program-kit
-specify workflow catalog remove 0
 specify bundle catalog remove program-kit
 specify extension catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json' --name program-kit --install-allowed
 specify preset catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/presets.json' --name program-kit --install-allowed
-specify workflow catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json' --name program-kit
 specify bundle catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/bundles.json' --id program-kit --policy install-allowed
 
-printf '\nProgram Kit initialization is complete.\n'
+printf '\nProgram Kit initialization is complete. Start speckit.program-kit-governance.product-intake in your coding assistant.\n'

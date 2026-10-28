@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0",
   "profile_id": "program-kit-c4-viewer-v1",
-  "retrieved": "2026-10-07",
+  "retrieved": "2026-10-27",
   "selected": {
     "product": "Structurizr",
     "command": "local",
-    "version": "2026.09.19",
-    "docker_image": "structurizr/structurizr:2026.09.19",
-    "docker_digest": "sha256:721136283c2f9cf1ba69037bc9de136c579d66fdcb2d771cb60546ec68def1a5",
-    "java_war": "structurizr-2026.09.19.war",
-    "java_war_url": "https://download.structurizr.com/structurizr-2026.09.19.war",
+    "version": "2026.10.26",
+    "docker_image": "structurizr/structurizr:2026.10.26",
+    "docker_digest": "sha256:8aebde645a7cc8d3b9e1e774cd6d75a84ce45d74ae70eb783876182fe7db31a2",
+    "java_war": "structurizr-2026.10.26.war",
+    "java_war_url": "https://download.structurizr.com/structurizr-2026.10.26.war",
     "java_minimum": 21,
     "default_port": 8081
   },
@@ -40,7 +40,7 @@
       "supports": "Structurizr Lite is end-of-life and replaced by local."
     },
     {
-      "url": "https://github.com/structurizr/structurizr/releases/tag/v2026.09.19",
+      "url": "https://github.com/structurizr/structurizr/releases/tag/v2026.10.26",
       "authority": "upstream-release",
       "supports": "Selected immutable release tag and release notes."
     }

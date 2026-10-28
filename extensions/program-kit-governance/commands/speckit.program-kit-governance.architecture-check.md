@@ -1,60 +1,133 @@
 ---
-description: Review actual work against applicable architectural decisions and checks.
+description: Review actual design or implementation, resolve consequential choices and preserve accepted architecture.
 scripts:
   py: scripts/phase_obligations.py
 ---
-Choose the current event explicitly; do not emit planning context at every boundary.
-After planning run `{SCRIPT} check --feature-dir <feature> --phase after-plan`; after tasks run
-`{SCRIPT} check --feature-dir <feature> --phase after-tasks`. These commands validate the planned
-roles, dependency edges and bindings in ordinary `eng/architecture.json` without building or
-changing design files. Describe actual responsibility names/kinds/effects and provided capabilities in
-each declared project's `responsibilities`. Correct confirmed structural violations before affected implementation.
-For example, a persistence-calling NotesService is runtime even when its project was called Core.
-Reconcile its responsibility and capability inventory with the plan and relevant ADRs; do not merely
-repeat role labels. A passing declared graph is structural evidence and never a semantic PASS.
-Address material `lifecycleFindings` with their concrete owner/source evidence. Retire C#
-composition-preset projects through explicit responsibility repair: selection belongs to shell/deployment
-configuration; services, tasks and provider preparation belong to their owning features. Apply the
-selected publisher lifecycle mechanisms and preserve independent business-event reactions. Record corrections in the current plan/tasks and ordinary review,
-preserving approved history; the findings create no new proof or approval dossier.
-Before a feature directory exists, review the request and existing constitutional/architectural
-context directly; do not require a feature-dependent command or create a feature on the hook's behalf.
-When a consumer upgrade record exists, run the lightweight compatibility scan with a
-request/brief JSON carrying known architectureScope, contracts and affectedPaths:
-`python .specify/extensions/program-kit-governance/scripts/consumer_upgrade.py scan --input <request.json> --phase specification`.
-Use the existing intake brief when available; an ignored temporary request is a regenerable
-view, not a feature or approval packet. Resolve due ownership/contract findings and carry
-matching migrations into existing plan/tasks. Unknown scope is explicitly limited.
-Refine the same scope during planning. A new discovery immediately enters the local
-upgrade discovery/pickup route; keep unaffected work available and preserve prior findings.
-Compare the specification, plan, tasks or changed code with the constitution, applicable canonical constraints, domain design,
-architecture model and relevant Accepted ADRs when available. Missing governance history is not
-an application failure. Preserve accepted choices; request a decision only for substantive changes.
-Acceptance is not an implicit exception to applicable constraints. Surface conflicts and preserve
-history until a scoped governed correction or valid exception resolves them. Report concrete conflicts
-with source locations and corrective actions. Check dependency direction,
-Core purity, cohesive domain capabilities, typed public boundaries, security, lifecycle ownership,
-and the selected host/package/composition contract. Apply conditional guidance proportionally.
-During specification review only the request, ownership and relevant accepted constraints.
-After-plan and after-tasks use the commands above once; their summaries are the default context.
-Do not first run project and then check for the same event, or reread entire reference inventories.
-During specification and planning, present design findings without requiring application builds,
-tests or completion evidence. At after-implement run `{SCRIPT} finish --feature-dir <feature>`.
-Pending tasks or a draft return progress without full engineering acceptance. State remaining work;
-Progress and closure first reconcile retained-baseline changes (including untracked and both rename
-owners), actual Compile ownership, native dependencies and newly selected coding duties. An unresolved
-finding returns needs-attention and preserves source/task progress; independent owned scopes remain
-available. This does not intercept arbitrary writes or establish arbitrary-language semantics.
-do not claim completion. An explicit formal review handoff adds `--handoff`; neither a status request
-nor a task batch is a handoff. Completed feature/domain work runs the full engineering command once.
-Reuse its current result in the final report; do not separately invoke verify or that command again.
-Report the engineering command's actual scope separately from semantic review, consumer outcomes and
-human acceptance. Required unresolved findings prevent overall completion; command success cannot close them.
-Compiler diagnostics, architecture tests, contract checks and
-behavioral tests must pass. Assess semantic judgments for changed responsibilities in normal code review; a green compiler
-alone does not prove them. Do not create separate proof attestations or hash-bound reviews.
-Apply the relevant effect/test-boundary review in programming-guardrails.md: purposeful abstractions,
-result invariants, time reads after waits, deadline propagation, actual configured limits, independently
-observed durable effects, public test seams and complete browser recovery. Record affected source and
-dispositions in existing tasks/delivery output. Structural success cannot close unresolved semantic findings.
-Spec Kit analyze findings stay in its normal output. Do not save an extra approval dossier.
+
+Before a feature directory exists, review the request and relevant constitutional/architectural
+context directly. Do not create a feature or require toolkit metadata merely to run a hook.
+For after-plan or after-tasks, `{SCRIPT} check --feature-dir <feature> --phase after-plan`
+(or `after-tasks`) supplies relevant references without changing files or running engineering.
+Read the relevant sources behind that index. Rendering references does not perform this review.
+
+## Post-plan technical review
+
+After planning, inspect the actual spec, research, plan, contracts/data model where relevant,
+constitution and applicable accepted architecture/ADRs. Trace consequential choices to the outcomes
+they serve and the selected dependency versions. Read focused authoritative documentation, relevant
+coding patterns, security guidance and Program Kit integration knowledge; do not load a whole catalog.
+Use the phase index as a starting point and correct missing or irrelevant context through inspection.
+If a relevant read is truncated, recover the missing guidance through bounded source sections or
+`--only <id>` with its `--page <n>` continuation before claiming that review. A command naming a file
+does not establish that its contents were returned or applied; avoid combining large source dumps.
+
+Review in proportion to the uncertainty and consequences:
+
+- Fit to required behavior, authorization, ownership, domain boundaries and failure outcomes.
+- Alternatives, especially the selected framework's native mechanisms and supported extension points.
+  Explain the concrete unmet requirement before adding equivalent custom infrastructure.
+- Source applicability and exact selected-version facts. Distinguish documented facts, assumptions,
+  justified decisions and unknowns requiring a focused experiment or platform qualification.
+- Contract promises, lifecycle transitions, data ownership, compatibility and security consequences.
+  Application/process owners coordinate business workflow; providers own concrete mechanisms, SDKs,
+  platform identifiers and reconciliation state. Keep infrastructure capabilities at their cohesive
+  semantic boundary rather than placing every shared contract in a business-domain Core.
+- For selected .NET work, reconcile actual pure Core policy, HTTP adaptation, runtime coordination
+  and provider effects with compilation projects under `principle.compilation-boundaries` in
+  `references/modularity-and-contracts.md` (`--only dotnet-boundaries`). Trace a concrete workflow to
+  its owner; an API folder or an `implementation` role does not justify mixing these responsibilities.
+  HTTP binding, transport validation and response mapping remain API concerns; pure calculations may
+  remain in Core. Require a runtime implementation only when that responsibility exists, without
+  inventing empty Runtime/Calculations projects or business contexts. Review within the existing
+  plan disposition; a graph check cannot establish semantic ownership.
+- Selected coding approaches, their important invariants and permitted adaptation, and the focused
+  checks that can challenge them. A local design needs actual contracts and checks, not catalog approval.
+- Technical risks and useful early experiments. Plan review is not compilation, runtime execution,
+  provider compatibility or human acceptance; identify which evidence remains to be obtained.
+
+Planning fixes responsibilities, contracts, consequential constraints and important lifecycle/failure
+semantics. A suggested private file/class arrangement may evolve during coding. Do not require a
+human decision for every internal refinement. Resolve material changes to those commitments through
+the owning decision rather than labeling them private implementation detail.
+
+Present a concise technical walkthrough linking the decisions, source facts, reasons and meaningful
+trade-offs in ordinary research/plan/ADR content. Make selected methods, commitments, adaptation points
+and checks usable by task generation without imposing a mandatory table or duplicate architecture model.
+For a new or uncertain approach, identify a first coherent increment for focused source review and
+checks before replication; this does not automatically create a new human checkpoint for every task.
+
+Investigate accessible facts yourself. For a genuinely unsettled product or architectural choice,
+reuse `speckit.program-kit-governance.grilling`'s interview method in this conversation:
+ask only the dependent questions that matter, with evidence, a recommendation and material trade-offs.
+Keep the scope to that choice, preserve accepted decisions and apply supported authorized defaults.
+Do not force an interview about settled defaults or launch another coding agent. Use the relevant
+existing human review point for the resulting synthesis; existing explicit acceptance of the exact
+decision counts. An agent recommendation or Proposed ADR does not supply human acceptance.
+
+Resolve material questions before dependent task generation. Use
+[engineering feedback](references/engineering-feedback.md) for consequential findings and owning
+document corrections. Continue independent ready work and preserve unrelated accepted decisions.
+
+## Other phase and implementation review
+
+Compare actual responsibilities, boundaries, contracts and important failure paths across spec,
+plan, tasks and changed code. Preserve accepted decisions; reopen substantive contradictions with
+source locations and a concrete correction. Missing toolkit history is not an application failure.
+Select compiler/architecture/security/behavior checks appropriate to the selected technology and action;
+planning describes needed checks rather than claiming application execution.
+Optional .NET graph and SDK helpers remain with their engineering owner; a graph pass alone cannot
+establish that ownership labels match real behavior.
+
+Challenge the necessity of new infrastructure as well as its dependencies. Compare each new project,
+runner, wrapper and lifecycle with the selected framework's existing mechanism and supported extension
+points. A task prescribing a replacement does not justify it. Report the concrete unmet requirement
+and evidence, or correct the affected plan/tasks to use the native mechanism before dependent work.
+For EF, separate deployment identity does not imply a custom migration runner or parallel journal.
+
+Inspect the first coherent operation before replication: its method bodies, authoritative state
+types/keys and transitions, pure policy versus provider effects, effective configuration and required
+snapshots, complete deadlines and resource teardown. Review the actual project-local placement and
+mirrored tests; do not accept unrelated root accumulation merely because files compile. The selected
+.NET API uses Operations/<Operation>; a small cohesive project may stay flat. Challenge a malformed,
+denied, stale or faulted case through its actual check owner. These are semantic review duties;
+reference routing and static analysis do not automatically detect or certify them. See the canonical
+[first-operation review](references/programming-guardrails.md#typed-boundaries-and-design-evidence) and
+[project-local placement](references/modularity-and-contracts.md#semantic-capability-contracts).
+
+Include shared failure/retry code ownership in that review. A typed facade over raw-string decisions
+or a typed settings object built by a replacement binding pipeline does not meet the commitment.
+For .NET, inspect native Options binding/validation and actual activation before snapshots. Review
+the full applicable source-readability category and the evidence behind completed task claims; a
+green build cannot establish policy ownership, method coherence or correct framework adoption.
+
+Keep unresolved findings and agreed human review pauses in normal task/review notes. Independent
+ready work remains available. After implementation, report actual checks, semantic review, remaining
+work and human dispositions separately. Run complete applicable acceptance at feature closure;
+do not run a whole-app command for each progress update or infer acceptance from checked tasks.
+Use normal native analysis and its read-only output; report findings before any separately authorized
+correction, following engineering feedback. Do not create approval/proof dossiers.
+
+For .NET host/exporter choices, apply `principle.dotnet-host-default` in
+references/tool-selection.md. Review a custom-host proposal against actual human opt-out,
+keep unresolved choices visible, and resolve the effective profile before reading versioned
+package knowledge. A proposal, helper pass or profile listing supplies no human acceptance.
+
+For background/queued work or replaceable providers, consult references/asynchronous-workloads.md
+before choosing shared contracts. Research the relevant source-map alternatives, explicit environment
+closures and failure semantics; keep coordination, execution and exchange separate. Use only the
+focused references needed by this journey. Synthetic tests do not qualify an actual platform.
+
+## Return to the native caller
+
+When invoked as a configured hook, complete the substantive review before returning. If a material
+decision needs a human answer, pause dependent work and resume this review after the answer; then
+return to the outer native command so it can continue its remaining configured hooks and completion
+report. Returning from this hook does not finish the caller's flow. Preserve disabled/removed hooks
+and native condition handling; this command does not add another reviewer or re-enable configuration.
+
+The native after-plan dispatch must actually invoke this command and wait. An `EXECUTE_COMMAND:`
+marker, reference-helper output or recommendation to run architecture-check later is not execution.
+In the phase report name the review actually performed, key decisions, unresolved findings, actual
+human dispositions and next action. Report unavailable or blocked review honestly. Missing toolkit
+files or historical status alone do not block native delivery; unresolved decisions and engineering
+failures constrain the work that depends on them.

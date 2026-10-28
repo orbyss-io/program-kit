@@ -460,6 +460,8 @@ def scaffold_project(project, contract):
     for package in sorted(consumed):
         deps.extend(feature['identity'] for feature in contract.get('featureDescriptors', {}).get(package, {}).get('features', [])
                     if feature['identity'] in contract.get('activations', []))
+        deps.extend(identity for identity, owner in contract.get('selectedPublisherActivations', {}).items()
+                    if owner['packageId'] == package)
     deps = list(dict.fromkeys(deps))
     packages = ['CShells.Abstractions'] + (['CShells.AspNetCore.Abstractions'] if http else [])
     packages += [p for p in deps if p in contract['packages']]
@@ -519,7 +521,8 @@ public sealed class {type_name} : IShellFeature
 }}
 '''
     else:
-        source = f'''using CShells;
+        source = f'''using System;
+using CShells;
 using CShells.Features;
 using CShells.Lifecycle;
 using Microsoft.EntityFrameworkCore;
@@ -535,7 +538,12 @@ public sealed class ProviderFeature(ShellSettings settings) : IShellFeature
     /// <summary>Registers provider-owned preparation. Product migrations remain explicit.</summary>
     public void ConfigureServices(IServiceCollection services)
     {{
-        services.AddFoundationPostgreSql<ApplicationDbContext>(settings, "application", options => new(options));
+        Func<DbContextOptions<ApplicationDbContext>, ApplicationDbContext> createContext = options => new(options);
+        services.AddFoundationPostgreSql<ApplicationDbContext>(
+            settings,
+            "application",
+            createContext
+        );
         services.AddShellInitializer<ProviderPrepare>(LifecyclePhase.Prepare, order: 100);
     }}
 }}
@@ -824,10 +832,10 @@ def validate_configuration(value):
     return validate_legacy_configuration(value)  # Pure, explicit historical import validation.
 
 
-def materialize(repository, configuration, template_root):
+def materialize(repository, configuration, template_root, *, configuration_only=False):
     import composition_render
     require(configuration.get('schemaVersion') == 2, 'migrate the legacy composition before managed generation')
-    return composition_render.materialize(repository, configuration, template_root)
+    return composition_render.materialize(repository, configuration, template_root, configuration_only=configuration_only)
 
 
 def validate_materialized(repository, configuration, contract, profile, realm=None):

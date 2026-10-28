@@ -1,7 +1,9 @@
 """Pure typed-resource invariants and preservation at the legacy import boundary."""
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
+import subprocess
 import sys
 import unittest
 import tempfile
@@ -18,6 +20,86 @@ def example():
 
 
 class ResourceModel(unittest.TestCase):
+    def test_configuration_environment_requires_selected_ownership_and_product_destination(self):
+        graph = example()
+        feature = next(iter(model.resources(graph, 'feature')))
+        binding = {'kind': 'configurationEnvironment', 'featureRef': feature, 'shellRef': 'application-shell',
+                   'setting': 'Example:HmacSecret', 'environmentRef': 'PK_EXAMPLE_HMAC'}
+        graph['bindings'].append(binding)
+        model.validate(graph)
+        resolved = model.configuration_environment_bindings(graph)[0]
+        self.assertEqual('CShells__Shells__default__Configuration__Example__HmacSecret', resolved['environmentKey'])
+        for setting in ('Foundation:Web:ClientSecret', 'foundation:PostgreSql:ConnectionString',
+                        'Nuplane:Loading', 'Example:Bad__Key', 'Example', 'Example:../Secret'):
+            with self.subTest(setting=setting):
+                invalid = deepcopy(graph); invalid['bindings'][-1]['setting'] = setting
+                with self.assertRaises(ValueError): model.validate(invalid)
+        invalid = deepcopy(graph); invalid['bindings'][-1]['environmentRef'] = 'PK_SECRET;echo'
+        with self.assertRaisesRegex(ValueError, 'explicit environment variable'): model.validate(invalid)
+        invalid = deepcopy(graph); invalid['bindings'] = [row for row in invalid['bindings']
+            if not (row['kind'] == 'featureShell' and row['featureRef'] == feature)]
+        with self.assertRaisesRegex(ValueError, 'foreign feature/shell'): model.validate(invalid)
+        graph['bindings'].append({**binding, 'setting': 'example:hmacsecret', 'environmentRef': 'PK_OTHER'})
+        with self.assertRaisesRegex(ValueError, 'duplicate product configuration'): model.validate(graph)
+
+    def test_configuration_environment_matches_exact_available_source_declaration(self):
+        graph = example(); feature = next(iter(model.resources(graph, 'feature')))
+        graph['bindings'].append({'kind': 'configurationEnvironment', 'featureRef': feature,
+            'shellRef': 'application-shell', 'setting': 'Example:HmacSecret', 'environmentRef': 'PK_EXAMPLE_HMAC'})
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertEqual('native-declaration-not-present', model.provider_binding_declarations(root, graph)[0]['status'])
+            path = root / Path(graph['resources'][feature]['path']).parent / 'settings.source.json'
+            path.parent.mkdir(parents=True)
+            declaration = {'schemaVersion': 2, 'packageId': graph['resources'][feature]['packageId'],
+                'contracts': [{'complete': True, 'settings': [{'path': 'Example:Other'}]}]}
+            path.write_text(json.dumps(declaration))
+            with self.assertRaisesRegex(ValueError, 'does not cover composition binding'):
+                model.provider_binding_declarations(root, graph)
+            declaration['contracts'][0]['settings'][0]['path'] = 'example:hmacsecret'
+            path.write_text(json.dumps(declaration))
+            self.assertIn('native-activation-required', model.provider_binding_declarations(root, graph)[0]['status'])
+            declaration['packageId'] = 'Foreign.Package'; path.write_text(json.dumps(declaration))
+            with self.assertRaisesRegex(ValueError, 'unsupported native provider settings declaration'):
+                model.provider_binding_declarations(root, graph)
+
+    def test_declared_external_inputs_detect_add_change_remove_and_reject_escape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); folder = root / 'docs/brand'; folder.mkdir(parents=True)
+            path = folder / 'logo.png'; path.write_bytes(b'synthetic-source')
+            resource = {'inputs': ['docs/brand']}
+            before = model.resource_input_files(root, resource)
+            path.write_bytes(b'changed-source')
+            self.assertNotEqual(before, model.resource_input_files(root, resource))
+            second = folder / 'theme.css'; second.write_bytes(b'body {}')
+            added = model.resource_input_files(root, resource)
+            self.assertIn('docs/brand/theme.css', added)
+            path.unlink()
+            self.assertNotIn('docs/brand/logo.png', model.resource_input_files(root, resource))
+            with self.assertRaisesRegex(ValueError, 'missing'):
+                model.resource_input_files(root, {'inputs': ['docs/brand/logo.png']})
+            self.assertEqual({}, model.resource_input_files(root, {'inputs': ['docs/brand/logo.png']}, required=False))
+            for invalid in ('../outside', 'C:/outside', 'docs\\brand', 'artifacts/private'):
+                with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                    model.resource_input_files(root, {'inputs': [invalid]})
+
+    def test_declared_external_inputs_reject_actual_link_or_junction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); target = root / 'brand'; target.mkdir()
+            (target / 'logo.png').write_bytes(b'synthetic-logo')
+            link = root / 'linked-brand'
+            try:
+                link.symlink_to(target, target_is_directory=True)
+            except OSError:
+                if os.name != 'nt':
+                    raise
+                created = subprocess.run(['cmd', '/d', '/c', 'mklink', '/J', str(link), str(target)],
+                    capture_output=True, text=True, timeout=10)
+                self.assertEqual(0, created.returncode, 'The host could create neither a test symlink nor an owned junction')
+                self.assertTrue(link.is_junction())
+            with self.assertRaisesRegex(ValueError, 'linked declared'):
+                model.resource_input_files(root, {'inputs': ['linked-brand']})
+
     def test_shell_path_base_rejects_aliases_traversal_and_nonlocal_values(self):
         for prefix in ('/', '/a/', '//a', '/../a', '/a//b', '/a%2fb', '/a?b', '/a#b', '/a\\b', True, 7):
             with self.subTest(prefix=prefix):
@@ -197,8 +279,9 @@ class ResourceModel(unittest.TestCase):
                 renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
             self.assertEqual(obsolete.read_bytes(), previous)
             obsolete.write_bytes(previous.replace(b'IWebShellFeature', b'IShellFeature'))
-            with self.assertRaisesRegex(ValueError, 'retained customized API seam'):
-                renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            retained = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            self.assertNotIn('src/PolicyPortfolio/PolicyPortfolioFeature.cs', retained)
+            self.assertEqual(obsolete.read_bytes(), previous.replace(b'IWebShellFeature', b'IShellFeature'))
             obsolete.write_bytes(previous)
             state = root / '.program-kit/managed.json'; state.parent.mkdir()
             import hashlib
@@ -209,12 +292,251 @@ class ResourceModel(unittest.TestCase):
             renderer.admit_runtime_reconciliation(root, model.project_definition(runtime, root))
             state.unlink(); obsolete.unlink()
             runtime['capabilityPackages'] = ['Orbyss.Foundation.Unselected']
-            with self.assertRaisesRegex(ValueError, 'absent from selected shell'):
+            with self.assertRaisesRegex(ValueError, 'selected profile is missing package knowledge'):
                 renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
             runtime['capabilityPackages'] = ['Orbyss.Foundation.Execution']
             runtime['responsibility'] = 'http'
             with self.assertRaisesRegex(ValueError, 'conflicts with source authority'):
                 renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+
+    def test_feature_capability_packages_use_exact_selected_profile_and_remain_optional(self):
+        import composition_render as renderer
+        from dependency_profile import resolver
+        import xml.etree.ElementTree as ET
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); graph = example()
+            feature = graph['resources']['feature-0']
+            feature['capabilityPackages'] = ['Orbyss.Foundation.Tasks', 'Orbyss.Foundation.Tasks.Abstractions']
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            contract = json.loads(files[renderer.CONTRACT][0])['shells']['application-shell']
+            catalog = resolver().effective_dependency_context(root)['catalog']
+            selected_version = catalog['packages']['nuget:Orbyss.Foundation.Tasks']['version']
+            self.assertEqual(selected_version, contract['packages']['Orbyss.Foundation.Tasks'])
+            references = {row.get('Include') for row in ET.fromstring(files[feature['path']][0]).iter('PackageReference')}
+            self.assertIn('Orbyss.Foundation.Tasks', references)
+            self.assertIn('Orbyss.Foundation.Tasks.Abstractions', references)
+            feature['capabilityPackages'] = []
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            self.assertNotIn('Orbyss.Foundation.Tasks', json.loads(files[renderer.CONTRACT][0])['packages'])
+            feature['capabilityPackages'] = ['Orbyss.Foundation.ArbitraryPrefixMatch']
+            with self.assertRaisesRegex(ValueError, 'selected profile is missing package knowledge'):
+                renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+
+    def test_authored_identity_seams_preserve_filenames_projects_and_provider_helpers(self):
+        import composition_render as renderer
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); graph = example()
+            runtime = {'kind': 'feature', 'path': 'src/Owned.Runtime/Owned.Runtime.csproj',
+                       'packageId': 'Owned.Runtime', 'featureIdentity': 'Owned.Runtime.Feature',
+                       'role': 'implementation', 'responsibility': 'runtime'}
+            graph['resources']['owned-runtime'] = runtime
+            graph['bindings'].append({'kind': 'featureShell', 'featureRef': 'owned-runtime', 'shellRef': 'application-shell'})
+            authored = {}
+            for index, feature in enumerate(model.resources(graph, 'feature').values()):
+                folder = root / Path(feature['path']).parent; folder.mkdir(parents=True)
+                path = folder / ('AuthoredRegistration' + str(index) + '.cs')
+                interface = 'IWebShellFeature' if model.project_definition(feature)['responsibility'] == 'http' else 'IShellFeature'
+                path.write_text('[ShellFeature("' + feature['featureIdentity'] + '")] public sealed class Owned : ' + interface + ' {}')
+                project = root / feature['path']; project.write_text('<Project><ItemGroup><PackageReference Include="Consumer.Owned" /></ItemGroup></Project>')
+                authored[path] = path.read_bytes(); authored[project] = project.read_bytes()
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            for path, content in authored.items():
+                self.assertEqual(content, path.read_bytes())
+                self.assertNotIn(path.relative_to(root).as_posix(), files)
+            self.assertFalse(any(path.endswith('.cs') for path in files))
+            duplicate = root / 'src/Owned.Runtime/UnexpectedName.cs'
+            duplicate.write_text('[ShellFeature("Owned.Runtime.Feature")] public sealed class Duplicate : IShellFeature {}')
+            with self.assertRaisesRegex(ValueError, 'duplicate ShellFeature identity'):
+                renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            duplicate.write_text('// [ShellFeature("Owned.Runtime.Feature")] commented declaration\n')
+            renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+
+    def test_unknown_authored_feature_declarations_require_reconciliation_without_generating_duplicates(self):
+        import composition_render as renderer
+        project = {'path': 'src/Runtime/Runtime.csproj', 'featureIdentity': 'Owned.Runtime', 'responsibility': 'runtime'}
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); folder = root / 'src/Runtime'; folder.mkdir(parents=True)
+            path = folder / 'Registration.cs'
+            for source in ('[ShellFeature(FeatureNames.Runtime)] class Owned : IShellFeature {}',
+                           'using Registration = CShells.Features.ShellFeatureAttribute; [Registration("Owned.Runtime")] class Owned {}',
+                           '#if OPTIONAL\n[ShellFeature("Owned.Runtime")] class Owned {}\n#endif'):
+                path.write_text(source)
+                with self.assertRaisesRegex(ValueError, 'authored source reconciliation'):
+                    renderer.authored_feature_owner(root, project)
+                self.assertEqual(source, path.read_text())
+            path.write_text('const string Example = """[ShellFeature("Owned.Runtime")]""";')
+            self.assertIsNone(renderer.authored_feature_owner(root, project))
+            path.write_text('[Other, CShells.Features.ShellFeature("Owned.Runtime")] class Owned : IShellFeature {}')
+            self.assertEqual('src/Runtime/Registration.cs', renderer.authored_feature_owner(root, project))
+            path.write_text('using Features = CShells.Features; [Features.ShellFeature("Owned.Runtime")] class Owned : IShellFeature {}')
+            self.assertEqual('src/Runtime/Registration.cs', renderer.authored_feature_owner(root, project))
+
+    def test_customized_selected_scaffolds_keep_prior_ownership_until_actual_retirement(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); (root / 'eng').mkdir(); graph = example()
+            (root / model.INPUT).write_text(json.dumps(graph))
+            command = [sys.executable, '-B', str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                       '--target', str(root), '--profile-selected', '--foundation-host-accepted',
+                       '--building-block-sources-approved', '--web-profile', 'bff-cookie', '--json']
+            def synchronize(extra=()):
+                result = subprocess.run([*command, *extra], capture_output=True, text=True, timeout=90)
+                self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            synchronize()
+            feature = next(row for row in model.resources(graph, 'feature').values() if row['role'] == 'implementation')
+            project = feature['path']; source = (Path(project).parent / 'ApiFeature.cs').as_posix()
+            state_path = root / '.program-kit/managed.json'
+            before = json.loads(state_path.read_text())
+            retained = {}
+            for relative in (project, source):
+                path = root / relative
+                path.write_bytes(path.read_bytes() + (b'\n<!-- synthetic authored project -->\n'
+                                 if relative == project else b'\n// synthetic authored registration\n'))
+                retained[relative] = path.read_bytes()
+            synchronize()
+            after = json.loads(state_path.read_text())
+            for relative, content in retained.items():
+                self.assertEqual(content, (root / relative).read_bytes())
+                self.assertIn(relative, after['files'], 'Still-selected authored scaffold was prematurely retired')
+                self.assertEqual(before['files'][relative], after['files'][relative], 'Preservation must not authenticate authored bytes')
+            synchronize(['--check'])
+
+    def test_composition_only_reconciliation_preserves_unrelated_conflicts_and_rolls_back(self):
+        import subprocess
+        import os
+        import hashlib
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); graph = example(); (root / 'eng').mkdir()
+            input_path = root / model.INPUT; input_path.write_text(json.dumps(graph))
+            command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                       '--target', str(root), '--profile-selected', '--foundation-host-accepted',
+                       '--building-block-sources-approved', '--web-profile', 'bff-cookie', '--json']
+            def run(extra=(), expected=0, env=None):
+                observed = subprocess.run([*command, *extra], cwd=ROOT, capture_output=True, text=True,
+                                          encoding='utf-8', timeout=90, env=env)
+                self.assertEqual(expected, observed.returncode, observed.stdout + observed.stderr)
+                return json.loads(observed.stdout.split('committed reconciliation transaction:')[0])
+            run()
+            architecture_path = root / 'eng/architecture.json'
+            architecture = json.loads(architecture_path.read_text())
+            architecture['runtimeComposition']['projects'][0]['responsibilities'][0]['effects'].append('authored boundary')
+            architecture_path.write_text(json.dumps(architecture))
+            shell_path = root / 'shells.json'; shell = json.loads(shell_path.read_text())
+            shell['CShells']['Shells']['default']['Configuration'] = {'ConsumerOwned': {'policy': 'keep'}}
+            shell_path.write_text(json.dumps(shell))
+            helper = root / 'eng/openapi_contracts.py'; helper.write_bytes(helper.read_bytes() + b'\n# authored local repair\n')
+            central = root / 'Directory.Packages.props'
+            import re
+            central.write_text(re.sub(r'  <Import Project="eng/ProgramKit.Foundation.props"\s+Condition="[^"]+"\s*/>', '', central.read_text())
+                               .replace('</Project>', '<ItemGroup><PackageVersion Include="Consumer.Exact" Version="1.2.3" /></ItemGroup></Project>'))
+            central_before = central.read_text()
+            retired = root / '.dockerignore'; retired.write_text('authored retired file\n')
+            state_path = root / '.program-kit/managed.json'; state = json.loads(state_path.read_text())
+            state['files']['.dockerignore'] = {'ownership': 'managed', 'contribution': 'base',
+                                              'baselineHash': hashlib.sha256(b'old baseline').hexdigest(),
+                                              'lastWrittenHash': hashlib.sha256(b'old baseline').hexdigest()}
+            # Fictional prior-release helper bytes, honestly recorded as that
+            # installation's baseline; the scoped native transaction must update
+            # these dependencies as well as its direct runner.
+            for relative in ('eng/runtime_closure.py', 'eng/prepare_hosted_pages.py'):
+                old_helper = root / relative
+                old_helper.write_text('# synthetic prior release helper\n')
+                digest = hashlib.sha256(old_helper.read_bytes()).hexdigest()
+                state['files'][relative].update(baselineHash=digest, templateHash=digest,
+                                               lastWrittenHash=digest, installedHash=digest)
+            state_path.write_text(json.dumps(state))
+            for feature in model.resources(graph, 'feature').values():
+                folder = root / Path(feature['path']).parent
+                generated = folder / ('ProviderFeature.cs' if feature['role'] == 'provider' else 'ApiFeature.cs')
+                generated.rename(folder / 'AuthoredRegistration.cs')
+            graph['resources']['application-shell']['settings']['RemoteAuthenticationTimeoutSeconds'] = 120
+            input_path.write_text(json.dumps(graph))
+            protected = {p: p.read_bytes() for p in [architecture_path, shell_path, helper, retired,
+                         *root.glob('src/**/*.cs'), *root.glob('src/**/*.csproj')]}
+            baseline = json.loads(state_path.read_text())
+            whole = run(['--check'], expected=2)
+            self.assertIn('eng/openapi_contracts.py', {row['path'] for row in whole['conflicts']})
+            self.assertIn('.dockerignore', {row['path'] for row in whole['conflicts']})
+            preview = run(['--composition-only', '--check'], expected=1)
+            self.assertEqual('composition-configuration', preview['scope'])
+            self.assertFalse(preview['conflicts'])
+            self.assertFalse(any(row['path'] in {p.relative_to(root).as_posix() for p in protected} for row in preview['actions']))
+            self.assertEqual(baseline, json.loads(state_path.read_text()))
+            def snapshot():
+                return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob('*') if p.is_file()
+                        and '.program-kit/transactions/' not in p.relative_to(root).as_posix()}
+            before = snapshot()
+            failure_env = dict(os.environ, PROGRAMKIT_TEST_SYNC_FAIL_AFTER_ACTION='2')
+            run(['--composition-only'], expected=2, env=failure_env)
+            self.assertEqual(before, snapshot())
+            run(['--composition-only', '--plan-digest', preview['planDigest']])
+            for relative in ('eng/runtime_closure.py', 'eng/prepare_hosted_pages.py'):
+                self.assertEqual((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files' / relative).read_bytes(),
+                                 (root / relative).read_bytes())
+            # Launch against only the installed engineering helpers. Source-tree
+            # imports cannot accidentally satisfy the freshness assertion.
+            installed_probe = r'''
+import json, sys
+from pathlib import Path
+root = Path(sys.argv[1]); sys.path.insert(0, str(root / 'eng'))
+import prepare_hosted_pages as frontend
+import runtime_closure
+assert Path(frontend.__file__).parent == root / 'eng'
+assert Path(runtime_closure.__file__).parent == root / 'eng'
+directory = root / 'src/SyntheticWeb'; directory.mkdir(parents=True, exist_ok=True)
+(directory / 'index.tsx').write_text('export {}')
+brand = root / 'docs/synthetic-brand.css'; brand.parent.mkdir(parents=True, exist_ok=True); brand.write_text('body {}')
+graph = {'resources': {'synthetic-web': {'directory': 'src/SyntheticWeb', 'inputs': ['docs/synthetic-brand.css']}}}
+before = frontend.input_snapshot(root, graph, 'synthetic-web')
+brand.write_text('body { color: blue; }')
+assert before != frontend.input_snapshot(root, graph, 'synthetic-web')
+brand.unlink()
+try:
+    frontend.input_snapshot(root, graph, 'synthetic-web')
+except ValueError as error:
+    assert 'declared source input is missing' in str(error)
+else:
+    raise AssertionError('Removed external input silently accepted')
+'''
+            installed = subprocess.run([sys.executable, '-I', '-B', '-c', installed_probe, str(root)],
+                                       cwd=root, capture_output=True, text=True, timeout=30)
+            self.assertEqual(0, installed.returncode, installed.stdout + installed.stderr)
+            import xml.etree.ElementTree as ET
+            self.assertIn('Include="Consumer.Exact" Version="1.2.3"', central.read_text())
+            self.assertTrue(any(row.get('Project') == 'eng/ProgramKit.Foundation.props' for row in ET.parse(central).findall('Import')))
+            self.assertEqual(central_before, central.read_text().replace(
+                '  <Import Project="eng/ProgramKit.Foundation.props" Condition="Exists(\'eng/ProgramKit.Foundation.props\')" />\n', ''))
+            after = json.loads(state_path.read_text())
+            for path in protected:
+                relative = path.relative_to(root).as_posix()
+                self.assertEqual(protected[path], path.read_bytes())
+                if relative in baseline['files']:
+                    self.assertEqual(baseline['files'][relative], after['files'][relative])
+            run(['--composition-only', '--check'])
+            managed_profile = root / 'eng/web-profile.shells.json'
+            managed_profile.write_bytes(managed_profile.read_bytes() + b'\n')
+            conflict = run(['--composition-only', '--check'], expected=2)
+            self.assertIn('eng/web-profile.shells.json', {row['path'] for row in conflict['conflicts']})
+
+    def test_missing_active_composition_is_an_advisory_for_bff_compatibility_scaffold(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                       '--target', str(root), '--profile-selected', '--web-profile', 'bff-cookie', '--check']
+            result = subprocess.run([*command, '--json'], capture_output=True, text=True, timeout=60)
+            self.assertEqual(1, result.returncode, result.stdout + result.stderr)
+            advisory = json.loads(result.stdout)['advisories'][0]
+            self.assertEqual('PKF101', advisory['id'])
+            self.assertIn('--composition-only --check --json', advisory['message'])
+            human = subprocess.run(command, capture_output=True, text=True, timeout=60)
+            self.assertEqual(1, human.returncode, human.stdout + human.stderr)
+            self.assertIn('advisory PKF101:', human.stdout)
+            alternative = subprocess.run([*command[:command.index('bff-cookie')], 'none', '--check', '--json'],
+                                         capture_output=True, text=True, timeout=60)
+            self.assertEqual(1, alternative.returncode, alternative.stdout + alternative.stderr)
+            self.assertNotIn('advisories', json.loads(alternative.stdout))
+            self.assertEqual([], list(root.rglob('*')), 'Preview/advisory must not mutate the target or start an application')
 
     def test_missing_responsibility_does_not_guess_from_api_filename(self):
         feature = {'path': 'src/Guessed.Api/Guessed.Api.csproj', 'packageId': 'Guessed.Api',
@@ -346,7 +668,7 @@ class ResourceModel(unittest.TestCase):
     def test_legacy_migration_preserves_identity_branding_and_archive(self):
         import composition_migrate as migration
         value = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json').read_text())
-        value['theme']['branding'] = {'displayName': 'Claim Evaluator', 'accentColor': '#0088aa'}
+        value['theme']['branding'] = {'displayName': 'Harbor Workspace', 'accentColor': '#0088aa'}
         scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=scratch) as temporary:
             root = Path(temporary); (root / 'eng').mkdir()
@@ -366,13 +688,13 @@ class ResourceModel(unittest.TestCase):
         import composition_render as renderer
         graph = two_apps(ROOT)
         graph['resources']['product-identity']['theme']['branding'] = {
-            'displayName': 'Claim Evaluator', 'accentColor': '#0088aa'}
+            'displayName': 'Harbor Workspace', 'accentColor': '#0088aa'}
         branding = model.default_branding()
         branding['theme'] = 'green'
-        branding['locales']['en-GB'].update(title='Claim Evaluator', purpose='Your private policies and evaluations.',
+        branding['locales']['en-GB'].update(title='Harbor Workspace', purpose='Your team schedules and rooms.',
             loadingText='Opening your workspace.', failureText='Your workspace is unavailable. Please try again.',
-            noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Claim Evaluator')
-        branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Claimbeoordelaar'}
+            noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Harbor Workspace')
+        branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Havenwerkplek'}
         graph['resources']['policy-web']['branding'] = branding
         scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=scratch) as temporary:
@@ -389,7 +711,7 @@ class ResourceModel(unittest.TestCase):
             self.assertNotIn('branding', converted['resources']['assessment-web'])
             files = renderer.materialize(root, converted, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
             realm = json.loads(files['deploy/keycloak/product-identity/program-kit-realm.json'][0])
-            self.assertEqual(realm['displayName'], 'Claim Evaluator')
+            self.assertEqual(realm['displayName'], 'Harbor Workspace')
             css = files['deploy/keycloak/product-identity/themes/program-kit/login/resources/css/program-kit.css'][0]
             self.assertIn(b'--program-kit-brand-accent: #0088aa', css)
             self.assertFalse(any(path.startswith('tests/') for path in files))

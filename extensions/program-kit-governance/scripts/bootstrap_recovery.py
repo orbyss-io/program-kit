@@ -5,7 +5,6 @@ workflow_lifecycle owns resumption, gates and engine-bound completion.
 """
 from __future__ import annotations
 
-import argparse
 import contextlib
 import hashlib
 import io
@@ -443,33 +442,9 @@ def complete(root: Path, run_id: str) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['prepare', 'inspect-output', 'synchronize', 'review', 'accept', 'evaluate', 'complete'])
-    parser.add_argument('--run-id', required=True)
-    parser.add_argument('--verdict')
-    parser.add_argument('--post-bootstrap', action='store_true', help='Prepare preserved evidence for an explicit completed-bootstrap continuation; does not approve or dispatch it')
-    args = parser.parse_args()
-    root = Path.cwd().resolve()
-    try:
-        governance.configure_paths()
-        if args.post_bootstrap and args.command != 'prepare':
-            raise lifecycle.LifecycleError('--post-bootstrap applies only to prepare')
-        if args.command == 'complete':
-            governance.require_legacy_completion_cli()
-        with contextlib.redirect_stdout(io.StringIO()):
-            if args.command == 'prepare':
-                result = prepare(root, args.run_id, post_bootstrap=args.post_bootstrap)
-            elif args.command == 'inspect-output':
-                result = inspect_output(root)
-            elif args.command == 'accept':
-                result = accept(root, args.run_id, args.verdict)
-            else:
-                result = globals()[args.command](root, args.run_id)
-        print(json.dumps(result))
-        return 2 if args.command == 'complete' and not result.get('eligible', True) else 0
-    except (lifecycle.LifecycleError, governance.GovernanceStateError, OSError, ValueError, KeyError, TypeError) as exc:
-        print(f'bootstrap recovery error: {exc}', file=sys.stderr)
-        return 1
+    from workflow_lifecycle import RETIREMENT
+    print(RETIREMENT, file=sys.stderr)
+    return 2
 
 
 if __name__ == '__main__':

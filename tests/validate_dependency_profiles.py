@@ -58,7 +58,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_bundle_compaction_preserves_all_historical_authorities_and_fact_bytes(self):
         sys.path.insert(0, str(ROOT / 'scripts'))
-        from build_release import pack_historical_package_facts
+        from historical_package_fixture import pack_historical_package_facts
         with FixtureDirectory() as directory:
             staging = Path(directory)
             registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'

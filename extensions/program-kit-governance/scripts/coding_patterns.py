@@ -581,11 +581,21 @@ def main():
                   'next': 'Review this single draft; merge its sources/rules/codingUnits into docs/architecture/coding-patterns.json. No automatic registration or promotion.'}, indent=2))
             return 0
         require(bool(args.feature_dir), 'inspection needs the normal feature context')
+        if args.command == 'inspect':
+            from phase_obligations import model, catalog
+            from feature_context import rule_applicable
+            from coding_context import validate_units
+            value = model(root, confined(root, args.feature_dir), 'implementation')
+            registry = merge(catalog(), root)
+            units = validate_units(registry)
+            tags = set(value['responsibilities'])
+            print(json.dumps({'patterns': [unit for unit in units if 'pattern' in unit and rule_applicable(unit, tags)],
+                'projectChoices': value['localGuidance'],
+                'scope': 'Declared examples only; no SDK evaluation, recipe qualification or consumer acceptance.',
+                'manualAlternative': 'Choose a suitable local pattern and verify its actual product/technology contracts. Consumer implementation requires no toolkit qualification.'}, indent=2))
+            return 0
         from coding_context import prepare
         result = prepare(root, confined(root, args.feature_dir), operation=args.operation, configuration=args.configuration, framework=args.framework)
-        if args.command == 'inspect':
-            print(json.dumps(result['coding']['patterns'], indent=2))
-            return 0 if result['coding']['canProceed'] else 2
         require(bool(args.id), 'evidence binding needs an exact pattern identity')
         extensions = Path(__file__).resolve().parents[2]
         from phase_obligations import catalog

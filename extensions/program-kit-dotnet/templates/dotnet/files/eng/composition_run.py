@@ -142,6 +142,31 @@ def prepare_browsers(root, graph, resolved, command, directory):
     browser_check(root, graph, resolved, command, directory, launch_only=True)
 
 
+def configuration_environment_contract(root, graph):
+    declarations = model.provider_binding_declarations(root, graph)
+    return [{'featurePath': binding['featurePath'], 'configurationKey': binding['configurationKey'],
+             'environmentRef': binding['environmentRef'],
+             'sourceDeclaration': next(row['status'] for row in declarations
+                if row['featurePath'] == binding['featurePath']
+                and row['configurationKey'].casefold() == binding['configurationKey'].casefold()),
+             'proof': 'Declarative integration only; the consumer owns typed binding and executed runtime validation.'}
+            for binding in model.configuration_environment_bindings(graph)]
+
+
+def configuration_environment_values(root, graph):
+    """Resolve declared product inputs without persisting values or value hashes."""
+    model.provider_binding_declarations(root, graph)
+    values = {}
+    for binding in model.configuration_environment_bindings(graph):
+        name = binding['environmentRef']
+        value = os.environ.get(name)
+        require(value is not None and value != '',
+                'required product configuration environment input is missing: ' + name
+                + '; supply it in the human-owned environment before prepare/run; values are never generated or stored')
+        values[name] = value
+    return values
+
+
 def private_credentials(root, graph, create=False):
     """Owned local credentials are private inputs; evidence contains no values."""
     path = root / 'artifacts/composition/private/credentials.json'
@@ -207,7 +232,11 @@ def connection(database, binding, server_id, server_binding, password):
         ';Username=' + quote(username) + ';Password=' + quote(password)
 
 
-def compose_model(root, graph, contract, resolved, credentials):
+def compose_model(root, graph, contract, resolved, credentials, *, product_inputs=None):
+    # Source environment names are declarations, not native credential keys.
+    # Keep their values separate even when a name matches a generated PKC key.
+    product_inputs = (configuration_environment_values(root, graph)
+                      if product_inputs is None else product_inputs)
     env = model.environment(graph)
     private_roots = model.private_directories(graph, repository=root)
     document = {'name': project(root, graph), 'services': {}, 'networks': {'foundation': {}}, 'volumes': {}}
@@ -278,6 +307,14 @@ def compose_model(root, graph, contract, resolved, credentials):
                 key = variable('connection:' + row['databaseRef'])
                 process_environment[key] = connection(database, database_env, server_id, env[server_id], credentials[database_env['credentialRef']])
                 values[prefix + 'PostgreSql__Policies__' + row['policy'] + '__ConnectionString'] = '${' + key + ':?Prepare the database binding}'
+        for binding in model.configuration_environment_bindings(graph):
+            if binding['hostRef'] != name:
+                continue
+            key = variable('configuration:' + binding['shellRef'] + ':' + binding['configurationKey'].casefold())
+            require(product_inputs.get(binding['environmentRef']),
+                    'required product configuration environment input is missing: ' + binding['environmentRef'])
+            process_environment[key] = product_inputs[binding['environmentRef']]
+            values[binding['environmentKey']] = '${' + key + ':?Supply declared product configuration input}'
         volumes = [{'type': 'bind', 'source': str(stage / file), 'target': '/app/' + file, 'read_only': True,
                     'bind': {'create_host_path': False}} for file in ('hostsettings.json', 'shells.json', 'nuplane.settings.json', 'packages')]
         for row in model.private_file_bindings(graph):
@@ -309,6 +346,14 @@ def topology_fingerprint(root, graph, contract):
     selected = {name: runtime_closure.sha256(root / name) for name in
                 (model.INPUT, render.CONTRACT, 'global.json', '.nvmrc', '.npm-version') if (root / name).is_file()}
     selected.update(contract.get('managedOutputs', {}))
+    identity_inputs = {}
+    env = model.environment(graph)
+    for name, authority in model.resources(graph, 'identityAuthority').items():
+        paths = list(authority.get('inputs', []))
+        if env[name]['mode'] == 'managed':
+            paths.append('deploy/keycloak/' + name + '/themes')
+        identity_inputs[name] = model.resource_input_files(root, {'inputs': paths})
+    selected['identityInputs'] = model.digest(identity_inputs)
     selected['runAdapter'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     return model.digest(selected)
 
@@ -519,8 +564,21 @@ def ensure_dependencies(command, compose, document, hosts, environment):
                     environment=environment, timeout=210)
 
 
+def provider_deployment_boundary(graph):
+    """Explain native deployment ownership without issuing any deployment command."""
+    providers = [{'project': graph['resources'][row['featureRef']]['path'], 'context': row['context'],
+                  'policy': row['policy']} for row in model.bindings(graph, 'databaseProvider')]
+    return {'providers': providers,
+            'preparation': 'Owned database/role provisioning only; product schemas, EF history and grants are not deployed.',
+            'providerPrepareContract': 'Read-only admission; the consumer provider owns schema/history/least-privilege checks.',
+            'recovery': 'If provider activation reports missing schema, migration history or grants, inspect the retained Host logs; '
+                        'review/apply native EF deployment under the deployment identity, grant the runtime identity only its required privileges, '
+                        'then retry run. Generic prepare/run never dispatches product migrations.'}
+
+
 def prepare(root):
     graph, contract, resolved = selected(root, check_frontends=False)
+    product_inputs = configuration_environment_values(root, graph)
     # Capture retained bindings before replacing any previous preparation output.
     private_history = provision_private_files(root, graph)
     directory = root / 'artifacts/composition/runs' / ('prepare-' + uuid.uuid4().hex)
@@ -528,6 +586,7 @@ def prepare(root):
     started = time.monotonic()
     write(root / STATE, {'status': 'preparing', 'run': directory.relative_to(root).as_posix()})
     command = Commands(root, directory)
+    command.secrets = tuple(product_inputs.values())
     timings = {}
     try:
         before = time.monotonic(); prerequisite(root, command); timings['prerequisitesSeconds'] = round(time.monotonic() - before, 3)
@@ -549,8 +608,8 @@ def prepare(root):
         timings['imagePreparationSeconds'] = round(time.monotonic() - before, 3)
         before = time.monotonic(); build(root, graph, resolved, command, restore=True); timings['restoreBuildStageSeconds'] = round(time.monotonic() - before, 3)
         credentials = private_credentials(root, graph, create=True)
-        document, process_env = compose_model(root, graph, contract, resolved, credentials)
-        command.secrets = tuple({*credentials.values(), *process_env.values()})
+        document, process_env = compose_model(root, graph, contract, resolved, credentials, product_inputs=product_inputs)
+        command.secrets = tuple({*credentials.values(), *product_inputs.values(), *process_env.values()})
         compose_file = root / 'artifacts/composition/compose.json'
         write(compose_file, document)
         compose = ['docker', 'compose', '-p', document['name'], '-f', str(compose_file)]
@@ -570,9 +629,12 @@ def prepare(root):
                    'topologyFingerprint': topology_fingerprint(root, graph, contract), 'modelDigest': model.digest(graph),
                    'elapsedSeconds': round(time.monotonic() - started, 3), 'timings': timings,
                    'identityReconciliation': identities, 'pendingActivationHosts': list(resolved['hosts']),
+                   'providerDeploymentBoundary': provider_deployment_boundary(graph),
+                   'configurationEnvironmentContract': configuration_environment_contract(root, graph),
                    'scope': 'Prepared consumer on observed device; no clean OS or product acceptance claim'}
         write(directory / 'result.json', receipt); write(root / STATE, receipt)
-        print(json.dumps({'status': 'prepared', 'elapsedSeconds': receipt['elapsedSeconds'], 'timings': timings}))
+        print(json.dumps({'status': 'prepared', 'elapsedSeconds': receipt['elapsedSeconds'], 'timings': timings,
+                          'providerDeploymentBoundary': receipt['providerDeploymentBoundary']}))
     except BaseException:
         if 'prior_running' in locals():
             try:
@@ -606,6 +668,7 @@ def run(root, selected_hosts=None, update=False):
     import foundation_fixture
     receipt = latest(root)
     graph, contract, resolved = selected(root, check_frontends=not update)
+    product_inputs = configuration_environment_values(root, graph)
     require(receipt['topologyFingerprint'] == topology_fingerprint(root, graph, contract), 'composition/dependency inputs changed; reconcile and prepare their affected resources')
     if selected_hosts:
         require(set(selected_hosts) <= set(resolved['hosts']), 'unknown selected host')
@@ -624,6 +687,7 @@ def run(root, selected_hosts=None, update=False):
     directory = root / 'artifacts/composition/runs' / (('update-' if update else 'run-') + uuid.uuid4().hex)
     directory.mkdir(parents=True)
     command = Commands(root, directory)
+    command.secrets = tuple(product_inputs.values())
     started = time.monotonic()
     result = {'schemaVersion': 2, 'status': 'running', 'startedAtUtc': utc(), 'productAcceptance': False}
     write(directory / 'result.json', result)
@@ -640,8 +704,8 @@ def run(root, selected_hosts=None, update=False):
                 runtime_closure.validate(root, root / host['runtimeStage'], root / 'artifacts/composition/closures' / (name + '.json'), PROGRAM_KIT_VERSION)
         credentials = private_credentials(root, graph)
         provision_private_files(root, graph, create=False)
-        document, process_env = compose_model(root, graph, contract, resolved, credentials)
-        command.secrets = tuple({*credentials.values(), *process_env.values()})
+        document, process_env = compose_model(root, graph, contract, resolved, credentials, product_inputs=product_inputs)
+        command.secrets = tuple({*credentials.values(), *product_inputs.values(), *process_env.values()})
         if update:
             path = root / receipt['compose']; write(path, document)
             receipt['composeSha256'] = runtime_closure.sha256(path); write(root / STATE, receipt)

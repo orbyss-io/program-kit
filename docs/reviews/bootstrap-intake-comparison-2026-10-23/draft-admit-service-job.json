@@ -1,0 +1,61 @@
+{
+  "acceptanceCriteria": "",
+  "architectureScope": [
+    "service"
+  ],
+  "bootstrapSeed": {
+    "actor_or_trigger": "Reception",
+    "commitment": "intended",
+    "contexts": [
+      "service"
+    ],
+    "decision_refs": [],
+    "dependencies": [],
+    "epic": "EPIC-001",
+    "evidence": [
+      "e-brief",
+      "e-q12"
+    ],
+    "id": "admit-service-job",
+    "journey": "receiving",
+    "name": "Identify equipment and retain a service job",
+    "outcome": "Identify equipment and retain a service job.",
+    "seed": {
+      "assumptions": [
+        "This boundary is a disclosed same-session proposal using the original simulated answers."
+      ],
+      "boundaryChanges": [
+        "Retained original candidate input: identify-job."
+      ],
+      "boundaryRationale": "Authored boundary review preserves one coherent user outcome. It does not equate a screen or operation with a specification.",
+      "brief": {
+        "outcome": "Identify equipment and retain a service job.",
+        "request": "Identify equipment and retain a service job",
+        "scope": "Identify equipment and retain a service job within the shared architectural ownership and historical rules.",
+        "users": "Reception"
+      },
+      "details": "## Page 1 Customers equipment and reception\n\nThe reception desk needs a customer search and customer page, an equipment search and equipment page, and a job intake page. A customer can be an individual or a business. Businesses can have several contacts; the person dropping off an item is not necessarily its owner or the person who can approve a repair. A business might authorize a site manager to approve up to an agreed amount. For now staff record approvals that arrive by phone or email; a later portal could let customers approve online. I do not want that later portal to require us to invent a completely different ownership system.\n\nEquipment has our own internal identity, a visible workshop reference and, when present, a manufacturer serial number. Serial numbers can be absent or incorrectly copied. Two jobs for the same drill should share its service history. A job reference must still work if a customer changes their email, a contact leaves an employer, equipment moves to another site, or reception corrects a typo. I do not know whether references should be consecutive, prefixed by branch, or something else. Customers should be able to quote a simple reference to staff.\n\nReception records the reported fault, condition on arrival, included accessories, photos and a promised contact date. Staff should see that an item is already in the workshop rather than unknowingly opening a second active job for it. Sometimes a customer returns after a completed repair and says it is the same fault. That should connect to the old job without rewriting what happened then. Staff need to correct mistaken links, with a visible explanation. Future barcode labels and a mobile camera would help, but neither is needed to begin using the system.\n\n",
+      "evidence": [
+        "e-brief",
+        "e-q12"
+      ],
+      "openQuestions": [
+        "Deepen exact acceptance examples, field rules and feature-specific alternatives at specification intake."
+      ]
+    },
+    "status": "proposed"
+  },
+  "decisions": [],
+  "dependencies": "",
+  "failureCases": "",
+  "featureId": "admit-service-job",
+  "journeys": "",
+  "nonGoals": "",
+  "outcome": "Identify equipment and retain a service job.",
+  "problem": "",
+  "request": "Identify equipment and retain a service job",
+  "roadmapEntry": "EPIC-001",
+  "schemaVersion": 2,
+  "scope": "Identify equipment and retain a service job within the shared architectural ownership and historical rules.",
+  "users": "Reception"
+}

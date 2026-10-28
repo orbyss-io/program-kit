@@ -157,6 +157,83 @@ class AuthoringTests(unittest.TestCase):
         with self.assertRaises(architecture.ArchitectureMapError):
             architecture.validate_model(bad)
 
+    def test_rich_exploratory_seed_survives_authoring_and_dsl_roundtrip(self):
+        candidate = self.source['map']['strategic_model']['candidate_slices'][0]
+        detail = ('Renewal preserves the original terms. Révision – café 中文.\n' * 160)
+        candidate.update(epic='RM01', commitment='exploratory', seed={
+            'details': detail, 'boundaryRationale': 'Renewal is distinct from claim calculation.',
+            'brief': {'scope': detail, 'failureCases': '', 'decisions': [{'question': 'Who can renew?'}]},
+            'assumptions': ['Historical claims retain their original revision.'],
+            'openQuestions': ['What retention period applies?'],
+            'boundaryChanges': ['Separated renewal from initial registration.'],
+            'decisionTrigger': 'Owner decides whether to schedule renewal.',
+            'evidence': [self.source['intake']['evidence'][0]['id']]})
+        expected = copy.deepcopy(candidate)
+        self.build()
+        model = intake.load_object(self.root / intake.CANONICAL_ARTIFACTS['architecture_map'])
+        self.assertEqual(expected['seed'], model['strategic_model']['candidate_slices'][0]['seed'])
+        imported = architecture.StructurizrDslImporter().import_path(
+            self.root / intake.CANONICAL_ARTIFACTS['c4_projection'], base=model).model
+        self.assertEqual(model['strategic_model'], imported['strategic_model'])
+        self.assertEqual('draft', intake.validate_intake(self.root, allowed_statuses={'draft'})['status'])
+
+    def test_bad_seed_references_preserve_every_existing_output_and_source(self):
+        self.build()
+        targets = [self.root / relative for relative in (*intake.CANONICAL_ARTIFACTS.values(), intake.CANONICAL_INTAKE)]
+        before = {path: path.read_bytes() for path in targets}
+        self.source['map']['strategic_model']['candidate_slices'][0]['seed'] = {
+            'details': 'Retain the supplied proposal.', 'evidence': ['missing-evidence']}
+        write_json(self.root / self.source_path, self.source)
+        original_source = (self.root / self.source_path).read_bytes()
+        with self.assertRaisesRegex(intake.IntakeError, 'unknown intake evidence'):
+            authoring.build(self.root, self.source_path)
+        self.assertEqual(before, {path: path.read_bytes() for path in targets})
+        self.assertEqual(original_source, (self.root / self.source_path).read_bytes())
+
+    def test_exact_feature_dependencies_reject_invalid_refs_and_cycles(self):
+        strategic = self.source['map']['strategic_model']
+        first = strategic['candidate_slices'][0]
+        second = copy.deepcopy(first)
+        second['id'] = 'renew-request'
+        strategic['candidate_slices'].append(second)
+        first['dependencies'] = [{'feature': second['id'], 'contract': strategic['contracts'][0]['id'],
+                                  'rationale': 'Needs the applicable terms contract.'}]
+        self.build()
+        model = intake.load_object(self.root / intake.CANONICAL_ARTIFACTS['architecture_map'])
+        for dependency, message in (({'feature': 'missing', 'rationale': 'Needed'}, 'feature reference'),
+                                    ({'feature': first['id'], 'rationale': 'Needed'}, 'feature reference'),
+                                    ({'feature': second['id'], 'contract': 'missing', 'rationale': 'Needed'}, 'missing contract')):
+            with self.subTest(dependency=dependency):
+                bad = copy.deepcopy(model)
+                bad['strategic_model']['candidate_slices'][0]['dependencies'] = [dependency]
+                with self.assertRaisesRegex(architecture.ArchitectureMapError, message):
+                    architecture.validate_model(bad)
+        bad = copy.deepcopy(model)
+        bad['strategic_model']['candidate_slices'][0]['dependencies'] *= 2
+        with self.assertRaisesRegex(architecture.ArchitectureMapError, 'duplicate feature reference'):
+            architecture.validate_model(bad)
+        bad = copy.deepcopy(model)
+        bad['strategic_model']['candidate_slices'][1]['dependencies'] = [{'feature': first['id'], 'rationale': 'Cycle'}]
+        with self.assertRaisesRegex(architecture.ArchitectureMapError, 'cycle'):
+            architecture.validate_model(bad)
+
+    def test_discovery_only_vision_does_not_invent_dynamic_steps(self):
+        strategic = self.source['map']['strategic_model']
+        journey = strategic['journeys'][0]
+        journey.update(discovery=['clarify-retention'], view='', steps=[])
+        self.source['map']['views'] = [view for view in self.source['map']['views'] if view['type'] != 'dynamic']
+        self.build()
+        model = intake.load_object(self.root / intake.CANONICAL_ARTIFACTS['architecture_map'])
+        self.assertEqual({**journey, 'decision_refs': []}, model['strategic_model']['journeys'][0])
+        self.assertNotIn('dynamic', [view['type'] for view in model['views']])
+
+    def test_seed_descriptor_explains_draft_and_commitment_semantics(self):
+        result = authoring.describe_authoring('map', 'candidate_slice')
+        self.assertIn('seed', result['fields'])
+        self.assertIn('epic', result['fields'])
+        self.assertIn('never confirmed', ' '.join(result['semanticRules']))
+        self.assertIn('feature_seed_brief', shapes.sections('map'))
+
     def test_confirmation_rejects_unanswered_consumer_question_but_draft_preserves_it(self):
         self.source['intake']['open_items'] = [{
             'id': 'interface-choice', 'question': 'Does browser access fit the intended use?',

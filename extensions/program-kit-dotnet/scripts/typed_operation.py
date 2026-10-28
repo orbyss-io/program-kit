@@ -6,11 +6,28 @@ import re
 RECIPE = 'extensions/program-kit-dotnet/references/examples/typed-operation/README.md'
 ADAPTER = 'typed-label-v1'
 FILES = {
+    'core': ('Labels/ILabelStore.cs', 'Labels/ILabelOperations.cs'),
+    'runtime': ('Labels/LabelOperations.cs', 'Labels/LabelServices.cs', 'Labels/LabelExecutionOptions.cs'),
+    'api': ('Operations/ReadLabel/Endpoint.cs', 'Operations/WriteLabel/Endpoint.cs',
+            'Operations/WriteLabel/LabelRequest.cs', 'Representation/LabelResponse.cs',
+            'Configuration/LabelApiOptions.cs', 'Configuration/LabelApiOptionsValidator.cs',
+            'Configuration/LabelApiOptionsAdmission.cs', 'LabelEndpoints.cs'),
+    'provider': ('Labels/PostgreSqlLabelStore.cs',),
+}
+
+# The earlier finite recipe used these exact root paths. Existing consumer
+# source stays authored; this is discovery for a conflict, never a migration.
+LEGACY_FILES = {
     'core': ('ILabelStore.cs', 'ILabelOperations.cs'),
     'runtime': ('LabelOperations.cs', 'LabelServices.cs'),
-    'api': ('LabelEndpoint.cs', 'LabelEndpoints.cs', 'LabelRequest.cs', 'LabelResponse.cs', 'LabelApiOptions.cs'),
+    'api': ('LabelEndpoint.cs', 'LabelRequest.cs', 'LabelResponse.cs', 'LabelApiOptions.cs'),
     'provider': ('PostgreSqlLabelStore.cs',),
 }
+
+
+def legacy_locations(owners):
+    return [str(PurePosixPath(owners[owner]).parent / name)
+            for owner, names in LEGACY_FILES.items() for name in names]
 
 
 def require(condition, message):

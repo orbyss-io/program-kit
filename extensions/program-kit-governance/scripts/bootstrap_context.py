@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import hashlib
 import importlib.util
 import json
@@ -591,7 +590,7 @@ def compact_authority(name: str, payload: dict) -> dict:
             for key in (
                 "schema_version", "default_profile", "selected_profiles", "dotnet", "web",
                 "toolchain", "persistence", "unresolved", "deferred",
-                "identity", "first_slice",
+                "identity", "first_slice", "recommended_start",
             )
             if key in payload
         }
@@ -1082,7 +1081,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "Read required_full_reads once; routed optional references are diagnostic sources only.",
                 "Write all three assessment outputs once, then run the supplied validation batch once.",
                 "The assessment batch intentionally does not require tooling-evaluation.md; research owns that later prerequisite.",
-                "Treat resolved_defaults as executable policy, preserve explicit intake selections and record their structured overrides. Select first_slice.journey_ids, outcome and rationale in the decision register. Future journeys remain a portfolio, not detailed first-slice requirements.",
+                "Treat resolved_defaults as executable policy, preserve explicit intake selections and record their structured overrides. Record recommended_start.candidate_ids, outcome and rationale using exact canonical feature IDs. This is a non-binding starting recommendation, never the scope of specification one. Preserve supplied whole-vision architecture and detailed feature seeds. Do not author first_slice for new work; existing historical first_slice remains unchanged.",
                 "Each unresolved item needs owner, due_stage and kind (user-answer or design-decision). Use a default when available. Required human answers use the durable handoff, never unattended asynchronous questions.",
             ],
             "terminal_condition": terminal,
@@ -1164,6 +1163,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         from architecture_map import candidate_journeys
         from governance_state import REQUIRED_RECORD_FIELDS
         first = authorities.get('assessment_decisions', {}).get('first_slice')
+        recommendation = authorities.get('assessment_decisions', {}).get('recommended_start')
         model = load_json(project_root / 'docs/architecture/architecture-map.json')
         strategic = model.get('strategic_model', {})
         journeys = {j['id'] for j in strategic.get('journeys', [])
@@ -1171,7 +1171,10 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         return {
             'mode': 'bounded-generation',
             'entry_template': '### RM-01: <outcome>\n\n' + '\n'.join(
-                f'- **{field}**: <value>' for field in sorted(REQUIRED_RECORD_FIELDS)),
+                f'- **{field}**: <value>' for field in sorted(REQUIRED_RECORD_FIELDS)) + ('\n- **Type**: Epic\n- **Completion criteria**: <agreed outcomes>\n- **Feature seeds**: <comma-separated exact candidate IDs, or None>\n- **Intent**: Intended' if recommendation else ''),
+            'recommended_start': recommendation,
+            'feature_seeds': [{key: candidate[key] for key in ('id', 'epic', 'commitment') if key in candidate}
+                             for candidate in strategic.get('candidate_slices', [])] if recommendation else [],
             'prerequisite_scope': [{k: i[k] for k in ('id', 'affected_slices', 'trigger', 'status')}
                 for i in load_json(project_root / 'docs/architecture/bootstrap-prerequisites.json').get('prerequisites', [])]
                 if (project_root / 'docs/architecture/bootstrap-prerequisites.json').is_file() else [],
@@ -1181,7 +1184,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                                   if candidate_journeys(c) & journeys],
                 'rule': 'Exactly one roadmap entry Scope covers these canonical candidate IDs and no future candidate. Supporting journeys in an approved combined first slice belong to that one specification, not separate entries linked only by prose.',
             } if first else None,
-            'rules': ['Preserve the approved first specification boundary; keep other journeys as separate portfolio entries.',
+            'rules': [*(['Create outcome-oriented epics with agreed scope, non-goals, completion conditions and priority rationale. Link exact Feature seeds to their canonical epic; detailed exploratory seeds stay visible with explicit intent and decision trigger. A source journey, domain or epic never mechanically defines a specification boundary.',
+                         'Preserve canonical feature dependency contracts. Distinguish actual prerequisites from preferred sequencing and unresolved questions. A claim-calculation feature can depend on policy terms without waiting for every policy-management feature. Recommend a start without commissioning siblings; feature intake settles one exact useful boundary.'] if recommendation else ['Preserve the approved historical first specification boundary; keep other journeys as separate portfolio entries.']),
                       'Use entry_template exact heading/field syntax. Assign every prerequisite_scope item to actual roadmap IDs; preserve its source binding and due phase. Dependencies link to ledger IDs without repeating open/closed state.',
                       'before-implementation proofs do not block Ready for specification. Run the terminal batch before handing off to closure.'],
             'terminal_condition': terminal,
@@ -1191,6 +1195,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             'mode': 'maintained-proof-planning',
             'provider_inputs': __import__('bootstrap_provider_context').project(project_root, authorities.get('assessment_decisions', {})),
             'first_slice': authorities.get('assessment_decisions', {}).get('first_slice'),
+            'recommended_start': authorities.get('assessment_decisions', {}).get('recommended_start'),
             'source_hashes': __import__('bootstrap_lifecycle').source_paths(project_root),
             'source_binding_status': __import__('bootstrap_lifecycle').source_binding_status(project_root),
             'source_status_command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_lifecycle.py source-status',
@@ -1522,7 +1527,7 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
             raise ContextError(str(error)) from error
         checks.append('consumer-quality-case-mapping')
     decision_path = project_root / 'docs/architecture/bootstrap-decisions.json'
-    if stage in {'assessment', 'research'} and decision_path.is_file() and load_json(decision_path).get('first_slice'):
+    if stage in {'assessment', 'research'} and decision_path.is_file() and any(load_json(decision_path).get(key) for key in ('first_slice', 'recommended_start')):
         from bootstrap_defaults import apply
         apply(project_root)
         checks.append('resolved-defaults')
@@ -1540,7 +1545,7 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     if stage == 'assessment' and workflow_path.is_file() and 'require-research-handoff' in workflow_path.read_text(encoding='utf-8'):
         from bootstrap_handoff import require
         require(project_root, run_id, 'assessment')
-        checks.append('first-slice-and-default-handoff')
+        checks.append('starting-outcome-and-default-handoff')
     governance_script = (
         ".specify/extensions/program-kit-governance/scripts/governance_state.py"
     )
@@ -1752,10 +1757,12 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     if first_ids and stage != 'assessment':
         projection = payload['intake']
         if 'journeys' in projection:
-            projection['future_portfolio'] = [{k: j[k] for k in ('id', 'name', 'outcome') if k in j}
-                                               for j in intake['journeys'] if j['id'] not in first_ids]
+            projection['future_portfolio'] = [dict(j) for j in intake['journeys'] if j['id'] not in first_ids]
             projection['journeys'] = [j for j in intake['journeys'] if j['id'] in first_ids]
         payload['stage_plan']['first_slice'] = decisions['first_slice']
+    if decisions.get('recommended_start'):
+        payload['stage_plan']['recommended_start'] = decisions['recommended_start']
+        payload['stage_plan']['scope_policy'] = 'All supplied journeys remain architectural input. The starting recommendation does not filter the vision or commission the containing epic.'
     if (project_root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json').is_file():
         effective = effective_dependencies(project_root)
         payload['dependency_context'] = {key: effective[key] for key in
@@ -1956,142 +1963,9 @@ def read_sources(project_root: Path, run_id: str, stage: str, page: int) -> dict
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
-    parser = argparse.ArgumentParser(description="Build compact Program Kit bootstrap stage handoffs.")
-    parser.add_argument(
-        "command",
-        choices=(
-            "build",
-            "validate",
-            "validate-output",
-            "inspect-output",
-            "read-brief",
-            "read-sources",
-            "validate-intake",
-            "validate-profile-pins",
-            "validate-architecture-alignment",
-            "validate-architecture-structure",
-            "validate-stage",
-            "record-architecture-blocked",
-            "prepare-architecture-recovery",
-        ),
-    )
-    parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
-    parser.add_argument("--run-id")
-    parser.add_argument("--project-root", default=".")
-    parser.add_argument("--json", action="store_true")
-    parser.add_argument("--reason")
-    parser.add_argument("--owner")
-    parser.add_argument("--resolution")
-    parser.add_argument("--page", type=int, default=1)
-    args = parser.parse_args()
-    project_root = Path(args.project_root).resolve()
-    try:
-        if args.command not in {"validate-output", "inspect-output"} and not args.run_id:
-            raise ContextError(f"--run-id is required for {args.command}")
-        if args.command == "prepare-architecture-recovery":
-            result = prepare_architecture_recovery(project_root, args.run_id)
-        elif args.command == "record-architecture-blocked":
-            record_architecture_blocked(project_root, args.run_id, args.reason, args.owner, args.resolution)
-            check_architecture_blocked(project_root, args.run_id)
-        elif args.command == "validate-intake":
-            payload = validate_intake(project_root, args.run_id)
-            result = {
-                "path": INTAKE_PATH.as_posix(),
-                "bytes": (project_root / INTAKE_PATH).stat().st_size,
-                "fact_count": len(payload["facts"]),
-                "journey_count": len(payload["journeys"]),
-                "capability_count": len(payload["capability_assessments"]),
-                "open_item_count": len(payload["open_items"]),
-            }
-        elif args.command == "validate-profile-pins":
-            authority = validate_profile_pin_decisions(project_root, args.run_id)
-            result = {
-                "selected_profiles": authority["selected_profiles"],
-                "pins": authority["pins"],
-                "source_count": len(authority["sources"]),
-            }
-        elif args.command == "validate-architecture-alignment":
-            payload = validate_architecture_alignment(project_root, args.run_id)
-            result = {
-                "path": INTAKE_PATH.as_posix(),
-                "fact_count": len(payload["facts"]),
-                "journey_count": len(payload["journeys"]),
-                "capability_count": len(payload["capability_assessments"]),
-            }
-        elif args.command == "validate-architecture-structure":
-            result = validate_architecture_structure(project_root, args.run_id)
-        elif args.command == "validate-stage":
-            if not args.stage:
-                raise ContextError("--stage is required for validate-stage")
-            result = validate_stage_batch(project_root, args.run_id, args.stage)
-        elif args.command in {"validate-output", "inspect-output", "read-brief", "read-sources"}:
-            if not args.stage:
-                raise ContextError(f"--stage is required for {args.command}")
-            if args.command == 'read-sources':
-                result = read_sources(project_root, args.run_id, args.stage, args.page)
-            elif args.command == 'read-brief':
-                result = read_brief(project_root, args.run_id, args.stage, args.page)
-            elif args.command == 'inspect-output':
-                result = inspect_stage_output(project_root, args.stage, args.run_id or '')
-            else:
-                result = validate_stage_output(project_root, args.stage, args.run_id or "")
-        else:
-            if not args.stage:
-                raise ContextError(f"--stage is required for {args.command}")
-            if args.command == "build":
-                path, payload = build_context(project_root, args.run_id, args.stage)
-            else:
-                path, payload = validate_context(project_root, args.run_id, args.stage)
-            result = result_payload(project_root, path, payload)
-    except (ContextError, OSError, UnicodeError) as exc:
-        print(f"Program Kit bootstrap context failed: {exc}", file=sys.stderr)
-        return 2
-    if args.json or args.command == "prepare-architecture-recovery":
-        print(json.dumps(result))
-    elif args.command == 'read-sources':
-        print(f"Required sources sha256={result['sha256']} page {result['page']}/{result['pages']}")
-        print(result['text'])
-        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of required sources.')
-    elif args.command == 'read-brief':
-        print(f"Brief {result['path']} sha256={result['sha256']} page {result['page']}/{result['pages']} (character {result['start_character']})")
-        print(result['text'], end='\n')
-        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of brief; all pages are required.')
-    elif args.command == 'inspect-output':
-        print('Advisory sizing only; terminal validation is still required.')
-        for artifact in result['artifacts']:
-            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}; headroom {artifact['headroom_bytes']}; above target {artifact['above_target_bytes']}")
-    elif args.command == "validate-intake":
-        print(f"Program Kit confirmed bootstrap intake is valid: {result['path']}")
-    elif args.command == "validate-profile-pins":
-        print(
-            "Program Kit selected-profile pins are valid: "
-            f"{len(result['pins'])} managed pin(s)"
-        )
-    elif args.command == "validate-architecture-alignment":
-        print("Program Kit architecture remains aligned with the confirmed bootstrap intake")
-    elif args.command == "validate-architecture-structure":
-        print(
-            "Program Kit architecture structural batch passed "
-            f"({len(result['checks'])} checks)"
-        )
-    elif args.command == "validate-stage":
-        print(
-            f"Program Kit {args.stage} terminal validation batch passed "
-            f"({result['check_count']} checks; {result['target_exceeded_count']} above generation target)"
-        )
-        for artifact in result['artifacts']:
-            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}")
-    elif args.command == "validate-output":
-        print(
-            f"Program Kit {args.stage} outputs are within hard byte budgets "
-            f"({result['target_exceeded_count']} above generation target)"
-        )
-    else:
-        print(f"Program Kit {args.stage} context is valid: {result['path']}")
-    return 0
+    from workflow_lifecycle import RETIREMENT
+    print(RETIREMENT, file=sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":

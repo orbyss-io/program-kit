@@ -1,213 +1,160 @@
-"""Deterministic worker-permission regressions; no coding agents or paid calls."""
+"""Offline standalone worker-policy contracts; no Codex sandbox or model is launched.
+
+A recording runner executes only the helper's generated isolated Python probe.
+This checks argv, artifact verification and cleanup; actual device sandbox policy
+remains a separately human-owned observation.
+"""
 from __future__ import annotations
 
-import json
 import os
+from pathlib import Path
 import shlex
-import shutil
 import subprocess
 import sys
-import tempfile
-import contextlib
-import io
-from types import SimpleNamespace
-from pathlib import Path
+import unittest
 from unittest.mock import patch
+
+from owned_fixture import FixtureDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import codex_worker_policy as policy
-import codex_bootstrap_preflight as preflight
 
 
-def expect_block(operation, phrase='PROGRAM_KIT_CODEX_WORKSPACE_WRITE'):
-    try:
-        operation()
-    except policy.WorkerPolicyError as error:
-        assert phrase in str(error), str(error)
-    else:
-        raise AssertionError('Unsafe or unsupported worker policy was accepted')
+def snapshot(root):
+    return {path.relative_to(root).as_posix(): path.read_bytes()
+            for path in root.rglob('*') if path.is_file()}
 
 
-def main():
-    for args in ('--sandbox read-only', '--sandbox danger-full-access', '-sdanger-full-access',
-                 '--dangerously-bypass-approvals-and-sandbox', '--add-dir C:/', '--worktree',
-                 '-c sandbox_mode="danger-full-access"', '-c permissions.default=all',
-                 '-c sandbox_workspace_write.writable_roots=[]', '--approve-for-me',
-                 '--permission-profile full', '--cd C:/', '--full-auto', '--model', '"broken'):
-        expect_block(lambda: policy.parse_extra(args))
-    for args in ('', '--sandbox workspace-write --sandbox workspace-write'):
-        expect_block(lambda: policy.parse_extra(args, require_write=True))
-    assert policy.parse_extra('--sandbox=workspace-write -m "model name" --json', require_write=True) == ['-m', 'model name', '--json']
-    assert policy.parse_extra('-s workspace-write -c \'model_reasoning_effort="high"\'') == ['-c', 'model_reasoning_effort="high"']
+class WorkerPolicyTests(unittest.TestCase):
+    def test_unsafe_extra_arguments_refuse_without_execution_or_environment_mutation(self):
+        before = dict(os.environ)
+        for arguments in ('--sandbox read-only', '--sandbox danger-full-access', '-sdanger-full-access',
+                '--dangerously-bypass-approvals-and-sandbox', '--add-dir C:/', '--worktree',
+                '-c sandbox_mode="danger-full-access"', '-c permissions.default=all',
+                '-c sandbox_workspace_write.writable_roots=[]', '--approve-for-me',
+                '--permission-profile full', '--cd C:/', '--full-auto', '--model', '"broken'):
+            with self.subTest(arguments=arguments), patch.object(subprocess, 'run', side_effect=AssertionError('Unsafe argv started a process')):
+                with self.assertRaises(policy.WorkerPolicyError):
+                    policy.parse_extra(arguments)
+        for arguments in ('', '--sandbox workspace-write --sandbox workspace-write'):
+            with self.assertRaises(policy.WorkerPolicyError):
+                policy.parse_extra(arguments, require_write=True)
+        self.assertEqual(before, dict(os.environ))
 
-    with tempfile.TemporaryDirectory(prefix='program-kit-worker-policy-') as temporary:
-        root = Path(temporary).resolve()
-        ambient = {key: value for key, value in os.environ.items() if key not in preflight.CODEX_AGENT_ENVIRONMENT_KEYS}
-        ambient[policy.EXTRA_ARGS] = '--model "fixture model" --sandbox workspace-write --json'
-        original = ambient[policy.EXTRA_ARGS]
-        observed = []
+    def test_allowed_model_profile_output_and_reasoning_arguments_round_trip(self):
+        self.assertEqual(['-m', 'model name', '--profile', 'profile name', '--json'],
+            policy.parse_extra('--sandbox=workspace-write -m "model name" --profile "profile name" --json', require_write=True))
+        self.assertEqual(['-c', 'model_reasoning_effort="high"'],
+            policy.parse_extra('-s workspace-write -c \'model_reasoning_effort="high"\''))
 
-        def inspect():
-            argv = ['fixture-codex', 'exec', 'Program Kit permission check', *shlex.split(os.environ[policy.EXTRA_ARGS])]
-            policy.parse_extra(shlex.join(argv[3:]), require_write=True)
-            observed.append(argv)
-            return argv
-
-        def sandbox_fixture(command, **kwargs):
-            assert command[:2] == ['fixture-codex', 'sandbox']
-            assert command[command.index('--permission-profile') + 1] == ':workspace'
-            assert '--include-managed-config' in command
-            assert kwargs['cwd'] == root and kwargs['timeout'] == 60
-            child = command[command.index('--') + 1:]
-            assert child[:2] == [shutil.which('python'), '-I']
-            # Execute the probe script directly as a fixture, never Codex.
-            return subprocess.run(child, **kwargs)
-
-        with patch.dict(os.environ, ambient, clear=True), patch.object(policy, 'inspect_adapter', inspect), \
-             patch.object(preflight, 'evaluate_preflight', return_value={'action': 'continue', 'script_flavor': 'py'}):
-            with policy.worker_environment(root, 'codex', runner=sandbox_fixture):
-                assert shlex.split(os.environ[policy.EXTRA_ARGS]).count('--sandbox') == 1
-            assert os.environ[policy.EXTRA_ARGS] == original
-            records = list((root / '.specify/workflows/worker-preflights').glob('*.json'))
-            record = json.loads(records[0].read_text())
-            assert record['status'] == 'passed' and record['adapterArgv'] == observed[0]
-            if os.name == 'nt':
-                assert record['probe']['writesVerified'] and record['probe']['codingAgentStarted'] is False
-                assert record['probe']['sandboxReadbackVerified'] and record['probe']['cleanupVerified']
-            assert not list(root.rglob('.program-kit-write-probe-*'))
-            assert not (root / 'docs').exists(), 'Only probe-created empty directories should be removed'
-
-            # A process can return zero without creating any files. Probe and
-            # artifact contracts must both reject that result.
-            def no_writes(*args, **kwargs):
-                return subprocess.CompletedProcess(args[0], 0, 'PROGRAM_KIT_WRITE_PROBE_OK', '')
-
-            if os.name == 'nt':
-                def blocked_scope():
-                    with policy.worker_environment(root, 'codex', runner=no_writes):
-                        raise AssertionError('Dispatch was reached without write access')
-                expect_block(blocked_scope)
-                assert os.environ[policy.EXTRA_ARGS] == original
-                assert any(json.loads(p.read_text())['status'] == 'blocked' for p in
-                           (root / '.specify/workflows/worker-preflights').glob('*.json'))
-            with policy.worker_environment(root, 'claude', runner=lambda *a, **k: (_ for _ in ()).throw(AssertionError())):
-                assert os.environ[policy.EXTRA_ARGS] == original
-            os.environ.pop(policy.EXTRA_ARGS)
-            try:
-                with policy.worker_environment(root, 'codex', runner=sandbox_fixture):
-                    raise RuntimeError('Fixture workflow failed after dispatch')
-            except RuntimeError:
-                pass
-            assert policy.EXTRA_ARGS not in os.environ
-            os.environ['CODEX_THREAD_ID'] = 'fixture-agent'
-            expect_block(lambda: policy.worker_environment(root, 'codex').__enter__(), 'PROGRAM_KIT_CODEX_AGENT_BOUNDARY')
-
-        # Test installed adapter behavior with no actual subprocess dispatch.
-        try:
-            from specify_cli.integrations import get_integration
-        except ImportError:
-            raise AssertionError('Run this validator with the installed Specify interpreter')
-        with patch.dict(os.environ, ambient, clear=True):
-            old = os.environ.pop(policy.EXTRA_ARGS)
+    def test_actual_specify_adapter_requires_explicit_sandbox_without_dispatch(self):
+        from specify_cli.integrations import get_integration
+        with patch.dict(os.environ, {}, clear=True), patch.object(subprocess, 'run', side_effect=AssertionError('Adapter inspection dispatched')):
             before = get_integration('codex').build_exec_args('fixture', output_json=False)
-            assert '--sandbox' not in before, before
-            os.environ[policy.EXTRA_ARGS] = '--sandbox workspace-write'
-            # Exercise the real Spec Kit argv builder, without requiring Codex
-            # to be installed in deterministic CI or starting its executable.
+            self.assertNotIn('--sandbox', before)
+            os.environ[policy.EXTRA_ARGS] = '--sandbox workspace-write --profile "fixture profile"'
             with patch.object(policy.shutil, 'which', return_value='fixture-codex') as executable:
                 after = policy.inspect_adapter()
-                executable.assert_called_once()
-            assert after[0] == 'fixture-codex'
-            assert after[1:3] == ['exec', 'Program Kit permission check']
-            assert after[-2:] == ['--sandbox', 'workspace-write']
-            os.environ[policy.EXTRA_ARGS] = old
-            with patch.object(type(get_integration('codex')), 'build_exec_args', return_value=['codex', 'exec', 'fixture']):
-                expect_block(policy.inspect_adapter)
+            executable.assert_called_once()
+            self.assertEqual(['fixture-codex', 'exec', 'Program Kit permission check'], after[:3])
+            self.assertEqual(['--profile', 'fixture profile'], policy.parse_extra(shlex.join(after[3:]), require_write=True))
+            for arguments in ([], ['codex', 'bad', 'fixture'], ['codex', 'exec', 'fixture'],
+                              ['codex', 'exec', 'fixture', '--sandbox', 'danger-full-access']):
+                with self.subTest(arguments=arguments), patch.object(type(get_integration('codex')), 'build_exec_args', return_value=arguments):
+                    with self.assertRaises(policy.WorkerPolicyError):
+                        policy.inspect_adapter()
+            with patch.object(policy.shutil, 'which', return_value=None):
+                with self.assertRaisesRegex(policy.WorkerPolicyError, 'unavailable'):
+                    policy.inspect_adapter()
 
-        with patch.object(preflight, 'verify_git_worktree'), \
-             patch.object(preflight, 'verify_windows_resolver'), \
-             patch.object(preflight, 'inspect_script_runtime', return_value=('py', root / 'resolver.py')):
-            blocked = preflight.evaluate_preflight('codex', root, environ={}, platform_name='posix', check_worker_access=True)
-            assert blocked['action'] == 'worker-access-blocked'
-            ready = preflight.evaluate_preflight('codex', root, environ={policy.EXTRA_ARGS: '--sandbox workspace-write'},
-                                                platform_name='posix', check_worker_access=True)
-            assert ready == {'action': 'continue', 'script_flavor': 'py'}
-            untouched = preflight.evaluate_preflight('claude', root, environ={}, check_worker_access=True)
-            assert untouched['action'] == 'continue'
-            saved = root / '.specify/workflows/runs/other-integration/inputs.json'
-            saved.parent.mkdir(parents=True)
-            saved.write_text(json.dumps({'inputs': {'integration': 'claude'}}))
-            explicit = preflight.evaluate_preflight('auto', root, current_run_id='other-integration',
-                                                    environ={}, check_worker_access=True)
-            assert explicit == {'action': 'continue', 'script_flavor': 'not-applicable'}
-            with patch('proxy_bootstrap.active', return_value=True):
-                proxy = preflight.evaluate_preflight('codex', root, current_run_id='proxy-fixture',
-                    environ={'CODEX_THREAD_ID': 'fixture'}, platform_name='posix', check_worker_access=True)
-                assert proxy == {'action': 'continue', 'script_flavor': 'py'}
+    def fixture(self, root, *, unreadable=False, runner=None):
+        argv = ['fixture-codex', 'exec', 'Program Kit permission check', '--sandbox', 'workspace-write',
+                '--profile', 'fixture profile', '-c', 'model_reasoning_effort="high"', '--model', 'fixture model', '--json']
+        calls = []
+        def recording(command, **kwargs):
+            calls.append(command)
+            self.assertEqual(['fixture-codex', 'sandbox'], command[:2])
+            self.assertEqual(':workspace', command[command.index('--permission-profile') + 1])
+            self.assertIn('--include-managed-config', command)
+            self.assertEqual(['--profile', 'fixture profile', '-c', 'model_reasoning_effort="high"'],
+                             command[command.index('--include-managed-config') + 1:command.index('--cd')])
+            self.assertNotIn('--model', command)
+            self.assertEqual(root, kwargs['cwd'])
+            self.assertEqual(60, kwargs['timeout'])
+            child = command[command.index('--') + 1:]
+            self.assertEqual([sys.executable, '-I'], child[:2])
+            # This directly runs only the finite generated Python script. It does
+            # not invoke Codex, a model, an application or a device sandbox.
+            return subprocess.run(child, **kwargs)
+        original_read = Path.read_text
+        def denied(path, *args, **kwargs):
+            if path.name.startswith('.program-kit-write-probe-'):
+                raise PermissionError('synthetic cross-account artifact denial')
+            return original_read(path, *args, **kwargs)
+        with patch.object(policy.shutil, 'which', return_value=sys.executable), \
+             patch.object(Path, 'read_text', denied if unreadable else original_read):
+            result = policy.verify_windows_write(root, argv, runner=runner or recording)
+        return result, calls
 
-        # Exercise both CLI entry paths without executing schemas, an engine or
-        # workers. A paused gate and its history remain engine-owned.
-        import workflow_lifecycle as workflow
-        state = SimpleNamespace(run_id='fixture', status=workflow.RunStatus.PAUSED,
-                                current_step_id='review-assessment', error=None,
-                                step_results={}, inputs={'integration': 'codex'})
-        events = []
-        @contextlib.contextmanager
-        def scope(project, requested):
-            assert project == root and requested == 'codex'
-            events.append('enter')
-            try:
-                yield
-            finally:
-                events.append('exit')
-        def executed(*args, **kwargs):
-            assert events[-1] == 'schemas'
-            events.append('engine')
-            return state
-        for command in ('run', 'resume'):
-            events.clear()
-            arguments = ['workflow_lifecycle.py', command, '--run-id', 'fixture']
-            if command == 'run':
-                arguments.extend(['--input', 'integration=codex'])
-            with patch.object(sys, 'argv', arguments), patch.object(Path, 'cwd', return_value=root), \
-                 patch('workflow_shell_preflight.verify_shell_launch', side_effect=lambda *a: events.append('shell')), \
-                 patch('python_runtime.environment', return_value=contextlib.nullcontext()), \
-                 patch.object(policy, 'worker_environment', scope), \
-                 patch.object(workflow.RunState, 'load', return_value=state), \
-                 patch.object(workflow, 'execution_lock', return_value=contextlib.nullcontext()), \
-                 patch.object(workflow, 'prepare_schema_runtimes', side_effect=lambda *a: events.append('schemas')), \
-                 patch.object(workflow, 'require_enabled'), patch.object(workflow.governance, 'configure_paths'), \
-                 patch.object(workflow.WorkflowEngine, 'load_workflow', return_value=object()), \
-                 patch.object(workflow, 'execute_definition', side_effect=executed), \
-                 patch.object(workflow, 'resume', side_effect=executed), contextlib.redirect_stdout(io.StringIO()):
-                assert workflow.main() == 0
-            assert events == ['shell', 'enter', 'schemas', 'engine', 'exit'], (command, events)
+    def test_generated_probe_replacement_child_readback_and_cleanup(self):
+        with FixtureDirectory() as directory:
+            root = Path(directory)
+            (root / 'authored.txt').write_text('Retain authored input', encoding='utf-8')
+            before = snapshot(root)
+            result, calls = self.fixture(root)
+            self.assertEqual(1, len(calls))
+            for key in ('writesVerified', 'sandboxReadbackVerified', 'cleanupVerified'):
+                self.assertTrue(result[key])
+            self.assertIs(False, result['codingAgentStarted'])
+            self.assertEqual(before, snapshot(root))
+            self.assertEqual(['authored.txt'], sorted(path.name for path in root.iterdir()))
 
-        # Distinguish the worker artifact contract from process success, while
-        # retaining all existing semantic validators and review gates.
-        import bootstrap_context
-        with patch.object(bootstrap_context, 'governance_contract', return_value={'paths': {}}), \
-             patch.object(bootstrap_context, 'resolved_output_contract', return_value={
-                 'artifact_byte_budgets': {'docs/architecture/missing.md': 100},
-                 'artifact_target_bytes': {'docs/architecture/missing.md': 50}}):
-            try:
-                bootstrap_context.validate_stage_output(root, 'assessment')
-            except bootstrap_context.ContextError as error:
-                assert 'Required assessment output is missing' in str(error)
-                assert 'PROGRAM_KIT_WORKER_ARTIFACT_CONTRACT' in str(error)
-            else:
-                raise AssertionError('Missing artifacts were accepted')
+    def test_zero_exit_with_success_marker_but_without_writes_is_rejected(self):
+        with FixtureDirectory() as directory:
+            root = Path(directory)
+            def no_writes(command, **kwargs):
+                child = command[command.index('--') + 1:]
+                return subprocess.CompletedProcess(command, 0, 'PROGRAM_KIT_WRITE_PROBE_OK:' + child[4] + '\n', '')
+            with self.assertRaisesRegex(policy.WorkerPolicyError, 'human workflow account'):
+                self.fixture(root, runner=no_writes)
+            self.assertEqual([], list(root.iterdir()))
 
-    # The CLI wraps both run and resume, including resumes past initial preflight.
-    lifecycle = (ROOT / 'extensions/program-kit-governance/scripts/workflow_lifecycle.py').read_text()
-    assert "if args.command in {'run', 'resume'}:" in lifecycle
-    assert "dispatch_scope.enter_context(worker_environment" in lifecycle
-    assert lifecycle.index('dispatch_scope.enter_context') < lifecycle.index('prepare_schema_runtimes(root)', lifecycle.index('def main()'))
-    assert 'dispatch_scope.close()' in lifecycle
-    print('Codex argv, scoped permissions, write-probe failure, and artifact contracts passed; no coding agent started.')
-    return 0
+    def test_unreadable_replaced_artifact_is_rejected_and_cleaned(self):
+        with FixtureDirectory() as directory:
+            root = Path(directory)
+            (root / 'authored.txt').write_text('Preserved', encoding='utf-8')
+            before = snapshot(root)
+            with self.assertRaisesRegex(policy.WorkerPolicyError, 'human workflow account'):
+                self.fixture(root, unreadable=True)
+            self.assertEqual(before, snapshot(root))
+            self.assertEqual(['authored.txt'], sorted(path.name for path in root.iterdir()))
+
+    def test_native_runner_failure_is_not_a_successful_write_probe(self):
+        with FixtureDirectory() as directory:
+            root = Path(directory)
+            for runner in (lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 7, '', 'synthetic denial'),
+                           lambda *args, **kwargs: (_ for _ in ()).throw(OSError('synthetic launch refusal'))):
+                with self.assertRaises(policy.WorkerPolicyError):
+                    self.fixture(root, runner=runner)
+                self.assertEqual([], list(root.iterdir()))
+
+    def test_obsolete_outer_dispatch_refuses_before_reads_writes_or_processes(self):
+        with FixtureDirectory() as directory:
+            root = Path(directory)
+            historical = root / 'state.json'; historical.write_bytes(b'\xff preserved history')
+            before = snapshot(root)
+            environment = dict(os.environ)
+            with patch.object(Path, 'read_text', side_effect=AssertionError('Retired route read saved state')), \
+                 patch.object(subprocess, 'run', side_effect=AssertionError('Retired route dispatched')), \
+                 patch.object(policy, 'inspect_adapter', side_effect=AssertionError('Retired route prepared dispatch')):
+                for integration in ('codex', 'claude', 'auto'):
+                    with self.assertRaisesRegex(policy.WorkerPolicyError, 'dispatcher is retired'):
+                        with policy.worker_environment(root, integration):
+                            self.fail('Retired worker body executed')
+            self.assertEqual(environment, dict(os.environ))
+            self.assertEqual(before, snapshot(root))
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    unittest.main()

@@ -21,6 +21,16 @@ import dependency_maintenance as maintenance
 
 
 class ProfilePreparationTests(unittest.TestCase):
+    def test_publisher_capture_keeps_usage_and_excludes_private_work_journals(self):
+        for path in ('README.md', 'docs/authentication.md', 'docs/hosted-application-pages.md',
+                     'src/Orbyss.Foundation.Json/JsonOptions.cs'):
+            self.assertTrue(profiles.publisher_document_selected(path, ['Orbyss.Foundation.Json'], True), path)
+        for path in ('docs/validation-private-example.md', 'docs/plans/repository-investigation.md',
+                     'docs/reviews/consumer-feedback.md', 'artifacts/interview.md',
+                     'src/Other.Package/PrivateNotes.md'):
+            self.assertFalse(profiles.publisher_document_selected(path, ['Orbyss.Foundation.Json'], True), path)
+        self.assertFalse(profiles.publisher_document_selected('docs/authentication.md', [], False))
+
     """Prepare isolated candidates; no public qualification or adoption is claimed."""
     def setUp(self):
         from owned_fixture import FixtureDirectory
@@ -38,9 +48,11 @@ class ProfilePreparationTests(unittest.TestCase):
                          for path in self.registry.rglob('*') if path.is_file()}
         self.latest={family:'99.0.0' for family in self.current['families']}
         self.exporter='99.0.1'
+        self.analyzer='99.0.2'
 
     def observed(self,pin,cache):
         if pin['name']=='Orbyss.Foundation.OpenApi.Exporter': return {'latest':self.exporter}
+        if pin['name']=='Orbyss.Foundation.Analyzers': return {'latest':self.analyzer}
         family=next(family for family,details in maintenance.read_json(ROOT/'maintenance-policy.json')['families'].items()
                     if details==pin['name'])
         return {'latest':self.latest[family]}
@@ -71,8 +83,8 @@ class ProfilePreparationTests(unittest.TestCase):
         for key,package in self.current['packages'].items():
             self.assertEqual({field:value for field,value in package.items() if field!='version'},
                              {field:value for field,value in target['packages'][key].items() if field!='version'},key)
-            self.assertEqual(self.exporter if package['packageId']=='Orbyss.Foundation.OpenApi.Exporter'
-                             else self.latest[package['family']],target['packages'][key]['version'],key)
+            tools={'Orbyss.Foundation.OpenApi.Exporter':self.exporter,'Orbyss.Foundation.Analyzers':self.analyzer}
+            self.assertEqual(tools.get(package['packageId'],self.latest[package['family']]),target['packages'][key]['version'],key)
         for key,family in self.current['families'].items():
             self.assertEqual({field:value for field,value in family.items() if field not in {'releaseVersion','toolVersions'}},
                              {field:value for field,value in target['families'][key].items() if field not in {'releaseVersion','toolVersions'}},key)
@@ -89,6 +101,7 @@ class ProfilePreparationTests(unittest.TestCase):
     def test_current_public_versions_do_not_create_duplicate_candidate(self):
         self.latest={family:details['releaseVersion'] for family,details in self.selected['families'].items()}
         self.exporter=self.selected['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter']
+        self.analyzer=self.selected['artifacts']['nuget:Orbyss.Foundation.Analyzers']
         directory,sync=self.prepare()
         self.assertIsNone(directory)
         sync.assert_called_once_with(self.selected)
@@ -134,7 +147,11 @@ class WorkflowTests(unittest.TestCase):
         updater = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(updater)
         text = (ROOT / 'README.md').read_text()
-        updated = updater.update_text(text, '0.13.1')
+        # Stable example replacement is tested independently of today's preview
+        # installation instructions. A stable badge update must preserve them.
+        examples = text + '\nhttps://github.com/orbyss-io/program-kit/releases/download/v0.12.9/Initialize-ProgramKit-0.12.9.cmd\nprogram-kit-0.12.9.zip\nHistorical dependency profile v0.12.5\n'
+        updated = updater.update_text(examples, '0.13.1')
+        self.assertIn('Initialize-ProgramKit-1.0.0-preview.1.cmd', updated)
         self.assertIn('Latest available release: **[v0.13.1]', updated)
         self.assertIn('releases/download/v0.13.1/Initialize-ProgramKit-0.13.1.cmd', updated)
         self.assertIn('program-kit-0.13.1.zip', updated)
@@ -284,10 +301,15 @@ class WorkflowTests(unittest.TestCase):
                      'python extensions/program-kit-governance/scripts/schema_runtime.py setup')
         upgraded_python = [i for i, step in enumerate(steps) if 'actions/setup-python@' in step.get('uses', '')][-1]
         qualification = next(i for i, step in enumerate(steps) if 'update_dependency_profiles.py update' in step.get('run', ''))
+        contracts = next(i for i, step in enumerate(steps) if '--check validate_typed_operation_contract' in step.get('run', ''))
         validation = next(i for i, step in enumerate(steps) if 'update_dependencies.py --refresh-locks' in step.get('run', ''))
         self.assertLess(upgraded_python, setup)
         self.assertLess(setup, qualification)
         self.assertLess(qualification, validation)
+        self.assertLess(qualification, contracts)
+        self.assertLess(contracts, validation)
+        self.assertIn('--check validate_openapi_export_client', steps[contracts]['run'])
+        self.assertIn('--reason ', steps[contracts]['run'])
         pr = next(step['run'] for step in steps if 'gh pr create' in step.get('run', ''))
         self.assertLess(pr.index('gh auth setup-git'), pr.index('git push'))
         self.assertEqual('read', update['permissions']['contents'])

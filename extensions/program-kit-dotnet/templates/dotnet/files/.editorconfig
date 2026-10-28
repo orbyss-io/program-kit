@@ -16,12 +16,23 @@ dotnet_diagnostic.ORB1004.severity = error
 dotnet_diagnostic.ORB1005.severity = error
 dotnet_diagnostic.ORB1006.severity = error
 dotnet_naming_rule.private_fields_camel_case.severity = error
+dotnet_diagnostic.IDE1006.severity = error
 dotnet_naming_rule.private_fields_camel_case.symbols = private_fields
 dotnet_naming_rule.private_fields_camel_case.style = camel_case
 dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 dotnet_naming_style.camel_case.capitalization = camel_case
 csharp_style_prefer_primary_constructors = true:suggestion
+
+# Simple unbraced bodies are allowed on the next line, never beside the condition.
+csharp_style_allow_embedded_statements_on_same_line_experimental = false:error
+dotnet_diagnostic.IDE2001.severity = error
+
+# Infer initialized locals without changing required target typing or expression-tree semantics.
+csharp_style_var_for_built_in_types = true:error
+csharp_style_var_when_type_is_apparent = true:error
+csharp_style_var_elsewhere = true:error
+dotnet_diagnostic.IDE0007.severity = error
 
 # Runtime correctness; exceptions require scoped rationale and behavioral evidence.
 dotnet_diagnostic.CA2012.severity = error

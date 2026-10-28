@@ -4,19 +4,11 @@ Program Kit uses `docs/architecture/architecture-map.json` as the semantic sourc
 generates `docs/architecture/workspace.dsl` only as a review projection. Viewing must not import DSL
 edits or change either canonical file.
 
-The viewer has two read-only modes. Draft intake review is allowed before explicit confirmation only
-when the intake is valid JSON, all three registered artifact hashes and byte counts match exactly,
-the DSL parses, and it is byte-for-byte equivalent (apart from newline normalization) to a fresh
-export of canonical `architecture-map.json`. Confirmed baseline review retains the same projection
-freshness and registered-pair drift checks. Neither mode changes intake status, creates approval or
-acceptance evidence, or accepts proposed architecture; the outer bootstrap workflow still requires
-a confirmed intake.
-
-Draft viewing is therefore part of informed intake review, not bootstrap approval. Review the
-System Context, domain/subdomain landscape, strategic Context Map, context/module decompositions,
-and each named journey view together with the text summary of founding decision candidates and
-alternatives. The architecture phase later creates real Proposed ADRs, and the existing
-post-architecture approval pause governs their acceptance.
+The viewer inspects the actual canonical map and freshly generated projection. Small schema2.0
+and detailed1.1 maps retain their own shape/export contracts. It does not consume old intake
+status, approval fingerprints or confirmation receipts. Projection freshness prevents displaying a
+different map; it supplies no product confirmation, ratification or ADR acceptance. Reuse existing
+architecture as input and review meaningful boundaries/journeys together with readable decisions.
 
 ## Runtime policy
 
@@ -30,8 +22,9 @@ running and that image is already present. Otherwise use its exact-version WAR o
 the profile minimum and the WAR is already available through `--war`,
 `PROGRAM_KIT_STRUCTURIZR_WAR`, or the displayed user-cache path.
 
-Do not run `docker pull`, download the WAR, install Docker or Java, upload the workspace, or contact
-the Structurizr playground without explicit user authorization immediately before that action.
+The agent must not run `docker pull`, download the WAR, or install Docker/Java. Supply exact
+user-terminal preparation for missing prerequisites. Do not upload the workspace or contact the
+Structurizr playground as an implicit fallback.
 Docker `run` can pull implicitly, so never run it until image inspection proves the exact pin is
 local. Structurizr Lite is obsolete and is not a fallback.
 
@@ -95,8 +88,8 @@ Use the integration's supported permission mechanism once when authorized, or pr
 detached start command for a normal local terminal and stop. Do not change the consumer's model,
 disable the sandbox, or claim a successful visual review to work around the restriction.
 
-If inspection reports a missing image or WAR, present the exact pin and local cache location, ask
-whether the user authorizes that specific retrieval, and stop. If neither Docker nor Java 21 is
+If inspection reports a missing image or WAR, present the exact pin and local cache location, provide
+the official user-terminal preparation route, and stop. If neither Docker nor Java 21 is
 available, explain both requirements without claiming a visual review. Static SVG/PNG review
 packets remain an optional future mode because the upstream exporter needs the separate Playwright
 binary variant; they are not an intake-validation dependency.

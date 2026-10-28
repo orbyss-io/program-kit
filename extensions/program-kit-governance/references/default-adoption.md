@@ -1,165 +1,58 @@
 # Default adoption
 
-## Executable selection and first use
+## Transparent technical defaults
 
-The bootstrap workflow resolves defaults before validating assessment/research outputs and before
-approval. `bootstrap_defaults.py` writes missing structured selections to the existing decision
-register and records their source. It never changes confirmed intake or an approved register.
-The stage registry and `bootstrap_handoff.py` enforce when the resulting choices must be usable.
+Offer suitable Program Kit defaults as concrete recommendations and explain consequential dependencies.
+Preserve the consumer's explicit language, host, framework, provider and UI choices. A legitimate
+custom stack or local pattern needs its real product/software contracts and tests, not qualification
+in a toolkit registry. An unsupported generator is a limitation of that automation, not a reason to
+block planning or manual implementation.
 
-When no application language or platform is selected, the managed application default is
-.NET with the published Foundation host. Managed BFF/SPA authentication also implies that
-dependency. A browser-only explicit anonymous profile does not require an invented backend.
-An explicit alternate language or host is preserved: a conflict with managed authentication or
-an unavailable engineering adapter must be resolved before adopting that combination.
+Selecting .NET selects the Foundation host with CShells and Nuplane by default unless the human
+explicitly opts out. This does not depend on a separate decision to use managed tooling or on
+dynamic activation needs. See the host-default rule in `tool-selection.md`. Central package pins
+and selected persistence/web profiles accompany that route. Explain the actual package and
+feed dependencies. A browser-only anonymous product need not invent a .NET backend. Managed BFF/SPA
+profiles implement actual Foundation/.NET contracts and must not be presented as framework-neutral.
+Offer BFF for a same-origin/proxyable browser and SPA/PKCE for a genuinely independent client with
+its real token/CORS/renewal/logout consequences. Respect another suitable stack or an explicit human host opt-out; a Proposed ADR is not that decision.
 
-For managed sign-in without a provider selection, use the shipped Keycloak local adapter for
-development and bounded evaluation. Its version/configuration remains owned by the existing web
-profile, not by a second bootstrap pin. Production identity hosting is a separate decision due
-before production deployment; it does not prevent a local first slice. Preserve an explicitly
-selected consumer identity service. Applying this default does not authorize paid infrastructure.
-
-Declare persistence needs structurally per data owner in the existing `persistence` collection.
-The shared persistence resolver turns `server-relational` plus an absent/`auto` profile into
-`ef-postgresql` for .NET. It preserves explicit profiles and does not infer a durable store from
-free text. Assessment must translate confirmed durability needs into this declaration. Provider
-selection is distinct from later admission and real-provider behavior evidence.
-
-The register's `first_slice` names source journey IDs, a useful outcome and why that boundary is
-small enough. Each unresolved question declares an owner, kind and due stage. Apply a known
-default immediately; only consequential questions without a safe default need human answers.
-Unattended workers must not treat an asynchronous question as answered. Required answers are
-recorded against the exact question at the native handoff, then the user resumes the workflow.
-
-"No additional constraints supplied" is sufficient to adopt an applicable local default. It is
-not a claim that no constraints exist. A generic unanswered constraints question must not shadow
-resolved defaults with a new architecture blocker. Preserve known conflicts; require facts needed
-for an actual present action, and defer production hosting, paid services and operational choices
-until those actions become necessary. Default adoption never supplies spending authorization.
-
-## Bootstrap promise
-
-Program Kit produces a complete, opinionated, usable baseline. Human attention is reserved for
-deviations, material acknowledgements, and consequential decisions that cannot be answered safely
-from the confirmed bootstrap intake or the selected Program Kit profile.
-
-The absence of an explicit project choice is not a reason to leave an ordinary engineering choice
-open when an applicable Program Kit default exists. Defaults are authoritative for the baseline but
-remain easy to supersede through an explicit intake override or a later Accepted ADR.
+For durable .NET data, explain the selected EF/Npgsql/PostgreSQL default and its actual owner and
+compatibility requirements. Do not infer a storage decision merely from a keyword or a health probe.
+Identity hosting, persistence and UI choices remain separate. Keycloak's local adapter is an optional
+development convenience; it supplies no production hosting or spending authority.
 
 ## Decision precedence
 
-Browser projects also adopt `ui-experience-v1`: independent brand/layout/CSS/page intent, optional
-SVG logo and default Lucide icons, WCAG 2.2 AA target, initial-render public metadata, private export
-exclusion, and no default analytics. These are reviewed baseline defaults, not new host middleware
-or a forced frontend framework. Override through the normal decision register.
-Technical profile adoption does not settle functional rules or user-specific visual preferences.
-New UI inputs use the inspectable modern-product-v1 presentation from ui-design-model.md, including
-complete form guidance/recovery and branded authentication state templates. Existing inputs without
-a presentation selection remain classic; upgrades are deliberate. Native/Tailwind/existing-system
-adapter coverage and real provider acceptance limits remain explicit in `ui_profile.py explain`.
-Carry the intake's functional discovery and experience proposals into assessment. Use UI layout/
-brand defaults as a disclosed provisional baseline where preferences remain unspecified or the
-human requests defaults; preserve explicit choices without another default-approval questionnaire.
+Preserve explicit project intent first. Distinguish selected toolkit defaults, safe derived choices,
+proposals, genuine unknowns and deferred decisions. Record consequential rationale and overrides in
+normal plan/ADRs or the selected engineering configuration. Do not reopen routine settled details as
+mandatory questions, convert examples into commitments, or erase a real conflict with a generic default.
 
-Classify every bootstrap choice by the first applicable source:
+Use existing functional understanding and the human's preferences for UI. Offer branding, layout,
+accessibility, form recovery and public/private metadata defaults transparently; a technical profile
+does not settle product policies or visual taste. Native/current UI helpers explain their actual
+adapter and provider limits. No separate baseline assessment or acknowledgement dossier is required.
 
-1. **Explicit intake**: direct project intent such as "use PostgreSQL" or "Keycloak is the initial
-   identity provider". Adopt it; do not reopen it merely because implementation details remain.
-2. **Explicit override**: intake or project configuration deliberately replaces a Program Kit
-   default. Record the default, override, reason, and affected evidence.
-3. **Program Kit default**: apply the selected versioned profile when intake is silent.
-4. **Derived default**: apply a low-risk consequence of accepted project shape and guardrails,
-   recording the rationale and override path.
-5. **Genuinely unresolved**: require human input only when business, legal, regulatory, security,
-   financial, tenancy, production, or recovery context makes a safe default inappropriate.
-6. **Deferred until triggered**: record decisions that are not yet material. They do not block
-   unrelated specifications or implementation.
+## Prerequisites at the action that needs them
 
-Words expressing commitment in confirmed intake evidence (`must`, `uses`, `is`, `will`, `initial shape`)
-are explicit intent. Examples, alternatives, future directions, and phrases such as `evaluate`,
-`such as`, or `for example` remain candidates.
+Known missing facts need investigation; ask the human only for consequential intent, risk or authority
+that cannot be obtained from available sources. Preserve unresolved questions with an owner and actual
+trigger. Later production topology, paid services, retention policy and operational objectives need
+not block an independent first outcome unless that work actually depends on them.
 
-## Adoption evidence
+Selected native SDK, compiler, package, security and API contracts remain real. Keep project pins and
+locks; do not replace them to conceal a device mismatch. Follow the device-toolchain policy and present
+the appropriate human preparation script. Agents do not install device software or substitute local
+runtime copies. Normal declared project restores remain available at the selected build/test action.
 
-For .NET persistence, apply `program-kit-dotnet/references/persistence-profiles.md` while resolving
-data-owner intent: no store means none; server-relational storage inherits EF/Npgsql/PostgreSQL unless
-an explicit alternative or existing provider takes precedence. Record the proposal per owner in
-`bootstrap-decisions.json.persistence` immediately. Admission, materialized packages and tested
-compatibility are separate later evidence; do not ask the user to redesign a selected database merely
-because a test harness lacks its service. Research unresolved consumer-owned packages against the
-managed pins and record compatibility or a concrete override.
+Architecture acceptance does not execute restore, start a runtime, establish provider compatibility or
+authorize paid operations. Optional setup/generation helpers enforce only their own actual inputs.
+Run focused experiments before design only when their answers change what should be specified.
 
-Write `docs/architecture/bootstrap-decisions.json` using schema version `1.0`. It records the
-versioned default profile, selected profiles, adopted choices and their sources, overrides,
-material acknowledgements, genuinely unresolved decisions, and deferred decisions. Every adopted
-choice includes a stable ID, decision, rationale, and easy override path.
+## Human review and proportional decisions
 
-The assessment human gate approves the exact hash of the assessment, tooling evaluation, decision
-backlog, decision register, and concise review packet. Architecture may then treat explicit intake,
-Program Kit defaults, and derived defaults as accepted bootstrap authority under the ratified
-constitution. Consolidate them in `docs/architecture/decisions/bootstrap-baseline.md`; do not create
-one approval chore per ordinary default.
-
-Project-specific choices outside that reviewed baseline still require the normal ADR process.
-
-## Managed toolchain precedence
-
-Selected Program Kit technology profiles supply exact toolchain and package pins through their
-managed manifests. Those pins are baseline authority before current-version research and before
-probing the local environment. Research verifies compatibility and maintenance; it does not replace
-a managed pin with a current candidate. A missing or older local installation is a remediation
-requirement: clearly urge the user to install or upgrade to the exact managed version, side-by-side
-where the ecosystem supports it.
-
-Only an explicit user decision may retain a different locally installed .NET SDK as project truth.
-Record that exception in `bootstrap-decisions.json.toolchain` with source `override`, a non-empty
-reason, and an override entry whose ID is `managed-toolchain-version`. Ordinary managed pins use
-source `program-kit-default`, exactly match the selected profile manifests, and need no separate ADR.
-
-Follow [the device toolchain policy](device-toolchain-policy.md) for every missing/mismatched
-device tool. Give the user official exact-version installation/update commands for their own
-terminal, including a missing-manager route, persistent defaults, privileges, refresh steps and
-verification. The agent must never execute device installers or hide a mismatch with local copies
-or temporary PATH overrides. Verify the actual active shared selection after user completion;
-manager exec/run against an inactive cached version is insufficient readiness evidence.
-
-## .NET default
-
-When .NET is selected, the external application-neutral `Orbyss.Foundation.Host` and application release-bundle model are the
-automatic runtime default. Consumer repositories create packable feature projects and activation,
-configuration, package-closure, and release evidence—not a custom `.Host` project or application
-`Program.cs`. Adopt this model unless the confirmed bootstrap intake explicitly opts out. An opt-out records the alternate
-host, reason, consequences, and affected managed baseline.
-
-The standard runtime introduces independently pinned Orbyss Foundation, Forms, and Localization packages plus pinned
-CShells/Nuplane dependencies and configured package sources. The assessment review packet must
-disclose that material supply-chain fact. Approving the assessment records the human acknowledgement;
-it does not download packages or run restore. Repository synchronization and networked restore remain
-separate actions.
-
-## Secure browser default
-
-When a browser UI and authenticated HTTP boundary are detected, adopt the Program Kit
-`bff-cookie-v1` secure web profile unless explicit intake or an Accepted ADR selects another
-deployment shape. “SPA” describes the client UI and does not by itself select browser-held bearer
-tokens. The same-origin BFF remains the default for React and other SPA frontends.
-
-Select `spa-pkce-v1` only for an independently hosted static client that must call APIs directly, or
-when an explicit decision accepts browser token exposure and the profile's renewal, storage, CORS,
-and logout consequences. Record the profile and version in the bootstrap decision register. Feature
-specifications inherit the chosen profile and must not reopen its ordinary implementation details.
-
-Every authenticated browser adoption also inherits threat model
-`program-kit-web-threat-model-v1` and evidence profile
-`program-kit-web-security-evidence-v1`. These own the attacker model, source authority/status,
-control traceability, configurable-default rationale, residual risks, assurance levels, and review
-triggers. A consumer records only its additions and overrides; an override is incomplete without an
-owner, affected control/default, evidence, review condition, and regression test.
-
-## Proportional decisions
-
-Do not turn every valid question into an ADR or bootstrap blocker. Close ordinary details through
-the applicable default, feature specification, acceptance criteria, or deterministic test. Defer
-production topology, workload objectives, legal retention, and recovery objectives until their
-lifecycle gates when they do not block the first vertical slice.
+Keep substantive decisions and actual acceptance in readable ADR/spec/plan/task notes. Honor agreed
+review pauses and bounded deferrals; tests, elapsed time and generated documents never supply human
+acceptance. Do not turn every routine detail into an ADR or checkpoint. Resume useful authored work
+without creating bootstrap registers, approval hashes or hidden delivery state.

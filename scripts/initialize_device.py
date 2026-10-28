@@ -11,21 +11,22 @@ import subprocess
 import urllib.request
 
 PINS = 'extensions/program-kit-dotnet/templates/dotnet/files'
-INPUTS = ('.nvmrc', '.npm-version', 'global.json', 'eng/device_toolchain.py', 'eng/js_toolchain.py')
+INPUTS = ('eng/device_toolchain.py',)
 
 
 def check(project: Path, pins: Path, authority: str) -> None:
-    print('Program Kit initial device readiness; authoritative pins: ' + authority, flush=True)
+    print('Program Kit initialization prerequisites; release-owned diagnostic source: ' + authority, flush=True)
     spec = importlib.util.spec_from_file_location('initialize_device_policy', pins / 'eng/device_toolchain.py')
     policy = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(policy)
-    policy.contributor(project, pins_directory=pins, exact_specify=False)
+    policy.contributor(project, pins_directory=pins, exact_specify=False, python_only=True)
+    policy.require_tool(project, 'git', authority='Native Spec Kit initialization uses the current Git work tree')
     print('PKT000 shared device tools are ready; initialization may continue. '
           'Repository setup, profile-specific prerequisites and future pin changes retain their own checks.', flush=True)
 
 
 def initialize(project: Path, ref: str, release: Path | None = None) -> None:
-    if not re.fullmatch(r'v\d+\.\d+\.\d+', ref):
+    if not re.fullmatch(r'v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-preview\.(?:0|[1-9][0-9]*))?', ref):
         raise ValueError('Device preflight requires the exact initializer release tag')
     if release is not None:
         if (release / 'VERSION').read_text(encoding='utf-8').strip() != ref[1:]:
@@ -47,7 +48,7 @@ def initialize(project: Path, ref: str, release: Path | None = None) -> None:
 
 def invoke_native(project,ref,release,launcher,arguments):
     """Use exact release-owned capture around the installed native CLI, with no tool acquisition."""
-    if not re.fullmatch(r'v\d+\.\d+\.\d+',ref):raise ValueError('Exact initializer release tag required')
+    if not re.fullmatch(r'v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-preview\.(?:0|[1-9][0-9]*))?',ref):raise ValueError('Exact initializer release tag required')
     if release is not None:
         if (release/'VERSION').read_text().strip()!=ref[1:]:raise ValueError('Initializer bridge release version differs')
         bridge=release/'scripts/invoke_specify.py'

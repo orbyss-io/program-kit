@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import json
 import os
 import re
@@ -525,41 +524,9 @@ def run_preflight(integration: str, project_root: Path, current_run_id: str = ""
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
-    parser = argparse.ArgumentParser(
-        description="Validate the Codex execution boundary and installed Spec Kit resolver."
-    )
-    parser.add_argument("--integration", default="auto")
-    parser.add_argument("--project-root", default=".")
-    parser.add_argument("--run-id", default="")
-    parser.add_argument("--abandon-run", default="")
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Emit a workflow-switch action and always return success.",
-    )
-    args = parser.parse_args()
-    project_root = Path(args.project_root).resolve()
-    if args.abandon_run:
-        try:
-            abandon_bootstrap_run(project_root, args.abandon_run)
-        except RuntimeError as exc:
-            print(f"Program Kit run recovery failed: {exc}", file=sys.stderr)
-            return 2
-        print(f"Program Kit bootstrap run {args.abandon_run} is marked aborted.")
-        return 0
-    result = evaluate_preflight(
-        args.integration, project_root, current_run_id=args.run_id, check_worker_access=True
-    )
-    if args.json:
-        print(json.dumps(result))
-        return 0
-    if result["action"] != "continue":
-        print(result["diagnostic"], file=sys.stderr)
-        return 2
-    return 0
+    from workflow_lifecycle import RETIREMENT
+    print(RETIREMENT, file=sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":

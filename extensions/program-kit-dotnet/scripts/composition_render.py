@@ -96,13 +96,43 @@ def selected_packages(graph, shell_id, admitted=None):
         packages += ['Orbyss.Foundation.PostgreSql', 'Orbyss.Foundation.Execution']
     if any(row['shellRef'] == shell_id for row in model.bindings(graph, 'frontend')):
         packages.append('Orbyss.Foundation.Web.HostedPages')
+    for name in model.shell_features(graph, shell_id):
+        feature = graph['resources'][name]
+        # These exact optional consumption hints still pass publisher_contracts'
+        # selected-profile/catalog knowledge admission; a namespace is no grant.
+        packages.extend(feature.get('capabilityPackages', []))
+        for target in (admitted or {}).get('targets', []):
+            if target['path'] == feature['path']:
+                packages.extend(row['packageId'] for row in target.get('packages', [])
+                                if row['ecosystem'] == 'nuget' and row['packageId'].startswith('Orbyss.Foundation.'))
     shell = graph['resources'][shell_id]
     for activation in (admitted or {}).get('activations', []):
         if activation['path'] == shell['source'] and activation['shell'] == shell['name']:
             key = activation['packageKey']
-            require(key.startswith('nuget:Orbyss.Foundation.'), 'selected publisher activation requires its qualified composition adapter: ' + key)
-            packages.append(key.removeprefix('nuget:'))
+            # Foundation owns this settings adapter. Other qualified publishers
+            # retain their native package/activation/configuration contributions.
+            if key.startswith('nuget:Orbyss.Foundation.'):
+                packages.append(key.removeprefix('nuget:'))
     return list(dict.fromkeys(packages))
+
+
+def selected_publisher_activations(graph, shell_id, admitted):
+    shell = graph['resources'][shell_id]
+    result = {}
+    for activation in (admitted or {}).get('activations', []):
+        if activation['path'] != shell['source'] or activation['shell'] != shell['name']:
+            continue
+        key = activation['packageKey']
+        if key.startswith('nuget:Orbyss.Foundation.'):
+            continue
+        # The resolver already admitted this exact catalog/profile/placement.
+        # Require the corresponding native package output instead of inventing
+        # settings contracts or admitting arbitrary prefix-matching packages.
+        packages = [p for target in admitted['targets'] for p in target.get('packages', []) if p['packageKey'] == key]
+        require(packages and len({p['version'] for p in packages}) == 1,
+                'selected activation has no exact native package binding: ' + key)
+        result[activation['featureIdentity']] = {'packageId': packages[0]['packageId'], 'version': packages[0]['version']}
+    return result
 
 
 def accepted_selection(repository):
@@ -136,6 +166,51 @@ def admit_runtime_reconciliation(repository, project):
                      and hashlib.sha256(payload).hexdigest() == entry.get('baselineHash', entry.get('templateHash')))
     require(authenticated, 'retained customized API seam conflicts with runtime responsibility: ' + relative +
             '; move the owned registration to ' + project['packageId'].replace('.', '') + 'Feature.cs and reconcile its CLR name/IShellFeature, preserving ConfigureServices, ShellFeature identity and selected dependencies before synchronization')
+
+
+def authored_feature_owner(repository, project):
+    """Find the actual identity declaration without treating a filename as absence."""
+    folder = repository / PurePosixPath(project['path']).parent
+    owners = []
+    declaration = re.compile(r'(?:\[|,)\s*(?:global::)?(?:\w+\s*\.\s*)*ShellFeature(?:Attribute)?\s*\(')
+    for path in sorted(folder.rglob('*.cs')) if folder.is_dir() else []:
+        if {'bin', 'obj', '.git'}.intersection(path.relative_to(folder).parts):
+            continue
+        require(path.resolve().is_relative_to(repository.resolve()), 'feature source escapes repository: ' + str(path))
+        source = path.read_text(encoding='utf-8-sig')
+        # Mask comments and literals without changing offsets. This deliberately
+        # bounded source inspection is not a C# compiler: unresolved declarations
+        # require review, never another generated registration.
+        tokens = r'(?P<raw>"{3,})[\s\S]*?(?P=raw)|@"(?:""|[^"])*"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|//[^\n]*|/\*[\s\S]*?\*/'
+        code = re.sub(tokens, lambda item: re.sub(r'[^\r\n]', ' ', item.group()), source)
+        aliases = re.findall(r'\busing\s+(\w+)\s*=\s*(?:global::)?[\w.]*ShellFeature(?:Attribute)?\s*;', code)
+        unknown_alias = any(re.search(r'(?:\[|,)\s*' + re.escape(alias) + r'\s*\(', code) for alias in aliases)
+        require(not unknown_alias, 'ShellFeature alias requires authored source reconciliation: ' + path.relative_to(repository).as_posix())
+        matches = list(declaration.finditer(code))
+        require(all(any(match.start() <= token.start() < match.end() for match in matches)
+                    for token in re.finditer(r'\bShellFeature(?:Attribute)?\s*\(', code)),
+                'unresolved ShellFeature declaration requires authored source reconciliation: ' + path.relative_to(repository).as_posix())
+        require(not matches or not re.search(r'^\s*#\s*(?:if|elif|else|endif)\b', code, re.M),
+                'conditional ShellFeature declaration requires authored source reconciliation: ' + path.relative_to(repository).as_posix())
+        for match in matches:
+            argument = re.match(r'\s*(?:name\s*:\s*)?"([^"\\\r\n]*)"\s*(?=[,)])', source[match.end():])
+            require(argument is not None, 'nonliteral ShellFeature identity requires authored source reconciliation: '
+                    + path.relative_to(repository).as_posix())
+            if argument.group(1) == project['featureIdentity']:
+                owners.append((path, code))
+    require(len(owners) <= 1, 'duplicate ShellFeature identity ' + project['featureIdentity'] + ': '
+            + ', '.join(path.relative_to(repository).as_posix() for path, _ in owners))
+    if not owners:
+        return None
+    path, source = owners[0]
+    if project['responsibility'] == 'runtime' and re.search(r'\bIWebShellFeature\b', source):
+        # Only the authenticated old empty API scaffold may be replaced by the
+        # existing retirement transaction. Authored registrations need review.
+        admit_runtime_reconciliation(repository, project)
+        require(path.name == 'ApiFeature.cs', 'retained HTTP seam conflicts with runtime responsibility: '
+                + path.relative_to(repository).as_posix())
+        return None
+    return path.relative_to(repository).as_posix()
 
 
 def validate_capabilities(graph, env_name=None):
@@ -321,13 +396,22 @@ def provider_scaffold(project, registrations, contract):
     registration_lines = []
     for context, policy in sorted(declarations.items()):
         registration_lines.extend([
-            f'        services.AddFoundationPostgreSql<{context}>(settings, "{policy}", options => new(options));',
+            f'        Func<DbContextOptions<{context}>, {context}> create{context} = options => new(options);',
+            f'        services.AddFoundationPostgreSql<{context}>(',
+            '            settings,',
+            f'            "{policy}",',
+            f'            create{context}',
+            '        );',
             f'        services.AddShellInitializer<{context}Prepare>(LifecyclePhase.Prepare, order: 100);'])
         files[str(folder / (context + '.cs'))] = files[str(folder / 'ApplicationDbContext.cs')].replace(b'ApplicationDbContext', context.encode())
         files[str(folder / (context + 'Prepare.cs'))] = files[str(folder / 'ProviderPrepare.cs')].replace(
             b'ApplicationDbContext', context.encode()).replace(b'ProviderPrepare', (context + 'Prepare').encode())
-    feature = feature.replace('        services.AddFoundationPostgreSql<ApplicationDbContext>(settings, "application", options => new(options));\n'
-                              '        services.AddShellInitializer<ProviderPrepare>(LifecyclePhase.Prepare, order: 100);', '\n'.join(registration_lines))
+    registration = ('        Func<DbContextOptions<ApplicationDbContext>, ApplicationDbContext> createContext = options => new(options);\n'
+                    '        services.AddFoundationPostgreSql<ApplicationDbContext>(\n'
+                    '            settings,\n            "application",\n            createContext\n        );\n'
+                    '        services.AddShellInitializer<ProviderPrepare>(LifecyclePhase.Prepare, order: 100);')
+    require(feature.count(registration) == 1, 'native provider registration source changed; preserve and qualify the composition producer')
+    feature = feature.replace(registration, '\n'.join(registration_lines))
     files[feature_path] = feature.encode()
     files.pop(str(folder / 'ProviderPrepare.cs'))
     if 'ApplicationDbContext' not in declarations:
@@ -335,7 +419,7 @@ def provider_scaffold(project, registrations, contract):
     return files
 
 
-def materialize(repository, graph, template, env_name=None):
+def materialize(repository, graph, template, env_name=None, *, configuration_only=False):
     repository, template = Path(repository), Path(template)
     model.validate(graph, repository)
     validate_capabilities(graph, env_name)
@@ -346,6 +430,12 @@ def materialize(repository, graph, template, env_name=None):
                  selected_packages(graph, shell_id, admitted),
                  presentation=graph['resources'][shell_id].get('presentation'),
                  presentation_defaults=presentation_branding(graph, shell_id)) for shell_id in model.resources(graph, 'shell')}
+    for shell_id, contract in contracts.items():
+        publishers = selected_publisher_activations(graph, shell_id, admitted)
+        contract['selectedPublisherActivations'] = publishers
+        contract['activations'] = sorted(set(contract['activations']) | set(publishers))
+        for package in publishers.values():
+            contract['packages'][package['packageId']] = package['version']
     packages = {}
     for contract in contracts.values():
         for name, version in contract['packages'].items():
@@ -412,6 +502,8 @@ def materialize(repository, graph, template, env_name=None):
     outputs['eng/ProgramKit.Foundation.props'] = (ET.tostring(props) + b'\n', 'managed')
     frontend_template = template / 'hosted-pages/web'
     for name, frontend in model.resources(graph, 'frontend').items():
+        if configuration_only:
+            continue
         shell_id = next(row['shellRef'] for row in model.bindings(graph, 'frontend') if row['frontendRef'] == name)
         selected = contracts[shell_id].get('browserPresentation', {})
         for file in frontend_template.rglob('*'):
@@ -427,15 +519,18 @@ def materialize(repository, graph, template, env_name=None):
         if selected.get('enabled'):
             outputs.update(presentation_frontend(repository, graph, name, selected, template, outputs))
     for name, feature in model.resources(graph, 'feature').items():
+        if configuration_only:
+            continue
         project = model.project_definition(feature, repository)
-        admit_runtime_reconciliation(repository, project)
+        source_owner = authored_feature_owner(repository, project)
         # Source project references only its selected owners' exact packages.
         shell_id = next(row['shellRef'] for row in model.bindings(graph, 'featureShell') if row['featureRef'] == name)
         selected = contracts[shell_id]
         native_project = next((row for row in (admitted or {}).get('targets', []) if row['path'] == project['path']), {})
         native_packages = {row['packageId'] for row in native_project.get('packages', []) if row['ecosystem'] == 'nuget'}
+        publisher_packages = {row['packageId'] for row in selected.get('selectedPublisherActivations', {}).values()}
         project['capabilityPackages'] = sorted(set(project['capabilityPackages']) | {
-            package for package in native_packages if package.startswith('Orbyss.Foundation.')})
+            package for package in native_packages if package.startswith('Orbyss.Foundation.') or package in publisher_packages})
         project['admittedCapabilityPackages'] = sorted(native_packages)
         if admitted:
             selected = deepcopy(selected)
@@ -451,6 +546,29 @@ def materialize(repository, graph, template, env_name=None):
                         group.remove(item)
             ET.indent(document, space='  ')
             files[project['path']] = ET.tostring(document) + b'\n'
+        if source_owner:
+            state_path = repository / '.program-kit/managed.json'
+            state = json.loads(state_path.read_text()) if state_path.is_file() else {}
+            previous = state.get('files', {}).get(source_owner, {})
+            untouched = (previous.get('ownership') == 'scaffold' and previous.get('contribution') == 'foundation'
+                         and previous.get('sourceIdentity') == '../../scripts/foundation_composition.py'
+                         and hashlib.sha256((repository / source_owner).read_bytes()).hexdigest()
+                         == previous.get('baselineHash', previous.get('templateHash')))
+            if not untouched:
+                # An existing identity owns its source seams and native project.
+                # Missing conventional filenames do not authorize replacement
+                # registration classes or provider/context helper scaffolds.
+                # Keep still-selected existing scaffold entries in the desired
+                # manifest: native reconciliation preserves their authored bytes
+                # and prior hashes. Omitting them would prematurely retire their
+                # ownership even though the feature remains selected.
+                def retained_scaffold(path):
+                    entry = state.get('files', {}).get(path, {})
+                    return (entry.get('ownership') == 'scaffold' and entry.get('contribution') == 'foundation'
+                            and entry.get('sourceIdentity') == '../../scripts/foundation_composition.py'
+                            and (repository / path).is_file())
+                files = {path: content for path, content in files.items()
+                         if retained_scaffold(path) or (not path.endswith('.cs') and not (repository / path).is_file())}
         outputs.update({path: (content, 'scaffold') for path, content in files.items()})
     for authority_id, authority in model.resources(graph, 'identityAuthority').items():
         if env[authority_id]['mode'] != 'managed':
@@ -497,6 +615,10 @@ def materialize(repository, graph, template, env_name=None):
         web_contract['ownership']['managedExactPaths'] = [route['path'] for route in web_contract['routes'].values()]
         web_contract['ownership']['featureOwnedPrefix'] = prefix + '/api/'
         outputs['eng/web/compositions/' + shell_id + '.json'] = (encoded(web_contract), 'managed')
+    if configuration_only:
+        # This optional operation compiles configuration only. Existing source,
+        # solutions, architecture and shell overlays remain their authors' work.
+        outputs = {path: value for path, value in outputs.items() if value[1] == 'managed'}
     contract['managedOutputs'] = {path: hashlib.sha256(payload).hexdigest()
                                   for path, (payload, ownership) in outputs.items() if ownership == 'managed'}
     resolved = resolve(graph, contract)

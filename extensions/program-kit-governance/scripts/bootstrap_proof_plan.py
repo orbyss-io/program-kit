@@ -24,7 +24,7 @@ def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
     """Retain receipts while reopening only changed execution inputs before acceptance."""
     import copy
     import uuid
-    from bootstrap_lifecycle import digest, design_digest, local, proof_tooling
+    from bootstrap_lifecycle import digest, design_digest, local, proof_tooling, lifecycle_inputs_current
     from governance_state import ROADMAP, roadmap_records
     updated = copy.deepcopy(ledger)
     planned = {p['id']: p for p in plan['probes']}
@@ -64,7 +64,7 @@ def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
                     raise LifecycleError('Preserved proof diagnostics changed; restore their integrity before retry')
             recipe, contract, _, _ = validate_recipe(root, item['id'], planned[item['id']]['recipe'])
             required = {(p.relative_to(root).as_posix(), digest(p)) for p in (recipe, contract)}
-            changed = bool(changed_design) or not required <= {(b['path'], b['sha256']) for b in proof.get('inputs', [])} or proof.get('tooling_sources') != proof_tooling(scoped) or any(
+            changed = not lifecycle_inputs_current(root, proof, path) or bool(changed_design) or not required <= {(b['path'], b['sha256']) for b in proof.get('inputs', [])} or proof.get('tooling_sources') != proof_tooling(scoped) or any(
                 not local(root, b['path']).is_file() or digest(local(root, b['path'])) != b['sha256'] for b in proof.get('inputs', []))
             if scoped:
                 from compatibility_scope import proof_bindings
@@ -155,6 +155,23 @@ def execute(root: Path, *, validate_only=False, recovery_source=None):
         raise LifecycleError('Bootstrap proof plan violates its schema: ' + str(result['errors']))
     if set(plan) - {'$schema'} != {'schemaVersion', 'probes', 'readyWhenProven'} or plan['schemaVersion'] != 1:
         raise LifecycleError('Bootstrap proof plan requires schemaVersion 1, probes and readyWhenProven')
+    # Check every fixture before invalidation or any earlier probe's provider
+    # provisioning. The same gate applies to producer validation and execution.
+    from fixture_readiness import stale_inputs
+    stale = []
+    for probe in plan['probes']:
+        _, contract_path, contract, _ = validate_recipe(root, probe['id'], probe['recipe'])
+        if contract.get('dependencyTargets'):
+            changed = stale_inputs(root, contract)
+            if changed:
+                stale.append(probe['id'] + ' (' + contract_path.relative_to(root).as_posix()
+                             + '): ' + ', '.join(changed))
+    if stale:
+        detail = '; '.join(stale)
+        raise LifecycleError('Managed recipe authority is stale: ' + detail[:2400]
+                             + '. Use fixture_readiness.py preview/apply with each existing contract '
+                             'and a new recipe identity, then validate the updated plan. '
+                             'No probes or provider provisioning started; original proofs remain historical.')
     ledger = load(root / LEDGER)
     if recovery_source is not None:
         require_recovery_execution(root, recovery_source)

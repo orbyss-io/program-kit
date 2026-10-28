@@ -19,6 +19,9 @@ from build_release_guidance import build as build_guidance
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 REPOSITORY = "https://github.com/orbyss-io/program-kit"
 MAX_BUNDLE_ENTRIES = 512
+MAX_TOOLING_ENTRIES = 8192
+MAX_ARCHIVE_MEMBER_BYTES = 10 * 1_048_576
+MAX_ARCHIVE_TOTAL_BYTES = 128 * 1_048_576
 BUNDLE_ROOT_FILES = {
     "LICENSE",
     "README.md",
@@ -31,18 +34,14 @@ BUNDLE_SOURCE_PREFIXES = (
     "extensions/program-kit-building-blocks/",
     "extensions/program-kit-dotnet/",
     "presets/program-kit-governance-preset/",
-    "workflows/program-kit-bootstrap/",
 )
 BUNDLE_RUNTIME_SCRIPTS = {
     "scripts/initialize_device.py",
     "scripts/record_local_bundle.py",
     "scripts/install_local_extension.py",
-    "scripts/consumer_upgrade_workspace.py",
     "scripts/invoke_specify.py",
-    "scripts/openapi_upgrade_reconciliation.py",
     "scripts/upgrade_program_kit.py",
-    "scripts/retired_sync_integration.py",
-    "scripts/native_phase_ownership.py",
+    "scripts/product_version.py",
 }
 
 
@@ -96,6 +95,33 @@ def deterministic_zip(source: Path, destination: Path) -> None:
             archive.writestr(info, path.read_bytes())
 
 
+def validate_distribution_archive(path: Path, *, tooling: bool = False) -> dict:
+    """Finite carrier bounds; verify bytes/CRC without extracting into a user tree."""
+    from pathlib import PurePosixPath
+    with zipfile.ZipFile(path) as archive:
+        members = archive.infolist()
+        ceiling = MAX_TOOLING_ENTRIES if tooling else MAX_BUNDLE_ENTRIES
+        if len(members) > ceiling:
+            raise ValueError(f'{path.name} exceeds its {ceiling}-entry carrier bound')
+        total, names = 0, set()
+        for member in members:
+            name = member.orig_filename
+            relative = PurePosixPath(name)
+            if (not name or name != relative.as_posix() or relative.is_absolute()
+                    or '..' in relative.parts or ':' in name or '\\' in name
+                    or any(ord(c) < 32 for c in name)
+                    or ((member.external_attr >> 16) & 0o170000) == 0o120000
+                    or name.casefold() in names):
+                raise ValueError('Unsafe or duplicate distribution member: ' + name)
+            names.add(name.casefold())
+            total += member.file_size
+            if member.file_size > MAX_ARCHIVE_MEMBER_BYTES or total > MAX_ARCHIVE_TOTAL_BYTES:
+                raise ValueError('Distribution archive exceeds its member/total byte bound: ' + path.name)
+        if archive.testzip() is not None:
+            raise ValueError('Distribution archive has corrupt member bytes: ' + path.name)
+        return {'entries': len(members), 'uncompressedBytes': total}
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -141,7 +167,7 @@ def build_dependency_qualification_assets(root: Path, output: Path, version: str
 def filesystem_root(root: Path) -> Path:
     if os.name != 'nt':
         return root
-    helper = Path(__file__).resolve().parents[1] / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+    helper = Path(__file__).resolve().parents[1] / 'extensions/program-kit-governance/scripts/program_kit_runtime/owned_scratch.py'
     spec = importlib.util.spec_from_file_location('release_owned_filesystem', helper)
     filesystem = importlib.util.module_from_spec(spec); spec.loader.exec_module(filesystem)
     return Path(filesystem.filesystem_path(root.absolute()))
@@ -195,9 +221,28 @@ def bundle_source_files(root: Path) -> list[Path]:
     ]
 
 
+# Old authoring/workflow engines remain historical source inputs only. One
+# boundary applies to native component archives, tooling sources and witnesses.
+RETIRED_GOVERNANCE_SCRIPTS = frozenset({
+    'bootstrap_compatibility.py', 'bootstrap_context.py', 'bootstrap_handoff.py',
+    'bootstrap_lifecycle.py', 'bootstrap_profiles.py', 'bootstrap_proof_plan.py',
+    'bootstrap_quality.py', 'bootstrap_recovery.py', 'bootstrap_stages.py',
+    'bootstrap_intake.py', 'intake_authoring.py', 'proxy_bootstrap.py',
+    'workflow_lifecycle.py', 'codex_bootstrap_preflight.py', 'bootstrap_defaults.py',
+    'consumer_upgrade.py', 'upgrade_remediation.py',
+})
+
+
 def install_asset(root: Path, relative: Path) -> bool:
-    """Keep updater workspaces in source history, outside consumer installations."""
+    """Retain current consumer inputs while leaving retired engines in history."""
     parts = relative.parts
+    governance_script = (len(parts) == 4 and parts[:3] ==
+                         ('extensions', 'program-kit-governance', 'scripts'))
+    if len(parts) == 2 and parts[0] == 'scripts' and relative.name in RETIRED_GOVERNANCE_SCRIPTS:
+        manifest = root / 'extension.yml'
+        governance_script = manifest.is_file() and load_yaml(manifest).get('extension', {}).get('id') == 'program-kit-governance'
+    if governance_script and relative.name in RETIRED_GOVERNANCE_SCRIPTS:
+        return False
     if 'dependency-profiles' not in parts or 'candidates' not in parts:
         return True
     position = parts.index('dependency-profiles')
@@ -220,174 +265,45 @@ def install_asset(root: Path, relative: Path) -> bool:
     return True
 
 
-def pack_historical_package_facts(staging: Path) -> Path:
-    """Copy a compact publication tree; retain every original staging file intact."""
-    registry_relative = Path('extensions/program-kit-building-blocks/references/dependency-profiles')
-    registry = staging / registry_relative
-    index = load_json(registry / 'index.json')
-    facts = {}
-    def retain(item):
-        path = (registry / item['path']).resolve()
-        if not path.is_relative_to(registry.resolve()) or path.suffix not in {'.json', '.pack'}:
-            raise ValueError('Historical publisher fact container escapes its registry')
-        raw = path.read_bytes()
-        if len(raw) > 64 * 1_048_576 or hashlib.sha256(raw).hexdigest() != item['sha256']:
-            raise ValueError('Historical publisher fact container differs from its immutable authority')
-        if item['path'] in facts and facts[item['path']] != raw:
-            raise ValueError('Historical publisher fact container is ambiguous')
-        facts[item['path']] = raw
-    for entry in index['profiles'].values():
-        recipe_ref = entry.get('qualificationRecipe')
-        if recipe_ref:
-            recipe_path = (registry / recipe_ref['path']).resolve()
-            if not recipe_path.is_relative_to(registry.resolve()) or sha256(recipe_path) != recipe_ref['sha256']:
-                raise ValueError('Historical qualification recipe differs from its original authority')
-            recipe = load_json(recipe_path)
-            retain(recipe_ref)
-            prefix = registry_relative.as_posix() + '/'
-            if not recipe['nativeLock']['path'].startswith(prefix):
-                raise ValueError('Historical qualification lock escapes its registry')
-            relative = recipe['nativeLock']['path'].removeprefix(prefix)
-            lock = (registry / relative).resolve()
-            if not lock.is_relative_to(registry.resolve()):
-                raise ValueError('Historical qualification lock escapes its registry')
-            raw = lock.read_bytes()
-            if hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest() != recipe['nativeLock']['sha256']:
-                raise ValueError('Historical qualification lock differs from its original authority')
-            retain({'path': relative, 'sha256': hashlib.sha256(raw).hexdigest()})
-        if not entry.get('knowledge'):
-            continue
-        manifest = load_json(registry / entry['knowledge']['path'])
-        for item in manifest.get('packages', []):
-            if 'byteOffset' not in item:
-                retain(item)
-        for key in ('sourcePack', 'packagePack'):
-            if manifest.get(key):
-                retain(manifest[key])
-    lifecycle = registry / 'lifecycle-knowledge/index.json'
-    if lifecycle.is_file():
-        for reference in load_json(lifecycle)['versions'].values():
-            manifest_path = (registry / reference['path']).resolve()
-            if not manifest_path.is_relative_to(registry.resolve()) or sha256(manifest_path) != reference['sha256']:
-                raise ValueError('Historical lifecycle manifest differs from its original authority')
-            manifest = load_json(manifest_path)
-            for item in manifest['packages']:
-                retain(item)
-    if not facts:
-        return staging
-    publication = staging / '.program-kit-publication'
-    if publication.exists():
-        raise ValueError('Choose a fresh disposable publication tree')
-    # Enumerate before creating the child. Copying never removes or modifies an
-    # original profile, manifest, source container, or fact in the input tree.
-    original_files = [path for path in staging.rglob('*') if path.is_file()]
-    publication.mkdir()
-    omitted = {registry_relative / relative for relative in facts}
-    for source in original_files:
-        relative = source.relative_to(staging)
-        if relative not in omitted:
-            target = publication / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, target)
-    packed, entries = bytearray(), {}
-    for relative, raw in sorted(facts.items()):
-        entries[relative] = {'byteOffset': len(packed), 'byteLength': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
-        packed.extend(raw)
-    target_registry = publication / registry_relative
-    (target_registry / 'historical-package-facts.pack').write_bytes(packed)
-    (target_registry / 'historical-package-facts.json').write_text(
-        json.dumps({'schemaVersion': 1, 'entries': entries}, indent=2) + '\n', encoding='utf-8', newline='\n')
-    return publication
-
-
-def build_bundle_from_source(root: Path, output: Path) -> None:
-    """Build the composite bundle from source files, never local caches or build output."""
-    specification=importlib.util.spec_from_file_location('bundle_owned_filesystem',
-        root/'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
-    filesystem=importlib.util.module_from_spec(specification);specification.loader.exec_module(filesystem)
+def build_tooling_from_source(root: Path, output: Path) -> None:
+    """Complete local/offline updater and recovery inputs; no native bundle ceiling."""
+    specification = importlib.util.spec_from_file_location('tooling_owned_filesystem',
+        root / 'extensions/program-kit-governance/scripts/program_kit_runtime/owned_scratch.py')
+    filesystem = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(filesystem)
     root = Path(filesystem.filesystem_path(root.resolve()))
-    # Exact owned staging also handles long-path cleanup and retains primary plus
-    # cleanup failures. Historical input trees remain outside this deletion owner.
+    version = (root / 'VERSION').read_text().strip()
     with filesystem.owned_scratch(root, 'release-bundle') as directory:
         staging = Path(filesystem.filesystem_path(directory))
         for relative in bundle_source_files(root):
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
-        staging = pack_historical_package_facts(staging)
-        # Keep exact optional example/UI source bytes without spending one outer
-        # bundle entry per asset. Native component archives remain unchanged.
-        asset_spec=importlib.util.spec_from_file_location('bundle_asset_sources',
-            root/'extensions/program-kit-governance/scripts/asset_sources.py')
-        assets=importlib.util.module_from_spec(asset_spec);asset_spec.loader.exec_module(assets)
-        for name,roots in {'program-kit-governance':('examples','templates/ui-experience'),
-                           'program-kit-dotnet':('references/examples',)}.items():
-            component=staging/'extensions'/name
-            payloads={}
-            for relative_root in roots:
-                for file in (component/relative_root).rglob('*'):
-                    if file.is_file():
-                        relative=file.relative_to(component).as_posix()
-                        if relative in ('templates/ui-experience/acceptance/package.json','templates/ui-experience/acceptance/package-lock.json'):
-                            continue  # Existing native toolchain provenance consumes these physical inputs.
-                        payloads[relative]=file.read_bytes()
-            if payloads:
-                (component/assets.PACK).write_bytes(assets.encoded(payloads))
-                for relative,raw in payloads.items():
-                    file=component/relative
-                    if not file.resolve().is_relative_to(staging.resolve()) or file.read_bytes()!=raw:
-                        raise ValueError('Disposable bundle source changed before compaction')
-                    file.unlink()  # Exact verified disposable copies only; no recursive source deletion.
-                if assets.packed(component)!=payloads:raise ValueError('Compacted source asset bytes changed')
-        build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
-                       (root / 'VERSION').read_text().strip(), aggregates=False)
-        # Generated migration guides use the same bounded logical asset reader.
-        # Keep the native bundle limit and every original guide/checksum intact.
-        component = staging / 'extensions/program-kit-governance'
-        payloads = assets.packed(component)
-        guides = component / 'references/release-guidance'
-        for file in guides.rglob('*'):
-            if file.is_file():
-                payloads[file.relative_to(component).as_posix()] = file.read_bytes()
-        for relative, raw in payloads.items():
-            file = component / relative
-            if file.is_file():
-                if not file.resolve().is_relative_to(staging.resolve()) or file.read_bytes() != raw:
-                    raise ValueError('Disposable guide bytes changed before compaction')
-                file.unlink()
-        (component / assets.PACK).write_bytes(assets.encoded(payloads))
-        if assets.packed(component) != payloads:
-            raise ValueError('Compacted migration guide bytes changed')
-        witness_spec = importlib.util.spec_from_file_location('bundle_source_witness',
-            root / 'extensions/program-kit-governance/scripts/tooling_witness.py')
-        witness = importlib.util.module_from_spec(witness_spec); witness_spec.loader.exec_module(witness)
-        # Qualification authenticates the enclosing package/producer. This data
-        # manifest does not assign a public identity to a development build.
-        source_identity = {'repository': REPOSITORY, 'kind': 'unqualified-packaging-input',
-                           'version': (root / 'VERSION').read_text().strip(), 'publicOriginEstablished': False}
-        (staging / witness.PACKAGED).write_bytes(witness.encoded(witness.package_record(staging, source_identity)))
-        specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
-        specify_command = ["specify"]
+        build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance', version, aggregates=False)
+        # Package provenance is distribution integrity, independent of retired
+        # consumer workflow/authoring receipts. Bind every actual archive input.
+        files = {path.relative_to(staging).as_posix(): sha256(path)
+                 for path in sorted(staging.rglob('*')) if path.is_file()}
+        encoded = (json.dumps(files, sort_keys=True, indent=2, ensure_ascii=False) + '\n').encode('utf-8')
+        (staging / 'program-kit-source-witness.json').write_text(json.dumps({
+            'schemaVersion': 1, 'files': files, 'fileSetSha256': hashlib.sha256(encoded).hexdigest()
+        }, sort_keys=True, indent=2) + '\n', encoding='utf-8')
+        deterministic_zip(staging, output / f'program-kit-tooling-{version}.zip')
+
+
+def build_bundle_from_source(root: Path, output: Path) -> None:
+    """Native composition only. Component payloads retain their own release assets."""
+    with tempfile.TemporaryDirectory(prefix='program-kit-composition-') as directory:
+        staging = Path(directory)
+        for name in sorted(BUNDLE_ROOT_FILES):
+            shutil.copyfile(root / name, staging / name)
+        specify_site_packages = os.environ.get('PROGRAM_KIT_SPECIFY_SITE_PACKAGES')
+        specify_command = ['specify']
         if specify_site_packages:
-            specify_command = [
-                sys.executable,
-                str(root / "scripts/invoke_specify.py"),
-                "--site-packages",
-                specify_site_packages,
-                "--",
-            ]
-        subprocess.run(
-            [
-                *specify_command,
-                "bundle",
-                "build",
-                "--path",
-                str(staging),
-                "--output",
-                str(output),
-            ],
-            check=True,
-        )
+            specify_command = [sys.executable, str(root / 'scripts/invoke_specify.py'),
+                               '--site-packages', specify_site_packages, '--']
+        subprocess.run([*specify_command, 'bundle', 'build', '--path', str(staging),
+                        '--output', str(output)], check=True)
 
 
 def validate_metadata(root: Path, version: str) -> None:
@@ -396,10 +312,10 @@ def validate_metadata(root: Path, version: str) -> None:
     building_blocks_extension = load_yaml(root / "extensions/program-kit-building-blocks/extension.yml")
     dotnet_extension = load_yaml(root / "extensions/program-kit-dotnet/extension.yml")
     governance_preset = load_yaml(root / "presets/program-kit-governance-preset/preset.yml")
-    workflow = load_yaml(root / "workflows/program-kit-bootstrap/workflow.yml")
     extensions_catalog = load_json(root / "catalogs/extensions.json")
     presets_catalog = load_json(root / "catalogs/presets.json")
-    workflows_catalog = load_json(root / "catalogs/workflows.json")
+    require_equal("retired workflow catalog", load_json(root / "catalogs/workflows.json")["workflows"], {})
+    require_equal("bundle workflow delivery", bundle.get("provides", {}).get("workflows", []), [])
     bundles_catalog = load_json(root / "catalogs/bundles.json")
 
     require_equal("bundle version", bundle["bundle"]["version"], version)
@@ -407,7 +323,6 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal("building-block extension version", building_blocks_extension["extension"]["version"], version)
     require_equal(".NET extension version", dotnet_extension["extension"]["version"], version)
     require_equal("governance preset version", governance_preset["preset"]["version"], version)
-    require_equal("workflow version", workflow["workflow"]["version"], version)
     initializer_pins = {
         "Initialize-ProgramKit.cmd": f'set "PROGRAM_KIT_REF=v{version}"',
         "Initialize-ProgramKit.sh": f'PROGRAM_KIT_REF="v{version}"',
@@ -432,19 +347,16 @@ def validate_metadata(root: Path, version: str) -> None:
     building_blocks_extension_entry = extensions_catalog["extensions"]["program-kit-building-blocks"]
     dotnet_extension_entry = extensions_catalog["extensions"]["program-kit-dotnet"]
     preset_entry = presets_catalog["presets"]["program-kit-governance-preset"]
-    workflow_entry = workflows_catalog["workflows"]["program-kit-bootstrap"]
     bundle_entry = bundles_catalog["bundles"]["program-kit"]
     require_equal("governance extension catalog version", governance_extension_entry["version"], version)
     require_equal("building-block extension catalog version", building_blocks_extension_entry["version"], version)
     require_equal(".NET extension catalog version", dotnet_extension_entry["version"], version)
     require_equal("governance preset catalog version", preset_entry["version"], version)
-    require_equal("workflow catalog version", workflow_entry["version"], version)
     require_equal("bundle catalog version", bundle_entry["version"], version)
     require_equal("governance extension catalog license", governance_extension_entry["license"], "MIT")
     require_equal("building-block extension catalog license", building_blocks_extension_entry["license"], "MIT")
     require_equal(".NET extension catalog license", dotnet_extension_entry["license"], "MIT")
     require_equal("governance preset catalog license", preset_entry["license"], "MIT")
-    require_equal("workflow catalog license", workflow_entry["license"], "MIT")
     require_equal("bundle catalog license", bundle_entry["license"], "MIT")
 
     tag = f"v{version}"
@@ -467,11 +379,6 @@ def validate_metadata(root: Path, version: str) -> None:
         "governance preset release URL",
         preset_entry["download_url"],
         f"{REPOSITORY}/releases/download/{tag}/program-kit-governance-preset-{version}.zip",
-    )
-    require_equal(
-        "workflow source URL",
-        workflow_entry["url"],
-        f"https://raw.githubusercontent.com/orbyss-io/program-kit/{tag}/workflows/program-kit-bootstrap/workflow.yml",
     )
     require_equal(
         "bundle release URL",
@@ -500,16 +407,18 @@ def main() -> int:
     if not version:
         raise ValueError("VERSION is empty")
     validate_metadata(root, version)
-    from build_native_phase_baselines import validate_previous
-    validate_previous(root)
+    from sync_shared_runtime import sync
+    sync(root)
 
     output.mkdir(parents=True, exist_ok=True)
+    retired = output / f'program-kit-bootstrap-{version}.zip'
+    if retired.is_file():
+        retired.unlink()  # Obsolete output from this builder, never source or consumer history.
     expected = [
         output / f"program-kit-governance-{version}.zip",
         output / f"program-kit-building-blocks-{version}.zip",
         output / f"program-kit-dotnet-{version}.zip",
         output / f"program-kit-governance-preset-{version}.zip",
-        output / f"program-kit-bootstrap-{version}.zip",
         output / f"program-kit-{version}.zip",
         output / f"Initialize-ProgramKit-{version}.cmd",
         output / f"Initialize-ProgramKit-{version}.sh",
@@ -525,43 +434,39 @@ def main() -> int:
                         ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules'))
         guidance = build_guidance(root, staging / 'references/release-guidance', version)
         deterministic_zip(staging, expected[0])
-        for source, name in (('RELEASE-NOTES.md', f'RELEASE-NOTES-{version}.md'),
-                             ('MIGRATIONS.md', f'MIGRATIONS-{version}.md'),
-                             ('migration-index.json', f'migration-index-{version}.json')):
+        for source, name in [('RELEASE-NOTES.md', f'RELEASE-NOTES-{version}.md'),
+                             ('COMPATIBILITY.md', f'COMPATIBILITY-{version}.md')]:
             destination = output / name
             shutil.copyfile(guidance / source, destination)
-            expected.append(destination)
-        for entry in json.loads((guidance / 'migration-index.json').read_text())['entries']:
-            destination = output / entry['guide']
-            shutil.copyfile(guidance / entry['guide'], destination)
-            expected.append(destination)
-        metadata = json.loads((guidance / 'migration-index.json').read_text()).get('consumerChanges')
-        if metadata:
-            destination = output / metadata['file']
-            shutil.copyfile(guidance / metadata['file'], destination)
             expected.append(destination)
     deterministic_zip(root / "extensions/program-kit-building-blocks", expected[1])
     deterministic_zip(root / "extensions/program-kit-dotnet", expected[2])
     deterministic_zip(root / "presets/program-kit-governance-preset", expected[3])
-    deterministic_zip(root / "workflows/program-kit-bootstrap", expected[4])
 
     build_bundle_from_source(root, output)
-    if not expected[5].is_file():
-        raise FileNotFoundError(f"Spec Kit did not create {expected[5]}")
-    with zipfile.ZipFile(expected[5], "r") as archive:
+    tooling = output / f"program-kit-tooling-{version}.zip"
+    build_tooling_from_source(root, output)
+    expected.append(tooling)
+    if not expected[4].is_file():
+        raise FileNotFoundError(f"Spec Kit did not create {expected[4]}")
+    with zipfile.ZipFile(expected[4], "r") as archive:
         entry_count = len(archive.namelist())
     if entry_count > MAX_BUNDLE_ENTRIES:
         raise ValueError(
             f"Program Kit bundle contains {entry_count} entries; Spec Kit permits at most "
             f"{MAX_BUNDLE_ENTRIES}."
         )
-    expected[6].write_bytes((root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8").replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
-    shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[7])
+    expected[5].write_bytes((root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8").replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
+    shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[6])
+
+    for path in expected:
+        if path.suffix == ".zip":
+            validate_distribution_archive(path, tooling=path == tooling)
 
     expected.extend(build_dependency_qualification_assets(root, output, version))
 
     checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected if path.name != 'SHA256SUMS']
-    expected[8].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
+    expected[7].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
     for path in expected:
         print(f"built {path.relative_to(root)}")
     return 0

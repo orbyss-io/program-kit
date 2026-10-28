@@ -21,10 +21,10 @@ RESOURCE_FIELDS = {
     'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef', 'responsibility', 'capabilityPackages'}),
     'databaseServer': ({'kind', 'engine'}, {'ownerRef'}),
     'database': ({'kind', 'engine', 'name'}, {'ownerRef'}),
-    'identityAuthority': ({'kind', 'protocol'}, {'ownerRef', 'session', 'theme'}),
+    'identityAuthority': ({'kind', 'protocol'}, {'ownerRef', 'session', 'theme', 'inputs'}),
     'clientRegistration': ({'kind', 'authorityRef', 'profile'}, {'ownerRef', 'callbackPath', 'signedOutCallbackPath'}),
     'protectedResource': ({'kind', 'authorityRef'}, {'ownerRef', 'permissions'}),
-    'frontend': ({'kind', 'directory', 'entry'}, {'ownerRef', 'branding'}),
+    'frontend': ({'kind', 'directory', 'entry'}, {'ownerRef', 'branding', 'inputs'}),
     'privateFiles': ({'kind', 'ownerRef'}, set()),
 }
 BINDING_FIELDS = {
@@ -36,6 +36,7 @@ BINDING_FIELDS = {
     'frontend': {'kind', 'frontendRef', 'shellRef', 'routeId', 'path'},
     'apiCall': {'kind', 'clientRef', 'resourceRef', 'intent', 'permissions'},
     'privateFiles': {'kind', 'filesRef', 'hostRef', 'shellRef', 'featureRef', 'setting'},
+    'configurationEnvironment': {'kind', 'featureRef', 'shellRef', 'setting', 'environmentRef'},
 }
 REFERENCE_KINDS = {'shellRef': 'shell', 'hostRef': 'host', 'featureRef': 'feature',
                    'databaseRef': 'database', 'serverRef': 'databaseServer',
@@ -68,7 +69,7 @@ def provider_binding_declarations(repository, value, *, feature_paths=None):
     registration. This check does not interpret C# or certify dynamic accesses.
     """
     findings = []
-    for binding in private_file_bindings(value):
+    for binding in [*private_file_bindings(value), *configuration_environment_bindings(value)]:
         if feature_paths is not None and binding['featurePath'] not in feature_paths:
             continue
         path = Path(repository) / Path(binding['featurePath']).parent / 'settings.source.json'
@@ -105,6 +106,70 @@ def provider_binding_declarations(repository, value, *, feature_paths=None):
         findings.append({'featurePath': binding['featurePath'], 'status': 'declared-key-matches; native-activation-required',
                          'configurationKey': binding['configurationKey']})
     return findings
+
+
+def configuration_environment_bindings(value):
+    """Describe explicit product configuration delivery without reading its values."""
+    result = []
+    for row in bindings(value, 'configurationEnvironment'):
+        feature = value['resources'][row['featureRef']]
+        shell = value['resources'][row['shellRef']]
+        hosts = [binding['hostRef'] for binding in bindings(value, 'shellHost')
+                 if binding['shellRef'] == row['shellRef']]
+        require(len(hosts) == 1, 'product configuration needs one existing shell host')
+        result.append({**row, 'featurePath': feature['path'], 'hostRef': hosts[0],
+                       'configurationKey': row['setting'],
+                       'environmentKey': 'CShells__Shells__' + shell['name'] + '__Configuration__'
+                                         + row['setting'].replace(':', '__')})
+    return sorted(result, key=lambda row: (row['hostRef'], row['environmentKey'].casefold()))
+
+
+def resource_input_files(repository, resource, *, required=True):
+    """Hash declared source files/directories, confined to their actual repository.
+
+    Source snapshots contain only names and file hashes. Runtime secret values are
+    not files in this contract. Missing previously captured files disappear from
+    comparisons and invalidate their owner; a build still requires declared inputs.
+    """
+    root = Path(repository).resolve()
+    result = {}
+    excluded = {'node_modules', 'dist', '.git', 'artifacts', '__pycache__', 'bin', 'obj'}
+    total = 0
+    for name in resource.get('inputs', []):
+        local_path(name, 'declared input')
+        require(not excluded.intersection(Path(name).parts), 'declared input points into generated/cache content: ' + name)
+        declared = root / name
+        require(declared.resolve().is_relative_to(root), 'declared input escapes repository: ' + name)
+        pending = [declared]
+        visited = 0
+        while pending:
+            path = pending.pop()
+            visited += 1
+            require(visited <= 8192, 'declared source tree exceeds its bounded entry limit')
+            relative = path.relative_to(root)
+            if excluded.intersection(relative.parts):
+                continue
+            for part in (path, *path.parents):
+                require(not part.is_symlink() and not (hasattr(part, 'is_junction') and part.is_junction()),
+                        'linked declared source input is forbidden: ' + name)
+                if part == root:
+                    break
+            require(path.resolve().is_relative_to(root), 'declared source input escaped repository: ' + name)
+            if not path.exists():
+                require(not required, 'declared source input is missing; restore it or reconcile its owner: ' + name)
+                continue
+            require(path.is_dir() or path.is_file(), 'declared source input must be an ordinary file or directory: ' + name)
+            if path.is_dir():
+                children = sorted(path.iterdir())
+                require(len(children) + len(pending) + visited <= 8192, 'declared source tree exceeds its bounded entry limit')
+                pending.extend(children)
+            if path.is_file():
+                size = path.stat().st_size
+                total += size
+                require(size <= 16 * 1024 * 1024 and total <= 128 * 1024 * 1024 and len(result) < 4096,
+                        'declared source inputs exceed bounded file/content limits')
+                result[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
 
 
 def require(condition, message):
@@ -306,6 +371,13 @@ def validate(model, repository=None):
         object_fields(row, required, optional, name)
         if 'ownerRef' in row:
             require(isinstance(row['ownerRef'], str) and row['ownerRef'], 'empty architecture owner reference')
+        if 'inputs' in row:
+            require(isinstance(row['inputs'], list) and len(row['inputs']) <= 128
+                    and all(isinstance(item, str) for item in row['inputs'])
+                    and len({item.casefold() for item in row['inputs']}) == len(row['inputs']),
+                    'declared source inputs require a bounded distinct path list')
+            for path in row['inputs']:
+                local_path(path, name + '.inputs')
         kind = row['kind']
         if kind == 'host':
             local_path(row['runtimeDirectory'], name + '.runtimeDirectory', True)
@@ -392,7 +464,7 @@ def validate(model, repository=None):
         elif kind == 'frontend':
             local_path(row['directory'], name + '.directory')
             local_path(row['entry'], name + '.entry')
-            require(row['entry'].endswith('.ts'), 'maintained frontend recipe requires a TypeScript entry')
+            require(row['entry'].endswith(('.ts', '.tsx')), 'maintained frontend recipe requires a TypeScript or TSX entry')
             branding = row.get('branding', default_branding())
             object_fields(branding, {'defaultLocale', 'locales'}, {'theme', 'logo'}, 'public branding')
             require(isinstance(branding['locales'], dict) and 1 <= len(branding['locales']) <= 32 and
@@ -427,6 +499,19 @@ def validate(model, repository=None):
                     'private storage must use owner configuration')
             require(row['featureRef'] in shell_features(model, row['shellRef']) and
                     row['shellRef'] in host_shells(model, row['hostRef']), 'private storage binding has foreign placement')
+        elif row['kind'] == 'configurationEnvironment':
+            require(row['featureRef'] in shell_features(model, row['shellRef']),
+                    'product configuration binding has foreign feature/shell ownership')
+            require(isinstance(row['setting'], str) and len(row['setting']) <= 256,
+                    'product setting requires a bounded literal configuration path')
+            parts = row['setting'].split(':')
+            require(len(parts) >= 2 and all(re.fullmatch(r'[A-Za-z][A-Za-z0-9_.-]{0,63}', part)
+                    and '__' not in part for part in parts), 'invalid product configuration path')
+            require(parts[0].casefold() not in {'foundation', 'webrouting', 'cshells', 'nuplane', 'host',
+                    'logging', 'kestrel', 'urls', 'connectionstrings', 'authentication', 'authorization', 'programkit'},
+                    'product configuration cannot replace native-owned settings')
+            require(isinstance(row['environmentRef'], str) and re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,127}', row['environmentRef']),
+                    'product configuration requires an explicit environment variable name')
         elif row['kind'] == 'databaseProvider':
             require(re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', str(row['context'])), 'invalid context type')
             identifier(row['policy'], 'database policy')
@@ -462,6 +547,12 @@ def validate(model, repository=None):
         require(len({row['frontendRef'] for row in pages}) <= 1, 'one selected HostedPages deployment root per shell is supported')
         require(len({row['routeId'].casefold() for row in pages}) == len(pages) and
                 len({row['path'].casefold() for row in pages}) == len(pages), 'ambiguous hosted page route identity or path')
+    configuration_targets = {(binding['hostRef'], binding['environmentKey'].casefold())
+                             for binding in private_file_bindings(model)}
+    for binding in configuration_environment_bindings(model):
+        target = (binding['hostRef'], binding['environmentKey'].casefold())
+        require(target not in configuration_targets, 'duplicate product configuration destination')
+        configuration_targets.add(target)
     for name in resources(model, 'host'):
         require(host_shells(model, name), 'host has no selected shell')
     for name in resources(model, 'feature'):

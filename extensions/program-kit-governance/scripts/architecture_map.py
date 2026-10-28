@@ -718,7 +718,7 @@ def _validate_strategic_model(
             "id", "name", "journey", "actor_or_trigger", "outcome", "contexts", "status",
             "evidence", "decision_refs",
         }
-        if not isinstance(item, dict) or set(item) - {'supporting_journeys'} != fields:
+        if not isinstance(item, dict) or set(item) - {'supporting_journeys', 'epic', 'commitment', 'seed', 'dependencies'} != fields:
             raise ArchitectureMapError(f"{label} has an invalid shape")
         slice_id = _id(item.get("id"), f"{label}.id")
         if slice_id in slice_ids:
@@ -733,9 +733,47 @@ def _validate_strategic_model(
                 raise ArchitectureMapError(f"{label}.supporting_journeys repeats the primary journey")
         _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
         _text(item.get("outcome"), f"{label}.outcome")
+        if 'epic' in item and (not isinstance(item['epic'], str) or not re.fullmatch(r'[A-Z][A-Z0-9-]+', item['epic'])):
+            raise ArchitectureMapError(f'{label}.epic must name an exact roadmap entry ID')
+        if 'commitment' in item and (not isinstance(item['commitment'], str) or item['commitment'] not in {'intended', 'exploratory'}):
+            raise ArchitectureMapError(f'{label}.commitment must be intended or exploratory')
+        if 'seed' in item:
+            validate_feature_seed(item['seed'], f'{label}.seed')
         _semantic_ids(item.get("contexts"), f"{label}.contexts", context_ids, require_one=True)
         _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
         _semantic_status(item, label, decision_ids, decision_statuses)
+
+    dependencies = {}
+    for item in slices:
+        label = f"Candidate {item['id']}.dependencies"
+        records = item.get('dependencies', [])
+        if not isinstance(records, list):
+            raise ArchitectureMapError(f'{label} must be a list')
+        targets = []
+        for dependency in records:
+            if not isinstance(dependency, dict) or not {'feature', 'rationale'} <= dependency.keys() or dependency.keys() - {'feature', 'contract', 'rationale'}:
+                raise ArchitectureMapError(f'{label} has an invalid shape')
+            target = _id(dependency['feature'], label + '.feature')
+            if target not in slice_ids or target == item['id'] or target in targets:
+                raise ArchitectureMapError(f'{label} has a missing, self or duplicate feature reference: {target}')
+            targets.append(target)
+            _seed_text(dependency['rationale'], label + '.rationale')
+            if 'contract' in dependency and _id(dependency['contract'], label + '.contract') not in contract_ids:
+                raise ArchitectureMapError(f'{label}.contract references a missing contract')
+        dependencies[item['id']] = targets
+    visited, active = set(), set()
+    def visit_feature(identity):
+        if identity in active:
+            raise ArchitectureMapError('Candidate feature dependencies contain a cycle')
+        if identity in visited:
+            return
+        active.add(identity)
+        for parent in dependencies[identity]:
+            visit_feature(parent)
+        active.remove(identity)
+        visited.add(identity)
+    for identity in dependencies:
+        visit_feature(identity)
 
     required_view_types = {
         "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
@@ -764,6 +802,38 @@ def _validate_strategic_model(
         raise ArchitectureMapError(
             "Every strategic module or bridge must be visible in a context-decomposition view"
         )
+
+
+def _seed_text(value, label):
+    # Rich source detail has no summary-sized limit; preserve the supplied text.
+    if not isinstance(value, str) or not value.strip():
+        raise ArchitectureMapError(f'{label} must be nonempty text')
+
+
+def validate_feature_seed(seed: dict, label='seed') -> None:
+    texts = {'details', 'boundaryRationale', 'decisionTrigger'}
+    notes = {'assumptions', 'openQuestions', 'boundaryChanges'}
+    if not isinstance(seed, dict) or not seed or seed.keys() - (texts | notes | {'brief', 'evidence'}):
+        raise ArchitectureMapError(f'{label} has an invalid shape')
+    for key in texts & seed.keys():
+        _seed_text(seed[key], f'{label}.{key}')
+    for key in notes & seed.keys():
+        if not isinstance(seed[key], list):
+            raise ArchitectureMapError(f'{label}.{key} must be a list')
+        for note in seed[key]:
+            _seed_text(note, f'{label}.{key}')
+    if 'evidence' in seed:
+        _semantic_ids(seed['evidence'], f'{label}.evidence')
+    if 'brief' in seed:
+        brief = seed['brief']
+        fields = {'request', 'problem', 'users', 'outcome', 'scope', 'nonGoals', 'journeys', 'failureCases', 'dependencies', 'acceptanceCriteria'}
+        if not isinstance(brief, dict) or brief.keys() - (fields | {'decisions'}):
+            raise ArchitectureMapError(f'{label}.brief has an invalid shape')
+        for key in fields & brief.keys():
+            if not isinstance(brief[key], str):
+                raise ArchitectureMapError(f'{label}.brief.{key} must be text')
+        if 'decisions' in brief and (not isinstance(brief['decisions'], list) or any(not isinstance(item, dict) or not item for item in brief['decisions'])):
+            raise ArchitectureMapError(f'{label}.brief.decisions must contain draft decision objects')
 
 
 def project_domain_analysis(model: dict) -> dict:
@@ -925,6 +995,8 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     ):
         for item in strategic[collection]:
             semantic_evidence.update(item["evidence"])
+            if collection == 'candidate_slices':
+                semantic_evidence.update(item.get('seed', {}).get('evidence', []))
     if not semantic_evidence.issubset(evidence_ids):
         raise ArchitectureMapError("Strategic architecture references unknown intake evidence")
 
@@ -934,7 +1006,133 @@ def candidate_journeys(candidate: dict) -> set[str]:
     return {candidate['journey'], *candidate.get('supporting_journeys', [])}
 
 
+def validate_simple_model(model: dict, project_root: Path | None = None) -> dict:
+    """Small authored domain/C4 contract, independent of intake and approval state."""
+    if not isinstance(model, dict) or not {'schema_version', 'model_id', 'title', 'elements', 'relationships'} <= model.keys():
+        raise ArchitectureMapError('Map needs schema_version, model_id, title, elements and relationships')
+    allowed = {'schema_version', 'model_id', 'title', 'description', 'elements', 'relationships', 'decisions', 'domain', 'views'}
+    if set(model) - allowed or model['schema_version'] != '2.0':
+        raise ArchitectureMapError('Small architecture map has an unknown field or schema version')
+    _id(model['model_id'], 'model_id')
+    _text(model['title'], 'title')
+    elements = model['elements']
+    relationships = model['relationships']
+    if not isinstance(elements, list) or not elements or not all(isinstance(item, dict) for item in elements):
+        raise ArchitectureMapError('Map needs nonempty element objects')
+    if not isinstance(relationships, list) or not all(isinstance(item, dict) for item in relationships):
+        raise ArchitectureMapError('Relationships must be objects')
+    ids = set()
+    for item in elements:
+        _id(item.get('id'), 'element.id')
+        if item['id'] in ids:
+            raise ArchitectureMapError('Duplicate element ID: ' + item['id'])
+        ids.add(item['id'])
+        _text(item.get('name'), 'element.name')
+        _text(item.get('description'), 'element.description', maximum=5000)
+        if 'technology' in item:
+            _text(item['technology'], 'element.technology', allow_empty=True)
+        if item.get('type') not in SUPPORTED_DSL_ELEMENT_TYPES:
+            raise ArchitectureMapError('Unsupported element type: ' + str(item.get('type')))
+    by_id = {item['id']: item for item in elements}
+    if any(item.get('parent') is not None and (not isinstance(item['parent'], str) or item['parent'] not in ids) for item in elements):
+        raise ArchitectureMapError('Element references an unknown parent')
+    for item in elements:
+        parent = item.get('parent')
+        if parent is not None and parent not in ids:
+            raise ArchitectureMapError('Unknown parent: ' + str(parent))
+        seen = {item['id']}
+        while parent:
+            if parent in seen:
+                raise ArchitectureMapError('Element parents contain a cycle')
+            seen.add(parent)
+            parent = by_id[parent].get('parent')
+        parent_type = by_id.get(item.get('parent'), {}).get('type')
+        if item['type'] in {'container', 'data-store'} and parent_type not in {'software-system', 'external-system'}:
+            raise ArchitectureMapError('Container/data-store needs a software-system parent')
+        if item['type'] == 'component' and parent_type != 'container':
+            raise ArchitectureMapError('Component needs a container parent')
+        if item['type'] in {'person', 'software-system', 'external-system', 'bounded-context', 'domain-capability'} and item.get('parent'):
+            raise ArchitectureMapError('This element type must be top-level: ' + item['type'])
+    edge_ids = set()
+    for item in relationships:
+        _id(item.get('id'), 'relationship.id')
+        if item['id'] in edge_ids:
+            raise ArchitectureMapError('Duplicate relationship ID: ' + item['id'])
+        edge_ids.add(item['id'])
+        if item.get('source') not in ids or item.get('target') not in ids:
+            raise ArchitectureMapError('Relationship references an unknown element')
+        _text(item.get('description'), 'relationship.description', maximum=5000)
+    decisions = model.get('decisions', [])
+    if not isinstance(decisions, list) or not all(isinstance(item, dict) for item in decisions):
+        raise ArchitectureMapError('Decisions must be objects')
+    decision_ids = set()
+    for item in decisions:
+        identity = _id(item.get('id'), 'decision.id')
+        if identity in decision_ids or item.get('status') not in DECISION_STATUSES:
+            raise ArchitectureMapError('Decision needs a unique ID and explicit Proposed/Accepted/etc status')
+        decision_ids.add(identity)
+        if 'path' in item:
+            raw_path = _text(item['path'], 'decision.path')
+            path = Path(raw_path)
+            if path.is_absolute() or '..' in path.parts or '\\' in raw_path or ':' in raw_path:
+                raise ArchitectureMapError('ADR path must be repository-relative')
+            if project_root is not None and (not (project_root / path).resolve().is_relative_to(project_root.resolve()) or not (project_root / path).is_file()):
+                raise ArchitectureMapError('Referenced ADR does not exist inside this repository')
+    for item in [*elements, *relationships]:
+        refs = item.get('decision_refs', [])
+        if not isinstance(refs, list) or not all(isinstance(ref, str) and ref in decision_ids for ref in refs):
+            raise ArchitectureMapError('Unknown decision reference')
+    if 'domain' in model and not isinstance(model['domain'], dict):
+        raise ArchitectureMapError('Domain context must be an object of readable product concepts/policies')
+    views = model.get('views', [])
+    if not isinstance(views, list) or not all(isinstance(item, dict) for item in views):
+        raise ArchitectureMapError('Views must be objects')
+    view_ids = set()
+    for item in views:
+        identity = _id(item.get('id'), 'view.id')
+        if identity in view_ids or item.get('type') not in {'system-landscape', 'system-context', 'container', 'component', 'domain-landscape'}:
+            raise ArchitectureMapError('View needs a unique ID and supported type')
+        view_ids.add(identity)
+        expected = {'system-context': {'software-system', 'external-system'}, 'container': {'software-system'}, 'component': {'container'}}
+        if item['type'] in expected and by_id.get(item.get('scope'), {}).get('type') not in expected[item['type']]:
+            raise ArchitectureMapError('View scope has the wrong element type')
+    return model
+
+
+def export_simple_model(model: dict) -> str:
+    validate_simple_model(model)
+    lines = ['workspace ' + _escape(model['title']) + ' {', '    !identifiers flat', '    model {']
+    def emit(item, depth):
+        keyword = {'person': 'person', 'software-system': 'softwareSystem', 'external-system': 'softwareSystem',
+                   'container': 'container', 'data-store': 'container', 'component': 'component',
+                   'bounded-context': 'element', 'domain-capability': 'element'}[item['type']]
+        values = [item['name'], item['description']]
+        if keyword in {'container', 'component'}:
+            values.append(item.get('technology', ''))
+        if keyword == 'element':
+            values = [item['name'], item['type'], item['description']]
+        children = [child for child in model['elements'] if child.get('parent') == item['id']]
+        lines.append('    ' * depth + _dsl_identifier(item['id']) + ' = ' + keyword + ' ' + ' '.join(_escape(v) for v in values) + (' {' if children else ''))
+        for child in children:
+            emit(child, depth + 1)
+        if children:
+            lines.append('    ' * depth + '}')
+    for item in model['elements']:
+        if not item.get('parent'):
+            emit(item, 2)
+    for item in model['relationships']:
+        lines.append('        ' + _dsl_identifier(item['source']) + ' -> ' + _dsl_identifier(item['target']) + ' ' + _escape(item['description']))
+    lines += ['    }', '    views {']
+    for view in model.get('views') or [{'id': 'product-map', 'type': 'system-landscape'}]:
+        kind = {'system-landscape': 'systemLandscape', 'domain-landscape': 'custom', 'system-context': 'systemContext', 'container': 'container', 'component': 'component'}[view['type']]
+        scope = ' ' + _dsl_identifier(view['scope']) if kind in {'systemContext', 'container', 'component'} else ''
+        lines += ['        ' + kind + scope + ' ' + _escape(view['id']) + ' {', '            include *', '            autoLayout lr', '        }']
+    return '\n'.join([*lines, '    }', '}', ''])
+
+
 def validate_model(model: dict, project_root: Path | None = None) -> dict:
+    if isinstance(model, dict) and model.get('schema_version') == '2.0':
+        return validate_simple_model(model, project_root)
     required = {
         "schema_version",
         "model_id",
@@ -1249,9 +1447,10 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
                 if animated_id not in element_ids and animated_id not in relationship_ids:
                     raise ArchitectureMapError(f"View {key} animation references missing identity {animated_id}")
         _properties(view.get("properties"), f"{label}.properties")
-    if not {
-        "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
-    }.issubset(view_types):
+    required_types = {"system-context", "domain-landscape", "context-map", "context-decomposition"}
+    if any(not item.get('discovery') for item in model.get('strategic_model', {}).get('journeys', [])):
+        required_types.add('dynamic')
+    if not required_types.issubset(view_types):
         raise ArchitectureMapError("Architecture map 1.1 requires the full strategic view set")
 
     _validate_strategic_model(
@@ -1366,6 +1565,8 @@ class StructurizrDslExporter(ArchitectureMapExporter):
     id = "structurizr-dsl"
 
     def export(self, model: dict) -> str:
+        if model.get('schema_version') == '2.0':
+            return export_simple_model(model)
         validate_model(model)
         unsupported = sorted(
             element["id"] for element in model["elements"] if element["type"] not in SUPPORTED_DSL_ELEMENT_TYPES
@@ -2081,7 +2282,7 @@ def main() -> int:
             validate_model(model, project_root)
             print(
                 f"Program Kit architecture map is valid: {len(model['elements'])} element(s), "
-                f"{len(model['relationships'])} relationship(s), {len(model['views'])} view(s)"
+                f"{len(model['relationships'])} relationship(s), {len(model.get('views', []))} explicit view(s)"
             )
         elif args.command == "import":
             source = Path(args.source)

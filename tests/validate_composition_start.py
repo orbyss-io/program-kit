@@ -33,17 +33,20 @@ def add_typed_operation(root):
     for destination, content in typed_operation.render(owners, ROOT / 'extensions').items():
         if destination.endswith('client.ts'):
             continue  # The actual native generator runs before client integration below.
+        (root / destination).parent.mkdir(parents=True, exist_ok=True)
         (root / destination).write_bytes(content)
     runtime = root / 'src/Application.Runtime/ApplicationRuntimeFeature.cs'
     text = runtime.read_text()
     seam = 'public void ConfigureServices(IServiceCollection services) { }'
     if text.count(seam) != 1:
         raise ValueError('Native runtime registration seam changed; preserve source for review')
+    text = text.replace('public sealed class ApplicationRuntimeFeature :',
+                        'public sealed class ApplicationRuntimeFeature(CShells.ShellSettings settings) :')
     runtime.write_text('using ProgramKit.Examples.TypedOperation;\n' + text.replace(seam,
-        'public void ConfigureServices(IServiceCollection services) { LabelServices.Configure(services); }'), encoding='utf-8')
+        'public void ConfigureServices(IServiceCollection services) { var configuration = settings.GetConfigurationRoot(); LabelServices.Configure(services, configuration); }'), encoding='utf-8')
     runtime_project = root / owners['runtime']
     runtime_project.write_text(runtime_project.read_text().replace('</Project>',
-        '<ItemGroup><ProjectReference Include="../Planned.Core/Planned.Core.csproj" /></ItemGroup></Project>'), encoding='utf-8')
+        '<ItemGroup><ProjectReference Include="../Planned.Core/Planned.Core.csproj" /><PackageReference Include="Orbyss.Foundation.Execution" /></ItemGroup></Project>'), encoding='utf-8')
     provider = root / 'src/Application.PostgreSql/ProviderFeature.cs'
     provider.write_text('using ProgramKit.Examples.TypedOperation;\n' + provider.read_text().replace(
         'public void ConfigureServices(IServiceCollection services)\n    {',
@@ -61,13 +64,16 @@ def add_typed_operation(root):
     for row in value['runtimeComposition']['projects']:
         if row['path'] == owners['runtime']:
             row['projectReferences'].append(owners['core'])
+            if 'packageReferences' in row:
+                row['packageReferences'].append('Orbyss.Foundation.Execution')
         if row['path'] == 'src/Application.PostgreSql/Application.PostgreSql.csproj':
             row['projectReferences'].append('src/Planned.Core/Planned.Core.csproj')
         if row['path'] == 'src/Application.Api/Application.Api.csproj' and 'packageReferences' in row:
             row['packageReferences'].extend(['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'])
     architecture.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
     settings = root / 'runtime/policies/shells.json'; value = json.loads(settings.read_bytes())
-    value['CShells']['Shells']['policies'].setdefault('Configuration', {})['Sample'] = {'Api': {'Prefix': 'configured-'}}
+    value['CShells']['Shells']['policies'].setdefault('Configuration', {})['Sample'] = {
+        'Api': {'Prefix': 'configured-'}, 'Execution': {'Timeout': '00:00:30'}}
     value['CShells']['Shells']['policies']['Configuration'].setdefault('Foundation', {}).setdefault('Json', {})['Profiles'] = {
         'sample-label-request': {'Preset': 'strict-request', 'MaxBytes': 1024},
         'sample-label-response': {'Preset': 'tolerant-response', 'MaxBytes': 2048}}
@@ -113,7 +119,8 @@ def declare_typed_settings(root, evidence):
     private_options = root / 'src/Application.Api/PrivateEvidenceOptions.cs'
     if private_options.exists():
         raise ValueError('Refuse to overwrite existing private storage options')
-    private_options.write_text('''using CShells;
+    private_options.write_text('''using System;
+using CShells;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 namespace Application.Api;
@@ -125,8 +132,13 @@ public sealed class PrivateEvidenceOptions
     /// <summary>Binds the composition-owned section without resolving a provider.</summary>
     public static void Configure(IServiceCollection services, ShellSettings settings)
     {
-        services.AddOptions<PrivateEvidenceOptions>().Bind(settings.GetConfigurationRoot().GetSection("EvidenceFiles"))
-            .Validate(value => !string.IsNullOrWhiteSpace(value.Root), "EvidenceFiles:Root is required.");
+        var options = services.AddOptions<PrivateEvidenceOptions>();
+        var configuration = settings.GetConfigurationRoot();
+        var section = configuration.GetSection("EvidenceFiles");
+        Func<PrivateEvidenceOptions, bool> valid = value => !string.IsNullOrWhiteSpace(value.Root);
+        options
+            .Bind(section)
+            .Validate(valid, "EvidenceFiles:Root is required.");
     }
 }
 ''', encoding='utf-8')
@@ -164,6 +176,31 @@ public sealed class PrivateEvidenceOptions
     document = ET.fromstring((root / project).read_bytes())
     ET.SubElement(document.find('PropertyGroup'), 'FoundationSettingsMetadataSource').text = 'settings.source.json'
     (root / project).write_bytes(ET.tostring(document) + b'\n')
+    # The runtime owns the whole-operation safeguard, with its own first-source
+    # inspection/declaration rather than placing runtime settings in the API.
+    runtime_project = 'src/Application.Runtime/Application.Runtime.csproj'
+    runtime_root = root / 'src/Application.Runtime'
+    runtime_destination = runtime_root / 'settings.source.json'
+    if runtime_destination.exists():
+        raise ValueError('Refuse to overwrite an existing runtime settings declaration')
+    command(['dotnet', 'restore', runtime_project], root, evidence / 'runtime-restore')
+    command(['dotnet', 'msbuild', runtime_project, '-t:FoundationInspectSettingsSourceBindings',
+             '-p:Configuration=Release'], root, evidence / 'runtime-native-inspection')
+    reports = list((runtime_root / 'obj').rglob('settings-source-bindings.json'))
+    if len(reports) != 1:
+        raise ValueError('Native runtime settings inspection must produce one report')
+    report = json.loads(reports[0].read_bytes())
+    expected = {path.relative_to(runtime_root).as_posix() for path in runtime_root.rglob('*.cs')
+                if not {'obj', 'bin'}.intersection(path.relative_to(runtime_root).parts)}
+    if (report.get('schemaVersion') != 1 or report.get('contract') != 'utf8-optional-bom-crlf-to-lf-v1'
+            or set(report.get('sourceSha256', {})) != expected):
+        raise ValueError('Native runtime settings inspection differs from the new owned sources')
+    template = ROOT / 'extensions/program-kit-dotnet/references/examples/typed-operation/runtime.settings.source.template.json'
+    declaration = json.loads(template.read_bytes()); declaration['sourceSha256'] = report['sourceSha256']
+    runtime_destination.write_text(json.dumps(declaration, indent=2) + '\n', encoding='utf-8')
+    document = ET.fromstring((root / runtime_project).read_bytes())
+    ET.SubElement(document.find('PropertyGroup'), 'FoundationSettingsMetadataSource').text = 'settings.source.json'
+    (root / runtime_project).write_bytes(ET.tostring(document) + b'\n')
 
 
 def review_fixture_response_edit(root, original, evidence):
@@ -241,13 +278,13 @@ def install_native_tooling(root, directory):
         script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); from release_candidate import read,source,verify_payload; verify_payload(read(Path(sys.argv[1])),Path.cwd()/'artifacts',source())"
         command([sys.executable, '-c', script, imported], ROOT, directory / 'imported-payload-verification')
     else:
-        script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); import build_release; build_release.build_bundle_from_source(Path.cwd(),Path(sys.argv[1]))"
+        script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); import build_release; build_release.build_tooling_from_source(Path.cwd(),Path(sys.argv[1]))"
         command([sys.executable, '-c', script, str(directory)], ROOT, directory / 'current-bundle-build')
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
     from owned_scratch import filesystem_path
     release = Path(filesystem_path(directory / 'release')); release.mkdir()
     version = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
-    bundle = (ROOT / 'artifacts' if imported else directory) / ('program-kit-' + version + '.zip')
+    bundle = (ROOT / 'artifacts' if imported else directory) / ('program-kit-tooling-' + version + '.zip')
     with zipfile.ZipFile(bundle) as archive:
         for name in archive.namelist():
             path = (release / name).resolve()
@@ -384,7 +421,13 @@ def main():
     parser.add_argument('--single-host', action='store_true', help='qualify the typed single-host build/export boundary')
     parser.add_argument('--foundation-only', action='store_true', help='scaffold without the fictional unfinished product binding, for the ordinary emitted CI gate')
     parser.add_argument('--nested-shell', action='store_true', help='qualify native BFF/HostedPages paths below a non-root shell prefix')
+    parser.add_argument('--owner-operation', action='store_true', help='bounded retained-profile login/owner/secret/native EF deployment journey')
     args = parser.parse_args()
+    if args.owner_operation:
+        if not args.execute or args.tooling or args.foundation_only or args.nested_shell:
+            parser.error('--owner-operation requires --execute and excludes other scenario modes')
+        from composition_owner_fixture import run_owner_operation
+        return run_owner_operation(args, sys.modules[__name__])
     if args.nested_shell and (args.tooling or args.foundation_only):
         parser.error('--nested-shell uses the full native runtime fixture; the root-only typed example is a separate qualifier')
     if args.foundation_only and args.execute:
@@ -563,7 +606,7 @@ def main():
             source = source.replace('"Orbyss.Foundation.DomainEvents"]',
                 '"Orbyss.Foundation.DomainEvents", "Orbyss.Foundation.Json.AspNetCore", "Orbyss.Foundation.Web.ProblemDetails"]')
             source = source.replace('using CShells.AspNetCore.Features;',
-                                    'using CShells.AspNetCore.Features;\nusing Microsoft.AspNetCore.Builder;\nusing Microsoft.AspNetCore.Http;\nusing Microsoft.AspNetCore.Mvc;')
+                                    'using CShells.AspNetCore.Features;\nusing Microsoft.AspNetCore.Authorization;\nusing Microsoft.AspNetCore.Builder;\nusing Microsoft.AspNetCore.Http;\nusing Microsoft.AspNetCore.Mvc;')
             source = source.replace('public void ConfigureServices(IServiceCollection services) { }',
                                     'public void ConfigureServices(IServiceCollection services) { services.AddScoped<ProbeService>(); LabelEndpoints.Configure(services, settings); }')
             feature.with_name('ProbeService.cs').write_text('''namespace Application.Api;
@@ -576,14 +619,36 @@ public sealed class ProbeService
     public string Policy => "consumer-ready";
 }
 ''', encoding='utf-8')
+            feature.with_name('ProbeResponse.cs').write_text('''namespace Application.Api;
+/// <summary>Wire representation for the fictional excluded probe route.</summary>
+public sealed record ProbeResponse(string Policy);
+''', encoding='utf-8')
             seam = 'public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment) { }'
             if seam not in source:
                 raise ValueError('consumer-owned endpoint seam changed')
-            feature.write_text(source.replace(seam, 'public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment)\n'
-                               '    {\n        LabelEndpoints.Map(endpoints);\n        endpoints.MapGet("/api/first-policy", ([FromServices] ProbeService service) => Results.Ok(new { policy = service.Policy }))'
-                               '.WithName("ReadFirstPolicy").RequireAuthorization().ExcludeFromDescription();\n'
-                               '        endpoints.MapGet("/api/permission-probe", () => Results.NoContent())'
-                               '.WithName("ProbePermission").RequireAuthorization(policy => policy.RequireRole("admin")).ExcludeFromDescription();\n    }'), encoding='utf-8')
+            feature.write_text(source.replace(seam, '''public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment)
+    {
+        LabelEndpoints.Map(endpoints);
+        Action<AuthorizationPolicyBuilder> requireAdmin = policy => policy.RequireRole("admin");
+        endpoints
+            .MapGet("/api/first-policy", ReadFirstPolicy)
+            .WithName("ReadFirstPolicy")
+            .RequireAuthorization()
+            .ExcludeFromDescription();
+        endpoints
+            .MapGet("/api/permission-probe", PermissionProbe)
+            .WithName("ProbePermission")
+            .RequireAuthorization(requireAdmin)
+            .ExcludeFromDescription();
+    }
+    /// <summary>Supplies a bounded fictional route result after request-scoped resolution.</summary>
+    private static IResult ReadFirstPolicy([FromServices] ProbeService service)
+    {
+        var response = new ProbeResponse(service.Policy);
+        return Results.Ok(response);
+    }
+    /// <summary>Exposes the permission-only probe after native authorization.</summary>
+    private static IResult PermissionProbe() => Results.NoContent();'''), encoding='utf-8')
             # This new slice changes actual project/package references. Explicit
             # preparation owns their restore; ordinary update acquires nothing.
             if args.tooling:

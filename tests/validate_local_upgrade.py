@@ -184,7 +184,7 @@ def authenticate_fictional_native_sources(project: Path, fixture_root: Path) -> 
     finally:
         sys.path.remove(str(ROOT / 'scripts'))
     staged = fixture_root / 'candidate-release'
-    for directory in ('scripts', 'extensions', 'presets', 'workflows', 'releases'):
+    for directory in ('scripts', 'extensions', 'presets', 'releases'):
         shutil.copytree(ROOT / directory, staged / directory,
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'bin', 'obj', 'node_modules'))
     for name in ('VERSION', 'bundle.yml', 'README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md'):
@@ -511,7 +511,6 @@ def main() -> int:
         )
         require_success(initialized, "Spec Kit initialization")
         primitive_commands = (
-            ("specify", "workflow", "add", str(ROOT / "workflows/program-kit-bootstrap"), "--dev"),
             ("specify", "extension", "add", str(ROOT / "extensions/program-kit-governance"), "--dev", "--force"),
             ("specify", "extension", "add", str(ROOT / "extensions/program-kit-building-blocks"), "--dev", "--force"),
             ("specify", "extension", "add", str(ROOT / "extensions/program-kit-dotnet"), "--dev", "--force"),
@@ -534,14 +533,9 @@ def main() -> int:
             project / ".specify/extensions/program-kit-building-blocks/extension.yml",
             project / ".specify/extensions/program-kit-dotnet/extension.yml",
             project / ".specify/presets/program-kit-governance-preset/preset.yml",
-            project / ".specify/workflows/program-kit-bootstrap/workflow.yml",
         )
         for manifest in manifests:
             set_manifest_version(manifest, expected, old)
-        workflow_registry_path = project / ".specify/workflows/workflow-registry.json"
-        workflow_registry = json.loads(workflow_registry_path.read_text(encoding="utf-8"))
-        workflow_registry["workflows"]["program-kit-bootstrap"]["version"] = old
-        workflow_registry_path.write_text(json.dumps(workflow_registry), encoding="utf-8")
         preset_registry_path = project / ".specify/presets/.registry"
         preset_registry = json.loads(preset_registry_path.read_text(encoding="utf-8"))
         preset_registry["presets"]["program-kit-governance-preset"]["version"] = old
@@ -727,9 +721,8 @@ def main() -> int:
         partial_cli.write_text(
             "import subprocess, sys\n"
             "args = sys.argv[1:]\n"
-            "if args[:2] == ['extension', 'add'] and "
-            "any(value.replace('\\\\', '/').endswith('/extensions/program-kit-governance') for value in args):\n"
-            "    print('deliberate third-step failure', file=sys.stderr)\n"
+            "if args[:2] == ['preset', 'remove']:\n"
+            "    print('deliberate sequential preset-removal failure', file=sys.stderr)\n"
             "    raise SystemExit(97)\n"
             "raise SystemExit(subprocess.run(['specify', *args], check=False).returncode)\n",
             encoding="utf-8",
@@ -740,14 +733,14 @@ def main() -> int:
             json.dumps([sys.executable, str(partial_cli)]),
             cwd=project,
         )
-        if partial.returncode != 2 or "PKU105 Install governance extension" not in partial.stderr:
-            raise AssertionError(f"partial sequential upgrade fixture did not fail at step three:\n{partial.stdout}{partial.stderr}")
-        if "Resolve bundle composition record" in partial.stdout or "Install bootstrap workflow" not in partial.stdout:
+        if partial.returncode != 2 or "PKU105 Remove prior governance preset" not in partial.stderr:
+            raise AssertionError(f"partial sequential upgrade fixture did not fail after extension refresh:\n{partial.stdout}{partial.stderr}")
+        if "Resolve bundle composition record" in partial.stdout or "Install .NET extension" not in partial.stdout:
             raise AssertionError("partial sequential upgrade advanced bundle authority before component refresh completed")
         partial_records = json.loads(
             (project / ".specify/bundle-records.json").read_text(encoding="utf-8")
         )["bundles"][0]
-        if partial_records.get("version") != old or version(manifests[0]) != old:
+        if partial_records.get("version") != old or version(manifests[0]) != expected:
             raise AssertionError("partial upgrade fixture did not leave the expected mixed component state")
 
         post_install_cli = project / 'post_install_specify.py'
@@ -789,7 +782,6 @@ def main() -> int:
         if 'deferredPersistenceAdmissions' not in installed.stdout or 'policy-portfolio' not in installed.stdout:
             raise AssertionError('Initialized consumer lost its explicit future admission obligations')
         order = (
-            "Install bootstrap workflow",
             "Install governance extension",
             "Install building-block extension",
             "Install .NET extension",

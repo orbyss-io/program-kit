@@ -47,23 +47,25 @@ def git(root: Path, *arguments: str) -> str:
 
 
 def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
+    from product_version import is_preview
     names = {
         f"program-kit-governance-{version}.zip",
         f"program-kit-building-blocks-{version}.zip",
         f"program-kit-dotnet-{version}.zip",
         f"program-kit-governance-preset-{version}.zip",
-        f"program-kit-bootstrap-{version}.zip",
         f"program-kit-{version}.zip",
+        f"program-kit-tooling-{version}.zip",
         f"Initialize-ProgramKit-{version}.cmd",
         f"Initialize-ProgramKit-{version}.sh",
         "SHA256SUMS",
         f"RELEASE-NOTES-{version}.md",
-        f"MIGRATIONS-{version}.md",
-        f"migration-index-{version}.json",
         f"dependency-profile-index-{version}.json",
     }
+    current = is_preview(version) or int(version.split('.')[0]) >= 1
+    names.update({f'COMPATIBILITY-{version}.md'} if current else
+                 {f'MIGRATIONS-{version}.md', f'migration-index-{version}.json'})
     files = sorted((artifacts / name for name in names), key=lambda path: path.name.casefold())
-    index = json.loads((artifacts / f'migration-index-{version}.json').read_text(encoding='utf-8'))
+    index = {} if current else json.loads((artifacts / f'migration-index-{version}.json').read_text(encoding='utf-8'))
     if index.get('consumerChanges'):
         semantic = index['consumerChanges']
         if Path(semantic['file']).name != semantic['file']:
@@ -71,7 +73,7 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
         if sha256(artifacts / semantic['file']) != semantic['sha256']:
             raise RuntimeError('Consumer change metadata is missing or changed')
         files.append(artifacts / semantic['file'])
-    for entry in index['entries']:
+    for entry in index.get('entries', []):
         name = entry['guide']
         if Path(name).name != name:
             raise RuntimeError('Release guide must be a basename')
@@ -104,3 +106,21 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
     if any(sha256(artifacts / name) != value for name, value in checksums.items()):
         raise RuntimeError('Release artifact differs from its checksum')
     return [{"path": f"artifacts/{path.name}", "sha256": sha256(path), "size": path.stat().st_size} for path in files]
+
+
+def tooling_archive(directory: Path, version: str) -> Path:
+    """Select complete inputs, accepting the predecessor composite only if complete.
+
+    New candidate inventories always require the separately named tooling archive.
+    Historical fixtures may retain a composite predating that split.
+    """
+    current = directory / f'program-kit-tooling-{version}.zip'
+    if current.is_file():
+        return current
+    import zipfile
+    previous = directory / f'program-kit-{version}.zip'
+    if previous.is_file():
+        with zipfile.ZipFile(previous) as archive:
+            if 'scripts/upgrade_program_kit.py' in archive.namelist():
+                return previous
+    raise FileNotFoundError(f'Missing complete tooling archive: {current.name}; the composition bundle is not an updater source')

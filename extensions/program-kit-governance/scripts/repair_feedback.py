@@ -217,7 +217,9 @@ class GitHub:
             known = [Path(os.environ.get('ProgramFiles', 'C:/Program Files')) / 'GitHub CLI/gh.exe',
                      Path('/opt/homebrew/bin/gh'), Path('/usr/local/bin/gh'), Path('/usr/bin/gh')]
             c.require(not any(p.is_file() for p in known), 'github-cli-outside-PATH-add-install-directory')
-            raise ValueError('PKRF github-cli-absent-see-https://cli.github.com/')
+            from program_kit_runtime import device_toolchain as device
+            value = device.diagnostic('gh', 'available', 'Explicit GitHub repair-feedback operation', None, None, Path.cwd())
+            raise ValueError('PKRF github-cli-absent-see-https://cli.github.com/\n' + device.render(value))
         self.host = host
 
     def auth(self):

@@ -2,16 +2,14 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import re
 import sys
-from datetime import datetime, timezone
+import tempfile
 from pathlib import Path
 
 import governance_state as governance
-from lifecycle_state import atomic_write
 
 
 FIELDS = (
@@ -21,13 +19,25 @@ FIELDS = (
 DISPOSITIONS = {"answered", "default", "excluded", "deferred", "open"}
 
 
+def atomic_write(path: Path, value: dict) -> None:
+    """Safely persist only the explicitly selected optional brief."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, name = tempfile.mkstemp(prefix=path.name + '.', dir=path.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(descriptor, 'w', encoding='utf-8', newline='\n') as stream:
+            stream.write(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise ValueError("PKS001 " + message)
 
 
-def digest(value: object) -> str:
-    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+
 
 
 def read(path: Path) -> dict:
@@ -42,54 +52,65 @@ def inside(repository: Path, relative: str) -> Path:
     return path
 
 
-def directory(repository: Path, entry: str) -> Path:
-    require(bool(re.fullmatch(r"[A-Z][A-Z0-9-]+", entry)), "Use the exact roadmap entry ID")
-    return inside(repository, f".program-kit/specification-intake/{entry}")
+def directory(repository: Path, entry: str, feature: str | None = None) -> Path:
+    identity = feature or entry
+    require(bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,63}", identity)), "Use a stable feature name")
+    return inside(repository, f"docs/architecture/feature-intake/{identity}")
+
+
+def validate_identity(brief: dict, entry: str, feature: str | None = None) -> None:
+    require(brief.get('schemaVersion') == (2 if feature else 1) and brief.get('roadmapEntry') == entry,
+            'Brief schema or roadmap identity does not match')
+    require(brief.get('featureId') == feature, 'Brief feature identity does not match')
+
+
+def resolve_spec_brief(repository: Path, spec_path: Path) -> tuple[Path | None, dict]:
+    """Resolve an optional authored context link; no roadmap or receipt prerequisite."""
+    require(spec_path.resolve().is_relative_to(repository.resolve()), 'Spec must stay inside the repository')
+    text = spec_path.read_text(encoding='utf-8') if spec_path.is_file() else ''
+    references = re.findall(r'^\s*-?\s*\*\*(?:Intake brief|Confirmed intake brief)\*\*:\s*(\S+)\s*$', text, re.MULTILINE)
+    require(len(references) <= 1, 'Use one optional intake brief reference')
+    if references:
+        path = inside(repository, references[0])
+        require(path.is_file(), 'Referenced intake brief does not exist')
+        if path.suffix == '.json':
+            return path, read(path)
+        require(bool(path.read_text(encoding='utf-8').strip()), 'Referenced intake document is empty')
+        return path, {'document': path.relative_to(repository).as_posix()}
+    scopes = re.findall(r'^\s*-?\s*\*\*Architecture scope\*\*:\s*(.+)$', text, re.MULTILINE)
+    require(len(scopes) <= 1, 'Use one optional architecture scope')
+    return None, {'architectureScope': [item.strip().strip("`") for item in scopes[0].split(',')]} if scopes else {}
 
 
 def nonempty(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def bootstrap_obligations(repository: Path, entry: str) -> list[dict]:
-    """Project selected feature decisions and open architecture obligations, not closed proofs."""
-    path = repository / 'docs/architecture/bootstrap-prerequisites.json'
+def product_frontier(repository: Path) -> list[dict]:
+    """Return optional existing questions as context; applicability belongs to this conversation."""
+    path = repository / governance.BOOTSTRAP_INTAKE
     if not path.is_file():
         return []
-    fields = ('id', 'source_ids', 'owner', 'task', 'rationale', 'trigger')
-    from bootstrap_lifecycle import verification_kind
-    return sorted(({**{k: item[k] for k in fields}, 'verification': verification_kind(item)} for item in read(path)['prerequisites']
-                   if entry in item['affected_slices'] and item['status'] != 'closed'
-                   and item['disposition'] in {'feature', 'architecture'}),
-                  key=lambda item: item['id'])
+    items = read(path).get('open_items', [])
+    require(isinstance(items, list) and all(isinstance(item, dict) for item in items), 'Product questions must be objects')
+    return [{'source': governance.BOOTSTRAP_INTAKE.as_posix(), **item} for item in items]
 
 
-def require_bootstrap_carryover(brief: dict, obligations: list[dict]) -> None:
-    for obligation in obligations:
-        matches = [item for item in brief['decisions'] if item.get('bootstrapPrerequisite') == obligation['id']]
-        require(len(matches) == 1, f"Bootstrap prerequisite {obligation['id']} needs exactly one linked intake decision "
-                '(bootstrapPrerequisite); resolve its policy or defer its planning work explicitly')
-        item = matches[0]
-        require(item['disposition'] in {'answered', 'default', 'deferred'},
-                f"Bootstrap prerequisite {obligation['id']} cannot be silently excluded")
-        if obligation.get('verification') == 'compatibility':
-            require(item['disposition'] == 'deferred',
-                    f"Bootstrap prerequisite {obligation['id']} requires executed evidence, not an intake answer; retain its due phase")
-        if item['disposition'] == 'deferred':
-            require(item.get('duePhase') == {'before-implementation': 'implementation', 'delivery': 'delivery'}.get(obligation['trigger'], 'planning'),
-                    f"Bootstrap prerequisite {obligation['id']} must preserve its owning phase gate")
-    known = {item['id'] for item in obligations}
-    require(all(item.get('bootstrapPrerequisite') in known for item in brief['decisions']
-                if 'bootstrapPrerequisite' in item), 'Unknown or out-of-scope bootstrap prerequisite link')
 
 
-def validate_brief(brief: dict, entry: str) -> None:
-    require(brief.get("schemaVersion") == 1 and brief.get("roadmapEntry") == entry,
-            "Brief schema or roadmap identity does not match")
+
+
+
+
+
+
+
+def validate_brief(brief: dict, entry: str, feature: str | None = None) -> None:
+    validate_identity(brief, entry, feature)
     for key in ("request", *FIELDS):
         require(nonempty(brief.get(key)), f"Brief requires {key}")
     decisions = brief.get("decisions")
-    require(isinstance(decisions, list) and bool(decisions), "Record the reviewed decisions and their provenance")
+    require(isinstance(decisions, list), "Decisions must be an array with actual provenance where choices were made")
     ids = [item.get("id") for item in decisions if isinstance(item, dict)]
     require(len(ids) == len(decisions) and all(nonempty(i) for i in ids) and len(set(ids)) == len(ids),
             "Decision IDs must be present and unique")
@@ -108,8 +129,9 @@ def validate_brief(brief: dict, entry: str) -> None:
             require(not item["blocking"], f"{item['id']} blocks specification and cannot be deferred")
             require(nonempty(item.get("owner")) and nonempty(item.get("trigger")),
                     f"{item['id']} needs a deferral owner/next action and trigger")
-            require(item.get('duePhase') in {'planning', 'after-plan', 'after-tasks', 'implementation', 'delivery'},
-                    f"{item['id']} needs a structured duePhase; review the intended legacy trigger")
+            if 'duePhase' in item:
+                require(item['duePhase'] in {'planning', 'after-plan', 'after-tasks', 'implementation', 'delivery'},
+                        f"{item['id']} has an unsupported optional duePhase")
         if status in {"answered", "default"}:
             require(all(by_id[d].get("disposition") in {"answered", "default"} for d in dependencies),
                     f"{item['id']} relies on an unsettled premise")
@@ -129,112 +151,85 @@ def validate_brief(brief: dict, entry: str) -> None:
         visit(identity)
 
 
-def context(repository: Path, entry: str, *, later: bool = False) -> dict:
-    # Product intent is durable; mechanical governance state is not a prerequisite.
-    governance.configure_paths()
-    roadmap = repository / governance.ROADMAP
-    records = governance.roadmap_records(roadmap) if roadmap.is_file() else []
-    matches = [r for r in records if r['id'] == entry]
-    record = matches[0] if len(matches) == 1 else {'id': entry}
-    from feature_knowledge import project as project_knowledge
-    brief_path = directory(repository, entry) / 'brief.json'
-    brief = read(brief_path) if brief_path.is_file() else {}
-    return {'roadmap': {k:v for k,v in record.items() if k != 'Status'},
-            'canonicalKnowledge': project_knowledge(repository, brief.get('architectureScope')),
-            'bootstrapObligations': [], 'sources': {}}
+def context(repository: Path, entry: str, *, later: bool = False, feature: str | None = None) -> dict:
+    from feature_knowledge import project
+    path = directory(repository, entry, feature) / 'brief.json'
+    brief = read(path) if path.is_file() else {}
+    paths = [governance.PROJECT_INTENT, governance.CONSTITUTION, governance.ROADMAP, governance.ARCHITECTURE]
+    return {'roadmap': {'id': entry}, 'canonicalKnowledge': project(repository, brief.get('architectureScope'), feature_id=feature),
+            'productFrontier': product_frontier(repository),
+            'documents': [p.as_posix() for p in paths if (repository / p).is_file()]}
 
 
 def review_text(brief: dict, basis: dict) -> str:
-    lines = [f"# Specification intake: {brief['roadmapEntry']}", "", "## Request", brief["request"]]
+    lines = ['# Feature intake: ' + (brief.get('featureId') or brief['roadmapEntry']), '', brief['request']]
     for field in FIELDS:
-        lines += ["", f"## {field}", brief[field]]
-    lines += ["", "## Decisions, defaults and deferred work"]
-    for item in brief["decisions"]:
-        lines += ["", f"### {item['id']}: {item['question']}", item["answer"],
-                  f"Disposition: {item['disposition']}; blocking: {item['blocking']}",
-                  f"Provenance: {item['provenance']}", f"Rationale: {item['rationale']}",
-                  "Depends on: " + (", ".join(item["dependsOn"]) or "none")]
-        if item["disposition"] == "deferred":
-            lines += [f"Owner / next action: {item['owner']}", f"Trigger: {item['trigger']}", f"Due phase: {item['duePhase']}"]
-    if basis.get('canonicalKnowledge'):
-        from bootstrap_context import semantic_projection
-        lines += ["", "## Canonical architecture scope", "```json",
-                  json.dumps(semantic_projection(basis['canonicalKnowledge']), ensure_ascii=False, separators=(',', ':')), "```"]
-    if basis.get('bootstrapObligations'):
-        lines += ['', '## Inherited bootstrap planning obligations']
-        for item in basis['bootstrapObligations']:
-            lines += [f"- {item['id']} ({item['owner']}; {item['trigger']}): {item['task']}",
-                      f"  Source IDs: {', '.join(item['source_ids'])}. Rationale: {item['rationale']}"]
-    lines += ["", "## Review basis", f"Brief SHA256: {digest(brief)}", f"Context SHA256: {digest(basis)}", ""]
-    return "\n".join(lines)
+        lines += ['', '## ' + field, brief[field]]
+    lines += ['', '## Decisions and open work']
+    for item in brief['decisions']:
+        lines += ['- ' + item['question'] + ': ' + item['answer'],
+                  '  ' + item['disposition'] + '; ' + item['provenance'] + '; ' + item['rationale']]
+        if item['disposition'] == 'deferred':
+            lines += ['  Owner: ' + item['owner'] + '; trigger: ' + item['trigger']]
+    lines += ['', 'Review substantive choices with the human. Record actual confirmation in the spec or intake document; this rendering supplies no consent.', '']
+    return '\n'.join(lines)
 
 
-def prepare(repository: Path, entry: str, *, later: bool = False) -> tuple[Path, dict, dict, str]:
-    folder = directory(repository, entry)
-    brief = read(folder / "brief.json")
-    validate_brief(brief, entry)
-    basis = context(repository, entry, later=later)
-    require_bootstrap_carryover(brief, basis['bootstrapObligations'])
+def prepare(repository: Path, entry: str, *, later: bool = False, feature: str | None = None) -> tuple[Path, dict, dict, str]:
+    folder = directory(repository, entry, feature)
+    brief = read(folder / 'brief.json')
+    validate_brief(brief, entry, feature)
+    basis = context(repository, entry, later=later, feature=feature)
     return folder, brief, basis, review_text(brief, basis)
 
 
-def begin(repository: Path, entry: str, request: str) -> Path:
-    context(repository, entry)
-    path = directory(repository, entry) / "brief.json"
+def begin(repository: Path, entry: str, request: str, *, feature: str | None = None) -> Path:
+    context(repository, entry, feature=feature)
+    path = directory(repository, entry, feature) / "brief.json"
     if path.exists():
-        require(read(path).get("roadmapEntry") == entry, "Existing interview has a different identity")
+        validate_identity(read(path), entry, feature)
         return path  # Resume without discarding answers or replacing the original request.
-    require(nonempty(request), "An initial feature request is required")
-    atomic_write(path, {"schemaVersion": 1, "roadmapEntry": entry, "request": request,
-                        **{field: "" for field in FIELDS}, "decisions": []})
+    seed = None
+    model_path = repository / 'docs/architecture/architecture-map.json'
+    if feature and model_path.is_file():
+        candidates = read(model_path).get('strategic_model', {}).get('candidate_slices', [])
+        matches = [item for item in candidates if item.get('id') == feature]
+        require(len(matches) <= 1, 'Canonical feature candidate identity must be unique')
+        seed = matches[0] if matches else None
+        require(entry == 'FEATURE' or not seed or not seed.get('epic') or seed['epic'] == entry,
+                'Feature seed belongs to a different roadmap epic')
+    value = {'schemaVersion': 2 if feature else 1, 'roadmapEntry': entry,
+             'request': request, **{field: '' for field in FIELDS}, 'decisions': []}
+    if feature:
+        value['featureId'] = feature
+    if seed:
+        value['featureSeed'] = seed
+        supplied = seed.get('seed', {}).get('brief', {})
+        require(isinstance(supplied, dict), 'Feature seed brief must be an object')
+        value.update({key: supplied[key] for key in (*FIELDS, 'decisions') if key in supplied})
+        if not nonempty(request):
+            value['request'] = supplied.get('request') or seed.get('outcome') or seed.get('title', '')
+        if seed.get('contexts'):
+            value['architectureScope'] = list(seed['contexts'])
+    require(nonempty(value['request']), 'An initial feature request is required')
+    atomic_write(path, value)
     return path
 
 
-def review(repository: Path, entry: str) -> dict:
-    folder, brief, basis, text = prepare(repository, entry)
-    (folder / "review.md").write_text(text, encoding="utf-8", newline="\n")
-    result = {"briefHash": digest(brief), "context": basis,
-              "reviewHash": hashlib.sha256(text.encode("utf-8")).hexdigest()}
-    atomic_write(folder / "review-basis.json", result)
-    return result
+def review(repository: Path, entry: str, *, feature: str | None = None) -> dict:
+    folder, brief, basis, text = prepare(repository, entry, feature=feature)
+    return {'brief': (folder / 'brief.json').relative_to(repository).as_posix(), 'review': text, 'context': basis}
 
 
-def current_review(repository: Path, entry: str, *, later: bool = False) -> tuple[Path, dict]:
-    folder, brief, basis, text = prepare(repository, entry, later=later)
-    expected = {"briefHash": digest(brief), "context": basis,
-                "reviewHash": hashlib.sha256(text.encode("utf-8")).hexdigest()}
-    require(read(folder / "review-basis.json") == expected, "Review is stale; reopen affected decisions and review again")
-    require((folder / "review.md").read_bytes() == text.encode("utf-8"), "Review text has changed; regenerate and review again")
-    return folder, expected
 
 
-def confirm(repository: Path, entry: str, review_hash: str, source: str, answer: str) -> dict:
-    folder, expected = current_review(repository, entry)
-    require(review_hash == expected["reviewHash"], "Confirmation must name the exact presented review hash")
-    require(nonempty(source) and nonempty(answer), "Record the explicit user confirmation and its conversation source")
-    receipt = {"schemaVersion": 1, "roadmapEntry": entry, **expected,
-               "confirmationSource": source, "confirmationText": answer,
-               "confirmedAtUtc": datetime.now(timezone.utc).isoformat()}
-    atomic_write(folder / "confirmation.json", receipt)
-    return receipt
 
-
-def check(repository: Path, entry: str, *, later: bool = False) -> dict:
-    folder = directory(repository, entry)
+def check(repository: Path, entry: str, *, later: bool = False, feature: str | None = None) -> dict:
+    folder = directory(repository, entry, feature)
     brief = read(folder / 'brief.json')
-    validate_brief(brief, entry)
-    receipt = read(folder / 'confirmation.json')
-    require(receipt.get('schemaVersion') == 1 and receipt.get('roadmapEntry') == entry,
-            'Confirmation belongs to another feature or unsupported schema')
-    require(receipt.get('briefHash') == digest(brief), 'Feature intent changed; clarify the affected product choices')
-    synthesis = folder / 'review.md'
-    if synthesis.is_file():
-        require(hashlib.sha256(synthesis.read_bytes()).hexdigest() == receipt.get('reviewHash'),
-                'Presented product synthesis changed; restore it or clarify the changed decisions')
-    require(all(nonempty(receipt.get(key)) for key in ('confirmationSource','confirmationText','confirmedAtUtc')),
-            'Explicit product confirmation is missing')
-    return {'roadmapEntry':entry,'briefHash':receipt['briefHash'],
-            'brief':(folder / 'brief.json').relative_to(repository).as_posix()}
+    validate_brief(brief, entry, feature)
+    return {'roadmapEntry': entry, **({'featureId': feature} if feature else {}),
+            'brief': (folder / 'brief.json').relative_to(repository).as_posix()}
 
 
 def spec_entries(text: str) -> list[str]:
@@ -242,52 +237,43 @@ def spec_entries(text: str) -> list[str]:
 
 
 def check_spec(repository: Path, spec_path: Path) -> dict:
-    require(spec_path.resolve().is_relative_to(repository), "Spec must stay inside the repository")
-    text = spec_path.read_text(encoding="utf-8")
-    identities = spec_entries(text)
-    hashes = re.findall(r"^\s*- \*\*Confirmed intake SHA256\*\*:\s*([0-9a-f]{64})\s*$", text, re.MULTILINE)
-    references = re.findall(r"^\s*- \*\*Confirmed intake brief\*\*:\s*(\S+)\s*$", text, re.MULTILINE)
-    require(len(identities) == len(hashes) == len(references) == 1,
-            "Spec requires one roadmap entry, confirmed intake brief and SHA256; run specification-intake")
-    result = check(repository, identities[0], later=True)
-    require(hashes[0] == result["briefHash"] and references[0] == result["brief"],
-            "Spec intake reference differs from the current confirmed brief")
-    return result
+    require(spec_path.resolve().is_relative_to(repository.resolve()), 'Spec must stay inside the repository')
+    text = spec_path.read_text(encoding='utf-8')
+    require(bool(text.strip()), 'Specification is empty')
+    require(bool(re.search(r'^#\s+\S', text, re.MULTILINE)), 'Specification needs a readable title')
+    path, brief = resolve_spec_brief(repository, spec_path)
+    if 'architectureScope' in brief:
+        from feature_knowledge import project
+        project(repository, brief['architectureScope'], feature_id=brief.get('featureId'))
+    return {'spec': spec_path.resolve().relative_to(repository.resolve()).as_posix(),
+            'brief': path.relative_to(repository).as_posix() if path else None,
+            'review': 'Human review is recorded in authored documents, not inferred from this content check.'}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repository", default=".")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("begin", "context", "review", "confirm", "check"):
+    for name in ("begin", "context", "review", "check"):
         command = commands.add_parser(name)
-        command.add_argument("--entry", required=True)
+        command.add_argument("--entry", default='FEATURE', help='Optional existing roadmap identity')
+        command.add_argument('--feature', help='Stable canonical feature ID within the parent roadmap epic')
         if name == "begin":
-            command.add_argument("--request", required=True)
-        if name == "confirm":
-            command.add_argument("--review-sha256", required=True)
-            command.add_argument("--confirmation-source", required=True)
-            command.add_argument("--confirmation-text", required=True)
+            command.add_argument("--request", default='')
     commands.add_parser("check-spec").add_argument("--spec", required=True)
-    commands.add_parser('compatibility').add_argument('--request-file', required=True)
     args = parser.parse_args()
     repository = Path(args.repository).resolve()
     previous = Path.cwd()
     try:
         os.chdir(repository)
-        if args.command == 'compatibility':
-            from consumer_upgrade import scan, request_scope
-            result = scan(repository, request_scope(repository, read(inside(repository, args.request_file))), 'specification')
-        elif args.command == "begin":
-            result = str(begin(repository, args.entry, args.request))
+        if args.command == "begin":
+            result = str(begin(repository, args.entry, args.request, feature=args.feature))
         elif args.command == 'context':
-            result = context(repository, args.entry)
+            result = context(repository, args.entry, feature=args.feature)
         elif args.command == "review":
-            result = review(repository, args.entry)
-        elif args.command == "confirm":
-            result = confirm(repository, args.entry, args.review_sha256, args.confirmation_source, args.confirmation_text)
+            result = review(repository, args.entry, feature=args.feature)
         elif args.command == "check":
-            result = check(repository, args.entry)
+            result = check(repository, args.entry, feature=args.feature)
         else:
             result = check_spec(repository, inside(repository, args.spec))
         print(json.dumps(result, ensure_ascii=False))

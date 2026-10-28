@@ -133,11 +133,11 @@ class PersistenceTests(unittest.TestCase):
         selected = self.select(*owners)
         self.assertEqual(26, len(selected['blockers']))
         before = (self.root / 'docs/architecture/bootstrap-decisions.json').read_bytes()
-        report = sync.readiness(self.root, 'upgrade', validate_authority=False)
+        report = sync.readiness(self.root, 'upgrade')
         self.assertTrue(report['ready'], report)
         self.assertEqual(2, len(report['deferredPersistenceAdmissions']))
         self.assertEqual(26, sum(len(item['blockers']) for item in report['deferredPersistenceAdmissions']))
-        self.assertTrue(sync.readiness(self.root, 'implementation', validate_authority=False)['blockers'])
+        self.assertTrue(sync.readiness(self.root, 'implementation')['blockers'])
         self.assertEqual(before, (self.root / 'docs/architecture/bootstrap-decisions.json').read_bytes())
         self.assertFalse((self.root / '.program-kit/managed.json').exists())
 

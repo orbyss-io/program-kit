@@ -23,6 +23,58 @@ spec.loader.exec_module(module)
 
 
 class IntakeSessionTests(unittest.TestCase):
+    def test_supplied_material_is_absent_during_native_repository_initialization(self):
+        idea = self.record / 'idea.md'; idea.write_text('Synthetic room booking idea')
+        contracts = self.record / 'contracts'; contracts.mkdir()
+        (contracts / 'scope.md').write_text('Synthetic selected acceptance scope')
+        observed = []
+        def install(specify, git, workspace, record):
+            self.assertFalse((workspace / 'product-idea.md').exists())
+            self.assertFalse((workspace / 'acceptance').exists())
+            observed.append(workspace)
+            skill = workspace / module.SKILL; skill.parent.mkdir(parents=True)
+            skill.write_text(module.GRILLING.as_posix())
+            grilling = workspace / module.GRILLING; grilling.parent.mkdir(parents=True)
+            shutil.copyfile(module.ROOT / 'extensions/program-kit-governance/commands' / module.GRILLING.name, grilling)
+        with patch.object(module, 'workspace_parent', return_value=self.record / 'workspaces'), \
+             patch.object(module, 'require_short_workspace_parent'), \
+             patch.object(module, 'initialize_owner_access', return_value='synthetic fixture'), \
+             patch.object(module.shutil, 'which', return_value='fixture-executable'), \
+             patch.object(module.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='fixture')), \
+             patch.object(module, 'install_components', side_effect=install), patch.object(module, 'run', return_value=0):
+            module.prepare(self.record / 'prepared', idea, contracts)
+        self.assertEqual(1, len(observed))
+        self.assertEqual(idea.read_bytes(), (observed[0] / 'product-idea.md').read_bytes())
+        self.assertEqual((contracts / 'scope.md').read_bytes(), (observed[0] / 'acceptance/scope.md').read_bytes())
+
+    def test_short_root_cleanup_keeps_parent_and_owner_guards(self):
+        state = dict(self.state, workspaceParentKind='short-trial-root')
+        with patch.object(module, 'workspace_parent', return_value=self.workspace.parent):
+            self.assertEqual(self.workspace, module.owned_workspace(state))
+        with patch.object(module, 'workspace_parent', return_value=self.record):
+            with self.assertRaises(RuntimeError): module.owned_workspace(state)
+
+    def test_agent_preparation_does_not_grant_its_identity_persistent_permissions(self):
+        with patch.dict(module.os.environ, {'CODEX_THREAD_ID': 'synthetic-worker'}), \
+             patch.object(module.subprocess, 'run') as run:
+            result = module.initialize_owner_access(self.workspace)
+            self.assertIn(result, ('not-required', 'human-terminal-required; no persistent access grant from agent preparation'))
+            run.assert_not_called()
+
+    def test_owner_access_initialization_is_limited_to_new_empty_windows_root(self):
+        if module.os.name != 'nt':
+            self.skipTest('Windows creator ACL initialization')
+        with patch.dict(module.os.environ, {}, clear=True), \
+             patch.object(module.subprocess, 'run', return_value=SimpleNamespace(returncode=0)) as run:
+            self.assertIn('creator-only', module.initialize_owner_access(self.workspace))
+            self.assertEqual(str(self.workspace), run.call_args.kwargs['env']['PROGRAM_KIT_NEW_TRIAL_ROOT'])
+            self.assertIn('GetCurrent().User', run.call_args.args[0][-1])
+            (self.workspace / 'existing-data.txt').write_text('preserve')
+            run.reset_mock()
+            with self.assertRaisesRegex(RuntimeError, 'new empty owned workspace'):
+                module.initialize_owner_access(self.workspace)
+            run.assert_not_called()
+
     def test_persistent_guidance_routes_stages_without_repeating_intake(self):
         self.assertIn('This is intake only', module.INSTRUCTIONS)
         self.assertNotIn('This is intake only', module.CONSUMER_INSTRUCTIONS)
@@ -46,12 +98,13 @@ class IntakeSessionTests(unittest.TestCase):
         self.assertLessEqual(max(sizes), 64 * 1024)
 
     def test_candidate_payload_matches_release_after_local_builds(self):
+        from build_release import deterministic_zip
         source = self.record / 'source'
         source.mkdir()
         (source / 'extension.yml').write_text('id: fixture')
         (source / 'tool.csproj').write_text('<Project />')
         clean = self.record / 'clean.zip'
-        module.candidate_archive(source, clean)
+        deterministic_zip(source, clean)
         for relative in ('bin/Tool.exe', 'obj/assets.json', '__pycache__/cached.pyc',
                          'node_modules/package.json', 'test-results/result.xml',
                          'playwright-report/index.html', '.auth/session.json'):
@@ -59,7 +112,7 @@ class IntakeSessionTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('local-only fixture')
         dirty = self.record / 'dirty.zip'
-        module.candidate_archive(source, dirty)
+        deterministic_zip(source, dirty)
         self.assertEqual(clean.read_bytes(), dirty.read_bytes())
         with zipfile.ZipFile(dirty) as archive:
             self.assertEqual({'extension.yml', 'tool.csproj'}, set(archive.namelist()))
@@ -111,57 +164,66 @@ class IntakeSessionTests(unittest.TestCase):
         self.assertEqual(state['transcriptStatus'], 'unavailable')
         self.assertTrue(self.workspace.exists())
 
-    def test_downstream_workflow_status_is_separate_from_intake_hash_validation(self):
-        path = self.workspace / '.specify/workflows/runs/example/state.json'
-        path.parent.mkdir(parents=True)
-        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed', 'current_step_id': 'validate-architecture-output'}))
-        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
-        intake.parent.mkdir(parents=True)
-        intake.write_text('{"status":"confirmed"}')
-        with patch.object(module, 'run', return_value=2):
+    def test_readable_intent_and_constitution_preserved_without_manufactured_consent(self):
+        intent = self.workspace / 'docs/architecture/project-intent.md'
+        intent.parent.mkdir(parents=True)
+        intent.write_text('# Room booking\nProduct confirmation pending.\n', encoding='utf-8')
+        constitution = self.workspace / '.specify/memory/constitution.md'
+        constitution.parent.mkdir(parents=True)
+        constitution.write_text('# Constitution\nDraft principles.\n', encoding='utf-8')
+        inspector = self.workspace / '.specify/extensions/program-kit-governance/scripts/product_intake.py'
+        inspector.parent.mkdir(parents=True)
+        inspector.write_text('# synthetic installed inspector', encoding='utf-8')
+        with patch.object(module, 'run', return_value=0) as run:
             state = module.finish(self.record, 0, keep=True, prepare_only=True)
-        self.assertEqual(state['intakeStatus'], 'invalid')
-        self.assertEqual(state['observedWorkflows'][0]['status'], 'failed')
+        self.assertEqual('recorded', state['intakeStatus'])
+        self.assertEqual('passed', state['contextInspection'])
+        self.assertEqual('inspect', run.call_args.args[0][-1])
+        self.assertEqual(inspector, Path(run.call_args.args[0][-2]))
+        self.assertEqual(intent.read_bytes(), (self.record / 'docs/architecture/project-intent.md').read_bytes())
+        self.assertEqual(constitution.read_bytes(), (self.record / '.specify/memory/constitution.md').read_bytes())
         report = (self.record / 'REVIEW.md').read_text(encoding='utf-8')
-        self.assertIn('Standalone skill completion does not resume', report)
-        self.assertNotIn('No workflow was launched.', report)
+        self.assertIn('supplies no human confirmation', report)
+        self.assertNotIn('valid-confirmed', report)
 
-    def test_completed_intake_check_does_not_certify_evolved_architecture(self):
-        path = self.workspace / '.specify/workflows/runs/example/state.json'
-        path.parent.mkdir(parents=True)
-        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed',
-            'current_step_id': 'validate-roadmap-output', 'step_results': {
-                'validate-bootstrap-intake': {'status': 'completed', 'output': {'exit_code': 0}}}}))
-        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
-        intake.parent.mkdir(parents=True)
-        intake.write_text('{"status":"confirmed"}')
-        with patch.object(module, 'run', return_value=2):
+    def test_old_unreadable_workflow_and_intake_are_archived_without_interpreting_authority(self):
+        paths = ('.specify/workflows/runs/example/state.json', 'docs/architecture/bootstrap-intake.json')
+        for relative in paths:
+            path = self.workspace / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'\xff historical bytes')
+        with patch.object(module, 'run', side_effect=AssertionError('Must not run retired intake validator')):
             state = module.finish(self.record, 0, keep=True, prepare_only=True)
-        self.assertEqual('downstream-review-required', state['intakeStatus'])
-        self.assertEqual('failed', state['intakeValidation']['originalArtifactCheck'])
-        self.assertEqual('not-established', state['intakeValidation']['currentStageValidity'])
-        self.assertEqual(['example'], state['intakeValidation']['admittedByRuns'])
+        self.assertEqual('absent', state['intakeStatus'])
+        self.assertEqual('unavailable', state['contextInspection'])
+        self.assertEqual('preserved-in-archive; not-interpreted', state['historicalWorkflowState'])
+        self.assertNotIn('observedWorkflows', state)
+        with zipfile.ZipFile(self.record / 'consumer.zip') as archive:
+            for relative in paths:
+                self.assertEqual(b'\xff historical bytes', archive.read(relative))
 
-    def test_validation_distinguishes_draft_confirmed_and_invalid(self):
-        path = self.workspace / 'docs/architecture/bootstrap-intake.json'
-        path.parent.mkdir(parents=True)
-        for status, code, expected, command in (
-            ('draft', 0, 'valid-draft', 'validate-draft'),
-            ('confirmed', 0, 'valid-confirmed', 'validate'),
-            ('confirmed', 2, 'invalid', 'validate'),
+    def test_content_presence_and_inspection_failure_are_reported_separately(self):
+        intent = self.workspace / 'docs/architecture/project-intent.md'
+        intent.parent.mkdir(parents=True)
+        inspector = self.workspace / '.specify/extensions/program-kit-governance/scripts/product_intake.py'
+        inspector.parent.mkdir(parents=True)
+        inspector.write_text('# fictional inspector', encoding='utf-8')
+        for content, code, expected, inspection in (
+            ('# Product\nUnreviewed idea', 2, 'recorded', 'failed'),
+            ('  ', 0, 'empty', 'passed'),
         ):
-            path.write_text(json.dumps({'status': status}), encoding='utf-8')
-            with patch.object(module, 'run', return_value=code) as run:
+            intent.write_text(content, encoding='utf-8')
+            with patch.object(module, 'run', return_value=code):
                 state = module.finish(self.record, 0, keep=True, prepare_only=True)
-                self.assertEqual(state['intakeStatus'], expected)
-                self.assertEqual(run.call_args.args[0][2], command)
+            self.assertEqual(expected, state['intakeStatus'])
+            self.assertEqual(inspection, state['contextInspection'])
 
-    def test_malformed_intake_preserved_as_validation_error(self):
-        path = self.workspace / 'docs/architecture/bootstrap-intake.json'
+    def test_unreadable_current_intent_preserved_as_read_error(self):
+        path = self.workspace / 'docs/architecture/project-intent.md'
         path.parent.mkdir(parents=True)
-        path.write_text('{broken', encoding='utf-8')
+        path.write_bytes(b'\xff invalid UTF-8')
         state = module.finish(self.record, 0, keep=True, prepare_only=True)
-        self.assertEqual(state['intakeStatus'], 'validation-error')
+        self.assertEqual(state['intakeStatus'], 'unreadable')
         self.assertTrue((self.record / 'consumer.zip').exists())
 
     def test_only_exact_consumer_history_exported(self):
@@ -189,7 +251,7 @@ class IntakeSessionTests(unittest.TestCase):
         calls = []
         diagnostic = "Failed to install bundle: [WinError 10054] reset. No changes were recorded."
         def execute(command, workspace, log):
-            if 'bundle' in command:
+            if 'install' in command and 'bundle' in command:
                 calls.append(command)
                 if len(calls) == 1:
                     with log.open('a', encoding='utf-8') as stream: stream.write(diagnostic)
@@ -205,7 +267,7 @@ class IntakeSessionTests(unittest.TestCase):
         for diagnostic, expected in [('schema failure', 1), ('Failed to install bundle: [WinError 10054] reset. No changes were recorded.', 3)]:
             calls = []
             def execute(command, workspace, log):
-                if 'bundle' in command:
+                if 'install' in command and 'bundle' in command:
                     calls.append(command)
                     with log.open('a', encoding='utf-8') as stream: stream.write(diagnostic + '\n')
                     return 2
@@ -254,19 +316,82 @@ class IntakeSessionTests(unittest.TestCase):
     def test_install_uses_bundle_not_preinstalled_extensions(self):
         resolver = SimpleNamespace(uv_windows_specify_environment=lambda _: None)
         with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1')), \
-                patch.dict('sys.modules', {'upgrade_program_kit': resolver}), \
+                patch.dict('sys.modules', {'invoke_specify': resolver}), \
                 patch.object(module, 'run', return_value=0) as run:
             module.install_components('specify', 'git', self.workspace, self.record)
         commands = [call.args[0] for call in run.call_args_list]
         self.assertTrue(any(command[1:3] == ['bundle', 'install'] for command in commands))
         self.assertFalse(any(command[1:3] == ['extension', 'add'] for command in commands))
-        self.assertTrue(any(command[1:3] == ['workflow', 'add'] for command in commands))
+        self.assertFalse(any(command[1] == 'workflow' for command in commands if len(command) > 1))
+        self.assertFalse(any('--dev' in command for command in commands))
+        bundle = next(command for command in commands if command[1:3] == ['bundle', 'install'])
+        self.assertEqual('program-kit', bundle[3])
         self.assertEqual(commands[-1][1:4], ['preset', 'catalog', 'remove'])
+
+    def test_supplied_release_bytes_are_verified_and_recorded_without_rebuild(self):
+        assets = self.record / 'assets'; assets.mkdir()
+        version = (ROOT / 'VERSION').read_text().strip()
+        sums = []
+        for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet',
+                     'program-kit-governance-preset', 'program-kit', 'program-kit-tooling'):
+            path = assets / f'{name}-{version}.zip'
+            with zipfile.ZipFile(path, 'w') as archive: archive.writestr('synthetic.txt', name)
+            sums.append(module.digest(path) + '  ' + path.name)
+        (assets / 'SHA256SUMS').write_text('\n'.join(sums))
+        with patch.object(module, 'run') as run, patch.object(module, 'verify_source_assets') as source_check:
+            self.assertEqual(assets, module.release_assets(self.record, assets))
+            run.assert_not_called()
+            source_check.assert_called_once_with(assets, version)
+        inputs = json.loads((self.record / 'installation-inputs.json').read_text())
+        self.assertEqual(6, len(inputs['sha256']))
+        damaged = assets / f'program-kit-dotnet-{version}.zip'
+        damaged.write_bytes(damaged.read_bytes() + b'tampered')
+        with self.assertRaisesRegex(ValueError, 'differs from SHA256SUMS'):
+            module.release_assets(self.record, assets)
+
+    def test_same_source_witness_rejects_consistent_stale_or_mixed_packages(self):
+        import hashlib
+        assets = self.record / 'source-assets'; assets.mkdir()
+        source = self.record / 'mini-source'; source.mkdir()
+        payloads = {'bundle.yml': b'current composition', 'VERSION': b'candidate',
+                    'extensions/program-kit-governance/extension.yml': b'governance',
+                    'extensions/program-kit-building-blocks/extension.yml': b'blocks',
+                    'extensions/program-kit-dotnet/extension.yml': b'dotnet',
+                    'presets/program-kit-governance-preset/preset.yml': b'preset'}
+        for name, raw in payloads.items():
+            path = source / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+        def package_tooling(values):
+            files = {name: hashlib.sha256(raw).hexdigest() for name, raw in values.items()}
+            encoded = (json.dumps(files, sort_keys=True, indent=2, ensure_ascii=False) + '\n').encode()
+            witness = {'schemaVersion': 1, 'files': files, 'fileSetSha256': hashlib.sha256(encoded).hexdigest()}
+            with zipfile.ZipFile(assets / 'program-kit-tooling-candidate.zip', 'w') as archive:
+                for name, raw in values.items(): archive.writestr(name, raw)
+                archive.writestr('program-kit-source-witness.json', json.dumps(witness))
+        package_tooling(payloads)
+        for identity, name in (('program-kit-governance','extensions/program-kit-governance/extension.yml'),
+                               ('program-kit-building-blocks','extensions/program-kit-building-blocks/extension.yml'),
+                               ('program-kit-dotnet','extensions/program-kit-dotnet/extension.yml'),
+                               ('program-kit-governance-preset','presets/program-kit-governance-preset/preset.yml'),
+                               ('program-kit','bundle.yml')):
+            with zipfile.ZipFile(assets / (identity + '-candidate.zip'), 'w') as archive:
+                archive.writestr(Path(name).name, payloads[name])
+        def guidance(_root, destination, _version, **_options):
+            destination.mkdir(parents=True); return destination
+        with patch.object(module, 'ROOT', source), patch('build_release.bundle_source_files', return_value=[Path(name) for name in payloads]), patch('build_release_guidance.build', side_effect=guidance):
+            module.verify_source_assets(assets, 'candidate')
+            with zipfile.ZipFile(assets / 'program-kit-dotnet-candidate.zip', 'w') as archive:
+                archive.writestr('extension.yml', b'other same-version package')
+            with self.assertRaisesRegex(ValueError, 'Component archive differs'):
+                module.verify_source_assets(assets, 'candidate')
+            stale = dict(payloads, VERSION=b'other candidate')
+            package_tooling(stale)
+            with self.assertRaisesRegex(ValueError, 'differs from the current intake source'):
+                module.verify_source_assets(assets, 'candidate')
 
     def test_install_failure_stops_before_later_steps(self):
         resolver = SimpleNamespace(uv_windows_specify_environment=lambda _: None)
         with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1')), \
-                patch.dict('sys.modules', {'upgrade_program_kit': resolver}), \
+                patch.dict('sys.modules', {'invoke_specify': resolver}), \
                 patch.object(module, 'run', return_value=1) as run:
             with self.assertRaises(RuntimeError):
                 module.install_components('specify', 'git', self.workspace, self.record)

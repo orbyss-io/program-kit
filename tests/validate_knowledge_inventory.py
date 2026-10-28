@@ -29,10 +29,10 @@ def validate(root, inventory, obligations):
             raise ValueError('Knowledge route needs a producer and its review scope')
         for relative in route['via']:
             path = (root / relative).resolve()
-            if not path.is_relative_to(root.resolve()) or not path.is_file():
-                raise ValueError('Missing knowledge route: ' + relative)
             if route['kind'] == 'phase' and path.name in {'historical_phase_evidence.py', 'artifact_ownership.py'}:
                 raise ValueError('Historical-only route cannot claim active feature enforcement')
+            if not path.is_relative_to(root.resolve()) or not path.is_file():
+                raise ValueError('Missing knowledge route: ' + relative)
         content = (extensions / record['path']).read_text(encoding='utf-8')
         headings = re.findall(r'^## (.+)$', content, re.M) or re.findall(r'^# (.+)$', content, re.M)
         if route.get('sections') != headings:

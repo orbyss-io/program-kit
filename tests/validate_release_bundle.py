@@ -259,6 +259,124 @@ class ReleaseBundleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'PKR014.*fresh packed output'):
             bundle.stage(self.root,self.packages,self.stage,root_packages=['Imported.PureCore'])
 
+    def runtime_graph(self):
+        """A restored graph with independently declared runtime and tooling branches."""
+        project = self.root / 'src/Feature/Feature.csproj'
+        packages = self.root / '.packages'
+        for identity in ('Private.Runtime', 'Shared.Runtime', 'Tool.Only', 'Development.Tool', 'Build.Tool'):
+            folder = packages / identity.lower() / '1.0.0'
+            folder.mkdir(parents=True)
+            with zipfile.ZipFile(folder / (identity.lower() + '.1.0.0.nupkg'), 'w') as archive:
+                development = '<developmentDependency>true</developmentDependency>' if identity == 'Development.Tool' else ''
+                archive.writestr(identity + '.nuspec', '<package><metadata><id>' + identity + '</id><version>1.0.0</version>'
+                                 + development + '</metadata></package>')
+        libraries = {identity + '/1.0.0': {'type': 'package', 'path': identity.lower() + '/1.0.0'}
+                     for identity in ('Private.Runtime', 'Shared.Runtime', 'Tool.Only', 'Development.Tool', 'Build.Tool')}
+        for key, library in libraries.items():
+            identity = key.split('/')[0].lower()
+            library['sha512'] = bundle.base64.b64encode(hashlib.sha512((packages / identity / '1.0.0' / (identity + '.1.0.0.nupkg')).read_bytes()).digest()).decode('ascii')
+        target = {key: {'type': 'package', 'runtime': {'lib/net10.0/' + key.split('/')[0] + '.dll': {}}}
+                  for key in libraries}
+        target['Private.Runtime/1.0.0']['dependencies'] = {'Shared.Runtime': '1.0.0'}
+        for identity in ('Development.Tool', 'Build.Tool'):
+            target[identity + '/1.0.0']['dependencies'] = {'Shared.Runtime': '1.0.0', 'Tool.Only': '1.0.0'}
+        assets = {'packageFolders': {str(packages): {}}, 'libraries': libraries, 'targets': {'net10.0': target},
+                  'project': {'frameworks': {'net10.0': {'dependencies': {
+                      'Private.Runtime': {'suppressParent': 'All'},
+                      'Development.Tool': {'suppressParent': 'All', 'include': 'Runtime, Build, Native'},
+                      'Build.Tool': {'suppressParent': 'All', 'include': 'Build, BuildTransitive'}}}}}}
+        return project, assets
+
+    def test_private_runtime_and_shared_transitives_survive_tooling_exclusion(self):
+        project, assets = self.runtime_graph()
+        self.assertEqual({('Private.Runtime', '1.0.0'), ('Shared.Runtime', '1.0.0')},
+                         bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        # Without the runtime root, a shared dependency is exclusively tooling too.
+        del assets['project']['frameworks']['net10.0']['dependencies']['Private.Runtime']
+        self.assertEqual(set(), bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+
+    def test_native_only_private_runtime_and_effective_asset_exclusions(self):
+        project, assets = self.runtime_graph()
+        dependencies = assets['project']['frameworks']['net10.0']['dependencies']
+        dependencies.clear()
+        dependencies['Private.Runtime'] = {'suppressParent': 'All', 'include': 'Native', 'exclude': 'Runtime'}
+        assets['targets']['net10.0']['Private.Runtime/1.0.0'] = {'native': {'runtimes/win-x64/native/private.dll': {}}}
+        self.assertEqual({('Private.Runtime', '1.0.0')},
+                         bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        for metadata in ({'include': 'Runtime', 'exclude': 'Runtime'}, {'exclude': 'All'}, {'include': 'Compile'},
+                         {'include': 'Runtime;Native', 'exclude': 'Runtime, Native'}):
+            dependencies['Private.Runtime'] = metadata
+            self.assertEqual(set(), bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        self.assertTrue(bundle.runtime_reference({'include': 'all', 'exclude': 'runtime'}),
+                        'Excluding managed runtime assets does not exclude native/resource assets')
+        self.assertTrue(bundle.runtime_reference({'include': 'resource'}))
+
+    def test_native_only_branch_does_not_promote_managed_transitives(self):
+        project, assets = self.runtime_graph()
+        dependencies = assets['project']['frameworks']['net10.0']['dependencies']
+        dependencies.clear()
+        dependencies['Private.Runtime'] = {'suppressParent': 'All', 'include': 'Native'}
+        target = assets['targets']['net10.0']
+        target['Private.Runtime/1.0.0'] = {'native': {'runtimes/win-x64/native/private.dll': {}},
+                                          'dependencies': {'Shared.Runtime': '1.0.0', 'Tool.Only': '1.0.0'}}
+        target['Tool.Only/1.0.0'] = {'runtimeTargets': {'runtimes/win-x64/native/transitive.dll': {'assetType': 'native'}}}
+        expected = {('Private.Runtime', '1.0.0'), ('Tool.Only', '1.0.0')}
+        self.assertEqual(expected, bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        # A second runtime path upgrades the shared package's consumed roles, regardless
+        # of graph traversal order, while the private native branch remains intact.
+        dependencies['Shared.Runtime'] = {'suppressParent': 'All', 'include': 'Runtime'}
+        expected.add(('Shared.Runtime', '1.0.0'))
+        self.assertEqual(expected, bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        target['Shared.Runtime/1.0.0'] = {'compile': {'ref/net10.0/facade.dll': {}},
+                                        'dependencies': {'Build.Tool': '1.0.0'}}
+        expected.add(('Build.Tool', '1.0.0'))
+        self.assertEqual(expected, bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        target['Shared.Runtime/1.0.0'].pop('compile')
+        self.assertEqual(expected, bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+
+    def test_runtime_graph_exclusion_requires_own_package_metadata(self):
+        project, assets = self.runtime_graph()
+        folder = Path(next(iter(assets['packageFolders']))) / 'development.tool/1.0.0'
+        package = folder / 'development.tool.1.0.0.nupkg'
+        package.unlink()
+        # Missing metadata is no evidence for excluding a private runtime reference.
+        self.assertIn(('Development.Tool', '1.0.0'),
+                      bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        with zipfile.ZipFile(package, 'w') as archive:
+            archive.writestr('Wrong.nuspec', '<package><metadata><id>Wrong</id><version>1.0.0</version>'
+                             '<developmentDependency>true</developmentDependency></metadata></package>')
+        with self.assertRaisesRegex(ValueError, 'PKR014.*metadata identity differs'):
+            bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)})
+
+    def test_tooling_metadata_cannot_bypass_restored_content_identity(self):
+        project, assets = self.runtime_graph()
+        assets['libraries']['Development.Tool/1.0.0']['sha512'] = 'changed-content'
+        with self.assertRaisesRegex(ValueError, 'PKR014.*metadata bytes differ'):
+            bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)})
+
+    def test_runtime_roots_are_selected_per_framework_and_rid(self):
+        project, assets = self.runtime_graph()
+        assets['targets']['net9.0'] = {'Development.Tool/1.0.0': assets['targets']['net10.0']['Development.Tool/1.0.0'],
+                                     'Tool.Only/1.0.0': assets['targets']['net10.0']['Tool.Only/1.0.0']}
+        assets['project']['frameworks']['net9.0'] = {'dependencies': {'Development.Tool': {'include': 'Build'}}}
+        assets['targets']['net10.0/win-x64'] = assets['targets']['net10.0']
+        self.assertEqual({('Private.Runtime', '1.0.0'), ('Shared.Runtime', '1.0.0')},
+                         bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)}))
+        del assets['project']['frameworks']['net9.0']
+        with self.assertRaisesRegex(ValueError, 'PKR014.*framework metadata'):
+            bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)})
+
+    def test_runtime_target_rejects_ambiguous_versions_and_cross_target_conflicts(self):
+        project, assets = self.runtime_graph()
+        assets['targets']['net10.0']['Private.Runtime/2.0.0'] = {'runtime': {'other.dll': {}}}
+        with self.assertRaisesRegex(ValueError, 'PKR014.*ambiguous package versions'):
+            bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)})
+        del assets['targets']['net10.0']['Private.Runtime/2.0.0']
+        assets['targets']['net10.0/linux-x64'] = {'Private.Runtime/2.0.0': {'runtime': {'other.dll': {}}}}
+        assets['libraries']['Private.Runtime/2.0.0'] = {'type': 'package'}
+        with self.assertRaisesRegex(ValueError, 'PKR014.*conflicting versions'):
+            bundle.restored_runtime_dependencies(self.root, {'feature'}, {project: ('Feature', assets)})
+
     def test_real_selected_roots_pack_exact_restore_closure_without_composition_and_replace_cleanly(self):
         """Actual SDK restore/pack; metadata admission is not a runtime-lifecycle claim."""
         feed = self.root/'feed'; feed.mkdir()
@@ -284,14 +402,17 @@ class ReleaseBundleTests(unittest.TestCase):
             return base+name+'.csproj'
         dependency = project('PublicDependency', publisher=True)
         private = project('PrivateBuild', publisher=True)
+        runtime = project('PrivateRuntime', publisher=True)
         command('pack', dependency, '-c','Release','-p:Version=1.5.0','-o',feed)
         command('pack', private, '-c','Release','-p:Version=1.0.0','-o',feed)
+        command('pack', runtime, '-c','Release','-p:Version=1.0.0','-o',feed)
         core = project('CoreHelper', '<PropertyGroup><PackageVersion>4.2.0</PackageVersion></PropertyGroup>')
         project('PrivateProjectBuild', '<PropertyGroup><IsPackable>false</IsPackable></PropertyGroup>')
         references = '<ItemGroup><ProjectReference Include="../CoreHelper/CoreHelper.csproj"/>' \
                      '<ProjectReference Include="../PrivateProjectBuild/PrivateProjectBuild.csproj" PrivateAssets="all" ReferenceOutputAssembly="false"/>' \
                      '<PackageReference Include="PublicDependency" Version="[1.0.0,2.0.0)"/>' \
-                     '<PackageReference Include="PrivateBuild" Version="1.0.0" PrivateAssets="all"/></ItemGroup>'
+                     '<PackageReference Include="PrivateRuntime" Version="1.0.0" PrivateAssets="all"/>' \
+                     '<PackageReference Include="PrivateBuild" Version="1.0.0" PrivateAssets="all" IncludeAssets="build;buildtransitive"/></ItemGroup>'
         first = project('FeatureOne', references, True)
         second = project('FeatureTwo', '', True)
         self.write('shells.json', {'CShells': {'Shells': {'default': {'Features': {'FeatureOne':{}, 'FeatureTwo':{}}}}}})
@@ -302,7 +423,7 @@ class ReleaseBundleTests(unittest.TestCase):
         with zipfile.ZipFile(self.packages/'Removed.1.0.0.nupkg','w') as z:
             z.writestr('Removed.nuspec','<package><metadata><id>Removed</id><version>1.0.0</version></metadata></package>')
         bundle.stage(self.root,self.packages,self.stage)
-        expected = {('Imported.FeatureOne','1.2.3'),('Imported.FeatureTwo','1.2.3'),('CoreHelper','4.2.0'),('PublicDependency','1.5.0')}
+        expected = {('Imported.FeatureOne','1.2.3'),('Imported.FeatureTwo','1.2.3'),('CoreHelper','4.2.0'),('PublicDependency','1.5.0'),('PrivateRuntime','1.0.0')}
         self.assertEqual(expected, {bundle.package_identity(path) for path in (self.stage/'packages').glob('*.nupkg')})
         unrelated = project('Unrelated', '<ItemGroup><PackageReference Include="PublicDependency" Version="[1.5.0]"/></ItemGroup>')
         command('restore', unrelated)

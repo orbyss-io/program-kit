@@ -74,7 +74,17 @@ def bindings(root, contract):
 def proof_bindings(root, proof):
     if proof.get('schema_version') != '1.2': return None
     relative = proof.get('dependency_scope', {}).get('contractPath')
-    from bootstrap_lifecycle import local, load, digest
+    import hashlib
+    from pathlib import Path
+    def local(repository, name):
+        path = (Path(repository) / name).resolve()
+        if not path.is_relative_to(Path(repository).resolve()):
+            raise ValueError('Historical compatibility contract escapes repository')
+        return path
+    def load(path):
+        return json.loads(path.read_text(encoding='utf-8'))
+    def digest(path):
+        return hashlib.sha256(path.read_bytes()).hexdigest()
     path = local(root, relative) if isinstance(relative, str) else None
     if not path or not any(bound['path'] == relative and bound['sha256'] == digest(path) for bound in proof.get('inputs', [])):
         raise ValueError('Scoped compatibility receipt lacks its exact reviewed contract input')

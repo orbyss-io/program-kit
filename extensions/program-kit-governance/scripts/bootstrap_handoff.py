@@ -5,7 +5,7 @@ pause the native workflow for correction; they never imply an approved design.
 """
 from __future__ import annotations
 
-import argparse
+import sys
 import hashlib
 import json
 from pathlib import Path
@@ -173,13 +173,25 @@ def check(root, run_id, stage, *, questions_only=False):
     if not questions_only and resolve(intake, register) != register:
         raise HandoffError('Default resolution is incomplete; resolve before assessment approval', 'assessment')
     first = register.get('first_slice', {})
+    recommendation = register.get('recommended_start', {})
+    if first and recommendation:
+        raise HandoffError('Use recommended_start for new work or retain historical first_slice; do not combine their different scope semantics', 'assessment')
+    if recommendation:
+        model = load(root / 'docs/architecture/architecture-map.json', {})
+        candidates = {c['id']: c for c in model.get('strategic_model', {}).get('candidate_slices', [])}
+        selected = recommendation.get('candidate_ids', [])
+        if (not selected or len(set(selected)) != len(selected) or not set(selected) <= candidates.keys()
+                or not recommendation.get('outcome') or not recommendation.get('rationale')):
+            raise HandoffError('recommended_start must reference exact known candidate IDs with an outcome and rationale', 'assessment')
+        if any(candidates[identity].get('commitment') == 'exploratory' for identity in selected):
+            raise HandoffError('An exploratory feature cannot be recommended as intended starting work', 'assessment')
     ids = {j['id'] for j in intake.get('journeys', [])}
     if first and (not first.get('journey_ids') or not set(first['journey_ids']) <= ids or not first.get('outcome') or not first.get('rationale')):
         raise HandoffError('A selected first_slice must reference known journeys and state its provisional outcome and rationale', 'assessment')
     # Unsupported execution adapters are a phase obligation, not an initialization error.
     pending = pending_questions(root, run_id, stage, completing=questions_only)
     result = {'stage': stage, 'status': 'complete', 'next_owner': STAGES[stage]['next_owner'],
-              'first_slice': first, 'register_sha256': fingerprint(register), 'questions': [q for q in pending if q['kind'] == 'artifact-conflict' or q.get('required_now') is True], 'outstanding': pending}
+              'first_slice': first, 'recommended_start': recommendation, 'register_sha256': fingerprint(register), 'questions': [q for q in pending if q['kind'] == 'artifact-conflict' or q.get('required_now') is True], 'outstanding': pending}
     if stage == 'closure' and questions_only:
         result['questions'] = untracked_questions(root, run_id)
     pending = result['questions']
@@ -305,6 +317,8 @@ def first_feature(root: Path, *, require_ready=False):
     from governance_state import roadmap_records, ROADMAP
     from architecture_map import candidate_journeys
     register = load(root / REGISTER, {})
+    if register.get('recommended_start'):
+        return recommended_features(root, register['recommended_start'])
     first = register.get('first_slice')
     if not first:
         return None  # Preserved older consumers remain valid.
@@ -339,42 +353,40 @@ def first_feature(root: Path, *, require_ready=False):
                           'delivery': 'Actual journey and contract evidence'}}
 
 
+def recommended_features(root: Path, recommendation: dict):
+    """Project a recommendation, without turning an epic or source journey into a spec."""
+    from governance_state import roadmap_records, ROADMAP, epic_feature_ids
+    from architecture_map import candidate_journeys
+    model = load(root / 'docs/architecture/architecture-map.json', {})
+    strategic = model.get('strategic_model', {})
+    candidates = {c['id']: c for c in strategic.get('candidate_slices', [])}
+    selected = recommendation.get('candidate_ids', [])
+    if not selected or len(set(selected)) != len(selected) or not set(selected) <= candidates.keys():
+        raise ValueError('RECOMMENDED-START: reference exact known feature candidate IDs')
+    records = roadmap_records(root / ROADMAP)
+    journeys = {j['id']: j for j in strategic.get('journeys', [])}
+    features = []
+    for identity in selected:
+        candidate = candidates[identity]
+        if candidate.get('commitment') == 'exploratory':
+            raise ValueError('RECOMMENDED-START: exploratory feature is not intended starting work: ' + identity)
+        entries = [r for r in records if r.get('Type') == 'Epic' and identity in epic_feature_ids(r)]
+        if len(entries) != 1 or candidate.get('epic') != entries[0]['id']:
+            raise ValueError('RECOMMENDED-START: feature needs one explicit matching parent epic: ' + identity)
+        entry = entries[0]
+        if entry['Intent'] != 'Intended':
+            raise ValueError('RECOMMENDED-START: parent epic must be intended work: ' + entry['id'])
+        source_ids = sorted({journeys[j]['source_journey'] for j in candidate_journeys(candidate) if j in journeys})
+        features.append({'featureId': identity, 'roadmapEntry': entry['id'], 'status': entry['Status'],
+                         'journeyIds': source_ids, 'architectureScope': candidate.get('contexts', [])})
+    return {'kind': 'recommended-start', 'binding': False, 'outcome': recommendation['outcome'],
+            'rationale': recommendation['rationale'], 'features': features,
+            'roadmapEntry': features[0]['roadmapEntry'],
+            'nextCommand': 'speckit.program-kit-governance.specification-intake',
+            'boundaryRule': 'Select one feature and settle its exact scope in specification intake. Other recommended features and epic siblings remain uncommissioned.'}
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['require', 'questions', 'ask', 'answer', 'defer', 'first-feature', 'eligibility'])
-    parser.add_argument('--run-id')
-    parser.add_argument('--stage', choices=list(STAGES))
-    parser.add_argument('--repair-stage', choices=list(STAGES))
-    parser.add_argument('--question-id')
-    parser.add_argument('--answer')
-    parser.add_argument('--question')
-    parser.add_argument('--owner')
-    parser.add_argument('--recommendation')
-    parser.add_argument('--kind', choices=['user-answer', 'design-decision', 'artifact-conflict'])
-    parser.add_argument('--entry', action='append', default=[])
-    parser.add_argument('--phase', choices=['specification', 'planning', 'implementation', 'delivery', 'production'])
-    parser.add_argument('--rationale')
-    parser.add_argument('--required-now', action='store_true')
-    args = parser.parse_args()
-    try:
-        root = Path.cwd().resolve()
-        if args.command == 'first-feature':
-            result = first_feature(root)
-        elif args.command == 'eligibility':
-            from governance_state import roadmap_records, ROADMAP
-            from bootstrap_lifecycle import phase_eligibility
-            if len(args.entry) != 1 or not args.phase:
-                raise ValueError('Eligibility requires one --entry and --phase')
-            result = phase_eligibility(root, roadmap_records(root / ROADMAP), args.entry[0], args.phase)
-        elif args.command == 'defer':
-            result = defer(root, args.run_id, args.question_id, args.entry, args.phase, args.rationale)
-        elif args.command == 'answer':
-            result = answer(root, args.run_id, args.question_id, args.answer)
-        elif args.command == 'ask':
-            result = ask(root, args.run_id, args.question_id, args.question, args.owner, args.stage, args.recommendation,
-                         kind=args.kind, required_now=args.required_now, repair_stage=args.repair_stage)
-        else:
-            result = require(root, args.run_id, args.stage, questions_only=args.command == 'questions')
-        print(json.dumps(result))
-    except (ValueError, OSError) as error:
-        raise SystemExit(str(error))
+    from workflow_lifecycle import RETIREMENT
+    print(RETIREMENT, file=sys.stderr)
+    raise SystemExit(2)

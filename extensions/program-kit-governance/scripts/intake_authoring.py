@@ -70,6 +70,10 @@ def derive_structure(model: dict) -> None:
         element['parent'] = module['context']
     views = {item['key']: item for item in model['views']}
     for journey in strategic['journeys']:
+        if journey.get('discovery'):
+            # Architectural discovery can remain explicitly unresolved without
+            # inventing executable steps or a dynamic view for future behavior.
+            continue
         view = views[journey['view']]
         if view['type'] != 'dynamic':
             raise ValueError(f'Journey {journey["id"]} must identify a dynamic view.')
@@ -157,6 +161,14 @@ def describe_authoring(document: str, section: str, source: dict | None = None) 
             'A shared contract or context-level overview edge does not cover another relationship ID.',
             'Use distinct existing context IDs for upstream/downstream and context IDs for data/consistency/failure owners.',
             'ACL bridge must be a downstream-owned module of kind bridge; command contracts cannot have read-only atomicity.']
+    if document == 'map' and section in {'candidate_slice', 'feature_seed', 'feature_seed_brief', 'feature_dependency'}:
+        result['semanticRules'] = [
+            'Candidate id is the stable feature identity; epic is its separate parent roadmap entry ID.',
+            'Commitment records intended work or an exploratory option independently of how detailed its seed is.',
+            'Preserve supplied detail, boundary rationale, assumptions, questions and revisions in seed; seed.brief is partial draft input, never confirmed authority.',
+            'Seed evidence reuses existing intake evidence IDs. Do not truncate source detail to fit summary fields.',
+            'Dependencies reference exact candidate feature IDs and optional canonical contract IDs, with rationale; membership in one epic implies no feature prerequisite.',
+            'Unknown dependencies remain open questions. Do not invent edges or require complete future briefs.']
     return result
 
 

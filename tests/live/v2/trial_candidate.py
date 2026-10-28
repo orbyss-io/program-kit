@@ -20,7 +20,7 @@ STEPS = ('components', 'schema-runtime', 'build', 'packaged-install')
 def artifact_names(version: str) -> set[str]:
     return {f'artifacts/{name}-{version}.zip' for name in (
         'program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet',
-        'program-kit-governance-preset', 'program-kit-bootstrap', 'program-kit')} | {
+        'program-kit-governance-preset', 'program-kit', 'program-kit-tooling')} | {
         f'artifacts/Initialize-ProgramKit-{version}.cmd', f'artifacts/Initialize-ProgramKit-{version}.sh', 'artifacts/SHA256SUMS'}
 
 

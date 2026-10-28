@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version-file: .python-version
       - name: Check dedicated maintenance App configuration
@@ -30,7 +30,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/dependency_maintenance.py upgrade
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version-file: .python-version
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
@@ -50,13 +50,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
         run: python scripts/update_dependency_profiles.py update --engines=chromium,firefox,webkit
+      - name: Verify released JSON producer and emitted operation client
+        env:
+          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
+        run: >-
+          python scripts/run_validation.py
+          --check validate_openapi_export_client
+          --check validate_typed_operation_contract
+          --reason "Selected public profile JSON schemas and emitted operation/client integration"
       - name: Refresh locks and validate affected capabilities
         env:
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
         run: python scripts/update_dependencies.py --refresh-locks
       - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567
         with:
-          version: v0.76.0
+          version: v0.76.1
       - name: Scan the actual qualified public Host
         run: python scripts/dependency_maintenance.py scan --image "$(python scripts/dependency_maintenance.py host-image)"
       - name: Create repository-scoped maintenance token

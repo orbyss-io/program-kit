@@ -8,7 +8,7 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
+from owned_fixture import FixtureDirectory
 import urllib.request
 import urllib.parse
 import zipfile
@@ -24,7 +24,6 @@ from live.v2.candidate import (
 )
 from live.v2.checkpoint import materialize_checkpoint, seal_checkpoint
 from live.v2.cli import (
-    WorkflowProgress,
     process_failure,
     candidate_packages,
     execution_workspace,
@@ -173,22 +172,20 @@ def main() -> int:
         "LIVE_AUTHORIZATION_LAUNCHER_MISMATCH",
     )
 
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-v2-") as directory:
+    with FixtureDirectory(prefix="program-kit-live-v2-") as directory:
         temp = Path(directory)
         candidate_artifacts = temp / "candidate-artifacts"
         candidate_artifacts.mkdir()
         archive_names = {
             "governance": "governance.zip", "building-blocks": "building-blocks.zip",
-            "dotnet": "dotnet.zip", "preset": "preset.zip", "workflow": "workflow.zip",
+            "dotnet": "dotnet.zip", "preset": "preset.zip",
             "bundle": "bundle.zip",
         }
-        with zipfile.ZipFile(candidate_artifacts / archive_names["workflow"], "w") as archive:
-            archive.writestr("workflow.yml", "name: test\n")
         with zipfile.ZipFile(candidate_artifacts / archive_names["bundle"], "w") as archive:
             archive.writestr("bundle.yml", "name: test\n")
         extracted_packages = temp / "candidate-packages"
         extract_candidate_control_archives(candidate_artifacts, extracted_packages, archive_names)
-        if CONTROL_ARCHIVE_KEYS != ("workflow", "bundle") or {
+        if CONTROL_ARCHIVE_KEYS != ("bundle",) or {
             path.name for path in extracted_packages.iterdir()
         } != set(CONTROL_ARCHIVE_KEYS):
             raise AssertionError("Candidate setup eagerly extracted component payload archives")
@@ -204,10 +201,6 @@ def main() -> int:
         ):
             (catalog_artifacts / name).write_bytes(catalog_payload)
         catalog_packages = temp / "catalog-packages"
-        (catalog_packages / "workflow").mkdir(parents=True)
-        (catalog_packages / "workflow/workflow.yml").write_text(
-            "schema_version: '1.0'\n", encoding="utf-8"
-        )
         catalog_evidence = temp / "catalog-evidence"
         catalog_server, catalog_url = prepare_local_catalog_server(
             ROOT, catalog_artifacts, catalog_packages, catalog_evidence, "0.10.0"
@@ -244,7 +237,7 @@ def main() -> int:
         candidate_names = {
             "program-kit-governance-9.9.9.zip", "program-kit-building-blocks-9.9.9.zip",
             "program-kit-dotnet-9.9.9.zip", "program-kit-governance-preset-9.9.9.zip",
-            "program-kit-bootstrap-9.9.9.zip", "program-kit-9.9.9.zip",
+            "program-kit-9.9.9.zip", "program-kit-tooling-9.9.9.zip",
             "Initialize-ProgramKit-9.9.9.cmd", "Initialize-ProgramKit-9.9.9.sh", "SHA256SUMS",
             "RELEASE-NOTES-9.9.9.md", "MIGRATIONS-9.9.9.md",
             "migration-index-9.9.9.json", "migration-9.9.9.md",
@@ -409,20 +402,6 @@ def main() -> int:
         if workflow_failure_causes(workflow_project, workflow_stdout) != ["model-conformance"]:
             raise AssertionError("An agent-command workflow failure was not classified as model conformance")
 
-        state["current_step_id"] = "prepare-readiness-context"
-        state["step_results"]["prepare-readiness-context"]["status"] = "running"
-        atomic_write_json(workflow_run / "state.json", state)
-        progress = WorkflowProgress(workflow_project, heartbeat_seconds=0)
-        progress_output = io.StringIO()
-        with redirect_stdout(progress_output):
-            progress._report()
-            progress._report()
-        reported = progress_output.getvalue()
-        if "Live workflow: prepare-readiness-context (running)" not in reported:
-            raise AssertionError("Live workflow progress did not report a step transition")
-        if "Live workflow: prepare-readiness-context still running" not in reported:
-            raise AssertionError("Live workflow progress did not emit a heartbeat")
-
         previous_token = os.environ.get("PROGRAM_KIT_NPM_TOKEN")
         os.environ["PROGRAM_KIT_NPM_TOKEN"] = "worker-must-not-receive-this"
         try:
@@ -458,11 +437,6 @@ def main() -> int:
         raise AssertionError("Windows live supervision does not prevent idle sleep for the paid phase")
     if any(marker not in supervisor_text for marker in ("read1", "output.flush()")):
         raise AssertionError("Live worker evidence is no longer drained incrementally")
-    if any(marker not in cli_text for marker in ("class WorkflowProgress", "Live workflow: starting", "still running", "progress.stop()")):
-        raise AssertionError("Bootstrap live progress is no longer visible in the invoking terminal")
-    # Exercise the maintained workflow contracts; qualification is portable CI
-    # evidence, while optional paid execution retains separate host preparation.
-
     print("Live acceptance v2 authorization, scenario, checkpoint, redaction, supervision, and restore contracts passed.")
     return 0
 

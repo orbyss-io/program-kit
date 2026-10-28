@@ -68,11 +68,12 @@ provenance receipt, dependency pin, contract baseline, test success or activatio
 claim is generated. Test projects remain authored native owners with meaningful
 independent tests. `requiredIntegration` and the recipe identify unfinished seams.
 
-Continue manual editing/refactoring through the same selected units and
-`phase_obligations.py reconcile`. Missing scaffolding retains a compatible manual
-route. Missing mandatory context, checks or invariants remain blockers; a stale
-chosen pattern cannot silently become a manual waiver. Compiled/application checks,
-semantic review and human product review keep their separate duties.
+Continue manual editing/refactoring using ordinary plan/tasks and
+`phase_obligations.py project --feature-dir <feature> --phase implementation`. The phase helper
+supplies references, not scaffold qualification or a reconcile/progress gate. Missing scaffolding
+leaves manual editing available; actual selected SDK/API contracts and unresolved consequential
+decisions still apply. Compiled/application checks, semantic review and agreed human product review
+keep their separate duties.
 
 The canonical [.NET style overlay](../extensions/program-kit-dotnet/references/dotnet-engineering.md#orbyss-style-overlay)
 requires prepared argument values, one value per line for lists longer than two,

@@ -190,6 +190,14 @@ def prerequisite_git_ref(value):
     return 'refs/tags/v' + previous
 
 
+def device_policy():
+    source = ROOT / 'extensions/program-kit-governance/scripts/program_kit_runtime/device_toolchain.py'
+    spec = importlib.util.spec_from_file_location('validation_device_policy', source)
+    policy = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(policy)
+    return policy
+
+
 def missing_prerequisites(check):
     missing = []
     if platform.system() not in check.get('platforms', ['Windows', 'Linux']):
@@ -202,6 +210,16 @@ def missing_prerequisites(check):
             except ValueError:
                 missing.append(requirement + '; make the supported historical fixture tag available locally')
             continue
+        if kind == 'tool':
+            policy = device_policy()
+            if value in policy.SOURCES:
+                try:
+                    # Availability is the inventory's actual requirement. Exact
+                    # profile versions stay with their selected action owners.
+                    policy.require_tool(ROOT, value, authority='Selected check ' + check.get('id', 'explicit action'))
+                except ValueError as error:
+                    missing.append(requirement + '; ' + str(error))
+                continue
         available = (importlib.util.find_spec(value) is not None if kind == 'module' else
                      bool(shutil.which(value)) if kind == 'tool' else
                      bool(os.environ.get(value)) if kind == 'env' else
@@ -357,7 +375,9 @@ def main():
                   else '  ' + step['diagnostic'], flush=True)
     journal['sourceChangedDuringRun'] = input_snapshot()['digest'] != snapshot['digest']
     journal['elapsedSeconds'] = round(time.monotonic() - started, 3)
-    budget = definition['suiteBudgetsSeconds'].get('Integrity' if args.suite == 'Development' else args.suite)
+    # Explicit selections keep every command's budget, but do not execute the
+    # default suite whose aggregate target happens to be in argparse's defaults.
+    budget = None if args.check else definition['suiteBudgetsSeconds'].get('Integrity' if args.suite == 'Development' else args.suite)
     journal['suiteBudgetSeconds'] = budget
     journal['overBudget'] = bool(budget and journal['elapsedSeconds'] > budget)
     journal['status'] = 'passed' if not gaps and not deferred and not journal['sourceChangedDuringRun'] and not journal['overBudget'] and all(s == 'passed' for s in results.values()) else 'needs-attention'

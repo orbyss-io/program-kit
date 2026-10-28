@@ -409,8 +409,22 @@ def verify_architecture_authority(repository: Path, selection_path: Path, select
     except ValueError:
         fail("PKB300", f"selection path escapes the repository: {selection_path}")
     map_relative = normalize_path(selection["authority"]["architectureMap"], "selection.authority.architectureMap")
-    architecture_path = repository / map_relative
+    architecture_path = repository_path(repository, map_relative)
     architecture = load_json(architecture_path)
+    if architecture.get('schema_version') == '2.0':
+        # This digest identifies generator inputs, not human approval. Readable
+        # decisions need no source fingerprints or selection registration.
+        decisions = {item['id']: item for item in architecture.get('decisions', [])}
+        selected = []
+        for decision_id in selection['authority']['decisionIds']:
+            decision = decisions.get(decision_id)
+            if not decision or decision.get('status') != 'Accepted':
+                fail('PKB113', f'selection decision {decision_id!r} must exist and be Accepted')
+            source = repository_path(repository, normalize_path(decision.get('path'), 'selected decision path'))
+            if not source.is_file():
+                fail('PKB113', f'selected decision {decision_id!r} needs an existing decision document')
+            selected.append({key: decision.get(key) for key in ('id', 'path', 'status')})
+        return map_relative, canonical_sha256(sorted(selected, key=lambda item: item['id']))
     selection_raw = raw_sha256(selection_path)
     matching = [
         item
@@ -496,9 +510,9 @@ def placement_kind_contracts() -> dict:
 def validate_placements(repository: Path, selection: dict, require_all: bool = False) -> None:
     """Validate architecture declarations without creating their consumer-owned files.
 
-    Legacy accepted selections remain readable. New bootstrap Drafts require provenance on
+    Legacy accepted selections remain readable. Explicit provenance validation requires
     every target; a declaration stays 'planned' after scaffolding as its decision-time origin.
-    The map's source hashes provide freshness without duplicating ADR hashes across approval.
+    Minimal maps use readable decisions; historical maps retain their input contracts.
     """
     _, targets = index_selection(selection)
     for target in targets.values():
@@ -524,7 +538,8 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
         if not isinstance(placement.get("rationale"), str) or not placement["rationale"].strip():
             fail("PKB306", f"{label} needs architecture placement rationale")
         owner = owners.get(require_id(placement.get("owner"), f"{label} owner"))
-        if not owner or not owner.get("ownership"):
+        minimal = architecture.get('schema_version') == '2.0'
+        if not owner or (not minimal and not owner.get("ownership")):
             fail("PKB306", f"{label} needs a canonical semantic owner with ownership")
         refs = require_list(placement.get("decisionIds"), f"{label} decisionIds")
         if not refs or any(not isinstance(ref, str) for ref in refs) or len(set(refs)) != len(refs):
@@ -532,11 +547,11 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
         for ref in refs:
             decision = decisions.get(ref)
             if (ref not in selection["authority"]["decisionIds"]
-                    or ref not in owner.get("decision_refs", []) or not decision
+                    or (('decision_refs' in owner or not minimal) and ref not in owner.get("decision_refs", [])) or not decision
                     or decision.get("status") not in {"Proposed", "Accepted"}):
                 fail("PKB306", f"{label} cites absent or inactive owner decision {ref!r}")
             source = repository_path(repository, normalize_path(decision.get("path"), label))
-            if not source.is_file() or raw_sha256(source) != decision.get("sha256"):
+            if not source.is_file() or (not minimal and raw_sha256(source) != decision.get("sha256")):
                 fail("PKB306", f"{label} has stale decision provenance {ref!r}")
         path = repository_path(repository, target["path"])
         current = repository.resolve()
@@ -555,7 +570,9 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
             fail("PKB300", f"{label} must name a file")
         if placement["state"] == "observed" and not path.is_file():
             fail("PKB306", f"{label} claims an observed file that is absent")
-        if require_all and placement["state"] == "planned" and path.is_file():
+        # Accepted provenance records the origin when placement was decided;
+        # scaffolding does not turn it into an observation or renew authority.
+        if require_all and selection.get("status") != "Accepted" and placement["state"] == "planned" and path.is_file():
             fail("PKB306", f"{label} must preserve the already observed file's identity and ownership")
         rule = kind_contracts.get(target.get('kind'))
         if rule is None:
@@ -1613,8 +1630,13 @@ def named_official_tool_bindings(source: dict, selected: dict) -> dict:
     tools = require_object(source.get('officialTools'), 'named qualification officialTools')
     public_source = 'https://api.nuget.org/v3/index.json'
     expected = {'Orbyss.Foundation.Build', 'Orbyss.Foundation.OpenApi.Exporter'}
+    analyzer = 'Orbyss.Foundation.Analyzers'
+    if ('nuget:' + analyzer in selected['artifacts'] and
+            (analyzer in selected['families']['foundation'].get('toolVersions', {}) or
+             selected['artifacts']['nuget:' + analyzer] != selected['families']['foundation']['releaseVersion'])):
+        expected.add(analyzer)
     if set(tools) != expected:
-        fail('PKB611', 'named qualification requires exact official Build and exporter bindings')
+        fail('PKB611', 'named qualification requires exact official Build, exporter and independently selected analyzer bindings')
     for identity, binding in tools.items():
         binding = require_object(binding, 'named qualification official tool')
         version = selected['artifacts'].get('nuget:' + identity)
@@ -1783,8 +1805,11 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
                          for item in facts.get('packages',[])}
         for document in facts.get('documents',[]):
             relative=document.get('publisherPath','')
-            owners=[identity for identity in package_commits if relative.startswith('src/'+identity+'/')]
-            expected_commit=package_commits[owners[0]] if len(owners)==1 else facts.get('sourceCommit')
+            # Maintained usage guides outside src retain their explicit package
+            # owner when that tool ships independently of the runtime family.
+            owner={'docs/ef-migration-authoring.md': 'Orbyss.Foundation.Analyzers'}.get(relative)
+            owners=[owner] if owner else [identity for identity in package_commits if relative.startswith('src/'+identity+'/')]
+            expected_commit=package_commits.get(owners[0]) if len(owners)==1 else facts.get('sourceCommit')
             if (document.get('sourceCommit')!=expected_commit or not re.fullmatch(r'[a-f0-9]{40}',str(expected_commit))
                     or document.get('url')!='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+expected_commit+'/'+relative):
                 fail('PKB611','publisher guidance differs from its exact package/runtime source commit')
@@ -2121,6 +2146,8 @@ def draft_selection(repository: Path, selection_path: Path, catalog: dict, capab
 
 def registered_selection(repository: Path, selection_path: Path, selection: dict, architecture: dict) -> dict:
     """Compute the architecture registration before a recoverable promotion writes it."""
+    if architecture.get('schema_version') == '2.0':
+        return architecture
     try:
         relative = selection_path.resolve().relative_to(repository.resolve()).as_posix()
     except ValueError:
@@ -2190,7 +2217,8 @@ def accept_selection(
     original_binding = binding_path.read_bytes() if binding_path.is_file() else None
     try:
         atomic_write(selection_path, selection_text)
-        atomic_write(architecture_path, pretty_json(architecture))
+        if architecture.get('schema_version') != '2.0':
+            atomic_write(architecture_path, pretty_json(architecture))
         preserve_dependency_profile(repository, selection, catalog_path)
         return resolve(repository, selection_path, catalog_path, program_kit_version)
     except Exception:

@@ -9,6 +9,12 @@ configuration, operational, and test behavior. An application `.Api` implementat
 ownership, wire contracts, stable permission/policy metadata or an explicit anonymous declaration,
 and its business outcomes; it does not create an application-root web-boundary feature.
 
+Keep endpoint/binding/wire contracts/mappings together per operation; composition registers/maps only.
+Shared permission keys belong to semantic feature contracts. Reuse descriptive JSON definitions for native
+registration/OpenAPI while retaining typed readers/results and cold DI. Supported intervals differ from active
+budgets; schemas do not replace runtime admission. Preserve binding/status/schema identities. See the
+[operation contract recipe](examples/typed-operation/README.md) for the complete integration and limits.
+
 The profile contract version is recorded in `docs/architecture/bootstrap-decisions.json` and
 `eng/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
 behavior change requires a new profile version.
@@ -39,15 +45,13 @@ boundary and do not reopen inherited protocol decisions.
 
 ## Selection
 
-The managed authenticated profiles below select Foundation's .NET implementation, not a
-framework-neutral authentication recipe. Assessment must record `dotnet` and `browser-web`
-(or `typescript-web`) in `selected_profiles`, the .NET host decision and package-source
-acknowledgement. `ui-experience-v1` does not substitute for the browser boundary profile.
-Disclose these dependencies as provisional Program Kit defaults before assessment approval,
-even when intake names no language. Preserve an explicit alternate-stack constraint and resolve
-the conflict through assessment review; do not silently replace it. Identity-provider and
-consumer persistence choices remain separate. An explicit `none-v1` browser does not by itself
-require .NET. See the existing .NET host default/opt-out and application release bundle contract.
+These optional managed authenticated profiles select Foundation's actual .NET implementation;
+they are not framework-neutral recipes. Disclose that dependency and package sources when offering
+the default. Preserve an explicit alternate stack and research its real security contracts rather
+than silently replacing it. A consumer can choose another suitable implementation without toolkit
+qualification or an assessment receipt. When using this adapter, its selected configuration remains
+an actual input to native setup/checks. `ui-experience-v1` does not supply an authentication boundary;
+identity-provider and persistence choices remain separate. An anonymous browser alone requires no .NET.
 
 | Application shape | Selected profile | Rule |
 | --- | --- | --- |
@@ -156,6 +160,11 @@ The public identity issuer remains separate from private administration/transpor
 Link generated `docs/architecture/foundation-configuration.md` and the redacted settings
 view when describing materially configured behavior; distinguish configured projections
 from observed activation-effective options. Preserve the mandatory assurance gates below.
+Those are component/deployment assurance responsibilities at their stated scopes, not a
+request to rebuild the supplier's protocol suite in each consumer or coding task. Exact
+profile activation/exporter hashes and retained Forms browser evidence are not a real
+Keycloak login journey. Use the maintained executable composition's actual native login
+checks, then the consumer's own permission, ownership and customized behavior checks.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule context.publisher-portable-auth-contract -->
@@ -449,6 +458,16 @@ an application feature.
 ## Review and non-claims
 
 <!-- program-kit:knowledge-rule principle.authentication-presentation-contract -->
+First inspect the exact selected publisher capabilities. When the qualified profile
+supplies `Orbyss.Foundation.Web.Presentation` and HostedPages, use the
+[typed executable composition](foundation-compositions.md) to select their native HTML,
+bootstrap, session/recovery controls and admitted asset serving. Configure the supported
+settings and retain product routes, permission/owner predicates, React state and branding.
+Do not copy their asset inventory, MIME routing, authentication HTML or browser modules
+into the application. The application-owned writer example below is for a retained
+publisher without that capability or a justified custom presentation using its public
+extension seam; it is not the default ahead of an available native feature.
+
 Browser presentation is part of application acceptance. Keep authentication machine/API problems
 and `/bff/signed-out` typed JSON as protocol contracts. An application-owned presentation feature
 uses `IAuthenticationErrorWriter` for safe browser callback/access-denied output and provides public

@@ -5,6 +5,7 @@
         "Features": {
           "Orbyss.Foundation.Authentication": {},
           "Orbyss.Foundation.Authentication.BffCookie": {},
+          "Orbyss.Foundation.Json.AspNetCore": {},
           "Orbyss.Foundation.WebDefaults": {},
           "Orbyss.Foundation.Web.OpenApi": {},
           "Orbyss.Foundation.Web.ProblemDetails": {}

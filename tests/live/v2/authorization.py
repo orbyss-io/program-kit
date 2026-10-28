@@ -11,18 +11,25 @@ from typing import Any
 from .common import LiveContractError, atomic_write_json, canonical_sha256, load_object, utc_now, validate
 
 
-PHASES = {"bootstrap-checkpoint", "building-block-consumer"}
-PHASES.update({'workflow-fresh', 'workflow-failure', 'workflow-resume', 'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer', 'upgrade-continuation'})
+RETIRED_PHASES = frozenset({'bootstrap-checkpoint', 'workflow-fresh', 'workflow-failure', 'workflow-resume'})
+PHASES = {'building-block-consumer', 'feature-intake', 'feature-planning', 'feature-plan-tasks',
+          'feature-setup', 'feature-delivery', 'upgrade-consumer', 'upgrade-continuation'}
+
+
+def require_active_phase(phase: str) -> None:
+    if phase in RETIRED_PHASES:
+        raise LiveContractError(
+            'LIVE_BOOTSTRAP_WORKFLOW_RETIRED: paid bootstrap/workflow execution is retired. '
+            'Use $speckit-program-kit-governance-product-intake to establish the project baseline, '
+            'then continue with specification intake. Preserve existing manifests and checkpoints as history.'
+        )
+    if phase not in PHASES:
+        raise LiveContractError(f'LIVE_AUTHORIZATION_UNKNOWN_PHASE: {phase}')
 
 
 def session_limit(phase: str, bootstrap_sessions: int | None = None) -> int:
-    if phase.startswith('workflow-'):
-        return 8
-    if phase != 'bootstrap-checkpoint':
-        return 1
-    if type(bootstrap_sessions) is not int or bootstrap_sessions < 1:
-        raise LiveContractError('LIVE_AUTHORIZATION_VERIFIED_WORKFLOW_LIMIT_REQUIRED')
-    return bootstrap_sessions
+    require_active_phase(phase)
+    return 1
 
 
 def issue_authorization(
@@ -38,18 +45,10 @@ def issue_authorization(
     bootstrap_sessions: int | None = None,
     workflow: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    if phase not in PHASES:
-        raise LiveContractError(f"LIVE_AUTHORIZATION_UNKNOWN_PHASE: {phase}")
-    if phase != "bootstrap-checkpoint" and not phase.startswith("workflow-") and checkpoint is None:
+    require_active_phase(phase)
+    if checkpoint is None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED")
-    if phase == "bootstrap-checkpoint" and checkpoint is not None:
-        raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_FORBIDDEN")
-    if phase.startswith('workflow-'):
-        if workflow is None:
-            raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_BINDING_REQUIRED')
-        if (phase == 'workflow-resume') != (checkpoint is not None):
-            raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_PARENT_MISMATCH')
-    elif workflow is not None:
+    if workflow is not None:
         raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_BINDING_FORBIDDEN')
     now = datetime.now(timezone.utc)
     manifest: dict[str, Any] = {
@@ -98,6 +97,7 @@ def validate_authorization(
     checkpoint_digest: str | None,
     bootstrap_sessions: int | None = None,
 ) -> dict[str, Any]:
+    require_active_phase(phase)
     manifest = load_object(path)
     validate(manifest, schema)
     if manifest["phase"] != phase:
@@ -122,6 +122,7 @@ def validate_authorization(
 
 
 def consume_authorization(path: Path, manifest: dict[str, Any], consumed_directory: Path) -> dict[str, Any]:
+    require_active_phase(manifest.get('phase'))
     expected_digest = canonical_sha256(manifest)
     consumed_directory.mkdir(parents=True, exist_ok=True)
     consumed_manifest = consumed_directory / f"{manifest['authorizationId']}.json"

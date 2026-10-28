@@ -131,8 +131,17 @@ class KnowledgeApplicationTests(unittest.TestCase):
                    '--feature-dir', 'specs/001-notes', '--phase', 'planning']
         result = subprocess.run(command, cwd=self.root, capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-        self.assertIn('Core', result.stdout)
-        self.assertIn('canonical permission', result.stdout)
+        self.assertLessEqual(len(result.stdout.encode('utf-8')), 10500)
+        count = int(result.stdout.splitlines()[0].split()[2].rstrip('.').split('/')[1])
+        pages = [result.stdout.removesuffix('\n').split('\n', 1)[1]]
+        for page in range(2, count + 1):
+            following = subprocess.run([*command, '--page', str(page)], cwd=self.root,
+                capture_output=True, text=True, encoding='utf-8')
+            self.assertEqual(0, following.returncode, following.stderr)
+            self.assertLessEqual(len(following.stdout.encode('utf-8')), 10500)
+            pages.append(following.stdout.removesuffix('\n').split('\n', 1)[1])
+        self.assertIn('Core', ''.join(pages))
+        self.assertIn('canonical permission', ''.join(pages))
         canonical = self.root / '.specify/extensions/program-kit-governance/references/modularity-and-contracts.md'
         canonical.write_text(canonical.read_text().replace(
             '<!-- program-kit:decision-rule compilation-responsibilities -->', '<!-- removed -->'), encoding='utf-8')

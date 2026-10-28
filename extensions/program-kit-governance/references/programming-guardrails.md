@@ -35,6 +35,50 @@ Apply rules proportionally. Pure transformations and trivial adapters should rem
 
 ## Typed boundaries and design evidence
 
+<!-- program-kit:knowledge-rule principle.first-operation-source-review -->
+Before replicating a non-trivial operation, review its first coherent source and adverse case:
+
+- Name the semantic owner and legal state transitions. Use owned typed states/keys internally and
+  explicit unchanged wire/storage mappings; scattered state strings are not a lifecycle model.
+  Shared failure/retry codes are owned semantic keys too: declare them once in a cohesive owner and
+  use those names in policy, provider and adapter decisions. A typed facade over remaining raw-string
+  decisions does not complete that refactor. Boundary maps may contain exact literal spellings;
+  review their placement, and retain independent literal compatibility assertions in tests.
+- Keep pure policy in its semantic owner. Core accepts admitted policy, not implementation-specific parser/browser/platform
+  restrictions or optional defaults that silently replace configured snapshots. Providers retain
+  their atomic effects and implementation constraints.
+- Keep each method at one abstraction level. Extract meaningful policy, parsing, mapping and lifetime
+  boundaries; a partial file, green analyzer or shorter method does not establish responsibility.
+  Keep the operation's endpoint/binding/contracts/mappings navigable together and leave composition thin.
+  Group method phases with meaningful whitespace and prepare named values before calls; inspect the whole
+  selected layout category after manual changes, not only the last reported chaining violation.
+- Trace effective configuration from its single default source through activation and every consumer.
+  Preserve original work snapshots; distinguish adjustable policy, fixed contracts and safeguards.
+  Use the selected stack's native binding/validation mechanism before snapshot admission; a typed
+  settings class or immutable snapshot does not prove native binding. Justify any specific replacement.
+- Carry one complete execution deadline through bounded stages. Own cancellation, fresh scopes,
+  retained state, disposal/drain and safe failure observations; cancellation is not actual stop.
+- Admit external values at runtime and test a relevant malformed/denied/fault case. Generated types,
+  casts, dependency graphs and generic SOLID claims do not establish semantic correctness.
+
+Apply only relevant duties; preserve native mechanisms and agreed review points. This source review
+adds no approval gate, factory per class or mandatory interface for private pure helpers.
+Before completion, review changed decisions/helpers against the whole applicable source/layout
+category; retain findings and pending reviews in task notes. A later review cannot justify known
+omissions in completed work. Human-triggered repairs do not prove earlier detection. For concurrent
+work, identify the active owner and distinguish before, repaired-after and unverified observations.
+<!-- /program-kit:knowledge-rule -->
+
+<!-- program-kit:knowledge-rule principle.framework-native-mechanisms -->
+Use the selected framework's native mechanisms and supported extension points before adding equivalent
+infrastructure. During planning and semantic review, challenge every proposed project, wrapper, runner
+and lifecycle owner: what requirement does it meet that the selected mechanism cannot? Inspect exact
+selected-version contracts first. Record a concrete unmet requirement, alternatives and justification
+in the existing plan or ADR before replacing a framework responsibility. An assistant-authored task,
+accepted dependency graph or passing behavioral test is not that justification. Keep legitimate local
+choices and small application-owned policy; no new approval, receipt or fixed decision table is needed.
+<!-- /program-kit:knowledge-rule -->
+
 <!-- program-kit:decision-rule typed-admission -->
 <!-- program-kit:knowledge-rule principle.typed-admission -->
 Known request/response/configuration envelopes use typed contracts after admission. Prove

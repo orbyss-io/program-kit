@@ -32,58 +32,24 @@ class DeliveryTests(unittest.TestCase):
             with self.assertRaises(ValueError): session.download('https://other.example/package.zip',self.root/'bad.zip',record)
             request.assert_not_called()
 
-    def test_journey_invokes_downloaded_initializer_and_documented_updater(self):
+    def test_preview_journey_uses_only_exact_tagged_initializer(self):
         commands, downloads = [], []
         session = SimpleNamespace(run=lambda name,command,cwd:commands.append((name,list(map(str,command)),cwd)),
                                   download=lambda url,path,record:downloads.append((url,path,record)))
-        assets = [{'name':'Initialize-ProgramKit-1.0.0.sh','sha256':'a'*64,'size':10},
-                  {'name':'program-kit-1.0.0.zip','sha256':'b'*64,'size':20}]
-        promotion = {'source':{'version':'1.0.0'},'assets':assets}
-        with patch.object(delivery,'installed_versions',side_effect=[{'all':'1.0.0'},{'all':'0.9.0'},{'all':'1.0.0'}]), patch.object(delivery,'replace_catalogs') as catalogs, patch.object(delivery,'extract'):
-            delivery.journey(session,self.root,promotion,'v0.9.0')
-        initializer = next(command for name,command,_ in commands if name=='public-initializer')
-        upgrade = next(command for name,command,_ in commands if name=='public-upgrade')
-        self.assertEqual('bash',initializer[0])
-        self.assertEqual(str(downloads[0][1]),initializer[1])
-        self.assertTrue(upgrade[1].endswith('public downloaded release/scripts/upgrade_program_kit.py') or upgrade[1].endswith('public downloaded release\\scripts\\upgrade_program_kit.py'))
-        self.assertNotIn('--offline',upgrade)
-        self.assertEqual(assets,[record for _,_,record in downloads])
-        self.assertTrue(catalogs.call_args.args[1].endswith('/v0.9.0/catalogs'))
-        names = [name for name, _, _ in commands]
-        preparation = ['prepare-prior-utf8', 'prepare-prior-schema', 'record-prior-schema',
-                       'check-prior-schema', 'prior-installation-check']
-        self.assertEqual(preparation, names[names.index('install-prior-bundle') + 1:names.index('install-prior-bundle') + 6])
-        self.assertLess(names.index('prior-installation-check'), names.index('public-upgrade'))
-        prior = self.root / 'public prior consumer'
-        for name in preparation:
-            _, command, cwd = next(row for row in commands if row[0] == name)
-            self.assertEqual(prior, cwd)
-            self.assertEqual(str(prior / '.specify/extensions/program-kit-governance/scripts'), str(Path(command[1]).parent))
-        self.assertEqual(['--target', '.'], next(command for name, command, _ in commands if name == preparation[0])[2:])
-        self.assertEqual(['setup', 'record-copy', 'check-copy'],
-                         [next(command for name, command, _ in commands if name == operation)[-1] for operation in preparation[1:4]])
+        asset = {'name':'Initialize-ProgramKit-1.0.0-preview.1.sh','sha256':'a'*64,'size':10}
+        promotion = {'source':{'version':'1.0.0-preview.1'},'assets':[asset]}
+        with patch.object(delivery,'installed_versions',return_value={'all':'1.0.0-preview.1'}):
+            delivery.journey(session,self.root,promotion)
+        self.assertEqual(['initialize-git','public-initializer','public-installation-check'], [name for name,_,_ in commands])
+        self.assertEqual([asset], [record for _,_,record in downloads])
+        self.assertIn('/v1.0.0-preview.1/Initialize-ProgramKit-1.0.0-preview.1.sh', downloads[0][0])
+        self.assertEqual(str(downloads[0][1]),commands[1][1][1])
 
-    def test_failed_prior_preparation_never_reaches_updater(self):
-        commands = []
-        def execute(name, command, cwd):
-            commands.append(name)
-            if name == 'check-prior-schema':
-                raise ValueError('SCHEMA_TOOLS_LOCALLY_EDITED')
-        session = SimpleNamespace(run=execute, download=lambda *args: None)
-        promotion = {'source': {'version': '1.0.0'}, 'assets': [
-            {'name': 'Initialize-ProgramKit-1.0.0.sh'}, {'name': 'program-kit-1.0.0.zip'}]}
-        with patch.object(delivery, 'installed_versions', side_effect=[{'all': '1.0.0'}, {'all': '0.9.0'}]), \
-                patch.object(delivery, 'replace_catalogs'):
-            with self.assertRaisesRegex(ValueError, 'LOCALLY_EDITED'):
-                delivery.journey(session, self.root, promotion, 'v0.9.0')
-        self.assertNotIn('public-upgrade', commands)
-        self.assertNotIn('prior-installation-check', commands)
-
-    def test_prior_baseline_uses_latest_published_stable_below_candidate(self):
-        releases = [{'tag_name':tag,'draft':draft,'prerelease':pre} for tag,draft,pre in
-                    [('v1.0.0',False,False),('v0.9.0',False,False),('v0.8.0',False,False),('v0.9.1',True,False),('v0.9.2',False,True)]]
-        self.assertEqual('v0.9.0',delivery.previous_release(releases,'1.0.0'))
-        with self.assertRaises(ValueError): delivery.previous_release([], '1.0.0')
+    def test_incoherent_public_installation_is_not_success(self):
+        session = SimpleNamespace(run=lambda *args: None, download=lambda *args: None)
+        promotion = {'source':{'version':'1.0.0-preview.1'},'assets':[{'name':'Initialize-ProgramKit-1.0.0-preview.1.sh'}]}
+        with patch.object(delivery,'installed_versions',return_value={'one':'0.14.3'}), self.assertRaisesRegex(ValueError,'incoherent'):
+            delivery.journey(session,self.root,promotion)
 
     def test_failure_timeout_and_incomplete_cleanup_are_nonpassing(self):
         session = delivery.PublicDelivery(self.root/'diagnostics')

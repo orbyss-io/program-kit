@@ -1,7 +1,8 @@
 """Independent bounded oracle for the shipped label application capability.
 
-Uses the actual scoped registration and runtime/Core sources, without Foundation,
-HTTP or PostgreSQL. No expected result comes from pattern or scaffold metadata.
+Uses the actual scoped registration and runtime/Core sources, without
+HTTP or PostgreSQL. The runtime uses the selected native deadline implementation;
+Core remains BCL-only. No expected result comes from scaffold metadata.
 """
 from pathlib import Path
 import argparse
@@ -14,6 +15,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using ProgramKit.Examples.TypedOperation;
 
 internal static class Program
@@ -27,7 +29,8 @@ internal static class Program
     {
         var services = new ServiceCollection();
         services.AddScoped<ILabelStore, Store>();
-        LabelServices.Configure(services);
+        var configuration = new ConfigurationBuilder().Build();
+        LabelServices.Configure(services, configuration);
         var options = new ServiceProviderOptions { ValidateScopes = true };
         using var provider = services.BuildServiceProvider(options);
         using var first = provider.CreateScope();
@@ -48,7 +51,7 @@ internal static class Program
         Check(updated == "edited", "committed label representation");
         var callsAfterUpdate = string.Join(",", store.Calls);
         Check(callsAfterUpdate == "write:edited,read", "write then read exactly once");
-        Check(store.LastToken == source.Token, "same caller cancellation");
+        Check(store.LastToken != source.Token, "native outer token reaches both stages");
         store.Calls.Clear();
         source.Cancel();
         try { await operation.UpdateAsync("canceled", source.Token); throw new Exception("cancellation omitted"); }
@@ -100,10 +103,13 @@ def check(root, invalid=False):
         source = root / 'extensions/program-kit-dotnet/references/examples/typed-operation'
     directory = root / 'artifacts/label-check' / uuid.uuid4().hex[:8]
     directory.mkdir(parents=True)
-    for name in ('ILabelStore.cs', 'ILabelOperations.cs', 'LabelOperations.cs', 'LabelServices.cs'):
-        text = source_bytes(source / name).decode('utf-8')
+    for name in ('ILabelStore.cs', 'ILabelOperations.cs', 'LabelOperations.cs', 'LabelServices.cs', 'LabelExecutionOptions.cs'):
+        text = source_bytes(source / 'Labels' / name).decode('utf-8')
         if invalid and name == 'LabelOperations.cs':
-            text = text.replace('await store.WriteAsync(value, cancellationToken);', '// Deliberately omit the effect.')
+            original = 'await store.WriteAsync(value, deadline.Token);'
+            if text.count(original) != 1:
+                raise ValueError('Actual missing-effect negative seam is absent; preserve source for review')
+            text = text.replace(original, '// Deliberately omit the effect.')
         (directory / name).write_text(text, encoding='utf-8')
     for name in ('Directory.Build.props', 'Directory.Build.targets'):
         (directory / name).write_text('<Project/>', encoding='utf-8')
@@ -111,7 +117,7 @@ def check(root, invalid=False):
     (directory / 'LabelCheck.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
         '<OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit>'
         '<RestoreSources></RestoreSources></PropertyGroup><ItemGroup>'
-        '<FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup></Project>', encoding='utf-8')
+        '<FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="Orbyss.Foundation.Execution" Version="0.3.7" /></ItemGroup></Project>', encoding='utf-8')
     (directory / 'Program.cs').write_text(ORACLE, encoding='utf-8')
     run = subprocess.run(['dotnet', 'run', '--project', native_path(directory / 'LabelCheck.csproj'), '--configuration', 'Release'],
                          cwd=native_path(root), capture_output=True, text=True, encoding='utf-8', timeout=90)

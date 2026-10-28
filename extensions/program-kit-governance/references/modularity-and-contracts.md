@@ -66,8 +66,10 @@ and complete capability bindings; a graph pass establishes structural consistenc
 Empty repositories and pure Core utilities need no invented runtime projects.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.feature-registration -->
-Features register their own services and lifecycle contributions. A provider contributes its schema
-preparation through the selected existing lifecycle interface; the application owns policy/signing
+Features register their own services and lifecycle contributions. A provider contributes connectivity
+and read-only schema compatibility admission through the selected existing lifecycle interface;
+product schema changes use the selected migration mechanism under deployment control outside startup.
+The application owns policy/signing
 admission and managed workers. Deployment configuration selects implementations. When the affected
 design includes initialization, admission or managed workers, inspect the captured consumer's
 versioned publisher knowledge before choosing the mechanism with `publisher_knowledge.py
@@ -76,13 +78,15 @@ that exact profile, never adoption of today's default.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.captured-startup-example -->
 For the reviewed Foundation Tasks 0.3.1 / CShells 0.0.30-preview.159 baseline, the provider
-registers `AddShellInitializer<PrepareSchema>(LifecyclePhase.Prepare)` and owns its provider scope;
+registers `AddShellInitializer<AdmitSchema>(LifecyclePhase.Prepare, order: 100)` for read-only compatibility and owns its provider scope;
 application policy/signing admission uses an explicitly ordered `Default` initializer. Foundation's
 manager contributes in `Start`, awaits scoped `IStartupTask` work, then starts shell-singleton workers.
 Use fresh application-owned scopes per worker iteration. Read `CShells.Abstractions --fact README.md`
 and Foundation Tasks' `FoundationTasksFeature.cs` / `ShellTaskManager.cs` through the exact selected
 publisher route before adapting this example to another baseline. Required preparation/admission
 exceptions prevent activation; lifecycle subscribers swallow failures and cannot provide that gate.
+The initializer does not run migrations or create product tables. Deployment separation does not
+justify a custom migration engine or a second history system when the selected framework supplies one.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.lifecycle-admission -->
 Use explicit lifecycle phases for required ordering and failure admission, preserving scoped startup,
@@ -124,6 +128,19 @@ lifecycle justifies the boundary.
 <!-- /program-kit:knowledge-rule -->
 
 ## Semantic capability contracts
+
+<!-- program-kit:knowledge-rule principle.project-local-placement -->
+Make project-local placement navigable from the owning operation or cohesive semantic responsibility.
+Keep related request/result, policy, admission, mapping and tests near that owner within their accepted
+compilation projects. Mirror useful operation/capability ownership in tests. Reserve project roots
+for project declarations, thin composition and genuinely project-wide inputs; a small cohesive project
+may remain flat. Do not accumulate unrelated root files merely because one type per file is required.
+Avoid catch-all Helpers/Managers/Models folders, a folder per type, arbitrary file quotas or new layer
+projects. The selected .NET API specialization uses Operations/<Operation>; other layouts are local
+architecture choices. First establish one useful arrangement before replicating it. File moves retain
+public identities and reconcile source metadata, native includes, tooling paths and affected checks;
+folders alone do not repair semantic ownership or broad partial classes.
+<!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule principle.semantic-capability-boundary -->
 Core declares behavior in domain language rather than prescribing repositories, stores, units of
@@ -307,7 +324,10 @@ Export it with `python .specify/extensions/program-kit-governance/scripts/asset_
 
 <!-- program-kit:knowledge-rule principle.owned-identifiers-result-bounds -->
 Use cohesive owner-specific Constants/keys types for route, schema, profile and replay identifiers;
-prefer exported framework constants. Deployment limits belong to typed validated options, and
+prefer exported framework constants. Shared failure/retry codes also have one cohesive semantic owner;
+use their names across decisions and adapters while preserving exact external spellings. Literal
+wire/storage maps and independent compatibility oracles remain legitimate; a solution-wide constants
+sink or a ban on all string literals is not implied. Deployment limits belong to typed validated options, and
 localized text to owned resources. Do not create a solution-wide Constants sink. Preserve canonical
 bytes, hashes and replay versions; runtime `GetHashCode` is not a persistent identity. Large result
 sections page independently and stay bounded through construction, storage, hashing and delivery.

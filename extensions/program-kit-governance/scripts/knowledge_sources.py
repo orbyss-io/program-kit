@@ -187,6 +187,12 @@ def source_bytes(locator, *, extensions, repository=None, profile=None):
         if root is None:
             raise ValueError('Repository-only knowledge is unavailable in installed context: ' + locator['path'])
         path = confined(root, locator['path'])
+        if kind == 'extension':
+            from asset_sources import read as source_bytes
+            try:
+                return source_bytes(path), {'kind': kind, 'path': locator['path']}
+            except FileNotFoundError as error:
+                raise ValueError('Missing canonical knowledge source: ' + locator['path']) from error
         if not path.is_file():
             raise ValueError('Missing canonical knowledge source: ' + locator['path'])
         return path.read_bytes(), {'kind': kind, 'path': locator['path']}

@@ -19,9 +19,7 @@ BUILDER_SHA256 = '51b234a0d23ed1fe9e09483bba47e88c58398eb335582908fe9b32a558e5d0
 def input_snapshot(root, graph, frontend_id):
     frontend = graph['resources'][frontend_id]
     directory = root / frontend['directory']
-    result = {path.relative_to(root).as_posix(): runtime_closure.sha256(path)
-              for path in sorted(directory.rglob('*')) if path.is_file() and
-              not {'node_modules', 'dist', '.git', 'artifacts', '__pycache__'}.intersection(path.relative_to(directory).parts)}
+    result = model.resource_input_files(root, {'inputs': [frontend['directory'], *frontend.get('inputs', [])]})
     result['resource'] = model.digest(frontend)
     for name in ('.nvmrc', '.npm-version'):
         result[name] = runtime_closure.sha256(root / name)

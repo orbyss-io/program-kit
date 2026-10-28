@@ -347,13 +347,18 @@ def main():
                 governance.write_review('bootstrap')
                 reviewed_hashes = governance._artifact_hashes(governance.bootstrap_artifacts())
                 original_run = subprocess.run
+                profile = root / '.program-kit/dependency-profile.json'
+                profile_before = profile.read_bytes() if profile.is_file() else None
                 def fail_selection(command, **kwargs):
                     if len(command) > 2 and str(command[1]).endswith('building_blocks.py') and command[2] == 'accept':
+                        profile.parent.mkdir(parents=True, exist_ok=True)
+                        profile.write_text('synthetic partial acceptance write')
                         return subprocess.CompletedProcess(command, 1, '', 'Injected acceptance failure')
                     return original_run(command, **kwargs)
                 with patch.object(subprocess, 'run', side_effect=fail_selection):
                     fails(lambda: governance.accept_bootstrap('approve'), 'acceptance failed after founding ADR promotion')
                 assert reviewed_hashes == governance._artifact_hashes(governance.bootstrap_artifacts())
+                assert (profile.read_bytes() if profile.is_file() else None) == profile_before
                 assert not (root / governance.BOOTSTRAP_APPROVAL).exists()
                 reviewed_design = lifecycle.design_digest(root / governance.BUILDING_BLOCK_SELECTION)
                 governance.accept_bootstrap('approve')

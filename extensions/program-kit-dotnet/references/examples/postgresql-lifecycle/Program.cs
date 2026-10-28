@@ -12,6 +12,11 @@ if (args is ["binding", var configurationPath])
     await PrivateFilesProbe.RunAsync(configurationPath);
     return;
 }
+if (args is ["ef-runtime", var operation])
+{
+    await NativeMigrationProbe.RunAsync(operation);
+    return;
+}
 if (args.Length != 3 || args[0] is not ("prepare" or "runtime" or "cleanup"))
     throw new ArgumentException("Expected prepare|runtime|cleanup <fixture-id> <unique-operation-id>.");
 var identity = new FixtureIdentity(args[1]);

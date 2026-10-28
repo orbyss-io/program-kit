@@ -196,6 +196,92 @@ class DefaultAndHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'before asking for final acceptance'):
             handoff.first_feature(self.root, require_ready=True)
 
+    def epic_fixture(self):
+        from validate_governance_state import roadmap
+        self.register.pop('first_slice')
+        self.register['recommended_start'] = {'candidate_ids': ['policy-terms'],
+            'outcome': 'Maintain applicable policy terms', 'rationale': 'Useful before claims and renewal'}
+        write(self.root / handoff.REGISTER, self.register)
+        model = {'elements': [], 'relationships': [], 'strategic_model': {
+            'journeys': [{'id': 'policy-journey', 'source_journey': 'shopping', 'steps': []}],
+            'candidate_slices': [
+                {'id': 'policy-terms', 'journey': 'policy-journey', 'contexts': ['policy'], 'epic': 'RM-POLICY', 'commitment': 'intended'},
+                {'id': 'renew-policy', 'journey': 'policy-journey', 'contexts': ['policy'], 'epic': 'RM-POLICY', 'commitment': 'intended',
+                 'dependencies': [{'feature': 'policy-terms', 'contract': 'revision-terms', 'rationale': 'Renewal preserves the applicable revision'}]},
+                {'id': 'customer-portal', 'journey': 'policy-journey', 'contexts': ['policy'], 'epic': 'RM-PORTAL', 'commitment': 'exploratory'}]}}
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        base = roadmap(status='Candidate').replace('SPEC-001', 'RM-POLICY')
+        policy = base + '\n- **Type**: Epic\n- **Completion criteria**: Maintain and renew policies with historical meaning preserved\n- **Feature seeds**: policy-terms, renew-policy\n- **Intent**: Intended\n'
+        portal = base.replace('RM-POLICY', 'RM-PORTAL') + '\n- **Type**: Epic\n- **Completion criteria**: Customers can review applicable terms\n- **Feature seeds**: customer-portal\n- **Intent**: Exploratory\n'
+        path.write_text(policy + '\n' + portal, encoding='utf-8')
+        return model, path
+
+    def test_recommendation_does_not_commission_same_journey_or_epic_siblings(self):
+        from bootstrap_context import stage_plan
+        model, path = self.epic_fixture()
+        self.assertEqual('complete', handoff.check(self.root, 'trial', 'assessment')['status'])
+        projected = handoff.first_feature(self.root, require_ready=True)
+        self.assertFalse(projected['binding'])
+        self.assertEqual(['policy-terms'], [item['featureId'] for item in projected['features']])
+        self.assertEqual('Candidate', projected['features'][0]['status'])
+        plan = stage_plan(self.root, {}, 'roadmap', {'assessment_decisions': self.register}, 'trial')
+        self.assertIsNone(plan['first_entry'])
+        self.assertEqual(3, len(plan['feature_seeds']))
+        self.assertEqual(['policy-terms'], plan['recommended_start']['candidate_ids'])
+
+    def test_epic_seed_references_and_dependency_graph_are_exact(self):
+        import governance_state as governance
+        model, path = self.epic_fixture()
+        records = governance.roadmap_records(path)
+        with patch.object(governance, 'project_path', side_effect=lambda p: self.root / p):
+            governance.validate_epic_features(records)
+            view = governance._roadmap_view(records)
+            self.assertIn('epic_RM_POLICY -. contains .-> feature_policy_terms', view)
+            self.assertIn('feature_policy_terms -->|"revision-terms"| feature_renew_policy', view)
+            self.assertNotIn('epic_RM_POLICY -->', view)
+            path.write_text(path.read_text(encoding='utf-8').replace('policy-terms, renew-policy', 'policy-terms'), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'missing from its canonical epic'):
+                governance.validate_epic_features(governance.roadmap_records(path))
+        with self.assertRaisesRegex(ValueError, 'Completion criteria'):
+            governance.roadmap_records(self._without_completion(path))
+
+    def _without_completion(self, path):
+        import re
+        path.write_text(re.sub(r'(?m)^- \*\*Completion criteria\*\*:.*\n', '', path.read_text(encoding='utf-8')), encoding='utf-8')
+        return path
+
+    def test_recommendation_rejects_exploratory_and_parent_mismatch_without_rewriting(self):
+        model, path = self.epic_fixture()
+        original = path.read_bytes()
+        self.register['recommended_start']['candidate_ids'] = ['customer-portal']
+        write(self.root / handoff.REGISTER, self.register)
+        with self.assertRaisesRegex(ValueError, 'exploratory'):
+            handoff.first_feature(self.root)
+        with self.assertRaisesRegex(ValueError, 'exploratory'):
+            handoff.check(self.root, 'trial', 'assessment')
+        self.register['recommended_start']['candidate_ids'] = ['policy-terms']
+        write(self.root / handoff.REGISTER, self.register)
+        model['strategic_model']['candidate_slices'][0]['epic'] = 'RM-WRONG'
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        with self.assertRaisesRegex(ValueError, 'matching parent epic'):
+            handoff.first_feature(self.root)
+        self.assertEqual(original, path.read_bytes())
+
+    def test_epic_completion_remains_owned_outcomes_not_legacy_single_feature_audit(self):
+        import governance_state as governance
+        model, path = self.epic_fixture()
+        content = path.read_text(encoding='utf-8').replace('**Status**: Candidate', '**Status**: Delivered', 1)
+        path.write_text(content, encoding='utf-8')
+        with patch.object(governance, 'project_path', side_effect=lambda p: self.root / p), \
+             patch.object(governance, 'lifecycle_call'), \
+             patch.object(governance, 'validate_roadmap_decision_sources'):
+            records = governance.validate_roadmap(False, verify_delivery=True)
+        self.assertEqual('Delivered', records[0]['Status'])
+        self.assertIn('historical meaning preserved', records[0]['Completion criteria'])
+        self.assertEqual('Candidate', records[1]['Status'])
+        self.assertEqual(content, path.read_text(encoding='utf-8'))
+
     def test_combined_first_outcome_requires_one_explicit_roadmap_entry(self):
         from validate_governance_state import roadmap
         from bootstrap_context import stage_plan
@@ -449,76 +535,6 @@ class DefaultAndHandoffTests(unittest.TestCase):
         model['refinements'][0]['after_sha256'] = architecture.refinement_hash(changed)
         with self.assertRaisesRegex(architecture.ArchitectureMapError, 'preserve original consumer evidence'):
             architecture.refined_records(model, 'candidate_contexts', [old], [changed])
-
-    @unittest.skipUnless(importlib.util.find_spec('specify_cli'), 'Native engine tests use the installed Spec Kit interpreter')
-    def test_native_approved_design_handoff_reaches_review_without_rewriting_register(self):
-        from contextlib import chdir
-        from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-        from specify_cli.workflows.base import RunStatus
-        question, path, model = self.design_fixture()
-        original = path.read_bytes()
-        approved = (self.root / handoff.REGISTER).read_bytes()
-        path.write_text('# Household ownership\n\n- **Status**: Proposed\n\nDesign exists but its resolution link is absent.\n', encoding='utf-8')
-        import hashlib
-        model['decisions'][0]['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
-        write(self.root / 'docs/architecture/architecture-map.json', model)
-        write(self.root / '.specify/governance/bootstrap-assessment-approval.json', {'register': hashlib.sha256(approved).hexdigest()})
-        shutil.copytree(ROOT / 'extensions/program-kit-governance/scripts', self.root / '.specify/extensions/program-kit-governance/scripts')
-        shutil.copytree(ROOT / 'extensions/program-kit-dotnet/scripts', self.root / '.specify/extensions/program-kit-dotnet/scripts')
-        definition = WorkflowDefinition({'schema_version': '1.0', 'workflow': {'id': 'program-kit-bootstrap', 'name': 'Approved design handoff regression', 'version': '0.12.0'},
-            'inputs': {'bootstrap_verdict': {'type': 'string', 'default': ''}}, 'steps': [
-                {'id': 'require-architecture-answers', 'type': 'shell', 'run': '"' + sys.executable + '" .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py questions --run-id {{ context.run_id }} --stage architecture', 'output_format': 'json'},
-                {'id': 'require-tooling-handoff', 'type': 'shell', 'run': '"' + sys.executable + '" .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py require --run-id {{ context.run_id }} --stage tooling', 'output_format': 'json'},
-                {'id': 'review', 'type': 'gate', 'message': 'Human architecture acceptance remains required', 'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'}]})
-        with chdir(self.root), patch.object(sys.stdin, 'isatty', return_value=False):
-            engine = WorkflowEngine(self.root)
-            state = engine.execute(definition, run_id='design')
-            self.assertEqual(RunStatus.FAILED, state.status)
-            self.assertEqual('require-architecture-answers', state.current_step_id)
-            self.assertNotIn('require-tooling-handoff', state.step_results)
-            path.write_bytes(original)
-            model['decisions'][0]['sha256'] = hashlib.sha256(original).hexdigest()
-            write(self.root / 'docs/architecture/architecture-map.json', model)
-            state = engine.resume('design')
-            self.assertEqual(RunStatus.PAUSED, state.status)
-            self.assertEqual('review', state.current_step_id)
-            self.assertEqual(approved, (self.root / handoff.REGISTER).read_bytes())
-
-    @unittest.skipUnless(importlib.util.find_spec('specify_cli'), 'Native engine tests use the installed Spec Kit interpreter')
-    def test_native_question_answer_gate_and_explicit_reopen(self):
-        from contextlib import chdir
-        from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine, RunState, validate_workflow
-        from specify_cli.workflows.base import RunStatus
-        import workflow_lifecycle as lifecycle
-        scripts = self.root / '.specify/extensions/program-kit-governance/scripts'
-        shutil.copytree(ROOT / 'extensions/program-kit-governance/scripts', scripts)
-        shutil.copytree(ROOT / 'extensions/program-kit-dotnet/scripts', self.root / '.specify/extensions/program-kit-dotnet/scripts')
-        self.register['unresolved'] = [{'id': 'region', 'required_now': True, 'question': 'Required region?', 'blocks': 'provider', 'kind': 'user-answer', 'owner': 'consumer', 'due_stage': 'research'}]
-        write(self.root / handoff.REGISTER, self.register)
-        definition = WorkflowDefinition({'schema_version': '1.0', 'workflow': {'id': 'program-kit-bootstrap', 'name': 'Deterministic handoff transport', 'version': '0.12.0'},
-            'inputs': {'bootstrap_verdict': {'type': 'string', 'default': ''}}, 'steps': [
-                {'id': 'require-research-handoff', 'type': 'shell', 'run': '"' + sys.executable + '" .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py require --run-id {{ context.run_id }} --stage research', 'output_format': 'json'},
-                {'id': 'review', 'type': 'gate', 'message': 'Independent baseline acceptance', 'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'}]})
-        self.assertEqual([], validate_workflow(definition))
-        with chdir(self.root), patch.object(sys.stdin, 'isatty', return_value=False):
-            engine = WorkflowEngine(self.root)
-            state = lifecycle.normalize_handoff_pause(self.root, engine.execute(definition, run_id='native'))
-            self.assertEqual(RunStatus.PAUSED, state.status)
-            self.assertNotIn('review', state.step_results)
-            handoff.answer(self.root, 'native', 'region', 'EU')
-            state = engine.resume('native')
-            self.assertEqual(RunStatus.PAUSED, state.status)
-            self.assertEqual('review', state.current_step_id)
-            state = engine.resume('native', inputs={'bootstrap_verdict': 'approve'})
-            self.assertEqual(RunStatus.COMPLETED, state.status)
-            write(self.root / '.specify/governance/bootstrap-assessment-approval.json', {'fixture': 'old approval'})
-            lifecycle.reopen(self.root, 'native', 'research')
-            self.assertFalse((self.root / '.specify/governance/bootstrap-assessment-approval.json').exists())
-            self.assertFalse((self.root / '.specify/workflows/runs/native/decision-responses.json').exists())
-            self.assertTrue(list((self.root / '.specify/workflows/resumption-history/native').rglob('decision-responses.json')))
-            self.assertFalse(RunState.load('native', self.root).inputs['auto_approve_and_ratify'])
-            handoff.answer(self.root, 'native', 'region', 'A corrected operator answer')
-
 
 if __name__ == '__main__':
     unittest.main()

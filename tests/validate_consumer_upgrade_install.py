@@ -82,7 +82,7 @@ def check_installed_workflow(target, fresh_reset=False):
 def main():
     version = (ROOT/'VERSION').read_text().strip()
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--archive', type=Path, default=ROOT/'artifacts'/f'program-kit-{version}.zip')
+    parser.add_argument('--archive', type=Path, default=ROOT/'artifacts'/f'program-kit-tooling-{version}.zip')
     archive = parser.parse_args().archive.resolve()
     with FixtureDirectory(prefix='consumer-upgrade-package-') as name:
         base = Path(name).resolve()

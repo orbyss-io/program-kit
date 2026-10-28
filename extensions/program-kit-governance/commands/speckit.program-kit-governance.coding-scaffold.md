@@ -1,23 +1,25 @@
-Prepare the current feature/operation through `phase_obligations.py prepare` and
-inspect its selected pattern and `realization` route. Keep its canonical rules,
-context, actual project ownership and evaluation duties. Manual editing remains
-available; source presence and successful scaffolding establish no completed duty.
+---
+description: Preview or apply an optional finite source recipe using actual native project inputs.
+---
 
-For the finite typed-label adapter, supply existing native owner paths in one
-optional JSON input: `core`, `runtime`, `api`, `provider`, `test` are project paths,
-`frontend` is the actual frontend directory and `generatedTypes` is its registered
-native OpenAPI output. This is a convenience input, never an approval artifact.
+Use this only when the selected recipe fits the current task. Manual implementation and other
+suitable patterns remain available. Read the normal feature plan and identify the actual native
+project owners; do not initialize a delivery/checkpoint engine or qualify a consumer pattern first.
 
-Run `scripts/coding_scaffold.py preview --feature-dir <feature> --operation <operation>
---unit <selected-unit> --owners <input.json>`. Inspect actual diffs, consumer ownership,
-preconditions, conflicts and required authored integration. Apply only that inspected
-proposal using the same arguments plus `apply` and `--plan-digest <digest>`.
-Input changes require a fresh preview. No submitted pattern command executes.
+The finite typed-label adapter accepts one ordinary JSON input: `core`, `runtime`, `api`, `provider`
+and `test` project paths, `frontend` directory and registered OpenAPI `generatedTypes` path.
+It checks the actual supported SDK/API/project contracts, source roles and registered client path.
+These are this generator's inputs, not general before-coding gates. A different stack can use another
+helper or normal editing without inventing these files.
 
-An unsupported selected version/adapter names the normal repair owner. Do not guess
-native APIs, bypass a qualified-profile guard or initialize existing contract baselines.
-Source conflicts preserve customizations; adapt through ordinary editing and reconcile
-actual changes before completion. Use native feature registration, settings metadata,
-contract/client generation and meaningful independent tests; no scaffolding result
-waives them. Keep retained output local and distinguish source previews from runtime
-or human acceptance.
+Run `python .specify/extensions/program-kit-governance/scripts/coding_scaffold.py preview
+--feature-dir <feature> --unit <unit> --owners <input.json>`; add `--operation` only when choosing
+an existing visible optional operation table. Inspect source diffs, conflicts, preconditions and
+required authored integration. Apply the exact proposal with `apply` and `--plan-digest <digest>`.
+A changed input needs a fresh preview. Existing source conflicts are preserved for ordinary editing;
+created business files stay consumer-owned and never enter toolkit managed update targets.
+
+Run the actual selected compiler/analyzers, contract/client generation and meaningful independent
+behavior/security tests when applicable. Source creation proves none of compilation, runtime,
+provider compatibility, semantic correctness or human acceptance. No submitted pattern command is
+executed and no scaffolding result waives those real contracts.

@@ -4,8 +4,10 @@ import json
 import re
 
 CAPABILITIES = {
-    'dotnet': r'(?<!\w)(?:c#|\.net|dotnet)(?!\w)',
-    'web': r'\b(?:browser|frontend|react|vite|typescript)\b',
+    'dotnet': r'(?<!\w)(?:c#|asp\.net(?:\s+core)?|\.net|dotnet)(?!\w)',
+    # Bounded surface terms include ordinary Dutch compounds without treating
+    # every word containing "browser" as a web feature or selecting a stack.
+    'web': r'\b(?:browser(?:s|apps?|applicaties?|routes?|ondersteuning)?|frontend|react|vite|typescript)\b',
     'api': r'\b(?:http|openapi|endpoint|api)\b',
     'persistence': r'\b(?:persistence|database|dbcontext|postgresql|sqlserver|sqlite|entityframeworkcore|entity framework|npgsql)\b',
     'capabilities': r'\b(?:capability|building.block|shellfeature|composition|activation)\b',
@@ -17,6 +19,7 @@ CAPABILITIES = {
     'pdf-decoding': r'\b(?:pdfpig|flatedecode|finite pdf decod(?:er|ing))\b',
     'recording-ocr': r'\b(?:recording.only ocr|offline ocr sdk)\b',
     'snapshot-query': r'\bimmutable snapshot quer(?:y|ies)\b',
+    'async-workload': r'\b(?:background (?:jobs?|workloads?|processing)|asynchronous (?:jobs?|workloads?|processing)|durable dispatch|transactional outbox|queue consumers?|queued (?:work|inspection|processing)|recurring (?:jobs?|workloads?)|(?:inspection|processing|recovery) workers?|replaceable (?:execution |workload )?providers?|container apps jobs?|webjobs|kubernetes jobs?)\b',
     'browser-effects': r'\b(?:async|await|promise|settimeout|setinterval|queuemicrotask|requestanimationframe|abortcontroller|abortsignal|arraybuffer|filereader|getdocument|fetch|websocket|worker|createobjecturl)\b|\.then\s*\(',
 }
 
@@ -104,18 +107,17 @@ def frontend_packages(root, prose, affected_paths=()):
 
 def feature_scope(root, feature):
     """Resolve existing feature identity, without promoting a draft or changing intake."""
-    from specification_intake import spec_entries
+    from specification_intake import spec_entries, resolve_spec_brief
     spec = feature / 'spec.md'
     entries = spec_entries(spec.read_text(encoding='utf-8')) if spec.is_file() else []
     if len(entries) > 1:
         raise ValueError('Feature must identify exactly one specification roadmap entry')
     entry = entries[0] if entries else None
-    path = root / '.program-kit/specification-intake' / str(entry) / 'brief.json'
-    brief = json.loads(path.read_text(encoding='utf-8')) if entry and path.is_file() else {}
+    path, brief = resolve_spec_brief(root, spec)
     scope = brief.get('architectureScope')
     from feature_knowledge import project
-    projection = project(root, scope) if scope is not None else None
-    return {'entry': entry, 'brief': brief, 'briefPath': path, 'projection': projection}
+    projection = project(root, scope, feature_id=brief.get('featureId')) if scope is not None else None
+    return {'entry': entry, 'featureId': brief.get('featureId'), 'brief': brief, 'briefPath': path, 'projection': projection}
 
 
 def adopted_context(root, feature, selected_paths=()):
@@ -215,20 +217,6 @@ def adopted_context(root, feature, selected_paths=()):
             continue
         technology = element.get('technology', '').lower()
         tags.update(tag for tag, pattern in CAPABILITIES.items() if re.search(pattern, technology))
-    register_path = root / 'docs/architecture/bootstrap-decisions.json'
-    register = json.loads(register_path.read_text(encoding='utf-8')) if register_path.is_file() else {}
-    if 'web' in tags and 'typescript-web' in register.get('selected_profiles', []):
-        tags.add('typescript')
-        sources.append({'path': 'docs/architecture/bootstrap-decisions.json', 'profile': 'typescript-web'})
-    if 'dotnet' in tags and 'dotnet' in register.get('selected_profiles', []):
-        sources.append({'path': 'docs/architecture/bootstrap-decisions.json', 'profile': 'dotnet'})
-    # Retained scoped persistence owners are a stronger signal than feature wording.
-    for owner in register.get('persistence', []):
-        if isinstance(owner, dict) and owner.get('owner') in owned_targets and owner.get('profile') != 'none':
-            tags.add('persistence')
-            sources.append({'path': 'docs/architecture/bootstrap-decisions.json',
-                            'owner': owner['owner'], 'profile': owner.get('profile'),
-                            'status': owner.get('status', 'proposed')})
     # Profile facets come only from the accepted owned projection above. A root
     # profile or an unrelated instance never narrows another feature's duties.
     if targets and selection.get('status') == 'Accepted':
@@ -240,16 +228,6 @@ def adopted_context(root, feature, selected_paths=()):
                            'service_to_service': 'service_to_service'}.get(instance.get('composition'))
                 if profile:
                     tags.add('secure-web:' + profile)
-        web = register.get('web', {})
-        if ('web' in tags and not any(t.startswith('secure-web:') for t in tags)
-                and isinstance(web, dict) and web.get('secure_profile') in ('bff-cookie-v1', 'spa-pkce-v1', 'none-v1')):
-            tags.add('secure-web:' + web['secure_profile'])
-        dotnet = register.get('dotnet', {})
-        if 'dotnet' in tags and isinstance(dotnet, dict):
-            if dotnet.get('program_kit_host_opt_out') is True and isinstance(dotnet.get('opt_out_reason'), str) and dotnet['opt_out_reason'].strip():
-                tags.add('dotnet-host:conventional')
-            elif dotnet.get('program_kit_host_opt_out') is False and dotnet.get('host_runtime') == 'Orbyss.Foundation.Host':
-                tags.add('dotnet-host:foundation')
     return {'tags': tags, 'sources': sources, 'diagnostics': diagnostics}
 MECHANISMS = {
     'async': r'\b(?:async|await|task|valuetask|cancellation|deadline)\b',
@@ -263,10 +241,7 @@ MECHANISMS = {
 
 def responsibility_tags():
     """Vocabulary supplied by this detector, not a second extension registry."""
-    from dotnet_adapter import bootstrap
-    bootstrap()
-    from architecture_rules import RUNTIME_PROJECT_ROLES
-    return {'project-role:' + role for role in RUNTIME_PROJECT_ROLES} | set(CAPABILITIES) | {'all', 'http-api', 'source-production', 'evaluated-dotnet',
+    return {'project-role:' + role for role in ('core', 'helper', 'implementation', 'provider', 'bridge', 'test')} | set(CAPABILITIES) | {'all', 'http-api', 'source-production', 'evaluated-dotnet',
         'secure-web:bff-cookie-v1', 'secure-web:spa-pkce-v1', 'secure-web:none-v1', 'secure-web:service_to_service',
         'dotnet-host:foundation', 'dotnet-host:conventional'} | {'dotnet-' + name for name in MECHANISMS}
 
@@ -299,7 +274,10 @@ def applicable_requirements(catalog, tags, phase='implementation'):
 def affirmative(text):
     """Exclude explicit non-goals from prose inference, never actual package evidence."""
     # Retained task/approval history is not current affirmative feature intent.
-    from operation_readiness import DECISIONS, PLAN_COLUMNS
+    # These are ordinary optional Markdown labels, not a required plan protocol.
+    PLAN_COLUMNS = ['Operation', 'Decision', 'Resolution', 'Source']
+    DECISIONS = {'ownership', 'results', 'limits', 'cancellation-deadline', 'cleanup-uncertainty',
+                 'transactions-replay', 'admission', 'bounds', 'concurrency', 'configuration-time', 'activation-drain'}
     text = re.sub(r'<!--.*?-->', '', text, flags=re.S)
     excluded_depth = None
     lines = []
@@ -335,7 +313,7 @@ def affirmative(text):
             depth = len(heading[1])
             if excluded_depth is not None and depth <= excluded_depth:
                 excluded_depth = None
-            if re.search(r'non.?goals?|out of scope|excluded|future work', line, re.I):
+            if re.search(r'non.?goals?|out of scope|excluded|future work|buiten scope|uitgesloten|toekomstig werk', line, re.I):
                 excluded_depth = depth
         if excluded_depth is None:
             lines.append(line)
@@ -344,9 +322,9 @@ def affirmative(text):
     for clause in clauses:
         # Preserve an affirmative prefix in "API without database" while dropping
         # clauses such as "API and browser are out of scope" altogether.
-        if re.search(r'\b(?:out of scope|not required|excluded|future|deferred)\b', clause, re.I):
+        if re.search(r'\b(?:out of scope|not required|excluded|future|deferred|buiten scope|niet vereist|uitgesloten|uitgesteld)\b', clause, re.I):
             continue
-        result.append(re.split(r'\b(?:no|without)\s', clause, maxsplit=1, flags=re.I)[0])
+        result.append(re.split(r'\b(?:no|without|geen|zonder)\s', clause, maxsplit=1, flags=re.I)[0])
     return '\n'.join(result)
 
 
@@ -355,6 +333,21 @@ def frontend_only_declaration(prose):
     for match in re.finditer(r'\b(?:frontend|browser|ui)[ -]only\b', prose, re.I):
         prefix = re.split(r'[.!?;\n]', prose[:match.start()])[-1]
         if not re.search(r'\b(?:not|never|no)\b[^.!?;\n]{0,120}$', prefix, re.I):
+            return True
+    return False
+
+
+def owns_async_execution(sources):
+    """Discover selected .NET execution owners, not mere async or package presence.
+
+    This bounded lexical signal does not establish registration/lifetime correctness.
+    Startup tasks, imported abstractions, comments and strings supply no work owner.
+    """
+    for source in sources:
+        code = re.sub(r'//[^\n]*|/\*.*?\*/|@?"(?:""|\\.|[^"\\])*"', ' ', source, flags=re.S)
+        if re.search(r'\bAddFoundation(?:Background|Recurring)Task\s*<', code):
+            return True
+        if re.search(r'\b(?:class|record)\s+\w+[^;{]*:\s*[^;{]*\bI(?:Background|Recurring)Task\b', code):
             return True
     return False
 
@@ -373,16 +366,21 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
                 or any(str(item).replace('\\', '/') == p.relative_to(root).as_posix()
                        or str(item).replace('\\', '/').startswith(p.parent.relative_to(root).as_posix() + '/')
                        for item in affected_paths)]
-    engineering, source = [], []
+    engineering, source, execution_sources = [], [], []
     for project in selected:
         engineering.append(project.read_text(encoding='utf-8'))
-        if phase in ('implementation', 'delivery'):
-            for path in project.parent.rglob('*.cs'):
-                if {'bin', 'obj'} & set(path.parts):
-                    continue
-                if not affected_paths or any(path.relative_to(root).as_posix() == p or
-                    path.relative_to(root).as_posix().startswith(p.rstrip('/') + '/') for p in affected_paths):
-                    source.append(path.read_text(encoding='utf-8'))
+        for path in project.parent.rglob('*.cs'):
+            if {'bin', 'obj'} & set(path.parts):
+                continue
+            if not affected_paths or any(path.relative_to(root).as_posix() == p or
+                path.relative_to(root).as_posix().startswith(p.rstrip('/') + '/') for p in affected_paths):
+                body = path.read_text(encoding='utf-8')
+                # Existing selected execution ownership matters before planning
+                # repeats its architecture. Other source effects retain their
+                # ordinary implementation/delivery selection boundary.
+                execution_sources.append(body)
+                if phase in ('implementation', 'delivery'):
+                    source.append(body)
     for package in frontend_packages(root, prose, affected_paths):
         engineering.append(package.read_text(encoding='utf-8'))
         if phase in ('implementation', 'delivery'):
@@ -391,6 +389,7 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
                     source.append(path.read_text(encoding='utf-8'))
     if actual_source is not None:
         source = actual_source
+        execution_sources = actual_source
     content = '\n'.join([prose, *engineering, *source]).lower()
     selected_paths = {*affected_paths, *(p.relative_to(root).as_posix() for p in selected),
                       *(p.relative_to(root).as_posix() for p in frontend_packages(root, prose, affected_paths))}
@@ -405,19 +404,17 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
     if not inherited_runtime:
         inherited_tags -= {'persistence', 'api'}
     tags = {'all'} | inherited_tags
-    tags.update(tag for tag, pattern in CAPABILITIES.items() if re.search(pattern, content))
+    tags.update(tag for tag, pattern in CAPABILITIES.items()
+                if re.search(pattern, prose.lower() if tag == 'async-workload' else content))
+    if owns_async_execution(execution_sources):
+        tags.add('async-workload')
     identity = r'\b(?:sign[ -]?in|sign[ -]?out|login|logout|password[ -]reset|account[ -]recovery|credential[ -]recovery)\b'
     presentation = r'\b(?:screens?|pages?|forms?|styling|accessibility)\b'
     # User-visible identity screens need UI guidance before frontend source exists.
     # A backend/CLI login operation alone does not establish a browser surface.
     if re.search(identity + r'[^\n]{0,100}' + presentation + '|' + presentation + r'[^\n]{0,100}' + identity, prose, re.I):
         tags.add('web')
-    register = root / 'docs/architecture/bootstrap-decisions.json'
-    if 'web' in tags and register.is_file() and 'typescript-web' in json.loads(
-            register.read_text(encoding='utf-8')).get('selected_profiles', []):
-        tags.add('typescript')
-    if selected or (not frontend_only and not feature_scope(root, feature)['projection']
-                    and (root / 'global.json').is_file()):
+    if selected:
         tags.add('dotnet')
     packages = '\n'.join(engineering).lower()
     # Qualified identity is stronger evidence than wording in the plan.
@@ -440,3 +437,43 @@ def context(root, feature, phase, affected_paths=(), prose_override=None, actual
         mechanisms.add('lifetime')
     tags.update('dotnet-' + name for name in mechanisms if 'dotnet' in tags)
     return tags
+
+
+def markdown_table(content, heading, width):
+    """Read an optional ordinary task table without coding/delivery state."""
+    from knowledge_sources import markdown_headings
+    headings = markdown_headings(content)
+    start = next((index for index, _, title in headings if title == heading), None)
+    if start is None:
+        return []
+    end = next((index for index, _, _ in headings if index > start), len(content.splitlines()))
+    rows = []
+    for line in content.splitlines()[start + 1:end]:
+        if not line.strip().startswith('|'):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
+        if len(cells) != width:
+            raise ValueError('Malformed optional task table: ' + heading)
+        if all(re.fullmatch(r':?-+:?', cell) for cell in cells):
+            continue
+        rows.append(cells)
+    return rows[1:] if rows else []
+
+
+def task_scope(feature, operation=None, task_ids=None, feature_wide=False):
+    """Optional recipe scope from visible task IDs/table, never hidden checkpoints."""
+    content = (feature / 'tasks.md').read_text(encoding='utf-8') if (feature / 'tasks.md').is_file() else ''
+    tasks = [line for line in content.splitlines() if re.match(r'^\s*- \[[ xX]\] T\d+\b', line)]
+    all_ids = set(re.findall(r'^\s*- \[[ xX]\] (T\d+)\b', content, re.M))
+    operation = None if task_ids is not None or feature_wide else operation
+    # Explicit callers can select an operation only when its authored mapping exists.
+    ids = {row[0] for row in markdown_table(content, 'Task dependency map', 5) if row[1] == operation} if operation else all_ids
+    if operation and not ids:
+        raise ValueError('Unknown operation in the optional Task dependency map: ' + operation)
+    if task_ids is not None:
+        ids = set(task_ids)
+        if not ids <= all_ids:
+            raise ValueError('Recipe scope names unknown task IDs')
+    selected = [line for line in tasks if any(re.match(r'^\s*- \[[ xX]\] ' + re.escape(identity) + r'\b', line) for identity in ids)]
+    return {'operation': operation, 'taskIds': sorted(ids), 'tasks': selected,
+            'baseline': None, 'mode': 'tasks' if task_ids is not None else 'operation' if operation else 'feature'}

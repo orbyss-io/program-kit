@@ -2,14 +2,16 @@
 
 ## Purpose and depth
 
-Use this guide during bootstrap intake and when deepening an affected feature. Relevant knowledge
+Use this guide during product intake and when deepening an affected feature. Relevant knowledge
 guides questions, examples and consequences before it guides implementation. Explain the discovery
 areas to the human and name the subject of each question group. Reuse supplied answers; explore
 gaps and contradictions. Question count and speed are not completion criteria.
 
-Establish a coherent functional baseline for the first useful outcome. Keep later journeys as
-actor/outcome summaries with consequential dependencies; deepen their details when commissioned.
-The areas below are a coverage lens, not a fixed questionnaire or a new approval sequence.
+Establish a coherent architectural understanding across the supplied product vision. Preserve all
+supplied detail, including proposed specification boundaries and their rationale. Deepen uncertainty
+now when it changes identity, ownership, lifecycle boundaries, shared invariants, trust, consistency,
+historical meaning or the roadmap graph. Further detailed feature questioning belongs to its
+specification intake. The areas below are a coverage lens, not a fixed questionnaire or approval sequence.
 
 ## Discovery areas
 
@@ -20,7 +22,7 @@ The areas below are a coverage lens, not a fixed questionnaire or a new approval
 | Lifecycles and policies | Meaningful states and transitions, who can act, preconditions, decisions and rules that must remain true | Lifecycle, permissions, invariants and relevant rejection cases |
 | User journeys | Trigger, steps, decisions, information needed, observable outcome, interruptions and recovery | Coherent success and material alternative paths |
 | Experience and presentation | Information hierarchy, navigation, interaction, feedback, layout, existing branding and visual preferences | Product-specific experience decisions and provisional proposals |
-| First delivery outcome | Which journey creates useful value first and which other journeys it needs | Candidate slices, dependencies and acceptance examples |
+| Roadmap and feature outcomes | Which epic outcomes matter, how candidate features contribute, and what actually depends on what | Epic scope and completion conditions, feature seeds, prerequisites and priority rationale |
 
 Start from a real or proposed situation in the user's language. Walk through it with the human,
 then use the emerging concepts and rules to ask dependent questions. Iterate between journeys and
@@ -66,7 +68,7 @@ unspecified, never as affirmative preferences. Respect an explicit request to us
 
 When a human-facing UI is included, invite existing brand/design-system constraints, reference
 applications, visual character and theme preferences. Ask this in a coherent experience group,
-reusing answers already supplied. Derive information hierarchy and navigation from the first journey
+reusing answers already supplied. Derive information hierarchy and navigation from the relevant journeys
 before recommending an archetype or layout. Explain alternatives through use: list/detail versus
 separate screens, for example, rather than requiring the user to select internal profile enums.
 
@@ -76,7 +78,8 @@ a wireframe when it resolves a consequential choice. Do not generate artwork or 
 merely to complete intake. If no visual preference is supplied, offer a disclosed provisional design
 baseline with its workflow rationale in the existing synthesis. Retain accessibility, privacy and
 reduced-motion obligations regardless of visual taste. Detailed styling can wait for the feature;
-layout and interaction questions that change the first journey cannot all be deferred as styling.
+layout and interaction questions that change architectural access or shared experience cannot all be
+deferred as styling. Exact feature screen flows deepen when that feature is commissioned.
 
 Use the relevant UI guidance in `ui-experience-v1.md` and the mental-model layers in
 `ui-design-model.md`; for forms/async work consult the relevant
@@ -96,28 +99,34 @@ For a rename journey, identify the subject and actor, the naming policy, ownersh
 conditions, the changed state, visible success, duplicate/conflict rejection and safe recovery.
 Preserve the agreed meaning and evidence; do not invent an operation because an example mentions it.
 
-Record each fact once and cross-reference it. These product references belong in prose; use existing
-journey/slice IDs and answer evidence when projecting the canonical map and intake. Do not add new
-JSON fields, duplicate evidence registries, separate model dossiers or confirmation receipts.
-Map existing language, ownership, invariants and lifecycle fields to this model. The specification
-deepens exact fields, edge cases and acceptance criteria while preserving the established meaning.
+Record each fact once and cross-reference it. Stable journey/feature names help connect existing
+intent, optional maps and ordinary specifications. Preserve supplied detail, boundary rationale,
+assumptions and open questions in readable artifacts; no authoring schema or ID registry is required.
+Specification intake reuses this context and deepens behavior, edge cases and acceptance examples
+while preserving established meaning. An optional structured helper enforces only its supplied input.
 
-A journey can produce several independently useful slices; one useful slice can need supporting
-journeys. Preserve their identities. Screens, endpoints and CRUD verbs do not automatically become
-specification boundaries. Architecture chooses physical boundaries from the functional evidence.
+A journey can produce several independently useful features; one feature can need supporting
+journeys. An epic can contain several feature specifications and is complete against its agreed
+outcomes. A domain can support several epics over time. Preserve these separate identities. Screens,
+endpoints and CRUD verbs do not automatically become specification boundaries. Challenge both an
+oversized bundle and fragments that cannot produce a meaningful reviewable user outcome.
+Architecture chooses physical boundaries from the functional evidence.
 
 ## Convergence and receiving work
 
-Before synthesis, walk through the first useful journey and its material alternative paths using
-the current model. For each relevant discovery area, identify established evidence, an unresolved
-product decision, an exclusion or a legitimate later trigger. Do not count a filled heading, an
-empty frontier or a generated architecture map as demonstrated functional understanding.
+Before synthesis, walk through representative situations that challenge shared boundaries and future
+relationships in the current model. For each supplied vision area, identify established evidence,
+an unresolved architecture-significant decision, an exclusion or a legitimate later trigger. Check
+that feature seeds preserve the user's supplied depth, commitment and proposed boundaries. Known
+feature prerequisites differ from preferred delivery sequence; unknown edges stay visible. A detailed
+option is not automatically a delivery commitment. Do not count filled headings, an empty frontier
+or a generated map as demonstrated architectural understanding.
 
 Ask when describing the journey still requires inventing consequential product behavior. Unknown
 production commitments and detailed future features remain at their actual triggers. Present the
 functional model, journey/experience proposals and functional gaps in the existing final synthesis;
 reuse its single confirmation gate. Do not add approval after each discovery area.
 
-Assessment and architecture carry the confirmed functional references into ownership and decisions.
+Product intent and architecture carry confirmed functional meaning into ownership and decisions.
 Feature intake reads the relevant model and journeys, reuses settled answers, and deepens only the
 chosen outcome. Package defaults never prove that a business rule or user experience is correct.

@@ -113,6 +113,21 @@ def main():
     from fixture_readiness_cases import exercise
     exercise(ROOT)
     results = []
+    profile = 'foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2'
+    for suffix in ('', '-q-1234abcd', '-analyzer-0.3.8', '-analyzer-0.3.8-q-1234abcd'):
+        assert probe.contracts_profile({'foundationRelease': '0.3.7', 'dependencyProfile': profile + suffix})
+    for invalid in (profile + '-analyzer-../0.3.8', profile + '-analyzer-0.3',
+                    profile + '-analyzer-0.3.8-preview.1', profile + '-analyzer-0.3.8/child',
+                    profile + '-analyzer-0.3.8-analyzer-0.3.9', profile + '-q-1234abcd-analyzer-0.3.8',
+                    profile + '-analyzer-0.3.8-q-1234ABCd', profile + '-analyzer-0.3.8\n',
+                    profile.replace('foundation-0.3.7', 'foundation-0.3.8') + '-analyzer-0.3.8'):
+        try:
+            probe.contracts_profile({'foundationRelease': '0.3.7', 'dependencyProfile': invalid})
+        except ValueError as error:
+            assert 'exact selected profile identity' in str(error)
+        else:
+            raise AssertionError('Malformed or mismatched analyzer profile admitted: ' + repr(invalid))
+    results.append('bounded-independent-analyzer-profile-identity')
     assert maintained_cshells_source() == probe.CSHELLS_PREVIEW_SOURCE
     results.append('canonical-cshells-source-matches-maintained-native-restore-mapping')
     parent = ROOT / 'artifacts/bootstrap-runtime-binding-guards'

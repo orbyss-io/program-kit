@@ -4,32 +4,18 @@ Live acceptance v2 is an optional, paid, local diagnostic for a packaged Program
 does not replace selected deterministic development checks or CI package validation, is never a publication
 prerequisite, and must never run in CI or from an unattended hook.
 
-The protocol separates bootstrap from later diagnostics. A successfully bootstrapped consumer is
-sealed as a content-addressed checkpoint; every additional phase starts from a verified copy of
-that checkpoint. Repeating a building-block diagnostic therefore does not repeat the paid bootstrap.
+## Retired bootstrap execution
 
-## Implemented phases
+Paid `bootstrap-checkpoint` and `workflow-fresh`, `workflow-failure`, `workflow-resume`
+execution is retired. The old entrypoints reject before authorization consumption,
+installation, workspace creation or worker dispatch. Use
+`$speckit-program-kit-governance-product-intake` to review the founding baseline,
+then continue with specification intake. No replacement paid founding trial is supplied.
 
-The first v2 scenario is `internal-forms-workspace` v1. Its bootstrap fixture describes an internal
-forms workspace with an API, BFF, Forms integration, React frontend, shared shell, Foundation host,
-and root solution. The scenario and its deterministic expectation bind the architecture decisions,
-catalog resolution hash, 18 Program Kit-selected artifacts, 10 shell activations, six BFF
-configuration records, exact consumer-owned npm dependencies, and a non-Orbyss `Microsoft.OpenApi`
-NuGet sentinel.
-
-Two independently authorized phases are implemented:
-
-1. `bootstrap-checkpoint` installs the exact Release candidate, runs the real bootstrap workflow,
-   validates the result, binds the already-reviewed building-block selection, and seals a reusable
-   checkpoint.
-2. `building-block-consumer` copies that checkpoint, runs one Codex session to plan and apply the
-   accepted building blocks and emit a credential-free restore request, then lets the supervisor
-   verify selected public availability, perform renew and locked restores, build, run the npm
-   verification, apply the deterministic oracle, and seal a derived checkpoint.
-
-This is deliberately not a full feature vertical slice. A future Speckit lifecycle diagnostic can
-consume the same bootstrap checkpoint without changing or rerunning the bootstrap phase. Arbitrary
-existing-consumer intake, other agent providers, and POSIX qualification are also follow-up scope.
+Historical checkpoints, schemas and receipts remain unchanged and readable. Independent
+`building-block-consumer`, feature and upgrade phases retain their exact parent, source,
+one-use authorization and verification contracts. An existing valid parent is required;
+retirement does not fabricate a new parent or make historical evidence current.
 
 ## Candidate preparation
 
@@ -54,21 +40,8 @@ nonce-bearing manifest only after the
 operator types `AUTHORIZE <phase>`. The runner atomically consumes the manifest immediately before
 the paid process; it cannot be reused. There is no boolean `-Approved` compatibility path.
 
-Issue and run a bootstrap checkpoint:
-
-```powershell
-./scripts/New-LiveAcceptanceAuthorization.ps1 `
-  -Phase bootstrap-checkpoint `
-  -CiPreparation artifacts/trial-preparation/<unique>/ci-trial-preparation.json `
-  -Model gpt-5.6-sol `
-  -ReasoningEffort high
-
-./scripts/New-LiveBootstrapCheckpoint.ps1 `
-  -Authorization artifacts/live-acceptance/v2/authorizations/pending/<authorization>.json
-```
-
-The run report prints the sealed checkpoint path. Issue a new authorization bound to that exact
-checkpoint, then run the single-session building-block consumer phase:
+For an independently requested building-block diagnostic with an existing valid checkpoint,
+issue a new authorization bound to that exact checkpoint:
 
 ```powershell
 ./scripts/New-LiveAcceptanceAuthorization.ps1 `
@@ -132,10 +105,9 @@ cancelled, and inconclusive runs are evidence and must not be deleted automatica
 are classified as preflight, harness, environment, external service, model conformance, product,
 operator, or unclassified.
 
-The invoking terminal remains occupied until the authorized phase completes. During bootstrap it
-prints each observed workflow-step transition and a one-minute heartbeat for a long-running step;
-the full redacted worker streams continue to be written incrementally to the evidence directory.
-The final status line and restored PowerShell prompt are the completion signal.
+The invoking terminal remains occupied until the authorized phase completes. The full redacted
+worker streams are retained in the evidence directory. The final status and restored prompt
+are the completion signal; an interrupted or incomplete run is not acceptance.
 
 The old `Test-LiveBootstrap.ps1` and `tests/live/run_bootstrap_acceptance.py` entry points are
-retired. Historical v1 reports remain read-only evidence and are not converted or treated as v2.
+retired, as are the v2 paid bootstrap/workflow launch paths. Historical reports remain read-only evidence and are not converted into a new acceptance claim.

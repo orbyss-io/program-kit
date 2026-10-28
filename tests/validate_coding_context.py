@@ -59,7 +59,15 @@ class CodingContextTests(unittest.TestCase):
             import phase_obligations as phase
             output = phase.render(value, 'implementation')
             self.assertLess(len(output.encode('utf-8')), BRIEF_LIMITS['core'])
-            assert_complete_required_text(self, catalog(), value['requirements'], output, ROOT / 'extensions')
+            assert_complete_required_text(self, catalog(), value['requirements'],
+                phase.render(value, 'implementation', detailed=True), ROOT / 'extensions')
+
+            core = root / 'src/Core/Core.csproj'
+            core.write_text(core.read_text().replace('</PropertyGroup>',
+                '<EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild></PropertyGroup>'))
+            disabled = prepare(root, feature, task_ids=['T001'])
+            self.assertTrue(any(b.get('code') == 'PKQ003' and 'EnforceCodeStyleInBuild' in b.get('disabled', [])
+                                for b in disabled['coding']['blockers']))
 
     def test_shared_domain_persistence_is_design_knowledge_not_core_source_effect(self):
         with FixtureDirectory(native=True) as name:
@@ -253,11 +261,11 @@ class CodingContextTests(unittest.TestCase):
             feature = root / 'specs/001-core'
             feature.mkdir(parents=True)
             (feature / 'spec.md').write_text('C# policy with owned invariants.')
-            (feature / 'plan.md').write_text('Use src/Core/Core.csproj.')
-            (feature / 'tasks.md').write_text('- [ ] T001 Materialize src/Core/Core.csproj and implement src/Core/Policy.cs.\n')
+            (feature / 'plan.md').write_text('Use src/Example.Core/Example.Core.csproj.')
+            (feature / 'tasks.md').write_text('- [ ] T001 Materialize src/Example.Core/Example.Core.csproj and implement src/Example.Core/Policy.cs.\n')
             (root / 'eng').mkdir()
             (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
-                {'path': 'src/Core/Core.csproj', 'role': 'core', 'projectReferences': [],
+                {'path': 'src/Example.Core/Example.Core.csproj', 'role': 'core', 'projectReferences': [],
                  'responsibilities': [{'name': 'Policy', 'kind': 'pure-policy', 'effects': []}]}], 'bindings': []}}))
             source = prepare(root, feature)
             self.assertFalse(source['coding']['canProceed'])

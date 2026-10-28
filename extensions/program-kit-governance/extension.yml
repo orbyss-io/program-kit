@@ -3,8 +3,8 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.14.3"
-  description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
+  version: "1.0.0-preview.1"
+  description: "Contributes focused knowledge, architecture review and engineering guidance to native Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
   license: "MIT"
@@ -14,6 +14,9 @@ requires:
 
 provides:
   scripts:
+    - name: "product-intake"
+      file: "scripts/product_intake.py"
+      description: "Inspect readable product context without approval receipts or lifecycle authority."
     - name: "coding-scaffold"
       file: "scripts/coding_scaffold.py"
       description: "Preview/apply a finite qualified coding recipe; preserve consumer source and native ownership."
@@ -27,6 +30,9 @@ provides:
       file: "scripts/schema_runtime.py"
       description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.product-intake"
+      file: "commands/speckit.program-kit-governance.product-intake.md"
+      description: "Found or resume a product, review its connected decisions and continue directly to feature intake."
     - name: "speckit.program-kit-governance.coding-scaffold"
       file: "commands/speckit.program-kit-governance.coding-scaffold.md"
       description: "Realize a selected qualified pattern through inspectable native source recipes."
@@ -57,57 +63,24 @@ provides:
     - name: "speckit.program-kit-governance.proxy-intake"
       file: "commands/speckit.program-kit-governance.proxy-intake.md"
       description: "Explicit non-authorizing proxy intake with simulated answers; stop before bootstrap."
-    - name: "speckit.program-kit-governance.proxy-bootstrap"
-      file: "commands/speckit.program-kit-governance.proxy-bootstrap.md"
-      description: "Explicit same-session bootstrap rehearsal with simulated reviews and native validators."
     - name: "speckit.program-kit-governance.specification-intake"
       file: "commands/speckit.program-kit-governance.specification-intake.md"
       description: "Grill and confirm the selected feature before specification creation or updates."
     - name: "speckit.program-kit-governance.ui"
       file: "commands/speckit.program-kit-governance.ui.md"
       description: "Adopt or safely generate the versioned UI, branding and discoverability profile."
-    - name: "speckit.program-kit-governance.bootstrap"
-      file: "commands/speckit.program-kit-governance.bootstrap.md"
-      description: "Use Program Kit grilling to prepare confirmed intake and its C4-aligned domain map, then provide the normal-shell bootstrap command."
-    - name: "speckit.program-kit-governance.assessment"
-      file: "commands/speckit.program-kit-governance.assessment.md"
-      description: "Assess the confirmed intake and create the bootstrap decision baseline."
-    - name: "speckit.program-kit-governance.research"
-      file: "commands/speckit.program-kit-governance.research.md"
-      description: "Research current tools and validate generic guidance against project context."
-    - name: "speckit.program-kit-governance.constitution-begin"
-      file: "commands/speckit.program-kit-governance.constitution-begin.md"
-      description: "Revoke stale ratification evidence before constitution drafting."
-    - name: "speckit.program-kit-governance.constitution-ratify"
-      file: "commands/speckit.program-kit-governance.constitution-ratify.md"
-      description: "Validate and hash-bind constitution ratification after the human gate."
-    - name: "speckit.program-kit-governance.constitution-review"
-      file: "commands/speckit.program-kit-governance.constitution-review.md"
-      description: "Validate a drafted constitution and regenerate its current human review packet."
     - name: "speckit.program-kit-governance.architecture"
       file: "commands/speckit.program-kit-governance.architecture.md"
       description: "Create or update the architecture baseline and ADR system."
-    - name: "speckit.program-kit-governance.tooling"
-      file: "commands/speckit.program-kit-governance.tooling.md"
-      description: "Create a context-sensitive tooling and quality-gate proposal."
-    - name: "speckit.program-kit-governance.roadmap"
-      file: "commands/speckit.program-kit-governance.roadmap.md"
-      description: "Create the governed portfolio of candidate feature specifications."
     - name: "speckit.program-kit-governance.readiness"
       file: "commands/speckit.program-kit-governance.readiness.md"
-      description: "Evaluate whether architecture bootstrap is ready for specifications."
-    - name: "speckit.program-kit-governance.bootstrap-closure"
-      file: "commands/speckit.program-kit-governance.bootstrap-closure.md"
-      description: "Close scoped architecture prerequisites with isolated compatibility evidence."
-    - name: "speckit.program-kit-governance.bootstrap-recovery"
-      file: "commands/speckit.program-kit-governance.bootstrap-recovery.md"
-      description: "Recover an accepted bootstrap after technical readiness failure."
+      description: "Inspect current product context and the next useful action."
     - name: "speckit.program-kit-governance.architecture-check"
       file: "commands/speckit.program-kit-governance.architecture-check.md"
-      description: "Check a specification, plan, or implementation for architecture and ADR drift."
+      description: "Review actual design alternatives, source facts, contracts and implementation; resolve consequential choices."
     - name: "speckit.program-kit-governance.implementation-check"
       file: "commands/speckit.program-kit-governance.implementation-check.md"
-      description: "Apply programming and lifecycle guardrails before implementation."
+      description: "Apply selected decisions and focused coding guidance to the next coherent implementation increment."
   config:
     - name: "program-kit-governance-config.yml"
       template: "config/program-kit.template.yml"
@@ -115,16 +88,6 @@ provides:
       required: false
 
 hooks:
-  before_constitution:
-    command: "speckit.program-kit-governance.constitution-begin"
-    priority: 5
-    optional: false
-    description: "Revoke existing ratification before any constitution draft or amendment."
-  after_constitution:
-    command: "speckit.program-kit-governance.constitution-review"
-    priority: 5
-    optional: false
-    description: "Validate the current constitution draft and regenerate its review packet before ratification."
   before_specify:
     - command: "speckit.program-kit-governance.architecture-check"
       priority: 5
@@ -160,7 +123,7 @@ hooks:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
-    description: "Review substantive design conflicts without evidence dossiers."
+    description: "Review actual design, research, alternatives and checks; resolve material choices and resume native planning."
   before_tasks:
     command: "speckit.program-kit-governance.phase-context"
     priority: 1
@@ -170,21 +133,21 @@ hooks:
     - command: "speckit.program-kit-governance.architecture-check"
       priority: 1
       optional: false
-      description: "Validate the planned compilation graph before affected implementation."
+      description: "Review task coverage of selected responsibilities, methods, dependencies and focused checks."
     - command: "speckit.analyze"
       priority: 5
       optional: false
-      description: "Use normal Spec Kit consistency analysis."
+      description: "Report native read-only consistency findings before any authorized correction."
   before_implement:
     - command: "speckit.program-kit-governance.implementation-check"
       priority: 1
       optional: false
-      description: "Prepare composable coding units, reconcile actual source and validate native project context once before coding."
+      description: "Read the selected task, decisions, source and focused guidance; prepare a coherent increment and its checks."
   after_implement:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
-    description: "Reconcile coding responsibilities at progress/completion; require complete engineering acceptance only at delivery."
+    description: "Review actual implementation and consequential findings; preserve human pauses and run full acceptance at delivery."
 
 tags:
   - "architecture"

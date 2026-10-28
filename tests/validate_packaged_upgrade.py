@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import argparse
 import hashlib
+import importlib.util
 import os
 from pathlib import Path
 import shutil
@@ -83,13 +84,16 @@ def inactive_setup(project, previous):
              '--local-repairs', repairs.relative_to(project).as_posix(), '--local-repairs-sha256', inactive.history.sha(repairs)], preserved, original)
 
 
-def scenario(*, inactive=False):
+def scenario(*, inactive=False, assets_dir="artifacts"):
     import specify_cli
     import yaml
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
     import schema_runtime
     version = (ROOT / 'VERSION').read_text().strip()
-    archive = ROOT / 'artifacts' / f'program-kit-{version}.zip'
+    assets = (ROOT / assets_dir).resolve()
+    if not assets.is_relative_to(ROOT):
+        raise ValueError('Packaged upgrade inputs must remain inside this checkout')
+    archive = assets / f'program-kit-tooling-{version}.zip'
     if not archive.is_file():
         raise AssertionError('Build the actual candidate archives before the upgrade fixture')
     runtime = schema_runtime.runtime_path(ROOT)
@@ -138,12 +142,20 @@ def scenario(*, inactive=False):
         # Core owns first-install contribution records; preinstalling primitives
         # and fabricating ownership would not represent a supported consumer.
         install_local_bundle(project, previous, bridge, run, integration='copilot')
+        run('register-old-workflow-catalog', [*bridge, 'workflow', 'catalog', 'add',
+            'https://raw.githubusercontent.com/orbyss-io/program-kit/v' + PREVIOUS + '/catalogs/workflows.json', '--name', 'program-kit'])
+        run('register-custom-workflow-catalog', [*bridge, 'workflow', 'catalog', 'add',
+            'https://example.invalid/consumer-workflows.json', '--name', 'consumer-owned'])
+        original_workflow_catalog = (project / '.specify/workflow-catalogs.yml').read_bytes()
         prepared = schema_runtime.runtime_path(project)
         prepared.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(runtime, prepared)
         schema_runtime.record_copy(project)
         authored = {'consumer-notes.txt': b'Authored consumer output must survive.\n',
-            'specs/001-existing/spec.md': b'# Existing consumer feature\nRetain its decisions.\n'}
+            'specs/001-existing/spec.md': b'# Existing consumer feature\nRetain its decisions.\n',
+            '.specify/workflows/runs/historical-failed/state.json': b'{"workflow_id":"program-kit-bootstrap","status":"failed"}\n',
+            '.specify/workflows/runs/historical-failed/workflow.yml': (project / '.specify/workflows/program-kit-bootstrap/workflow.yml').read_bytes(),
+            '.specify/workflows/resumption-history/historical-failed/proof.json': b'{"status":"failed","synthetic":true}\n'}
         for relative, payload in authored.items():
             path = project / relative
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -152,6 +164,13 @@ def scenario(*, inactive=False):
         command = [sys.executable, native_path(release / 'scripts/upgrade_program_kit.py'),
             '--release-root', native_path(release), '--target', native_path(project), '--integration', 'copilot',
             '--offline', '--specify-command-json', json.dumps(bridge), *extra]
+        workflow = project / '.specify/workflows/program-kit-bootstrap/workflow.yml'
+        original_workflow = workflow.read_bytes()
+        workflow.write_bytes(original_workflow + b'\n# Consumer customization must be preserved.\n')
+        rejected = run('workflow-customization-refusal', command, expected=2)
+        assert 'PKU150' in rejected.stderr and workflow.read_bytes().endswith(b'# Consumer customization must be preserved.\n')
+        assert not list((project / 'artifacts/program-kit/runs').glob('*/upgrade-attempt.json'))
+        workflow.write_bytes(original_workflow)
         if inactive:
             run('inactive-preview', [*command, '--plan'])
             failed = run('inactive-managed-conflict', command, expected=2)
@@ -166,17 +185,27 @@ def scenario(*, inactive=False):
         record = next(row for row in records['bundles'] if row['bundle_id'] == 'program-kit')
         assert record['version'] == version
         assert all(row['version'] == version for row in record['contributed_components'])
+        assert len(record['required_components']) == 4
+        assert all(row['kind'] != 'workflows' for row in record['required_components'])
+        assert not workflow.parent.exists()
+        assert 'program-kit-bootstrap' not in json.loads((project / '.specify/workflows/workflow-registry.json').read_text())['workflows']
+        catalogs = yaml.safe_load((project / '.specify/workflow-catalogs.yml').read_text())['catalogs']
+        assert len(catalogs) == 1 and catalogs[0]['name'] == 'consumer-owned'
+        assert catalogs[0]['url'] == 'https://example.invalid/consumer-workflows.json'
         for kind, name, key, filename in [
                 *[('extensions', 'program-kit-' + name, 'extension', 'extension.yml')
                   for name in ('governance', 'building-blocks', 'dotnet')],
-                ('presets', 'program-kit-governance-preset', 'preset', 'preset.yml'),
-                ('workflows', 'program-kit-bootstrap', 'workflow', 'workflow.yml')]:
+                ('presets', 'program-kit-governance-preset', 'preset', 'preset.yml')]:
             actual = yaml.safe_load((project / '.specify' / kind / name / filename).read_text())
             assert actual[key]['version'] == version, 'Component did not advance: ' + name
         migration = json.loads((project / '.program-kit/installation/migration.json').read_text())
         assert migration['fromVersion'] == PREVIOUS and migration['toVersion'] == version
         assert migration['checks']['installation-coherence'] is True
         assert migration['migrationCompletionEstablished'] is True
+        specification = importlib.util.spec_from_file_location('packaged_original_witness', release / 'extensions/program-kit-governance/scripts/tooling_witness.py')
+        reader = importlib.util.module_from_spec(specification); specification.loader.exec_module(reader)
+        original_inputs = reader.verify_attempt_inputs(project, migration['originalInputs'], migration['originals'])
+        assert original_inputs['files']['.specify/workflow-catalogs.yml'] == hashlib.sha256(original_workflow_catalog).hexdigest()
         if inactive:
             assert migration['migrationScope'] == 'tooling-only-inactive-history'
             assert migration['scopedMigrationCompletionEstablished'] is True
@@ -203,4 +232,6 @@ def scenario(*, inactive=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--inactive-history', action='store_true', help='Fictional withdrawn design plus freshly executed local repair transport')
-    scenario(inactive=parser.parse_args().inactive_history)
+    parser.add_argument('--assets-dir', default='artifacts', help='Actual candidate archive directory inside this checkout')
+    args = parser.parse_args()
+    scenario(inactive=args.inactive_history, assets_dir=args.assets_dir)

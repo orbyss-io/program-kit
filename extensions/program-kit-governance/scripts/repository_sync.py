@@ -17,7 +17,6 @@ from pathlib import Path
 import package_execution
 import sync_readiness
 import inactive_history
-from lifecycle_state import lifecycle_sha256
 
 
 PHASES = ("bootstrap", "planning", "after-plan", "implementation-setup", "implementation", "upgrade")
@@ -31,6 +30,14 @@ def load(path: Path, default=None):
 
 def digest(path: Path):
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+
+
+def input_digest(path: Path) -> str:
+    """Task checkmarks are progress, not changed setup inputs."""
+    if path.name != 'tasks.md':
+        return digest(path)
+    content = re.sub(r'(?m)^(\s*-\s+\[)[ xX](\]\s+)', r'\1 \2', path.read_text(encoding='utf-8'))
+    return hashlib.sha256(content.encode('utf-8')).hexdigest()
 
 
 def write(path: Path, value: dict) -> None:
@@ -97,44 +104,47 @@ def context(repository: Path, phase: str, feature: str | None, history=None) -> 
     decisions = load(repository / "docs/architecture/bootstrap-decisions.json", {})
     managed = load(repository / ".program-kit/managed.json", {})
     selected = decisions.get("selected_profiles", [])
-    dotnet = bool(managed) or ("dotnet" in selected and phase != "upgrade")
+    if not isinstance(selected, list) or not all(isinstance(item, str) for item in selected):
+        raise ValueError('PKS003 selected_profiles must be a list of profile names')
+    selection = load(repository / "docs/architecture/building-block-selection.json", {})
+    feature_targets = sync_readiness.owned_targets(repository, feature, selection.get('targets', []))
+    selected_dotnet = (any(Path(path).suffix == '.csproj' for path in feature_targets)
+                      or not feature and selection.get('status') == 'Accepted'
+                      and any(target.get('kind') == 'dotnet-project' for target in selection.get('targets', [])))
+    dotnet = bool(managed) or (phase != 'upgrade' and ('dotnet' in selected or selected_dotnet))
     if dotnet and phase != "upgrade" and decisions.get("dotnet", {}).get("program_kit_host_opt_out") is True:
         raise ValueError("PKS003 the accepted host opt-out needs an alternative engineering adapter; Foundation scaffolding is not authorized")
-    ownership = load(contained(repository, feature) / "artifact-ownership.json", {}) if feature else {}
-    javascript = dotnet or bool(set(selected) & {"typescript-web", "typescript-vite", "browser-web"}) or "typescript-vite" in ownership.get("profiles", [])
+    managed_javascript = dotnet or bool(set(selected) & {"typescript-web", "typescript-vite", "browser-web"})
+    javascript = managed_javascript or any(Path(path).name == 'package.json' for path in feature_targets)
     template = package_execution.extension_root() / "program-kit-dotnet/templates/dotnet/files"
-    pins = {"node": (template / ".nvmrc").read_text().strip(), "npm": (template / ".npm-version").read_text().strip()} if javascript else {}
+    pins = {}
+    if javascript:
+        for tool, filename in (('node', '.nvmrc'), ('npm', '.npm-version')):
+            path = repository / filename
+            if not path.is_file() and managed_javascript:
+                path = template / filename
+            if not path.is_file():
+                raise ValueError('PKS003 selected JavaScript setup needs its actual ' + filename +
+                                 ' version input; native phase guidance remains usable without this automation')
+            pins[tool] = path.read_text().strip().removeprefix('v')
     toolchain = decisions.get("toolchain", {})
     if toolchain.get("source") == "override":
-        overrides = {item.get("id") for item in decisions.get("overrides", []) if isinstance(item, dict)}
-        if "managed-toolchain-version" not in overrides or not toolchain.get("override_reason", "").strip():
-            raise ValueError("PKS003 toolchain override lacks approved rationale")
+        if not toolchain.get("override_reason", "").strip():
+            raise ValueError("PKS003 toolchain override lacks its substantive rationale")
         pins.update({key: value for key, value in toolchain.get("pins", {}).items() if key in pins})
     if any(not isinstance(value, str) or not re.fullmatch(r"\d+\.\d+\.\d+", value) for value in pins.values()):
-        raise ValueError("PKS003 setup needs exact approved toolchain versions")
+        raise ValueError("PKS003 setup needs exact selected toolchain versions")
     inputs = ["docs/architecture/bootstrap-decisions.json", "docs/architecture/architecture-map.json",
-              "docs/architecture/building-block-selection.json", ".specify/governance/bootstrap-approval.json",
-              ".specify/memory/constitution-ratification.json"]
-    governance = provider('program-kit-governance/scripts/governance_state.py')
-    configuration = [governance._load_configuration(contained(repository, path.as_posix()))
-                     for path in (governance.CONFIGURATION, governance.LOCAL_CONFIGURATION)]
-    for section, key, default in (('constitution','document',governance.CONSTITUTION),
-                                  ('constitution','ratification',governance.RATIFICATION),
-                                  ('architecture','decisions',governance.DECISIONS)):
-        value = default.as_posix()
-        for document in configuration:
-            if isinstance(document.get(section), dict):
-                value = document[section].get(key, value)
-        configured = governance._configured_relative_path(value, f'{section}.{key}')
-        inputs.append((configured / 'bootstrap-baseline.md').as_posix() if key == 'decisions' else configured.as_posix())
-    inputs.extend(path.as_posix() for path in (governance.CONFIGURATION, governance.LOCAL_CONFIGURATION, governance.ASSESSMENT_APPROVAL))
+              "docs/architecture/building-block-selection.json"]
     if feature:
-        inputs.extend(f"{feature}/{name}" for name in ("spec.md", "plan.md", "artifact-ownership.json", "tasks.md"))
+        inputs.extend(f"{feature}/{name}" for name in ("spec.md", "plan.md", "tasks.md"))
+    inputs.extend(feature_targets)
+    if javascript:
+        inputs.extend(('.nvmrc', '.npm-version'))
     web = managed.get("webProfile", "auto") if phase == "upgrade" else "auto"
     persistence = ({'summary': managed.get('persistenceProfile', 'none'), 'owners': [], 'installedOwners': [], 'blockers': [], 'deferredAdmissions': []} if history
                    else provider('program-kit-dotnet/scripts/persistence_selection.py').resolve(
                        repository, '' if phase == 'upgrade' else feature))
-    selection = load(repository / "docs/architecture/building-block-selection.json", {})
     targets = [{"id": item["id"], "path": item["path"], "kind": item["kind"],
                 "state": 'inactive-history' if history else "materialized" if contained(repository, item["path"]).is_file() else "planned"}
                for item in selection.get("targets", [])]
@@ -143,7 +153,7 @@ def context(repository: Path, phase: str, feature: str | None, history=None) -> 
             "dotnet": dotnet, "javascript": javascript, "webProfile": web, "persistenceProfile": persistence['summary'],
             "persistence": persistence,
             "toolchainPins": pins, "targets": targets,
-            "authorityInputs": {relative: lifecycle_sha256(contained(repository, relative)) if contained(repository, relative).is_file() else None for relative in inputs},
+            "authorityInputs": {relative: input_digest(contained(repository, relative)) if contained(repository, relative).is_file() else None for relative in inputs},
             "providerInputs": provider_inputs()}
 
 
@@ -303,12 +313,12 @@ def mutation_lock(repository: Path):
                 fcntl.flock(stream, fcntl.LOCK_UN)
 
 
-def apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> dict:
+def apply(repository: Path, plan: dict) -> dict:
     with mutation_lock(repository):
-        return _apply(repository, plan, validate_authority=validate_authority)
+        return _apply(repository, plan)
 
 
-def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> dict:
+def _apply(repository: Path, plan: dict) -> dict:
     setup = plan["context"]
     unsigned = dict(plan)
     unsigned.pop("planDigest", None)
@@ -318,14 +328,6 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
     now = context(repository, setup["phase"], setup["feature"], history)
     if any(now[key] != setup[key] for key in ("authorityInputs", "providerInputs", "toolchainPins")):
         raise ValueError("PKS005 authority or provider inputs changed; review a new plan")
-    if validate_authority and setup["phase"] == "bootstrap":
-        governance = Path(__file__).with_name("governance_state.py")
-        run(repository, [sys.executable, str(governance), "validate-setup-authority"])
-        decisions = load(repository / "docs/architecture/bootstrap-decisions.json", {})
-        if setup["dotnet"] and not any(item.get("id") == "orbyss-building-block-dependencies" for item in decisions.get("acknowledgements", [])):
-            raise ValueError("PKS003 accepted building-block source acknowledgement is missing")
-        if not (repository / ".specify/governance/bootstrap-approval.json").is_file():
-            raise ValueError("PKS003 bootstrap acceptance is required before setup")
     receipt_path = repository / ".program-kit/sync/receipt.json"
     previous = load(receipt_path, {})
     current = describe(repository, setup["phase"], setup["feature"], history)
@@ -335,7 +337,7 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
                 package_execution.javascript_runtime().context(repository, repository / "artifacts/program-kit/toolchain.json")
             elif operation["adapter"] == "building-blocks":
                 provider("program-kit-building-blocks/scripts/building_blocks.py").check_materialization(repository, load(repository / "eng/building-blocks.lock.json"))
-        return {**previous, "readiness": readiness(repository, setup["phase"], setup["feature"], validate_authority=False, history=history), "reused": True}
+        return {**previous, "readiness": readiness(repository, setup["phase"], setup["feature"], history=history), "reused": True}
     write(repository / f".program-kit/sync/plans/{plan['planDigest']}.json", plan)
     receipt = {"schemaVersion": 1, "reviewedPlanDigest": plan["planDigest"], "context": setup, "operations": [], "status": "running"}
     write(repository / ".program-kit/sync/context.json", setup)
@@ -392,12 +394,12 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
     receipt["context"] = context(repository, setup["phase"], setup["feature"], history)
     write(repository / ".program-kit/sync/context.json", receipt["context"])
     receipt["status"] = "offline-synchronized"
-    receipt["readiness"] = readiness(repository, setup["phase"], setup["feature"], validate_authority=False, history=history)
+    receipt["readiness"] = readiness(repository, setup["phase"], setup["feature"], history=history)
     write(receipt_path, receipt)
     return receipt
 
 
-def readiness(repository: Path, phase: str, feature: str | None = None, *, validate_authority: bool = True, history=None) -> dict:
+def readiness(repository: Path, phase: str, feature: str | None = None, *, history=None) -> dict:
     plan = describe(repository, phase, feature, history)
     restore = provider("program-kit-building-blocks/scripts/restore_dependencies.py")
     problems = sync_readiness.blockers(repository, plan["context"], plan["operations"], restore)
@@ -411,11 +413,6 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
             deferred_admissions = selection['deferredAdmissions']
         problems.extend(persistence.coherence(repository, selection, template,
                         materialized=phase in {'implementation-setup', 'implementation', 'upgrade'}))
-    if validate_authority and phase == 'bootstrap':
-        try:
-            run(repository, [sys.executable, str(Path(__file__).with_name('governance_state.py')), 'validate-setup-authority'])
-        except ValueError as error:
-            problems.append(f'PKS015 setup authority is not current: {error}')
     pending = []
     if phase == "upgrade" and not history:
         dependencies = load(repository / ".program-kit/sync/dependencies.json", {})
@@ -433,7 +430,7 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
 
 def upgrade(repository: Path, history=None) -> dict:
     """The release-owned upgrader already validated admission and component mutation authority."""
-    return apply(repository, describe(repository, "upgrade", history=history), validate_authority=False)
+    return apply(repository, describe(repository, "upgrade", history=history))
 
 
 def main() -> int:

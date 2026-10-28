@@ -11,6 +11,8 @@ import run_validation
 
 
 def main():
+    from sync_shared_runtime import sync
+    sync(ROOT)
     definition = run_validation.load_definition()
     files = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
     count = 0

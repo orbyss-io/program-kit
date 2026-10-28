@@ -118,7 +118,7 @@ def main() -> int:
 
         check_tool(args.oasdiff, args.oasdiff_version)
         result = subprocess.run(
-            [args.oasdiff, "breaking", str(baseline), str(artifact), "--format", "json"],
+            [args.oasdiff, "breaking", str(baseline), str(artifact), "--format", "json", "--fail-on", "ERR"],
             check=False,
             capture_output=True,
             text=True,

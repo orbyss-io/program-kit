@@ -18,6 +18,7 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 
 from release_assets import artifact_records, git, sha256
+from product_version import parse
 
 ROOT = Path(__file__).resolve().parents[1]
 RECOVERY = 'Run qualify-candidate.yml on main with expected_commit=<exact SHA>; inspect that run before publication.'
@@ -53,6 +54,7 @@ def policy():
 
 
 def source():
+    parse((ROOT / 'VERSION').read_text().strip())
     return {'commit': git(ROOT, 'rev-parse', 'HEAD'), 'tree': git(ROOT, 'rev-parse', 'HEAD^{tree}'),
             'version': (ROOT / 'VERSION').read_text().strip(),
             'policySha256': sha256(ROOT / 'release-policy.json')}

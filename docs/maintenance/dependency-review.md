@@ -1,5 +1,12 @@
 # Dependency maintenance
 
+Publisher source capture uses the maintained `PUBLISHER_GUIDANCE` allowlist in
+`scripts/update_dependency_profiles.py`, together with package-owned sources and exported
+package facts. Add new canonical usage guides deliberately; contributor plans, validation
+journals and consumer feedback are not automatically product knowledge. This affects future
+captures only. Preserve frozen profiles, source/package hashes and existing consumer locks;
+any historical privacy remediation needs an explicit separate disposition.
+
 Dependency discovery, upgrades and profile qualification are deliberate maintenance;
 release preparation does not require upgrading every active dependency. A candidate
 uses its declared qualified dependency set and passes applicable security checks.
@@ -15,6 +22,21 @@ New external inputs belong in `maintenance-policy.json`. Foundation publishes
 independently; Program Kit consumes public releases and never republishes an already
 public Foundation artifact.
 
+Foundation's analyzer may be released independently of its runtime family. Use
+`python scripts/update_dependency_profiles.py prepare --tool Orbyss.Foundation.Analyzers`
+to observe only that tool and retain every other selected package/Host pin. Preparation
+records its exact version in the Foundation family's `toolVersions` and names the new
+profile with `-analyzer-<version>` when it differs from the runtime. This does not edit
+historical profiles or consumer locks. Normal preparation continues to discover all
+maintained families and independent tools.
+
+After public publication, qualify that returned candidate with the ordinary `qualify`
+command and promote only successful evidence. An independently selected analyzer binds
+its native restored archive, exact public NuGet archive and provenance through the
+existing `officialTools` proof alongside Build/exporter. Its package-owned sources and
+`docs/ef-migration-authoring.md` come from the analyzer's own publisher commit; runtime
+guidance retains the selected runtime commit. This adds no supplier-wide acceptance gate.
+
 Use `python scripts/update_dependencies.py --development` for fast integrity only.
 Use `python scripts/update_dependencies.py --changed-from <base>` for affected update
 checks. These commands do not refresh locks or install toolchains. Explicit
@@ -27,6 +49,10 @@ The unattended workflow provisions its own selected tools, explicitly qualifies 
 changed profile, refreshes locks and runs affected contracts. Native/profile
 qualification can remain expensive because it establishes a specific dependency
 contract; it is not repeated for unrelated feature changes or every release.
+The selected public profile also passes two bounded native producer/client checks:
+the numeric JSON contract and the actual emitted operation. These run even when a
+profile was already promoted on the input branch, so a no-op discovery cannot omit
+its generated-client qualification. They do not stage the full application Host.
 After selecting the upgraded Python and requirements, CI explicitly prepares the
 project-local schema runtime. Checks that use it declare `runtime:json-schema` in
 the validation inventory; ordinary integrity/affected validation never installs it.

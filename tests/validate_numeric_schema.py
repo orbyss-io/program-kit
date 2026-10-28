@@ -24,16 +24,19 @@ def run(evidence, name, command, cwd=None, expected=0, environment=None):
 
 def official_export(evidence, catalog, blocks):
     source = evidence / 'api'; source.mkdir()
-    fixture = ROOT / 'tests/fixtures/composition-numeric/NumericFeature.cs'
-    shutil.copyfile(fixture, source / fixture.name)
+    fixtures = [path for path in (ROOT / 'tests/fixtures/composition-numeric').glob('*.cs') if path.name != 'Program.cs']
+    for fixture in fixtures:
+        shutil.copyfile(fixture, source / fixture.name)
     descriptor = {'schemaVersion': 2, 'packageId': 'Numeric.Contract.Api', 'features': [{
         'identity': 'Numeric.Contract', 'featureDependencies': ['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.OpenApi', 'Numeric.EffectOnly'],
         'runtimeDependencies': [], 'routes': ['/numeric'], 'dormant': False, 'composeForOpenApi': True, 'requiresContractCoverage': True}, {
         'identity': 'Numeric.NullableContract', 'featureDependencies': ['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.OpenApi', 'Numeric.EffectOnly'],
         'runtimeDependencies': [], 'routes': ['/nullable-numeric'], 'dormant': False, 'composeForOpenApi': True, 'requiresContractCoverage': True}, {
+        'identity': 'Numeric.IntentionallyMalformed', 'featureDependencies': ['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.OpenApi', 'Numeric.EffectOnly'],
+        'runtimeDependencies': [], 'routes': ['/intentionally-malformed-numeric'], 'dormant': False, 'composeForOpenApi': True, 'requiresContractCoverage': True}, {
         'identity': 'Numeric.EffectOnly', 'featureDependencies': [], 'runtimeDependencies': [], 'routes': [],
         'dormant': False, 'composeForOpenApi': False, 'requiresContractCoverage': False}],
-        'sourceSha256': {fixture.name: hashlib.sha256(fixture.read_text().replace('\r\n', '\n').encode()).hexdigest()}}
+        'sourceSha256': {fixture.name: hashlib.sha256(fixture.read_text().replace('\r\n', '\n').encode()).hexdigest() for fixture in fixtures}}
     (source / 'feature.json').write_text(json.dumps(descriptor))
     packages = {name: catalog['packages']['nuget:' + name]['version'] for name in (
         'Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.OpenApi', 'Orbyss.Foundation.Build')}
@@ -88,8 +91,8 @@ def official_export(evidence, catalog, blocks):
     import openapi_capabilities
     admitted = openapi_capabilities.require(document, openapi_capabilities.selected(ROOT), 'producer')
     (evidence / 'capability-admission.json').write_text(json.dumps(admitted, indent=2))
-    # Preserve the unmodified unsupported producer case as a blocking diagnostic,
-    # rather than narrowing generated types or representing scoped defaults as universal.
+    # Preserve exact old-profile behavior, while qualifying the published numeric
+    # repair with the actual unmodified raw document rather than a consumer workaround.
     nullable_features = ['Numeric.NullableContract', *features[1:]]
     shell = json.loads((tool / 'shells.json').read_text())
     shell['CShells']['Shells']['probe']['Features'] = {f: True for f in nullable_features}
@@ -100,9 +103,34 @@ def official_export(evidence, catalog, blocks):
         '--repository', str(tool), '--packages', str(closure), '--shells', str(tool / 'nullable-shells.json'),
         '--hostsettings', str(tool / 'hostsettings.json'), '--contract', str(tool / 'nullable-contract.json'),
         '--output', str(tool / 'nullable-document.json'), '--evidence', str(tool / 'nullable-export.json')], tool)
-    unresolved = openapi_capabilities.validate(json.loads((tool / 'nullable-document.json').read_text()), openapi_capabilities.selected(ROOT), 'producer')
-    assert not unresolved['admitted'] and any('optionalCount' in f and 'PKO222' in f for f in unresolved['findings'])
-    (evidence / 'nullable-unresolved.json').write_text(json.dumps(unresolved, indent=2))
+    nullable_path = tool / 'nullable-document.json'
+    nullable_bytes = nullable_path.read_bytes()
+    nullable = verify_nullable_producer(json.loads(nullable_bytes), catalog, openapi_capabilities)
+    (evidence / 'nullable-admission.json').write_text(json.dumps(nullable, indent=2))
+    nullable_proof = json.loads((tool / 'nullable-export.json').read_text())
+    assert nullable_proof['producer']['version'] == exporter_version
+    assert set(nullable_proof['composedFeatures']) == set(nullable_features) - {'Numeric.EffectOnly'}
+    assert all(nullable_proof['sideEffects'][key] is False for key in ('listenerStarted', 'consumerHostedServicesStarted', 'shellInitializersRun'))
+    assert 'NUMERIC_EFFECT_ONLY_CONFIGURE_SERVICES_RAN' not in (evidence / 'nullable-official-export.log').read_text()
+
+    # This separate native producer is intentionally wrong. Its transformer adds
+    # the contradiction; never modify the genuine document to manufacture a negative.
+    malformed_features = ['Numeric.IntentionallyMalformed', *features[1:]]
+    shell['CShells']['Shells']['probe']['Features'] = {f: True for f in malformed_features}
+    (tool / 'intentionally-malformed-shells.json').write_text(json.dumps(shell))
+    config['features'] = malformed_features
+    (tool / 'intentionally-malformed-contract.json').write_text(json.dumps(config))
+    run(evidence, 'intentionally-malformed-official-export', ['dotnet', 'tool', 'run', 'orbyss-foundation-openapi-export', '--',
+        '--repository', str(tool), '--packages', str(closure), '--shells', str(tool / 'intentionally-malformed-shells.json'),
+        '--hostsettings', str(tool / 'hostsettings.json'), '--contract', str(tool / 'intentionally-malformed-contract.json'),
+        '--output', str(tool / 'intentionally-malformed-document.json'), '--evidence', str(tool / 'intentionally-malformed-export.json')], tool)
+    malformed = json.loads((tool / 'intentionally-malformed-document.json').read_text())
+    assert nullable_numeric_types(malformed) == {'integer', 'null', 'string'}
+    rejected = openapi_capabilities.validate(malformed, openapi_capabilities.selected(ROOT), 'producer')
+    assert not rejected['admitted'] and rejected['findings']
+    assert all('optionalCount' in finding and finding.startswith('PKO222 ') for finding in rejected['findings']), rejected['findings']
+    (evidence / 'intentionally-malformed-rejected.json').write_text(json.dumps(rejected, indent=2))
+    assert nullable_path.read_bytes() == nullable_bytes, 'The actual nullable producer document was changed by negative qualification'
     # Controlled negative metadata snapshot proves the trap is executable, while
     # preserving the admitted closure and exact descriptor bytes unchanged.
     negative_closure = evidence / 'effect-only-negative-closure'
@@ -131,13 +159,53 @@ def official_export(evidence, catalog, blocks):
     return tool / 'document.json', timing
 
 
-def generated_client(evidence, document):
-    generator = evidence / 'client'; generator.mkdir(exist_ok=True)
+def nullable_numeric_types(document):
+    """Inspect the actual unique nullable DTO, independently from capability admission."""
+    models = [value for value in document['components']['schemas'].values()
+              if 'optionalCount' in value.get('properties', {})]
+    assert len(models) == 1, 'Expected one actual nullable numeric schema owner'
+    model = models[0]
+    assert 'optionalCount' in model.get('required', []), 'Nullable constructor input lost requiredness'
+    kinds = model['properties']['optionalCount']['type']
+    return {kinds} if isinstance(kinds, str) else set(kinds)
+
+
+def verify_nullable_producer(document, catalog, admission):
+    """Require the exact selected release's genuine raw behavior; no document correction."""
+    version = catalog['packages']['nuget:Orbyss.Foundation.Json.AspNetCore']['version']
+    parts = version.split('.')
+    assert len(parts) == 3 and all(part.isdigit() for part in parts), 'Qualify the selected non-stable numeric implementation explicitly'
+    repaired = tuple(map(int, parts)) >= (0, 3, 8)
+    kinds = nullable_numeric_types(document)
+    result = admission.validate(document, admission.selected(ROOT), 'producer')
+    if repaired:
+        assert kinds == {'integer', 'null'}, 'Published numeric correction did not reach the actual raw nullable schema'
+        assert result['admitted'], result['findings']
+    else:
+        assert kinds == {'integer', 'null', 'string'}, 'Historical selected producer behavior changed; investigate exact package provenance'
+        assert not result['admitted'] and any('optionalCount' in finding and finding.startswith('PKO222 ') for finding in result['findings'])
+    return {**result, 'foundationJsonAspNetCore': version,
+            'disposition': 'published-numeric-repair-admitted' if repaired else 'historical-nullable-mismatch-blocked',
+            'rawNumericKinds': sorted(kinds), 'consumerSchemaWorkaroundApplied': False}
+
+
+def generate_typescript(evidence, document, *, adapter=None, nullable=False):
+    document_name = 'nullable-document.json' if nullable else 'document.json'
+    client_name = 'nullable-client' if nullable else 'client'
+    compiler_name = 'nullable-compiler' if nullable else 'compiler'
+    label_prefix = 'nullable-' if nullable else ''
+    expected_document = evidence / 'official-exporter' / document_name
+    if document.resolve() != expected_document.resolve():
+        raise ValueError('Generate only from the exact retained official exporter document')
+    generator = evidence / client_name; generator.mkdir(exist_ok=True)
     defaults = json.loads((TEMPLATE / 'eng/openapi-defaults.json').read_text())['typescriptGenerator']
     typescript = json.loads((TEMPLATE.parent / 'web-profiles/common/eng/web/package.json').read_text())['devDependencies']['typescript']
     (generator / 'package.json').write_text(json.dumps({'name': 'numeric-parity', 'version': '1.0.0', 'private': True,
-        'scripts': {'generate': 'openapi-typescript ../official-exporter/document.json -o types.ts'},
+        'scripts': {'generate': 'openapi-typescript ../official-exporter/' + document_name + ' -o types.ts'},
         'devDependencies': {defaults['package']: defaults['version']}}))
+    if adapter is not None:
+        (generator / 'src').mkdir()
+        (generator / 'src/client.ts').write_bytes(adapter)
     # Use maintained exact shared-tool selection, cache and TLS admission.
     # This disposable fixture must not inherit CMD's overlong-PATH failure or
     # infer npm's installation layout from the discovered launcher.
@@ -152,7 +220,7 @@ def generated_client(evidence, document):
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
         from windows_workflow_path import prepare_path
         environment['PATH'] = prepare_path(environment.get('PATH', ''), str(shared_python))
-    run(evidence, 'client-toolchain', [str(shared_python), str(TEMPLATE / 'eng/toolchain.py'),
+    run(evidence, label_prefix + 'client-toolchain', [str(shared_python), str(TEMPLATE / 'eng/toolchain.py'),
         '--repository', str(evidence)], environment=environment)
     from foundation_qualification import npm_command
     npm, environment = npm_command(evidence, [])
@@ -162,29 +230,59 @@ def generated_client(evidence, document):
         ('client-lock', ['install', '--package-lock-only', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
         ('client-ci', ['ci', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
         ('client-generate', ['run', 'generate'])):
-        run(evidence, name, [*npm, *arguments], generator, environment=environment)
+        run(evidence, label_prefix + name, [*npm, *arguments], generator, environment=environment)
     # Keep the consumer compiler isolated from generator peers, exactly as the
     # emitted pipeline does: openapi-typescript currently requires TypeScript5,
     # while supported application code uses its independently pinned compiler.
-    compiler = evidence / 'compiler'; compiler.mkdir(exist_ok=True)
+    compiler = evidence / compiler_name; compiler.mkdir(exist_ok=True)
+    compiler_dependencies = {'typescript': typescript}
+    if adapter is not None:
+        application_package = json.loads((TEMPLATE.parent / 'hosted-pages/web/package.json').read_bytes())
+        compiler_dependencies = application_package['devDependencies']
+        typescript = compiler_dependencies['typescript']
     (compiler / 'package.json').write_text(json.dumps({'name': 'generated-client-compiler',
-        'version': '1.0.0', 'private': True, 'devDependencies': {'typescript': typescript}}))
+      'version': '1.0.0', 'private': True, 'devDependencies': compiler_dependencies}))
+    compile_arguments = ['../' + client_name + '/types.ts']
+    if adapter is not None:
+        profile = json.loads((TEMPLATE.parent / 'hosted-pages/web/tsconfig.json').read_bytes())
+        profile['include'] = ['../' + client_name + '/types.ts', '../' + client_name + '/src/client.ts']
+        (compiler / 'tsconfig.json').write_text(json.dumps(profile))
+        compile_arguments = ['--project', 'tsconfig.json']
     for name, arguments in (
         ('compiler-lock', ['install', '--package-lock-only', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
         ('compiler-ci', ['ci', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
-        ('client-compile', ['exec', '--', 'tsc', '--noEmit', '--strict', '--skipLibCheck', '../client/types.ts'])):
-        run(evidence, name, [*npm, *arguments], compiler, environment=environment)
+        ('client-compile', ['exec', '--', 'tsc', '--noEmit', '--strict', '--skipLibCheck',
+            *compile_arguments])):
+        run(evidence, label_prefix + name, [*npm, *arguments], compiler, environment=environment)
+    return {'generator': defaults, 'compiler': typescript, 'toolchainEvidence': str(evidence / 'artifacts/program-kit/toolchain.json'),
+            'inheritedPathCharacters': inherited_path_characters,
+            'npmPathCharacters': len(environment.get('PATH', '')),
+            'lockSha256': hashlib.sha256((generator / 'package-lock.json').read_bytes()).hexdigest(),
+            'typesSha256': hashlib.sha256((generator / 'types.ts').read_bytes()).hexdigest(),
+            **({'compiledActualAdapterSha256': hashlib.sha256(adapter).hexdigest()} if adapter is not None else {})}
+
+
+def generated_client(evidence, document):
+    result = generate_typescript(evidence, document)
+    generator = evidence / 'client'
     types = (generator / 'types.ts').read_text()
     for property in ('amount', 'count', 'revision'):
         import re
         lines = re.findall(r'\b' + property + r'\??: ([^;]+);', types)
         assert lines and all('number' in line and 'string' not in line for line in lines), (property, lines)
     assert 'amounts: number[]' in types
-    return {'generator': defaults, 'compiler': typescript, 'toolchainEvidence': str(evidence / 'artifacts/program-kit/toolchain.json'),
-            'inheritedPathCharacters': inherited_path_characters,
-            'npmPathCharacters': len(environment.get('PATH', '')),
-            'lockSha256': hashlib.sha256((generator / 'package-lock.json').read_bytes()).hexdigest(),
-            'typesSha256': hashlib.sha256((generator / 'types.ts').read_bytes()).hexdigest()}
+    nullable = json.loads((evidence / 'nullable-admission.json').read_text())
+    if nullable['admitted']:
+        nullable_document = evidence / 'official-exporter/nullable-document.json'
+        nullable_bytes = nullable_document.read_bytes()
+        nullable_client = generate_typescript(evidence, nullable_document, nullable=True)
+        nullable_types = (evidence / 'nullable-client/types.ts').read_text()
+        properties = re.findall(r'\boptionalCount(\??): ([^;]+);', nullable_types)
+        assert properties and all(not optional and 'number' in value and 'null' in value and 'string' not in value
+                                  for optional, value in properties), properties
+        assert nullable_document.read_bytes() == nullable_bytes, 'Client generation changed the genuine raw nullable document'
+        result['nullable'] = nullable_client
+    return result
 
 
 def main():
@@ -208,7 +306,9 @@ def main():
         (evidence / 'result.json').write_text(json.dumps({'status': 'passed',
             'scope': 'Offline selected exporter and compiled generated TypeScript; no application runtime, database, browser or HTTP request claim.',
             'elapsedSeconds': round(time.monotonic() - started, 3),
-            'officialExport': timing, 'generatedClient': client}, indent=2))
+            'officialExport': timing, 'generatedClient': client,
+            'nullableProducer': json.loads((evidence / 'nullable-admission.json').read_text()),
+            'intentionallyMalformedNumericRejected': True}, indent=2))
         print('Offline exporter/client passed: ' + str(evidence))
         return
     shared = blocks.effective_dependency_context(ROOT)['sharedAbi']['pins']
@@ -267,11 +367,12 @@ def main():
         'fixtureSha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT / 'tests/fixtures/composition-numeric').glob('*.cs')},
         'actualClosedProblemWriter': True, 'nestedArraysAndOverflow': True,
         'actualEffectOnlyRegistrationExcluded': True, 'controlledEffectOnlyTrueRejectedBeforeOutput': True,
-        'nullableNumericDisposition': 'parser accepts number/null and rejects numeric strings; actual selected producer still promises nullable integer|string despite scoped Strict metadata; admission correctly blocks; publisher integration remains separate',
+        'nullableNumericDisposition': json.loads((evidence / 'nullable-admission.json').read_text()),
+        'intentionallyMalformedNumericRejected': True,
         'officialExporter': catalog['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'],
         'maintainedGeneratedClient': client, 'preparedMetadataExportTiming': timing,
         'scope': 'Scoped strict DTO defaults under selected unmodified pins, native typed bindings and selected parser/writer/producer/client parity. Custom converters/shared types under different profiles remain explicit unresolved. No consumer baseline or approval changed; fixture timings exclude agent reasoning.'}, indent=2))
-    print('Scoped numeric parser/writer/official producer/client parity passed; nullable numeric mismatch remains blocked: ' + str(evidence))
+    print('Scoped numeric parser/writer/official producer/client qualification and selected nullable disposition passed: ' + str(evidence))
 
 
 if __name__ == '__main__':

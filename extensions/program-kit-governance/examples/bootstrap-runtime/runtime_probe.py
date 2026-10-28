@@ -55,7 +55,8 @@ def contracts_profile(pins):
     if not version or tuple(map(int,version.groups())) < (0,3,0):
         require('hostPayload' not in pins, 'Historical profiles cannot supply the new Host binding contract')
         return False
-    pattern='foundation-'+re.escape(release)+r'-build-\d+\.\d+\.\d+-exporter-\d+\.\d+\.\d+-forms-\d+\.\d+\.\d+-localization-\d+\.\d+\.\d+(?:-q-[0-9a-f]{8})?'
+    pattern=('foundation-'+re.escape(release)+r'-build-\d+\.\d+\.\d+-exporter-\d+\.\d+\.\d+'
+             r'-forms-\d+\.\d+\.\d+-localization-\d+\.\d+\.\d+(?:-analyzer-\d+\.\d+\.\d+)?(?:-q-[0-9a-f]{8})?')
     require(re.fullmatch(pattern,pins.get('dependencyProfile','')) is not None,
             'Foundation contracts require the exact selected profile identity')
     return True

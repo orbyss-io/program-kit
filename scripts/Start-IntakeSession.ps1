@@ -3,6 +3,7 @@ param(
     [string]$Model = '',
     [string]$IdeaFile = '',
     [string]$AcceptanceContracts = '',
+    [string]$AssetsDirectory = '',
     [switch]$KeepWorkspace,
     [switch]$PrepareOnly
 )
@@ -13,7 +14,7 @@ if (-not $PrepareOnly -and ($env:CODEX_THREAD_ID -or $env:CI -or
     throw 'INTAKE_INTERACTIVE_TERMINAL_REQUIRED: run this yourself in a fresh PowerShell console.'
 }
 $sourceRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$record = Join-Path $sourceRoot ('artifacts\intake-sessions\' + [Guid]::NewGuid().ToString('N'))
+$record = Join-Path ([Environment]::GetFolderPath('UserProfile')) ('ProgramKitTrials\evidence\' + [Guid]::NewGuid().ToString('N'))
 $helper = Join-Path $PSScriptRoot 'intake_session.py'
 $python = (Get-Command python -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $codex = if (-not $PrepareOnly) {
@@ -30,6 +31,7 @@ try {
     $prepareArguments = @($helper, 'prepare', '--record', $record)
     if ($IdeaFile) { $prepareArguments += @('--idea-file', (Resolve-Path -LiteralPath $IdeaFile).Path) }
     if ($AcceptanceContracts) { $prepareArguments += @('--acceptance-contracts', (Resolve-Path -LiteralPath $AcceptanceContracts).Path) }
+    if ($AssetsDirectory) { $prepareArguments += @('--assets-dir', (Resolve-Path -LiteralPath $AssetsDirectory).Path) }
     & $python @prepareArguments
     if ($LASTEXITCODE -ne 0) { throw "Intake setup failed. Evidence: $record" }
     $state = Get-Content -Raw -LiteralPath (Join-Path $record 'session.json') | ConvertFrom-Json
@@ -37,7 +39,7 @@ try {
     else {
         Write-Host "Review evidence: $record"
         Write-Host 'This opens an interactive Codex intake using your normal login and configured model (unless -Model is given). Normal model usage applies.'
-        Write-Host 'The conversation and workspace are saved locally for review. Do not enter secrets. Exit Codex with /quit when finished; bootstrap will not be started.'
+        Write-Host 'The conversation and workspace are saved locally for review. Do not enter secrets. Exit Codex with /quit when finished; founding acceptance will not be performed.'
         if (-not $IdeaFile) {
             $idea = Read-Host 'What product do you want to build? (You can elaborate inside Codex)'
             if ([string]::IsNullOrWhiteSpace($idea)) { throw 'A product idea is required.' }
@@ -46,7 +48,7 @@ try {
         $arguments = @('--cd', $state.workspace, '--sandbox', 'workspace-write',
             '--ask-for-approval', 'on-request', '--no-alt-screen')
         if ($Model) { $arguments += @('--model', $Model) }
-        $arguments += 'Read INTAKE-SESSION.md and follow the installed bootstrap intake skill using product-idea.md. Conduct the interview with me here. Stop at intake; do not launch bootstrap.'
+        $arguments += 'Read INTAKE-SESSION.md and follow the installed product-intake skill using product-idea.md. Conduct the interview with me here. Stop at intake; do not accept the founding baseline or implement features.'
         # Foreground with inherited console: never pipe the TUI or start a detached worker.
         & $codex @arguments
         $sessionExit = $LASTEXITCODE

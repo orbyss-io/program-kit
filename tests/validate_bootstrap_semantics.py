@@ -386,12 +386,9 @@ def main() -> int:
         premature["strategic_model"]["founding_decisions"][0]["status"] = "accepted"
         expect_failure(lambda: architecture.validate_model(premature, project), "must remain proposed or unresolved")
 
-    architecture_skill = (repository / "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture.md").read_text(encoding="utf-8")
-    bootstrap_skill = (repository / "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap.md").read_text(encoding="utf-8")
-    for marker in ("founding decision candidates", "Proposed ADRs", "post-architecture approval"):
-        if marker not in architecture_skill + bootstrap_skill:
-            raise AssertionError(f"Bootstrap/architecture guidance is missing {marker!r}")
-    print("Strategic bootstrap semantics, six-journey projection, and provisional decision gates passed.")
+    # Installed scoped acceptance/promotion is exercised by validate_product_intake;
+    # this validator owns semantic model invariants, not retired worker prose.
+    print("Strategic product semantics, six-journey projection, and provisional decision gates passed.")
     return 0
 
 

@@ -15,7 +15,7 @@
           "required": true,
           "secret": false,
           "constraints": { "minLength": 1, "maxLength": 32 },
-          "binding": "LabelEndpoints.Configure binds the selected shell's Sample:Api section and validates Prefix before operation resolution.",
+          "binding": "LabelApiOptions.Configure binds the selected shell's Sample:Api section and validates Prefix before effects.",
           "precedence": ["typed source initializer", "selected shell configuration providers"],
           "reload": "restart",
           "description": "Explicit non-secret prefix for the sample response; the empty source default requires configuration."

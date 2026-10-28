@@ -109,6 +109,9 @@ class PublicCoreTests(unittest.TestCase):
 
     def test_actual_public_package_generates_an_accepted_unmodified_consumer(self):
         import importlib.metadata
+        if selected_cli_pin() != importlib.metadata.version('specify-cli'):
+            from program_kit_runtime import device_toolchain
+            device_toolchain.specify_runtime(ROOT)
         self.assertEqual(selected_cli_pin(), importlib.metadata.version('specify-cli'))
         environment = dict(os.environ, SPECKIT_PYTHON=sys.executable)
         result = subprocess.run([sys.executable, '-c', 'from specify_cli import main; main()',
@@ -148,11 +151,15 @@ class PublicCoreTests(unittest.TestCase):
             self.assertNotIn('SPECKIT_PYTHON', os.environ)
 
 
-    def test_zero_exit_worker_without_output_fails_the_native_artifact_gate(self):
+    def test_successful_native_command_cannot_continue_the_retired_bootstrap(self):
         from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
         from specify_cli.workflows.step.command import CommandStep
         from specify_cli.workflows.base import RunStatus
         script = ROOT / 'extensions/program-kit-governance/scripts/bootstrap_context.py'
+        authored = self.root / 'docs/architecture/existing-decision.md'
+        authored.parent.mkdir(parents=True)
+        authored.write_bytes(b'Synthetic authored decision: preserve unchanged.\n')
+        original = authored.read_bytes()
         definition = WorkflowDefinition({'schema_version': '1.0',
             'workflow': {'id': 'program-kit-bootstrap', 'name': 'Public core artifact regression'},
             'steps': [
@@ -167,8 +174,10 @@ class PublicCoreTests(unittest.TestCase):
         self.assertEqual('validate-architecture-output', state.current_step_id)
         self.assertEqual(0, state.step_results['architecture-dispatch']['output']['exit_code'])
         diagnostic = str(state.step_results[state.current_step_id])
-        self.assertIn('Required architecture output is missing', diagnostic)
-        self.assertIn('PROGRAM_KIT_WORKER_ARTIFACT_CONTRACT', diagnostic)
+        self.assertIn('PROGRAM_KIT_BOOTSTRAP_WORKFLOW_RETIRED', diagnostic)
+        self.assertIn('speckit-program-kit-governance-product-intake', diagnostic)
+        self.assertEqual(original, authored.read_bytes())
+        self.assertFalse((self.root / '.specify/governance/bootstrap-approval.json').exists())
 
 
 if __name__ == '__main__':

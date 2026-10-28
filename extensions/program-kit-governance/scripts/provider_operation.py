@@ -122,23 +122,10 @@ def contract(root, relative):
 
 
 def native_admission(root, prepared, prerequisite, recipe):
-    """Reuse the actual latest native compatibility admission, including its fixtures."""
-    from bootstrap_lifecycle import current_compatibility_evidence, LEDGER
-    from governance_state import roadmap_records
-    ledger = load(local(root, LEDGER.as_posix()))
-    matches = [item for item in ledger['prerequisites'] if item['id'] == prerequisite]
-    require(len(matches) == 1, 'select the existing exact provider-admission prerequisite')
-    records = roadmap_records(local(root, 'docs/architecture/specification-roadmap.md'))
-    evidence = current_compatibility_evidence(root, records, matches[0], recipe)
-    require(evidence is not None, 'current native provider admission is unavailable; prepare/review it through its existing owner')
-    proof = load(local(root, evidence['path']))
-    expected = {(prepared['path'], prepared['sha256']),
-                (prepared['value']['fixture']['path'], prepared['fixtureSha256']),
-                (prepared['value']['adapterPreparation']['path'],prepared['value']['adapterPreparation']['sha256']),
-                (prepared['value']['account']['authorityPath'],prepared['value']['account']['authoritySha256'])}
-    require(expected <= {(item['path'], item['sha256']) for item in proof['inputs']},
-            'native admission does not bind the exact operation contract and fixture')
-    return dict(evidence)
+    """Never substitute retired bootstrap admission with newly invented spending authority."""
+    raise ValueError('Bootstrap-backed provider admission is unavailable in this preview. '
+                     'Preserve original account authority, reservations and uncertain outcomes. '
+                     'A separately maintained current admission route is required; no provider I/O authorized.')
 
 
 class Account:

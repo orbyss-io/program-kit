@@ -1,4 +1,12 @@
 [
+  "native-ef-design-time-foundation-context-migrations-snapshot-and-model-drift",
+  "native-ef-runtime-does-not-create-missing-schema",
+  "native-ef-repeat-deployment-retains-one-history-entry",
+  "native-ef-least-privilege-foundation-runtime-effect",
+  "native-ef-runtime-cannot-change-history-or-schema",
+  "native-ef-missing-table-grant-blocks-shell-activation",
+  "native-ef-unreadable-history-denies-before-effect",
+  "native-ef-pending-migration-denies-without-startup-ddl",
   "schema-proved-absent-before-first-parallel-preparation",
   "eight-real-first-preparations-one-deployment",
   "eight-concurrent-native-runtime-units-independent-committed-effects",

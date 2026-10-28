@@ -1,5 +1,58 @@
 # Typed executable Foundation composition
 
+## Choose the active route before custom setup
+
+An accepted Foundation Host/BFF/Keycloak/PostgreSQL decision selects this maintained
+composition route. Before adding container topology, authentication presentation,
+public asset serving or the first product endpoint, inspect the accepted exact
+profile and `eng/foundation-composition.json`. A legacy `--web-profile bff-cookie`
+scaffold supplies compatibility files; it does not create that active v2 graph.
+Do not interpret its presence as completed composition adoption or a need to recreate
+native middleware. Other explicitly selected hosts retain their own engineering route.
+
+For a fresh consumer, adapt the v2 application template named below to the agreed
+owners and inputs. For an existing consumer without an active graph, review
+`composition_migrate.py --proposal <reviewed-v2.json>` before applying its exact
+preview. Then preview `dotnet_sync.py --target . --composition-only --check --json`
+with the selected profile/host/source arguments. This bounded scope reconciles
+managed composition configuration through the normal transaction. It preserves
+authored C# identities, architecture, shell policy, realm users/client identities,
+frontend/branding and locks. Inspect actual conflicts and the transaction; this
+does not certify that whole-baseline synchronization can overwrite local repairs.
+Do not fabricate managed hashes or delete source to make a preview pass.
+
+Preparation, native provider deployment, runtime activation and product acceptance
+remain distinct. Provision the selected environment, deploy required native EF
+migrations separately under deployment authority, grant the runtime's least
+privileges, then exercise the native login and a permission/owner-isolated product
+operation. Product secrets and schema readiness are actual runtime inputs. Generic
+coding hooks supply read-only guidance and never start this sequence. On resume,
+reuse the graph, setup and applicable evidence; repeat only affected checks when
+relevant inputs change. Preserve agreed human story reviews.
+
+## First engineering increment
+
+Make initial composition adoption an explicit bounded increment around the first product operation,
+before expanding product implementation. Prepare the graph/configuration before adding an endpoint.
+Keep it in the current feature unless a reusable platform is itself an independently scoped outcome.
+Its result is the active graph with exact pins and generated configuration. Include a realm and real
+login check only when identity is selected, a product permission/owner check where that boundary
+applies, and separate native schema deployment/read-only admission plus a small real provider fixture
+when persistence is selected. Do not add identity or a database to an unrelated worker composition.
+Do not expand setup into supplier-wide protocol requalification.
+Use the [fast PostgreSQL fixture](examples/postgresql-lifecycle/README.md#fast-provider-test-composition)
+for later provider work; it does not need the complete identity/browser topology.
+Retain authored realm users/client identities and product overlays when adopting an existing consumer.
+On resume, reuse applicable setup/evidence and correct stale operative tasks openly, preserving history.
+This is an engineering result, not a new human approval gate or an instruction for generic hooks to
+start services. The agreed story reviews and actual security/deployment prerequisites still apply.
+
+Profile activation/exporter hashes establish their declared metadata/admission
+scope. Retained Forms browser evidence establishes its Forms scope. The maintained
+`validate_composition_start.py --execute` scenarios separately exercise actual
+generated Host/Keycloak/browser composition; they do not qualify every consumer
+authorization query or require a supplier-wide rerun before each business task.
+
 New qualified profiles carrying `Orbyss.Foundation.Web.Presentation` enable the
 native presentation feature for supported browser shells. Historical profiles keep
 their exact original package/activation closure. The selected publisher metadata
@@ -95,6 +148,15 @@ Start from `templates/dotnet/compositions/application-foundation.json` or its
 owners, feature paths, assigned endpoints/clients and database bindings. The retained
 `foundation-bff-keycloak*.json` files are version 1 migration fixtures and are rejected
 by normal generation/execution.
+
+These v2 examples are minimal activation compositions, not complete application project designs.
+Their HTTP feature does not acquire workflow ownership merely because its role is `implementation`.
+Reconcile actual responsibilities with `principle.compilation-boundaries` in
+`program-kit-governance/references/modularity-and-contracts.md`: when application workflows need
+runtime coordination, add their owned feature with `responsibility: "runtime"` and its shell binding;
+retain `responsibility: "http"` for HTTP adaptation. Pure calculations may remain in Core. No empty
+Runtime/Calculations project or additional business context is required by the example.
+
 Define stable typed resources (features, shells, hosts, database servers/databases,
 identity authorities/clients/protected resources, frontends), explicit bindings and
 environment placement. Link them to the consumer's Accepted architecture and
@@ -119,6 +181,26 @@ and consumer customizations. Untouched authenticated scaffold contributions reco
 sync; a customized obsolete ApiFeature that would duplicate the identity requires scoped source
 correction before managed writes. Do not reset owned code or locks to force reconciliation.
 
+Required product configuration can use an explicit environment projection:
+
+```json
+{"kind":"configurationEnvironment","featureRef":"notes-runtime","shellRef":"notes-shell",
+ "setting":"Notes:HmacSecret","environmentRef":"EXAMPLE_NOTES_HMAC"}
+```
+
+The feature must belong to that shell and the exact product setting declaration must
+match its available native metadata. Native authentication, database, routing and Host
+settings keep their own bindings. The projection declares a name, never a secret value;
+the caller supplies it through the process environment. Missing required input stops the
+selected runtime action before processes start. Do not commit values, print them, or
+store their hashes in readiness records. Provider code still owns typed binding,
+validation, snapshot/reload and disposal semantics. A declaration cannot prove compiled
+registration; actual selected activation remains necessary.
+For an environment-only secret rotation, use an explicit
+`python eng/composition_run.py run --host <host-id>` with the new process input so
+native Compose observes it. Source-only freshness deliberately stores no secret value
+hash and cannot infer a rotation; a no-op source update is not rotation evidence.
+
 Branding is consumer-owned authoring data. During migration, retain the existing
 identity display name/accent in `identityAuthority.theme.branding` and each frontend's
 localized title, purpose, loading, failure, no-script and logo alternative text in
@@ -127,6 +209,23 @@ version 1 has no frontend resource. For a reviewed version 2 proposal, the consu
 must carry existing frontend branding into the proposal before preview/apply. The
 importer preserves supplied values; it does not infer copy from generated realm,
 theme or page files. New projects without supplied branding keep the generic defaults.
+
+Declare additional repository-relative frontend/theme input files or directories in
+that resource's `inputs` when they live outside its source directory. Their complete
+closure participates in preparation freshness, including additions, changes and
+removals. Preserve React entrypoints, SDK/API consumer assets, route permissions and
+lockfiles; a generic scaffold is not a reconciliation strategy. The actual mounted
+identity theme is also a runtime preparation input. A path/hash declaration alone
+does not prove that a frontend build consumed the asset or that native admission passed.
+
+The captured manifest producer validates its declared paths and hashes; it does not
+certify every image's internal format. Native HostedPages owns content admission,
+including PNG chunk restrictions. Discover that selected contract before preparing
+branding. Retain the original asset separately. If a reviewed deployment derivative
+removes an unsupported ancillary chunk, preserve the image-bearing chunks and their
+CRCs and inspect the result through native admission. Do not automatically strip
+unknown metadata, weaken admission or treat an unadmitted/failed build as a retained
+successful revision. Explicit build input/output and native readiness remain separate.
 
 Activation-test projects and their feature `ProjectReference` bindings are
 consumer-owned. Program Kit does not generate or rebind them during composition
@@ -208,11 +307,12 @@ owned databases and identity registrations. Existing identity users and registra
 preserved; removed owned clients are disabled. `run` starts the generated Docker Compose and checks real activation,
 provider connectivity, BFF authentication/theme and page runtime loading. `update --host
 <resource-id>` rebuilds affected native compilation dependants and preserves unrelated
-services; `stop` preserves owned database/identity volumes. Implementation's single
-prehook calls the same prepared run/readiness route. First acquisition is explicit.
+services; `stop` preserves owned database/identity volumes. These are explicitly
+selected engineering operations; the native implementation prehook supplies only
+read-only context. First acquisition is explicit.
 
-Preparation validates the planned architecture, then actually builds, packages and
-starts the selected foundation. Accepted product bindings may still name interfaces
+Preparation validates the planned architecture and builds/packages the selected
+foundation inputs; `run` owns Host activation and readiness. Accepted product bindings may still name interfaces
 and implementations that have not been written. Keep those bindings in the plan;
 the full evaluated/compiled product architecture check remains an implementation
 verification obligation. Foundation readiness does not claim that check has passed.

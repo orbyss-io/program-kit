@@ -121,6 +121,9 @@ def draft(root, catalog_path, identity, directory):
 
 def accept(root, destination, directory, decision_id, rationale):
     root, destination, directory = (filesystem_root(path) for path in (root, destination, directory))
+    if (root / 'docs/architecture/bootstrap-prerequisites.json').exists():
+        raise ValueError('PKB613 Retired bootstrap prerequisite authority cannot be promoted by this preview. '
+                         'Preserve the original history and re-onboard before selecting a new dependency profile; no files changed.')
     destination = destination.resolve()
     if not destination.is_relative_to(root.resolve()): raise ValueError('PKB613 dependency transition escapes consumer')
     packet = blocks.load_json(destination / 'review.json')
@@ -222,25 +225,8 @@ def accept(root, destination, directory, decision_id, rationale):
     promoted_bytes = blocks.pretty_json(promoted_architecture).encode('utf-8')
     ledger_path = root / 'docs/architecture/bootstrap-prerequisites.json'
     promoted_ledger = None
-    if 'bootstrap-prerequisites.json' in packet['originals']:
-        promoted_ledger = blocks.load_json(destination / 'originals/bootstrap-prerequisites.json')
-        source = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts/bootstrap_lifecycle.py'
-        spec = importlib.util.spec_from_file_location('dependency_transition_lifecycle', source)
-        lifecycle = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(lifecycle)
-        sources = promoted_ledger['sources']
-        required = {'docs/architecture/bootstrap-decisions.json'} | {d['path'] for d in architecture['decisions'] if d.get('path')}
-        if ({s['path'] for s in sources} - required or required - {s['path'] for s in sources} != {decision['path']}
-                or any(lifecycle.source_digest(blocks.repository_path(root, s['path'])) != s['sha256'] for s in sources)):
-            raise ValueError('PKB613 prerequisite source authority changed outside this dependency review')
-        sources.append({'path': decision['path'], 'sha256': lifecycle.source_digest(review), 'prerequisites': []})
-        promoted_ledger['sources'] = sorted(sources, key=lambda item: item['path'])
-        promoted_ledger_bytes = blocks.pretty_json(promoted_ledger).encode('utf-8')
-        if not ledger_path.is_file() or blocks.raw_sha256(ledger_path) not in {
-                packet['originals']['bootstrap-prerequisites.json'], hashlib.sha256(promoted_ledger_bytes).hexdigest()}:
-            raise ValueError('PKB613 prerequisite ledger differs from preserved or promoted evidence')
-    elif ledger_path.exists():
-        raise ValueError('PKB613 prerequisite ledger appeared after the dependency review')
+    if 'bootstrap-prerequisites.json' in packet['originals'] or ledger_path.exists():
+        raise ValueError('PKB613 Retired bootstrap prerequisite history is not current profile-promotion authority')
     intent = {'schemaVersion': 1, 'reviewSha256': review_digest, 'decisionId': decision_id, 'rationale': rationale,
               'acceptedSelectionSha256': blocks.canonical_sha256(accepted),
               'reviewedArchitectureSha256': blocks.raw_sha256(reviewed_path) if promotion else blocks.raw_sha256(architecture_path),

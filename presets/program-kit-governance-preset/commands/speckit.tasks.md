@@ -1,118 +1,84 @@
 ---
-description: Generate dependency-ordered, operation-sized feature tasks with resumable drafting.
-scripts:
-  sh: scripts/bash/setup-tasks.sh --json
-  ps: scripts/powershell/setup-tasks.ps1 -Json
-  py: scripts/python/setup_tasks.py --json
+description: Add coherent vertical outcomes and explicit review notes to native task generation.
 ---
 
-## User Input
+## Program Kit task guidance
 
-```text
-$ARGUMENTS
-```
+Keep the native task-generation flow, its setup/template resolution and configured hooks. Use the
+existing spec, plan and constitution; inspect tasks.md before making changes. Preserve task IDs,
+checked boxes, consumer edits and unfinished work on resume. Save useful groups as they are ready.
 
-Apply user scope and constraints. Drafting tasks never executes implementation or prerequisite proofs.
+Group work around small runnable user outcomes. Put minimal enabling work beside its first consumer;
+name real dependencies instead of imposing a blanket foundation phase. Security, authorization,
+ownership, persistence/migration and provider prerequisites belong before the tasks that need them.
+A larger coherent journey can remain intact when its scope and rationale are explicit.
+Make each active increment's observable result, actual prerequisites and cheapest reliable check
+clear. A task combining contracts, schema, replay, provider behavior and UI can contain named small
+increments; its checkbox count is not a delivery percentage. Implement settings beside their first
+consumer and reconcile the full inventory at closure. Do not make unborn feature owners an upfront
+dependency. Include durable authority/identity prerequisites for storage and recovery explicitly.
 
-## Hook dispatch
+For an accepted maintained Foundation composition, put a bounded setup increment around the first
+product operation, before expanding product implementation: active graph, exact pins and generated
+configuration. Include realm/login checks only when identity is selected, product permission/owner
+checks where that boundary applies, and native schema deployment/read-only admission plus a small
+real provider fixture when persistence is selected. Reuse supplier evidence within its declared
+scope. This normally belongs in the
+current feature; a separate setup spec is useful only for an independently scoped platform outcome.
+It adds no approval receipt, generic full-app preflight or new human review boundary.
+These scoped dependencies take precedence over blanket layer-first/foundation examples in the core
+command. The constitution's testing policy takes precedence over generic optional-test examples.
 
-Read `.specify/extensions.yml` if it exists. At each named boundary select enabled hooks in
-configured YAML order; missing `enabled` means enabled. Invalid YAML or an unavailable mandatory
-hook prevents claiming that boundary complete. Do not sort by priority or evaluate `condition`:
-report nonempty conditions as not executed by this adapter. For `optional: false`, emit
-`EXECUTE_COMMAND: <command>`, then **MUST actually invoke the hook** using the session's skill/command
-mechanism and wait for its result. Stop affected work on failure. Optional hooks execute only when
-selected. Dispatch `hooks.before_tasks` before drafting and `hooks.after_tasks` only after final review.
-Dispatch each once per invocation; do not repeat a hook's work independently.
+Carry the plan/research/ADR decisions into the tasks that use them: intended responsibility,
+selected method or pattern, semantic commitments, local adaptation and focused checks. Link the
+relevant decision section instead of copying it when sufficient. Preserve the source/version facts
+and constraints behind consequential choices; do not turn every private file or class into a fixed
+blueprint. No mandatory decision table, file map or coding-unit manifest is needed.
 
-## Preparation and resume
+Choose tests and their sequence by risk and the constitution. Use test-first for consequential or
+uncertain behavior and a demonstrating regression for bugs. Materialize known scaffolds together,
+check them, then add the missing consumer behavior and tests. A missing tool or unrelated compilation
+error is not a meaningful failing behavioral test. Put the first compiler/analyzer/focused check at
+the first coherent increment, and retain affected regressions for shared changes.
+For a new or uncertain approach, put source review and the focused checks on its first coherent
+case before widespread replication. This is a technical review; add a human pause only where one
+has actually been agreed. Qualified catalog patterns and generators are optional.
+Avoid a single test task that requires designing every adversarial mechanism before the first
+working case. Pair one meaningful regression with its implementation, then extend the agreed failure
+cases before claiming readiness. Keep all accepted safety obligations and actual-provider evidence.
 
-Run `{SCRIPT}` once, or reuse the before_tasks hook's setup_tasks result from this invocation.
-Retain FEATURE_DIR, AVAILABLE_DOCS and TASKS_TEMPLATE_CONTENT; use that resolved template, falling
-back to TASKS_TEMPLATE only for older scripts. Inspect existing tasks.md before reading optional
-documents. Read spec.md, plan.md and constitution once when not current in context. Follow the
-before_tasks task_draft.py prepare/save-phase/finalize protocol: save the initial draft immediately,
-then each completed operation group. Resume saved groups without renumbering IDs, losing checked
-boxes or consumer edits, or repeating unchanged preparation. Only read a contract/data-model/research
-section needed for the current operation or unresolved choice. Changed inputs require scoped review.
-An incomplete draft is not ready for implementation or read-only analysis.
-Use the reported document ownership when choosing output paths. A frozen historical input
-is a read dependency; select a distinct linked current index/versioned proposal for updates.
-For referenced frozen files, declare explicit `Task | Path | Mode` rows under
-`## Document outputs`. This does not make every compatibility document immutable and does
-not replace ordinary artifact ownership or human story review.
+On resume or an authorized architectural correction, reconcile the operative task wording and
+dependencies with the current plan. Preserve IDs, completed checkmarks, authored work and historical
+evidence; explain superseded instructions instead of leaving them as competing directions. Keep a
+short current status and next increment near the top, linking longer history rather than repeating
+it. This is ordinary tasks prose, not a new progress schema or a reason to regenerate the task list.
 
-## Generate the operation plan
+Record any agreed human review point in plain tasks.md notes: outcome, reviewer, when to pause and
+any explicitly permitted work while waiting. Requester acceptance is separate from test results.
+Earlier or additional pauses need agreement; do not turn every task into a new approval gate.
+Make the independent walkthrough and expected result concrete. Preserve the user's decision in a
+short note when received; no hidden JSON checkpoint, receipt or extra state initialization is needed.
 
-1. Extract prioritized user stories, their requirements and acceptance scenarios. Confirm each
-   coherent actor journey, observable outcome, non-goals, independent walkthrough, connected
-   integration and success/material failure paths. Estimate preparation/integration/verification
-   to human review; split oversized stories by useful journeys before tasks, or disclose larger-story
-   effort and rationale. Operations are internal units; human acceptance is per runnable story.
-   One task must have one reviewable
-   behavior or prerequisite; do not bundle all models, services or endpoints in separate layer tasks.
-2. Establish each operation's exact prerequisite graph. Minimal setup/enabling work belongs to the
-   first operation that proves it. Shared prerequisites block only their named consumers. Do not make
-   all stories depend on every foundation task or future owner's infrastructure. Preserve required
-   authorization, security, ownership, storage/migration, real-provider, contracts and admission gates
-   for the operations that need them; no operation bypasses its real prerequisite to appear smaller.
-   Retained roadmap-feature prerequisites due before implementation still gate that feature's
-   preflight. Operation dependencies cannot defer or waive approved ledger gates, approvals or pins.
-   Distinguish those retained authority gates from ordinary scoped enabling-task dependencies.
-   For an existing typed foundation composition, consume the read-only `eng/composition_run.py
-   --repository . status` projection supplied by phase context and its latest named result.
-   Reuse maintained infrastructure and already established unchanged proof; put changed-input,
-   failed or live service checks beside the operation needing them. Do not start setup during drafting.
-   Model resource preparation/start as one supported native route, not a new
-   `.Composition` project or a list of generic infrastructure coding tasks. After
-   explicit preparation, implementation preflight requires current readiness and
-   product tasks begin at the owned feature/context/endpoint seams.
-3. For each operation, state its independent test, required scenarios, cheapest reliable test level
-   and actual verification command. Record risk and verification sequence briefly. Generate known
-   scaffolds coherently first, run maintained checks before dependent behavior, then add missing
-   consumer-specific tests. Prefer test-first for critical/uncertain behavior and regression-first
-   for bugs; wiring uses immediate checks and refactoring existing regressions. Observe intended
-   missing behavior when test-first is selected; labels alone do not prove low risk. Tests required by the
-   constitution are mandatory. Story closure has story regressions; feature closure has complete
-   acceptance. Do not schedule every verification category after every task.
-   Carry concrete applicable plan `Operation implementation map` decisions, including each limit and its configured/invalid/default/boundary/consumer checks, into the task table of
-   that name: selected compatible pattern/example or supported manual route and reason, first adverse
-   cases with actual test owner/command, and first coherent compiler/analyzer/focused checks before
-   expanding behavior. Name ownership-transfer, deadline, cancellation, cleanup, transaction/replay,
-   admission and uncertainty decisions where applicable. Never replace these choices with rule IDs.
-   Resolve consequential missing decisions before dependent source tasks; include their owner,
-   missing fact, artifact updates and retry route. Investigate routine facts locally; ask humans only
-   for missing material intent, architecture, risk or authority. Preserve unrelated ready operations.
-4. Use checklist lines `- [ ] T001 [P] [US1] Description with concrete file path`, omitting `[P]`
-   unless tasks have independent writes and prerequisites. Continue unique IDs. Group by operation
-   within story priority, with coherent verification/implementation batches, followed by closure work.
-5. Populate the template's operation and task dependency tables. Name required prerequisite kinds
-   and the tasks establishing them. Prerequisites are obligations until executed; draft rows never
-   establish approval, provider proof or authority. Map all tasks to a proving operation or closure.
-   Include valid parallel examples and trace every requirement/scenario to its tasks. Populate
-   `Story delivery map` with operation ownership, useful outcome, walkthrough, effort and rationale.
-   Required reviews pause per completed story; earlier checkpoints require explicit human agreement.
-   Carry reviewer/owner assignments and scoped deferrals through the existing compact checkpoint.
-6. Final review checks unique IDs, task paths, operation-sized outcomes, full requirement coverage,
-   acyclic dependencies, required gates and risk-selected verification ordering. For a new marked draft,
-   task_draft.py finalize checks the declared dependency tables. Semantic review must still confirm
-   their declarations against plan/spec/constitution. Preserve scoped constitutional exceptions.
+Before reporting task generation complete, finish the native `hooks.after_tasks` dispatch from
+`.specify/extensions.yml`. Invoke each enabled unconditional mandatory command in priority order
+and wait for its result; a printed `EXECUTE_COMMAND:` line or a recommendation to run it later is
+not execution. With the standard Program Kit hooks this means architecture review, then
+`speckit.analyze` (`$speckit-analyze` in Codex skills mode). Returning from architecture-check
+does not finish the outer tasks command. If a hook needs a human decision, pause and resume the
+remaining hooks after that decision; do not silently drop analysis. Never start another coding agent.
 
-## Existing approved plans
+Run native read-only analysis once on the completed task plan; do not duplicate it when the hook
+already ran for these tasks. Respect explicitly disabled/removed hooks and native condition handling;
+do not force-enable or bypass consumer configuration. If analysis was disabled, unavailable or
+blocked, report that disposition and the next action instead of claiming it ran. In the final task
+report, name the hooks actually invoked, their results and unresolved findings. Only then report
+task generation complete. This is conversational dispatch, not a new execution ledger or runner.
 
-Never automatically rewrite an approved graph. Preserve IDs, checkboxes, failures and obligations.
-Within an existing fresh story-delivery feature, identify precise prerequisites and review changed
-dependencies against its approved plan before adopting them. Follow
-`.specify/extensions/program-kit-governance/references/vertical-slicing.md` for story boundaries.
-An installed toolkit update alone grants no new consumer design or implementation authority.
-For an affected unfinished feature adopting story-delivery-v1, use the current fresh-story adoption
-procedure in `consumer-upgrade.md` and `phase-evidence.md`. Installation does not perform its reset.
-Preserve the procedure's intake, authority, unrelated-source and historical-evidence boundaries.
+Keep Analyze read-only: report its findings before any authorized correction in a separate explicit
+step. Use the shared [engineering feedback method](.specify/extensions/program-kit-governance/references/engineering-feedback.md)
+to correct the owning spec, research, plan/ADR or tasks, preserving unrelated decisions and completed
+IDs/checkmarks. Resolve material questions before dependent implementation and rerun affected review
+after corrections; missing bookkeeping is not itself a reason to block native delivery.
 
-## Completion
-
-Save all groups and dependency/coverage review, finalize marked drafts, then dispatch
-`hooks.after_tasks`. Read-only speckit.analyze runs once on complete tasks through its configured
-hook; if absent, invoke it once explicitly. Never run it after each group write. Preserve its
-STRICTLY READ-ONLY boundary and unresolved findings. Report operation order, actual prerequisites,
-coverage and concrete unresolved decisions. Task generation claims no implementation acceptance.
+Report coverage, dependencies and unresolved choices. Drafting tasks never starts services, runs application acceptance or authorizes
+implementation, provider operations or publication.

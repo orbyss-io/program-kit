@@ -1,0 +1,18 @@
+{
+  "schema_version": "2.0",
+  "model_id": "request-service",
+  "title": "Request service",
+  "elements": [
+    {"id": "requester", "type": "person", "name": "Requester", "description": "Submits a request and follows its outcome."},
+    {"id": "request-service", "type": "software-system", "name": "Request service", "description": "Owns request lifecycle and policy."}
+  ],
+  "relationships": [
+    {"id": "submit-request", "source": "requester", "target": "request-service", "description": "Submits and follows requests"}
+  ],
+  "domain": {
+    "concepts": ["A request has a requester, purpose and current disposition."],
+    "lifecycle": ["Submitted", "Under review", "Resolved"],
+    "policies": ["The requester can see only requests they own."],
+    "open_questions": ["Who may resolve a request? Ask when the review feature is selected."]
+  }
+}

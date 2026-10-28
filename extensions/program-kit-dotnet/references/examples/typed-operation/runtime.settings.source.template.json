@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "packageId": "Application.Runtime",
+  "sourceSha256": {},
+  "imports": [],
+  "contracts": [
+    {
+      "scope": "sample-execution",
+      "typeName": "ProgramKit.Examples.TypedOperation.LabelExecutionOptions",
+      "complete": true,
+      "settings": [
+        {
+          "property": "Timeout",
+          "path": "Sample:Execution:Timeout",
+          "required": false,
+          "secret": false,
+          "constraints": {},
+          "binding": "LabelServices.Configure binds Sample:Execution and validates a positive supported duration before effects.",
+          "precedence": ["typed source initializer", "selected shell configuration providers"],
+          "reload": "restart",
+          "description": "Complete operation I/O safeguard; the sample runtime owns the thirty-second default, with configured positive durations limited to uint.MaxValue - 1 milliseconds."
+        }
+      ],
+      "semanticConstraints": ["Timeout must be positive and no greater than uint.MaxValue - 1 milliseconds. It caps the complete operation, not each individual provider call."],
+      "appliesTo": { "kind": "shell", "features": ["Application.Runtime"], "configuration": ["Sample:Execution"] }
+    }
+  ]
+}

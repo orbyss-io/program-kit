@@ -71,6 +71,78 @@ def design_digest(path: Path, scoped: bool = False) -> str:
     return source_digest(path)
 
 
+LIFECYCLE_INPUT_FIELDS = {
+    'docs/architecture/building-block-selection.json': ('status', 'draftSuggestions'),
+    '.program-kit/dependency-profile.json': ('authority',),
+}
+
+
+def lifecycle_input_digest(relative: str, payload: bytes) -> str:
+    """Bind executed configuration, excluding only known promotion metadata."""
+    value = json.loads(payload)
+    if relative not in LIFECYCLE_INPUT_FIELDS or not isinstance(value, dict):
+        raise LifecycleError('Unsupported lifecycle proof input')
+    allowed = {'Draft', 'Accepted'} if relative.endswith('building-block-selection.json') else {
+        'retained Draft dependency suggestions; no acceptance or compatibility approval',
+        'retained accepted selection; no new compatibility claim'}
+    field = 'status' if relative.endswith('building-block-selection.json') else 'authority'
+    if value.get(field) not in allowed:
+        raise LifecycleError('Unsupported lifecycle proof metadata: ' + relative)
+    for field in LIFECYCLE_INPUT_FIELDS[relative]:
+        value.pop(field, None)
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def capture_lifecycle_inputs(root: Path, attempt: Path, inputs: list[dict], records: list[dict]) -> list[dict]:
+    captured = []
+    for bound in inputs:
+        relative = bound['path']
+        if relative not in LIFECYCLE_INPUT_FIELDS:
+            captured.append(bound)
+            continue
+        payload = local(root, relative).read_bytes()
+        if hashlib.sha256(payload).hexdigest() != bound['sha256']:
+            raise LifecycleError('Lifecycle proof input changed during preparation')
+        semantic = lifecycle_input_digest(relative, payload)
+        snapshot = attempt / 'executed-inputs' / Path(relative).name
+        snapshot.parent.mkdir(parents=True, exist_ok=True)
+        with snapshot.open('xb') as stream:
+            stream.write(payload)
+        name = snapshot.relative_to(root).as_posix()
+        captured.append({'path': name, 'sha256': bound['sha256']})
+        records.append({'sourcePath': relative, 'snapshotPath': name, 'semanticSha256': semantic})
+    return captured
+
+
+def lifecycle_inputs_current(root: Path, proof: dict, receipt: Path) -> bool:
+    """Historical receipts retain raw binding; new snapshots require exact provenance."""
+    records = proof.get('lifecycle_inputs', [])
+    if not isinstance(records, list):
+        raise LifecycleError('Malformed lifecycle proof bindings')
+    snapshots = {b['path'] for b in proof.get('inputs', [])
+                 if local(root, b['path']).parent == receipt.parent / 'executed-inputs'}
+    if snapshots != {r.get('snapshotPath') for r in records if isinstance(r, dict)}:
+        raise LifecycleError('Lifecycle snapshots need complete source bindings')
+    seen, current = set(), True
+    for record in records:
+        if not isinstance(record, dict) or set(record) != {'sourcePath', 'snapshotPath', 'semanticSha256'}:
+            raise LifecycleError('Malformed lifecycle proof binding')
+        source = record['sourcePath']
+        if source not in LIFECYCLE_INPUT_FIELDS or source in seen:
+            raise LifecycleError('Unsupported or duplicate lifecycle proof source')
+        seen.add(source)
+        snapshot = local(root, record['snapshotPath'])
+        if snapshot != receipt.parent / 'executed-inputs' / Path(source).name:
+            raise LifecycleError('Lifecycle snapshot escaped its attempt')
+        if {'path': record['snapshotPath'], 'sha256': digest(snapshot)} not in proof.get('inputs', []):
+            raise LifecycleError('Executed lifecycle bytes changed')
+        if lifecycle_input_digest(source, snapshot.read_bytes()) != record['semanticSha256']:
+            raise LifecycleError('Executed lifecycle semantics changed')
+        path = local(root, source)
+        current = (path.is_file() and lifecycle_input_digest(source, path.read_bytes()) == record['semanticSha256']) and current
+    return current
+
+
 def source_paths(root: Path) -> list[str]:
     paths = ['docs/architecture/bootstrap-decisions.json']
     model_path = root / 'docs/architecture/architecture-map.json'
@@ -98,6 +170,40 @@ def verification_kind(item: dict) -> str:
                     or item['trigger'] == 'delivery' else 'decision')
 
 
+def applies_to(item: dict, entry: str, feature: str | None = None) -> bool:
+    """An absent child scope is epic-wide; no child selection is an aggregate view."""
+    return entry in item.get('affected_slices', []) and (
+        not item.get('affected_features') or feature is None or feature in item['affected_features'])
+
+
+def validate_feature_scope(root: Path, item: dict) -> None:
+    if 'affected_features' not in item:
+        return
+    features = item['affected_features']
+    if (not isinstance(features, list) or not features
+            or any(not isinstance(f, str) or not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,63}', f) for f in features)
+            or len(features) != len(set(features))):
+        raise LifecycleError(f"{item['id']}: affected_features requires unique canonical feature IDs")
+    model = root / 'docs/architecture/architecture-map.json'
+    known = {c['id']: c.get('epic') for c in load(model).get('strategic_model', {}).get('candidate_slices', [])} if model.is_file() else {}
+    for feature in features:
+        brief = local(root, Path('.program-kit/specification-intake/features') / feature / 'brief.json')
+        parent = known.get(feature)
+        if brief.is_file():
+            value = load(brief)
+            if value.get('schemaVersion') != 2 or value.get('featureId') != feature:
+                raise LifecycleError(f"{item['id']}: malformed scoped feature identity {feature}")
+            if parent and parent != value.get('roadmapEntry'):
+                raise LifecycleError(f"{item['id']}: scoped feature parent differs from its canonical epic")
+            parent = value.get('roadmapEntry')
+        elif feature not in known:
+            raise LifecycleError(f"{item['id']}: unknown affected feature {feature}")
+        if not parent:
+            raise LifecycleError(f"{item['id']}: scoped feature {feature} requires an explicit parent epic")
+        if parent not in item['affected_slices']:
+            raise LifecycleError(f"{item['id']}: scoped feature {feature} belongs to another epic")
+
+
 def validate_prerequisites(root: Path, records: list[dict], *, required: bool = False, allow_proposed_authority: bool = False, _ledger: dict | None = None) -> list[dict]:
     decision_path = root / 'docs/architecture/bootstrap-decisions.json'
     decisions = load(decision_path) if decision_path.is_file() else {}
@@ -116,7 +222,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
     slices = {item['id'] for item in records}
     for item in items:
         fields = {'id', 'source_ids', 'affected_slices', 'disposition', 'trigger', 'owner', 'task', 'rationale', 'status', 'evidence'}
-        if not isinstance(item, dict) or set(item) - {'verification'} != fields:
+        if not isinstance(item, dict) or set(item) - {'verification', 'affected_features'} != fields:
             raise LifecycleError('Prerequisite has missing or unexpected fields')
         identity = item['id']
         if not isinstance(identity, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9-]{0,100}', identity) or identity in by_id:
@@ -130,6 +236,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 raise LifecycleError(f'{identity}: {field} must be a list')
         if not item['affected_slices'] or set(item['affected_slices']) - slices:
             raise LifecycleError(f'{identity} must identify exact affected roadmap slices')
+        validate_feature_scope(root, item)
         disposition = item['disposition']
         triggers = {'architecture': {'before-bootstrap-completion', 'before-specification', 'before-implementation'}, 'feature': {'feature-plan', 'delivery'}, 'later': {'production', 'later-release'}}
         if disposition not in triggers or item['trigger'] not in triggers[disposition]:
@@ -160,6 +267,8 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 scoped = proof['schema_version'] == '1.2'
                 if proof.get('tooling_sources') != proof_tooling(scoped):
                     raise LifecycleError(f'{identity} compatibility tooling changed; renew the proof')
+                if not lifecycle_inputs_current(root, proof, path):
+                    raise LifecycleError(f'{identity} compatibility execution input semantics changed')
                 for bound in proof.get('inputs', []) + proof.get('streams', []) + [proof['test_result']]:
                     bound_path = local(root, bound['path'])
                     if not bound_path.is_file() or digest(bound_path) != bound['sha256']:
@@ -225,7 +334,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
         if item['disposition'] == 'architecture' and item['status'] != 'closed':
             blockers.append(item)
             ineligible = [r['id'] for r in records if r['id'] in item['affected_slices'] and r['Status'] in {'Ready', 'Active'}]
-            if ineligible and item['trigger'] in {'before-bootstrap-completion', 'before-specification'}:
+            if ineligible and not item.get('affected_features') and item['trigger'] in {'before-bootstrap-completion', 'before-specification'}:
                 raise LifecycleError(f"Architecture prerequisite {item['id']} blocks {', '.join(ineligible)}; owner: {item['owner']}; task: {item['task']}")
     return blockers
 
@@ -280,20 +389,24 @@ TRIGGER_PHASE = {'before-bootstrap-completion': 'specification',
                  'later-release': 'production'}
 
 
-def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -> dict:
+def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str, *, feature: str | None = None) -> dict:
     if phase not in PHASE_ORDER:
         raise LifecycleError('Unknown eligibility phase: ' + phase)
     selected = [r for r in records if r['id'] == entry]
     if len(selected) != 1:
         raise LifecycleError('Select exactly one roadmap entry')
+    if feature is not None:
+        validate_feature_scope(root, {'id': 'selected-feature', 'affected_slices': [entry],
+                                      'affected_features': [feature]})
     validate_prerequisites(root, records)
     record = selected[0]
     items = load(root / LEDGER)['prerequisites'] if (root / LEDGER).is_file() else []
     resolved_feature = satisfied_feature_proofs(root, records, items)
     if phase != 'specification':
         from feature_plan_decisions import satisfied
-        resolved_feature.update(satisfied(root, entry, items))
-    brief_path = root / '.program-kit/specification-intake' / entry / 'brief.json'
+        resolved_feature.update(satisfied(root, entry, items, feature_id=feature))
+    from specification_intake import directory
+    brief_path = directory(root, entry, feature) / 'brief.json'
     if phase != 'specification' and brief_path.is_file():
         proposed = {d.get('bootstrapPrerequisite') for d in load(brief_path).get('decisions', [])
                     if d.get('disposition') in {'answered', 'default'}}
@@ -303,13 +416,13 @@ def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -
             # a later compatibility gate or recurse into this branch.
             from specification_intake import check
             try:
-                check(root, entry, later=True)
+                check(root, entry, later=True, feature=feature)
             except (ValueError, OSError):
                 pass  # Stale/unconfirmed text never closes an obligation.
             else:
                 resolved_feature.update(candidates)
     blockers = [{'id': i['id'], 'owner': i['owner'], 'task': i['task'], 'due': TRIGGER_PHASE[i['trigger']]}
-                for i in items if i['status'] != 'closed' and i['id'] not in resolved_feature and entry in i['affected_slices']
+                for i in items if i['status'] != 'closed' and i['id'] not in resolved_feature and applies_to(i, entry, feature)
                 and PHASE_ORDER.index(TRIGGER_PHASE[i['trigger']]) <= PHASE_ORDER.index(phase)]
     if record['Status'] not in {'Ready', 'Active', 'Delivered'}:
         blockers.insert(0, {'id': 'journey-scope', 'owner': 'Consumer and architecture owner',
@@ -513,6 +626,15 @@ def compatibility_scratch(attempt: Path):
         shutil.rmtree(cleanup)
 
 
+def require_native_scratch(path: Path, platform=None):
+    if (platform or os.name) == 'nt':
+        from windows_workflow_path import path_length
+        if path_length(str(path)) + 32 >= 260:
+            raise LifecycleError('PKL024 native compatibility working directory is too deep; '
+                                 'use a short consumer root before retrying. Python extended paths do not '
+                                 'remove compiler process cwd limits. Failed attempt evidence is retained.')
+
+
 def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     """Execute a reviewed Python compatibility recipe in a fresh isolated scratch directory."""
     import tempfile
@@ -526,6 +648,7 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     inputs = [{'path': recipe, 'sha256': digest(recipe_path)},
               {'path': contract_path.relative_to(root).as_posix(), 'sha256': digest(contract_path)}]
     test_record = None
+    lifecycle_inputs = []
     from compatibility_scope import bindings
     dependency_bindings = bindings(root, contract)
     scoped = dependency_bindings is not None
@@ -539,9 +662,11 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     with compatibility_scratch(attempt) as directory:
         with (attempt / 'stdout.txt').open('wb') as stdout, (attempt / 'stderr.txt').open('wb') as stderr:
             try:
+                if any(str(target).endswith('.csproj') for target in contract.get('dependencyTargets', [])):
+                    require_native_scratch(Path(directory))
                 from bootstrap_compatibility import prepare, restore
                 fixture_inputs, dependency_plan = prepare(root, Path(directory), contract)
-                inputs.extend(fixture_inputs)
+                inputs.extend(capture_lifecycle_inputs(root, attempt, fixture_inputs, lifecycle_inputs))
                 if dependency_plan:
                     failure_category = 'needs-provisioning'
                     provisioning = restore(root, Path(directory), timeout=max(timeout, 120), stdout=stdout, stderr=stderr)
@@ -584,7 +709,7 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
              'provisioning': provisioning, 'tooling_sources': proof_tooling(scoped),
              'failure_category': failure_category, 'diagnostic_artifacts': diagnostic_artifacts,
              'command': command, 'python': sys.version, 'inputs': inputs, 'streams': streams,
-             'design_sources': design_sources}
+             'design_sources': design_sources, 'lifecycle_inputs': lifecycle_inputs}
     if scoped:
         value['dependency_scope'] = {'contractPath': contract_path.relative_to(root).as_posix(), 'bindings': dependency_bindings}
     receipt = attempt / 'proof.json'
@@ -621,6 +746,8 @@ def receipt_invalidation_preview(root, changed_paths):
                              'proposedInvalidations': {value: 'receipt has no proved current closure' for value in changes}})
                 continue
             proof = load(path)
+            if not lifecycle_inputs_current(root, proof, path):
+                findings.append('executed lifecycle input semantics changed')
             if proof.get('exit_code') != 0:
                 findings.append('latest attempt failed')
             bound = {row['path']: row['sha256'] for row in proof.get('inputs', []) + proof.get('streams', [])

@@ -23,6 +23,7 @@ import profile_catalogs
 import dependency_maintenance as maintenance
 
 REGISTRY = blocks.profile_registry()
+INDEPENDENT_TOOLS = ('Orbyss.Foundation.OpenApi.Exporter', 'Orbyss.Foundation.Analyzers')
 
 
 def write(path,value): maintenance.write_json(path,value)
@@ -74,7 +75,7 @@ def require_published_foundation(version):
     return {'commit':commit,'workflow':matching[0]['html_url']}
 
 
-def prepare(refresh_publisher_knowledge=False, reason=None):
+def prepare(refresh_publisher_knowledge=False, reason=None, tool=None):
     if refresh_publisher_knowledge and (not isinstance(reason, str) or not reason.strip()):
         raise ValueError('Refreshing publisher knowledge requires an explicit nonempty reason')
     base=blocks.default_catalog(Path(blocks.__file__))
@@ -84,17 +85,28 @@ def prepare(refresh_publisher_knowledge=False, reason=None):
     # Evolve the admitted current contracts, not a historical release's rules.
     # The qualifier also verifies the retained snapshot, profile and evidence.
     target=copy.deepcopy(current_catalog)
+    if tool is not None and tool not in INDEPENDENT_TOOLS:
+        raise ValueError('Select a registered independent Foundation tool')
     families={}
     representatives={'foundation':'Orbyss.Foundation.WebDefaults','foundation-build':'Orbyss.Foundation.Build',
                      'forms':'Orbyss.Forms.Abstractions','localization':'Orbyss.Localization.Abstractions'}
     for family,identity in representatives.items():
-        families[family]=maintenance.observe({'kind':'nuget','name':identity,'channel':'stable'}, {})['latest']
-    exporter=maintenance.observe({'kind':'nuget','name':'Orbyss.Foundation.OpenApi.Exporter','channel':'stable'}, {})['latest']
+        families[family]=(current['families'][family]['releaseVersion'] if tool else
+            maintenance.observe({'kind':'nuget','name':identity,'channel':'stable'}, {})['latest'])
+    tools={identity: (current['artifacts']['nuget:'+identity] if tool and tool != identity else
+        maintenance.observe({'kind':'nuget','name':identity,'channel':'stable'}, {})['latest'])
+        for identity in INDEPENDENT_TOOLS}
+    exporter=tools['Orbyss.Foundation.OpenApi.Exporter']
     publication=require_published_foundation(families['foundation'])
     for family,version in families.items(): target['families'][family]['releaseVersion']=version
-    target['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter']=exporter
+    # Do not add a redundant analyzer override to unchanged historical profiles.
+    for identity,version in tools.items():
+        overrides=target['families']['foundation'].setdefault('toolVersions',{})
+        if identity in overrides or version != families['foundation']:
+            overrides[identity]=version
     for package in target['packages'].values():
-        package['version']=exporter if package['packageId']=='Orbyss.Foundation.OpenApi.Exporter' else families[package['family']]
+        family=target['families'][package['family']]
+        package['version']=family.get('toolVersions',{}).get(package['packageId'],families[package['family']])
     # This additive publisher capability belongs only to the new immutable
     # profile snapshot. Historical catalogs/locks retain their original meaning.
     # Public publication is checked above; native qualification below must obtain
@@ -113,6 +125,8 @@ def prepare(refresh_publisher_knowledge=False, reason=None):
     blocks.validate_additive_profile_catalog(current_catalog,target)
     blocks.validate_additive_profile_catalog(blocks.load_json(base),target)
     identity='foundation-'+families['foundation']+'-build-'+families['foundation-build']+'-exporter-'+exporter+'-forms-'+families['forms']+'-localization-'+families['localization']
+    if tools['Orbyss.Foundation.Analyzers'] != families['foundation']:
+        identity+='-analyzer-'+tools['Orbyss.Foundation.Analyzers']
     # A new qualification never replaces a registered historical identity.
     if not refresh_publisher_knowledge and current['families']==profile_families(target) and current_entry.get('knowledge'):
         sync_publisher_engineering(current)
@@ -179,6 +193,22 @@ def publisher_archive_facts(archive):
     return facts, files
 
 
+PUBLISHER_GUIDANCE = frozenset({
+    'README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'src/Orbyss.Foundation.Host/NOTICE.md',
+    'docs/authentication.md', 'docs/foundation-contracts-adoption.md',
+    'docs/host-transport-budgets.md', 'docs/hosted-application-pages.md',
+    'docs/json-canonicalization-decision.md', 'docs/package-loader-qualification.md',
+})
+
+
+def publisher_document_selected(relative, identities, runtime_commit):
+    """Capture maintained usage guidance, never a publisher's arbitrary work journal."""
+    source = any(relative.startswith('src/' + identity + '/') for identity in identities) and relative.endswith(
+        ('.cs', '.json', '.md', '.targets', '.props', '.mjs', '.mts', '.css'))
+    analyzer_guide = relative == 'docs/ef-migration-authoring.md' and 'Orbyss.Foundation.Analyzers' in identities
+    return source or analyzer_guide or runtime_commit and relative in PUBLISHER_GUIDANCE
+
+
 def publisher_knowledge(directory,native,profile,host):
     """Copy exact public package facts and frozen source docs, with per-file hashes."""
     destination=directory/'knowledge'; destination.mkdir(exist_ok=False)
@@ -205,7 +235,7 @@ def publisher_knowledge(directory,native,profile,host):
             source_commit=repo.get('commit')
             if not source_commit or len(source_commit)!=40: raise ValueError('Package knowledge requires an exact publisher commit')
             package_sources.setdefault(source_commit,[]).append(fields['id'])
-            if fields['id']!='Orbyss.Foundation.Build' and fields['id']!='Orbyss.Foundation.OpenApi.Exporter': commits.add(repo.get('commit'))
+            if fields['id'] not in ('Orbyss.Foundation.Build', *INDEPENDENT_TOOLS): commits.add(repo.get('commit'))
             facts, files = publisher_archive_facts(archive)
             data=(json.dumps({'id':fields['id'],'version':version,'license':fields.get('license'),
                              'repository':repo.attrib,'payloadFiles':files,'facts':facts},indent=2)+'\n').encode('utf-8')
@@ -221,9 +251,7 @@ def publisher_knowledge(directory,native,profile,host):
         if tree.get('truncated'): raise ValueError('Publisher guidance inventory is incomplete')
         for item in tree['tree']:
             relative=item['path']
-            source=any(relative.startswith('src/'+identity+'/') for identity in identities) and relative.endswith(('.cs','.json','.md','.targets','.props','.mjs','.mts','.css'))
-            guide=source_commit==commit and (relative in {'README.md','LICENSE','THIRD-PARTY-NOTICES.md','src/Orbyss.Foundation.Host/NOTICE.md'} or relative.startswith('docs/') and relative.endswith('.md'))
-            if item['type']!='blob' or not (guide or source): continue
+            if item['type']!='blob' or not publisher_document_selected(relative,identities,source_commit==commit): continue
             url='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+source_commit+'/'+relative
             with urllib.request.urlopen(url,timeout=30) as response: data=response.read(1_048_577)
             if len(data)>1_048_576: raise ValueError('Publisher guidance exceeds one MiB')
@@ -351,12 +379,15 @@ def main():
     parser.add_argument('--retain-unchanged-browser', help='Explicit qualified historical profile; identical npm pins and browser fixture/toolchain required. No new browser execution claim.')
     parser.add_argument('--reason', help='Reason for explicit publisher-knowledge refresh or retained unchanged browser evidence')
     parser.add_argument('--refresh-publisher-knowledge', action='store_true', help='Prepare a distinct qualification identity for corrected publisher capture with unchanged package pins; requires --reason')
+    parser.add_argument('--tool', choices=INDEPENDENT_TOOLS, help='Prepare/update only this independent tool; retain every other selected package pin')
     parser.add_argument('--native-evidence',type=Path,help='Exact successful candidate native evidence; the normal builder revalidates all inputs, stages and archives')
     parser.add_argument('--host-evidence',type=Path,help='Exact successful candidate Host evidence; the normal builder revalidates all manifests, cases and cleanup')
     args=parser.parse_args()
     if args.refresh_publisher_knowledge and args.command not in {'prepare', 'update'}:
         parser.error('--refresh-publisher-knowledge applies only to prepare/update')
-    directory=prepare(args.refresh_publisher_knowledge, args.reason) if args.command in {'prepare','update'} else args.candidate
+    if args.tool and args.command not in {'prepare','update'}:
+        parser.error('--tool applies only to prepare/update')
+    directory=prepare(args.refresh_publisher_knowledge, args.reason, args.tool) if args.command in {'prepare','update'} else args.candidate
     if directory is None and args.command in {'prepare','update'}:
         print('Public profile and publisher knowledge are already current; no duplicate qualification.')
         return
