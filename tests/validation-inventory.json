@@ -1281,6 +1281,38 @@
       "manualOnly": true
     },
     {
+      "id": "validate_candidate_identifiers",
+      "purpose": "Short candidate identifiers and installed paths preserve historical profile, knowledge and lock authority.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_candidate_identifiers.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "maintenance"
+      ],
+      "inputs": [
+        "tests/validate_candidate_identifiers.py",
+        "tests/fixtures/bff-ticket-renewal-race/run.py",
+        "scripts/update_dependency_profiles.py",
+        "extensions/program-kit-building-blocks/scripts/building_blocks.py",
+        "extensions/program-kit-building-blocks/scripts/lifecycle_knowledge.py",
+        "extensions/program-kit-building-blocks/scripts/dependency_context.py",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml"
+      ],
+      "suites": [],
+      "budgetSeconds": 60,
+      "timeoutSeconds": 120
+    },
+    {
       "id": "validate_dependency_profiles",
       "purpose": "Exact independent profiles, review authority, preservation and interrupted transition recovery.",
       "platforms": [

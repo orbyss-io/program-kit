@@ -1655,17 +1655,53 @@ def named_official_tool_bindings(source: dict, selected: dict) -> dict:
     return tools
 
 
-def profile_entry_matches_hash(entry: dict, expected: str) -> bool:
-    """Retain the original authority when only optional publisher knowledge was added."""
-    if canonical_sha256(entry)==expected: return True
-    if 'knowledge' not in entry: return False
-    original={key:value for key,value in entry.items() if key!='knowledge'}
-    return canonical_sha256(original)==expected
+def original_candidate_entry(entry: dict, identity: str | None) -> dict:
+    """Original registered locators for the deterministic storage-only rename."""
+    if identity is not None:
+        short_prefix = 'candidates/' + candidate_identifier(identity) + '/'
+        if entry['path'] == short_prefix + 'profile.json':
+            original = copy.deepcopy(entry)
+            for reference in [original, *(original[key] for key in ('evidence', 'qualificationRecipe', 'knowledge') if key in original)]:
+                if reference['path'].startswith(short_prefix):
+                    reference['path'] = 'candidates/' + identity + '/' + reference['path'][len(short_prefix):]
+            return original
+    return entry
+
+
+def profile_entry_matches_hash(entry: dict, expected: str, identity: str | None = None) -> bool:
+    """Retain authority across optional knowledge additions and storage-only renames."""
+    variants = [entry, original_candidate_entry(entry, identity)]
+    return any(canonical_sha256(value) == expected or
+               ('knowledge' in value and canonical_sha256({k: v for k, v in value.items() if k != 'knowledge'}) == expected)
+               for value in variants)
+
+
+def candidate_identifier(identity: str) -> str:
+    """Short storage/new-profile identity; full dependency versions live in metadata."""
+    return 'p-' + hashlib.sha256(identity.encode('utf-8')).hexdigest()[:12]
+
+
+def profile_storage_path(directory: Path, relative: str) -> Path:
+    """Resolve original candidate locators through their registered storage directory.
+
+    Historical knowledge and recipes retain their exact bytes and hashes. Only the
+    selecting index relocates storage; arbitrary missing paths get no fallback.
+    """
+    relative = normalize_path(relative, 'profile storage path')
+    parts = PurePosixPath(relative).parts
+    if len(parts) >= 3 and parts[0] == 'candidates' and filesystem_root(directory / 'index.json').is_file():
+        index = load_json(directory / 'index.json')
+        entry = index['profiles'].get(parts[1])
+        if entry is not None:
+            registered = PurePosixPath(normalize_path(entry['path'], 'profile.path'))
+            if len(registered.parts) == 3 and registered.parts[0] == 'candidates' and registered.name == 'profile.json':
+                relative = (registered.parent / PurePosixPath(*parts[2:])).as_posix()
+    return repository_path(directory, relative)
 
 
 def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576) -> bytes:
     """Read an exact document, including an unchanged packed-container range."""
-    source = filesystem_root(repository_path(directory, item['path']))
+    source = filesystem_root(profile_storage_path(directory, item['path']))
     packed = False
     container = None
     if not source.is_file():
@@ -1749,7 +1785,8 @@ def retained_browser_evidence(directory, selected, browser, available=None):
         fail('PKB611', 'retained browser evidence needs an explicit unchanged-input disposition')
     index = load_json(directory / 'index.json')
     entry = index['profiles'].get(retained['profileId'])
-    if not entry or entry.get('status') != 'qualified' or retained['evidence'] != entry.get('evidence'):
+    if (not entry or entry.get('status') != 'qualified'
+            or retained['evidence'] not in (entry.get('evidence'), original_candidate_entry(entry, retained['profileId']).get('evidence'))):
         fail('PKB611', 'retained browser evidence has no exact qualified historical owner')
     proof = repository_path(directory, entry['evidence']['path'])
     if raw_sha256(proof) != entry['evidence']['sha256']:
@@ -2008,7 +2045,7 @@ def verify_new_project_profile(repository: Path, catalog: dict, activations: lis
     if qualification is None: return  # Retained historical selections make no new qualification claim.
     directory = profile_registry()
     entry = load_json(directory / 'index.json')['profiles'].get(qualification.get('profile'))
-    if entry is None or not profile_entry_matches_hash(entry,qualification.get('entrySha256')):
+    if entry is None or not profile_entry_matches_hash(entry,qualification.get('entrySha256'),qualification['profile']):
         fail('PKB611', 'new-project qualification scope changed; review its profile explicitly')
     qualified, _ = qualified_dependency_profile(directory, qualification['profile'], catalog)
     if catalog_resolution_sha256(qualified) != catalog_resolution_sha256(catalog):
@@ -2024,7 +2061,7 @@ def draft_qualified_selection(repository: Path, selection_path: Path, catalog: d
     engineering = load_json(managed).get('newProjectDependencyProfile') if managed.is_file() else None
     if identity is None and engineering:
         entry = load_json(directory / 'index.json')['profiles'].get(engineering.get('profile'))
-        if entry is None or not profile_entry_matches_hash(entry,engineering.get('entrySha256')):
+        if entry is None or not profile_entry_matches_hash(entry,engineering.get('entrySha256'),engineering['profile']):
             fail('PKB611', 'scaffolded dependency qualification changed; review a profile explicitly')
         identity = engineering['profile']
     qualified, selected = qualified_dependency_profile(directory, identity, catalog)

@@ -10,7 +10,7 @@ import time
 ROOT = Path(__file__).resolve().parents[3]
 FIXTURE = Path(__file__).resolve().parent
 IMAGE = 'ghcr.io/orbyss-io/foundation-host@sha256:bf27d204ee972b6aadf3b156b493773e7c6e6ae9a3bf010a30b46c6d88b5e93a'
-QUALIFICATION = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.8-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/qualification.json'
+QUALIFICATION = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles/candidates/p-5d3e92395389/qualification.json'
 
 
 def main():

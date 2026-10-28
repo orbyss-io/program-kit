@@ -20,7 +20,7 @@ def selected(blocks, directory, identity, sources=None):
     # Recipe paths are repository-relative; installed registries retain that prefix.
     prefix = 'extensions/program-kit-building-blocks/references/dependency-profiles/'
     relative = lock_ref['path'].removeprefix(prefix)
-    lock_path = blocks.repository_path(directory, relative)
+    lock_path = blocks.profile_storage_path(directory, relative)
     # Native qualification recipes bind the maintained LF-normalized lock digest.
     # NuGet writes CRLF on Windows; content changes still invalidate this binding.
     storage = blocks.filesystem_root(directory / 'historical-package-facts.json')

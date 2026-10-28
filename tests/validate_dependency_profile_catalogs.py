@@ -1075,7 +1075,8 @@ class LifecycleLockTests(unittest.TestCase):
         entry = self.index['profiles'][self.identity]
         recipe = blocks.load_json(self.registry/entry['qualificationRecipe']['path'])
         prefix = 'extensions/program-kit-building-blocks/references/dependency-profiles/'
-        self.lock = self.registry/recipe['nativeLock']['path'].removeprefix(prefix)
+        self.lock_relative = recipe['nativeLock']['path'].removeprefix(prefix)
+        self.lock = blocks.profile_storage_path(self.registry, self.lock_relative)
         self.lf = self.lock.read_bytes().replace(b'\r\n', b'\n')
 
     def test_lf_and_crlf_selected_lock_use_the_same_qualified_lifecycle_facts(self):
@@ -1134,7 +1135,7 @@ print(json.dumps(lifecycle.selected(blocks, registry, identity)))
 
     def test_compacted_crlf_lock_retains_recipe_authority_even_if_storage_is_rehashed(self):
         raw = self.lf.replace(b'\n', b'\r\n')
-        relative = self.lock.relative_to(self.registry).as_posix()
+        relative = self.lock_relative
         pack = self.registry / 'historical-package-facts.pack'
         storage = self.registry / 'historical-package-facts.json'
         def store(data):

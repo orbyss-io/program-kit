@@ -75,6 +75,16 @@ def require_published_foundation(version):
     return {'commit':commit,'workflow':matching[0]['html_url']}
 
 
+def candidate_identity(label, index):
+    identity=blocks.candidate_identifier(label)
+    registered = set(index['profiles']) | {Path(entry['path']).parent.name for entry in index['profiles'].values()}
+    if identity in registered:
+        identity=blocks.candidate_identifier(identity+'-q-'+uuid.uuid4().hex)
+        if identity in registered or (REGISTRY/'candidates'/identity).exists():
+            raise ValueError('Candidate identifier collision; historical registration is preserved')
+    return identity
+
+
 def prepare(refresh_publisher_knowledge=False, reason=None, tool=None):
     if refresh_publisher_knowledge and (not isinstance(reason, str) or not reason.strip()):
         raise ValueError('Refreshing publisher knowledge requires an explicit nonempty reason')
@@ -132,8 +142,7 @@ def prepare(refresh_publisher_knowledge=False, reason=None, tool=None):
         sync_publisher_engineering(current)
         blocks.qualified_dependency_profile(REGISTRY,current['id'],blocks.load_json(blocks.default_catalog(Path(blocks.__file__))))
         return None
-    if identity in index['profiles']:
-        identity+='-q-'+uuid.uuid4().hex[:8]
+    identity=candidate_identity(identity,index)
     directory=REGISTRY/'candidates'/identity
     if directory.exists():
         existing=blocks.load_json(directory/'profile.json')

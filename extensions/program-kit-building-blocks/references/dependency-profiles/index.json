@@ -117,11 +117,11 @@
       }
     },
     "foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-8141d74a7613/profile.json",
       "sha256": "c88f7fc68dc9e84ce34b28c4de350067d1b8fb66a1ecf86f814f33b1791d4a85",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-8141d74a7613/qualification.json",
         "sha256": "f3d9629d186f78a2cca58b0df3372d4bc5e53ebf0346c6db6d6ecf788e4c9938"
       },
       "catalogSnapshot": {
@@ -133,13 +133,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/recipe-b26ccd24.json",
+        "path": "candidates/p-8141d74a7613/recipe-b26ccd24.json",
         "sha256": "4a2b186f894d952142a34cf4220d26c60188ffd6069ce53939c29031e9a35e62"
       },
       "recipeSha256": "d6c72f202564817f3de843b6b74c8d06ac237da068c4209411deffa82e5a952d",
       "nativeLockSha256": "a348acf9f4ae21b31594780385f146e0d9f754933958248f51e96e05216c3e21",
       "knowledge": {
-        "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-8141d74a7613/knowledge/index.json",
         "sha256": "9343cd6bd26bb707b6261cf3aabf835efa28ce231594374e4db5c7d469778c27"
       },
       "allowedActivations": [
@@ -194,11 +194,11 @@
       ]
     },
     "foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-cf2a0e28882d/profile.json",
       "sha256": "4949707d0fdadbd20608339c51f86943e72136b3c09b617f49386ffea12c1122",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-cf2a0e28882d/qualification.json",
         "sha256": "4f23c2a15dddb5143ba265c7ba9205fb321df279760ccd306b82e5b621ae3d32"
       },
       "catalogSnapshot": {
@@ -210,13 +210,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-384b7de5.json",
+        "path": "candidates/p-cf2a0e28882d/recipe-384b7de5.json",
         "sha256": "a269767da7ac1148c0ea12c9f0f9a9208b7b6b20d3bd6f96d995bc73f2bdff85"
       },
       "recipeSha256": "d6c72f202564817f3de843b6b74c8d06ac237da068c4209411deffa82e5a952d",
       "nativeLockSha256": "b24a9c36f92e2739909f53a56b12924b3a5fc9ebdf93d6dce4b64139b566c591",
       "knowledge": {
-        "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-cf2a0e28882d/knowledge/index.json",
         "sha256": "4b9b10911cf999065175f3e5534cdfe9749ee7471a1c10f920224aa215b37ac6"
       },
       "allowedActivations": [
@@ -271,11 +271,11 @@
       ]
     },
     "foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-de1abfed8bcb/profile.json",
       "sha256": "a3ea3c7f17e0c12a33b5851eca44f47cfc19631db3db098c939d7d423a9fa1b1",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-de1abfed8bcb/qualification.json",
         "sha256": "06258d2ecf0bb4872fb814b889296012df2ac2e0e314bd5189f5fadf66e0dcd1"
       },
       "catalogSnapshot": {
@@ -287,13 +287,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-b2067069.json",
+        "path": "candidates/p-de1abfed8bcb/recipe-b2067069.json",
         "sha256": "57bea1860dbf515d0ff4a67770ac3ba52fe91097451609b647cc7ec6a69197c6"
       },
       "recipeSha256": "d6c72f202564817f3de843b6b74c8d06ac237da068c4209411deffa82e5a952d",
       "nativeLockSha256": "3fc28faafe7061c0eaed402a851c016e3be290e42a3cbe69998e83f1e2c7e989",
       "knowledge": {
-        "path": "candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-de1abfed8bcb/knowledge/index.json",
         "sha256": "ec7502fe0ad0788c059b91ebf733f6c98fce7cb6f01942623277266073544ed7"
       },
       "allowedActivations": [
@@ -348,11 +348,11 @@
       ]
     },
     "foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-2926acf5f06e/profile.json",
       "sha256": "73888816809cf2b280803f004643e053b39d2ad1f18a55f6dbb6b57150fca364",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-2926acf5f06e/qualification.json",
         "sha256": "d2e155d8a23f72c2a89cd9af014a4ad3bc9bce317a1cd6f7aed5a0fc2b911d4f"
       },
       "catalogSnapshot": {
@@ -364,13 +364,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-6e736f9b.json",
+        "path": "candidates/p-2926acf5f06e/recipe-6e736f9b.json",
         "sha256": "a04c7cab67c51573e82ebce774387e59fca1842580ca41fa9245d8578c657fa9"
       },
       "recipeSha256": "586bf26bb2d51066e08e213d404521e62f4bfc0cbaa290080290fbe441d32b44",
       "nativeLockSha256": "44d9f0b142fe33de3e9b3dbb496b4c47970caf7c9e323ad7adbb2b64f57833c0",
       "knowledge": {
-        "path": "candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-2926acf5f06e/knowledge/index.json",
         "sha256": "838a859f8730ebab744ef584a54bd2e314ae617df44fcdcb488b84a95e9c1d14"
       },
       "allowedActivations": [
@@ -425,11 +425,11 @@
       ]
     },
     "foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-44905eebbf99/profile.json",
       "sha256": "28eb7119acd0b76ceb0a91dd4051c1ec1da60c7a830bb0d36503878ce821eee5",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-44905eebbf99/qualification.json",
         "sha256": "bd3af5514eac92b5e1f84d51f963fda19de19978d7a895231ec92676a7d9c3a9"
       },
       "catalogSnapshot": {
@@ -441,13 +441,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/recipe-6e9280eb.json",
+        "path": "candidates/p-44905eebbf99/recipe-6e9280eb.json",
         "sha256": "e39620aa86b8efd66c4ece9c05a4df410569b3c6044be8346d2dfe0859c0d73c"
       },
       "recipeSha256": "586bf26bb2d51066e08e213d404521e62f4bfc0cbaa290080290fbe441d32b44",
       "nativeLockSha256": "6215afb4d02c02fcc181e5358a8cb0043609ebf099e9d1c107257158bcff773e",
       "knowledge": {
-        "path": "candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-44905eebbf99/knowledge/index.json",
         "sha256": "b1204a5658c6107c17cb84705f1b45ab65cac0bb28cc0fde6a7d360f5c011f7e"
       },
       "allowedActivations": [
@@ -502,11 +502,11 @@
       ]
     },
     "foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-c0ac2d63feb4/profile.json",
       "sha256": "a91f004159d7a90738b8dad9c2e16d0667010ad895c364a764484a56d15bdede",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-c0ac2d63feb4/qualification.json",
         "sha256": "0eec4e902511e5d8e0c3b4ae1ef5e40ff0c10a509bc4b756f3f574a3ecd6afbb"
       },
       "catalogSnapshot": {
@@ -518,13 +518,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/recipe-68d39b8d.json",
+        "path": "candidates/p-c0ac2d63feb4/recipe-68d39b8d.json",
         "sha256": "12ca51acf8e6488d2f7a870ceecbbc1139594cfa333f36db4b3a5866c7059408"
       },
       "recipeSha256": "586bf26bb2d51066e08e213d404521e62f4bfc0cbaa290080290fbe441d32b44",
       "nativeLockSha256": "9393b88a99e70e845fbd8a8f65e1fd2d0bc64b101cd809028436427016e5ad7e",
       "knowledge": {
-        "path": "candidates/foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-c0ac2d63feb4/knowledge/index.json",
         "sha256": "5c6b621b148e979e19855a89af5f1c4bd140e2739514b68b413f4be52bd79271"
       },
       "allowedActivations": [
@@ -580,11 +580,11 @@
       ]
     },
     "foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-aff0c02a5ab8/profile.json",
       "sha256": "81eefc787b042bf28c827d0d592617a29a27503aeb2806e108287477dc75a57d",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-aff0c02a5ab8/qualification.json",
         "sha256": "76358e4004860ef2bab3c86ffa4a2b12d626b099a454107b26d9b0fbd22ddaf9"
       },
       "catalogSnapshot": {
@@ -596,13 +596,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/recipe-45d90fde.json",
+        "path": "candidates/p-aff0c02a5ab8/recipe-45d90fde.json",
         "sha256": "ec57994909c63c4af62a91ee18e27417bbc8ebd6a196051ff14f339562e62b04"
       },
       "recipeSha256": "5086a8905ea27149b09cb3a6c9d1e7d2ba78795d55eac5d846252cb54b7ba832",
       "nativeLockSha256": "da09e4aafe2dae6e76b10e63e7ff8fb6fac4bb3a98a60432d48645680c51a400",
       "knowledge": {
-        "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-aff0c02a5ab8/knowledge/index.json",
         "sha256": "a7a6af7155e872432e50fe3e5b3ab7face298103d6a9159950bc97d2b08d24c1"
       },
       "allowedActivations": [
@@ -658,11 +658,11 @@
       ]
     },
     "foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63": {
-      "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/profile.json",
+      "path": "candidates/p-e20889bd907a/profile.json",
       "sha256": "195cc94e5a3c04c042b8c8c04b7bc574c7be1023da5ca48a95a6a32ce1be3a98",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/qualification.json",
+        "path": "candidates/p-e20889bd907a/qualification.json",
         "sha256": "bfc598c59572a6d97cce42c2748c73b039f2ce28dd910f267402b9aa575b33cc"
       },
       "catalogSnapshot": {
@@ -674,13 +674,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/recipe-681f3070.json",
+        "path": "candidates/p-e20889bd907a/recipe-681f3070.json",
         "sha256": "2e7cd3fc02130b14f55165f239b1cf76fe0f046df7778ce7d0c49b42dfe55753"
       },
       "recipeSha256": "5086a8905ea27149b09cb3a6c9d1e7d2ba78795d55eac5d846252cb54b7ba832",
       "nativeLockSha256": "da09e4aafe2dae6e76b10e63e7ff8fb6fac4bb3a98a60432d48645680c51a400",
       "knowledge": {
-        "path": "candidates/foundation-0.3.7-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2-q-f51d9f63/knowledge/index.json",
+        "path": "candidates/p-e20889bd907a/knowledge/index.json",
         "sha256": "5b3a26dacb3a3c13bd066be530db043080e9fc5d53228f944ee2a8efa5dea15a"
       },
       "allowedActivations": [
@@ -736,11 +736,11 @@
       ]
     },
     "foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-051c2c071217/profile.json",
       "sha256": "b16efc824384e8a1c35320f2f3a6efc3c1ca6fd05a3027969896c6499d5877fc",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-051c2c071217/qualification.json",
         "sha256": "84d746461cc960adca35838ec98cf8d86066cbd4b255de22e374f39a5867ecfe"
       },
       "catalogSnapshot": {
@@ -752,13 +752,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/recipe-e129b30c.json",
+        "path": "candidates/p-051c2c071217/recipe-e129b30c.json",
         "sha256": "e68c290f32c9482f547de56bd573e0c7aaa0cb0f9b66c7abed378ef9f084a071"
       },
       "recipeSha256": "5086a8905ea27149b09cb3a6c9d1e7d2ba78795d55eac5d846252cb54b7ba832",
       "nativeLockSha256": "5453af20472ff3aa52dd71f47dd336e0eedf0677c621c1ab8133e9beef879814",
       "knowledge": {
-        "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-051c2c071217/knowledge/index.json",
         "sha256": "50ed6dc86a33032f77244c85bc90ab7fa423122974ed613fc7b25d919bac5419"
       },
       "allowedActivations": [
@@ -814,11 +814,11 @@
       ]
     },
     "foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8": {
-      "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/profile.json",
+      "path": "candidates/p-23dde1020487/profile.json",
       "sha256": "62c9a1594d720df44584c0e28950cda0277240eb265ddf06f2a2886b7d42cb14",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/qualification.json",
+        "path": "candidates/p-23dde1020487/qualification.json",
         "sha256": "5c492e812dd83e214786cbb494547f16adc1b79336b6ada5f4752f9bca7b6f04"
       },
       "catalogSnapshot": {
@@ -830,13 +830,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/recipe-c8321269.json",
+        "path": "candidates/p-23dde1020487/recipe-c8321269.json",
         "sha256": "f295ac7bdd6536e48043144016745f0f5966375e0bbbba45e2425ca88fb9c445"
       },
       "recipeSha256": "808f9aad7e05a3f08cda3e0964d1f22e02a0e86c878c99c303644d929916572f",
       "nativeLockSha256": "c93594dd90abb3d39ecc5ef7a2fb080526d453776b67bff41120f574f67bb540",
       "knowledge": {
-        "path": "candidates/foundation-0.3.7-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/knowledge/index.json",
+        "path": "candidates/p-23dde1020487/knowledge/index.json",
         "sha256": "97a645311550d6fd8bdf19e98126eb2f4773f7c52ac6ae5a3b6fa2c882423933"
       },
       "allowedActivations": [
@@ -892,11 +892,11 @@
       ]
     },
     "foundation-0.3.8-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2": {
-      "path": "candidates/foundation-0.3.8-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/profile.json",
+      "path": "candidates/p-5d3e92395389/profile.json",
       "sha256": "16ae93c0684465ac62a35bdd5583b7e3495f0a37f597302467b53efeb22414c0",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.8-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/qualification.json",
+        "path": "candidates/p-5d3e92395389/qualification.json",
         "sha256": "85ee501c72b4597dd875d22ea93253987e00ac3ca4ed5dff304ed3690ae34899"
       },
       "catalogSnapshot": {
@@ -908,13 +908,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.8-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/recipe-0ce1e026.json",
+        "path": "candidates/p-5d3e92395389/recipe-0ce1e026.json",
         "sha256": "8601dfb56ed9c02684b54d351b44cc5b0159989b39e317e25bd6165e88e8a771"
       },
       "recipeSha256": "808f9aad7e05a3f08cda3e0964d1f22e02a0e86c878c99c303644d929916572f",
       "nativeLockSha256": "e3282004086052c108a0a2efc07349960014bf9af4fa728513b37bc5555c32b6",
       "knowledge": {
-        "path": "candidates/foundation-0.3.8-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "path": "candidates/p-5d3e92395389/knowledge/index.json",
         "sha256": "a17312076c408cde48ae59d04e175f62b15c1e49e2776a7d7bf1095833dc466b"
       },
       "allowedActivations": [
@@ -970,11 +970,11 @@
       ]
     },
     "foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8": {
-      "path": "candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/profile.json",
+      "path": "candidates/p-be6044955c57/profile.json",
       "sha256": "1b38eae34f2a64a4b75f90669ddf1a62ebf9a34253caa080aab441aacbadf1ba",
       "status": "qualified",
       "evidence": {
-        "path": "candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/qualification.json",
+        "path": "candidates/p-be6044955c57/qualification.json",
         "sha256": "27f6a5f4b4cb0322d4156775085ff821a2220a7619bd68b4ad569852c07bd0ab"
       },
       "catalogSnapshot": {
@@ -986,13 +986,13 @@
         }
       },
       "qualificationRecipe": {
-        "path": "candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/recipe-7b5daeb5.json",
+        "path": "candidates/p-be6044955c57/recipe-7b5daeb5.json",
         "sha256": "05e7e6989a49231cc6ac58cf8039cddb5c201a03266dc39a7b119f1fafc78a05"
       },
       "recipeSha256": "808f9aad7e05a3f08cda3e0964d1f22e02a0e86c878c99c303644d929916572f",
       "nativeLockSha256": "0cad430a072306d2343df460da9f36787196cdae52c9978e7900a1e90484610e",
       "knowledge": {
-        "path": "candidates/foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8/knowledge/index.json",
+        "path": "candidates/p-be6044955c57/knowledge/index.json",
         "sha256": "8a05647668ae097261b78cbdea379e8d5423d9a06fdbbe2234df966d80decf9c"
       },
       "allowedActivations": [

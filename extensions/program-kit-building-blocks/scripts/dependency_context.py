@@ -57,7 +57,7 @@ def resolve(blocks, repository, catalog_path=None):
             catalog, _ = blocks.qualified_dependency_profile(directory, identity, base)
             entry = index['profiles'][identity]
             if scaffold is not None and (blocks.catalog_resolution_sha256(catalog) != scaffold.get('catalogResolutionSha256')
-                    or not blocks.profile_entry_matches_hash(entry, scaffold.get('entrySha256'))):
+                    or not blocks.profile_entry_matches_hash(entry, scaffold.get('entrySha256'), identity)):
                 blocks.fail('PKB611', '.program-kit/managed.json scaffold authority changed; restore its recorded profile or review an explicit dependency transition')
             authority = 'recorded-scaffold' if scaffold is not None else 'qualified-default'
         else:
@@ -82,7 +82,7 @@ def resolve(blocks, repository, catalog_path=None):
             if isinstance(value, dict):
                 for key, child in value.items():
                     if (key == 'path' or key.endswith('Path')) and isinstance(child, str):
-                        path = directory / child
+                        path = blocks.profile_storage_path(directory, child)
                         if blocks.filesystem_root(path).is_file(): bind(path)
                     entry_sources(child)
             elif isinstance(value, list):
