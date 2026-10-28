@@ -146,15 +146,15 @@ AsyncLazy abstraction, hide synchronous blocking, or defer mandatory configurati
   When selected, carry Foundation's `IExecutionDeadline` into PostgreSQL units and capped stages; distinguish
   caller cancellation from `IsExpired`, and neither from postdispatch commit uncertainty.
 - Bind feature settings with Microsoft Options (`AddOptions`, section `Bind`, `Validate`/`IValidateOptions<T>`).
-  Per-property indexers/`GetValue` and custom readers are not options binding. Preserve keys, defaults
-  and conversion semantics through owned mappings; justify and test any necessary custom conversion.
-  Observe required options at actual shell activation: root `ValidateOnStart` alone is not CShells proof.
-  Bind/validate before immutable domain/work snapshots. Core need not reference `IOptions<T>`; retries
-  retain original values, never today's options. Define reload/snapshot lifetimes and test omission,
-  nondefault and invalid configuration.
-  Operational pagination default/maximum sizes are owner options, consumed consistently by API defaults,
-  application admission and bounded query construction. Positive page size remains an input invariant.
-  Do not turn accepted application/protocol ceilings or immutable migration identities into settings.
+  Choose validation ownership before registration: composition wires admission; cohesive rules belong beside
+  owned options in `IValidateOptions<T>`. Trivial `Validate(predicate)` remains supported.
+  Indexers/`GetValue` and custom readers are not binding. Preserve keys/defaults/conversions; justify and test
+  custom conversion. Observe required options at actual shell activation; root `ValidateOnStart` alone is insufficient.
+  Bind/validate before immutable domain/work snapshots. Core need not reference `IOptions<T>`; retries retain
+  original options. Define reload/snapshot lifetimes; test omitted, nondefault and invalid settings.
+  Owner options set operational pagination defaults/maxima across API defaults, application admission and
+  bounded queries. Positive page size remains an input invariant. Keep accepted application/protocol
+  ceilings and immutable migration identities fixed.
 - Use a supported `HttpClient` lifetime/DNS strategy: factory-managed handlers or long-lived clients with
   a configured pooled connection lifetime. Define deadlines and cancellation; retry only replay-safe
   operations, accounting for effects and commit ambiguity. Use `IFileProvider` where it fits the resource

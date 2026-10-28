@@ -515,6 +515,12 @@ class FrameworkGuidanceTests(unittest.TestCase):
                 canonical = resolve(phase.catalog(), identity, extensions=ROOT / 'extensions')
                 self.assertIn(canonical['text'], rendered, identity)
                 self.assertIn('Canonical source: ' + canonical['provenance']['path'], rendered)
+            options = resolve(phase.catalog(), 'principle.runtime-time-and-io', extensions=ROOT / 'extensions')['text']
+            for commitment in ('Choose validation ownership before registration',
+                               'Trivial `Validate(predicate)` remains supported.'):
+                self.assertIn(commitment, options)
+            planning = phase.render(phase.check(root, chosen, 'planning'), 'planning')
+            self.assertIn(options, planning)
             # Measured assembled context, not a truncating production limit. The
             # essential operation decisions must appear before paginated detail.
             self.assertLess(len(rendered.encode('utf-8')), 22000)
