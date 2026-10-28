@@ -4,7 +4,7 @@
 
 <!-- program-kit:knowledge-rule context.architecture-artifact-hierarchy -->
 1. Project constitution: highest ratified governance authority and amendment policy.
-2. Confirmed bootstrap intake: user intent, classified gaps, and starting assumptions interpreted under the constitution.
+2. Confirmed product intent/intake: user intent, classified gaps, and starting assumptions interpreted under the constitution.
 3. Canonical architecture map and architecture baseline: the current coherent model, views, constraints, quality scenarios, risks, and ADR links.
 4. ADRs: history and authority for significant project-specific choices.
 5. Specification roadmap: epic outcomes, priorities, dependencies and linked candidate features.
@@ -14,9 +14,10 @@
 
 The confirmed intake may contain founding decision candidates. They are evidence-backed prepwork,
 not authority. Architecture verifies them against the constitution, narrows research to material
-uncertainties, and creates one real Proposed ADR per candidate with its alternatives and
-consequences intact. The final architecture gate hash-binds and accepts that exact founding bundle;
-unrelated Proposed ADRs remain outside the approval.
+uncertainties, and records consequential candidates as Proposed ADRs with their alternatives and
+consequences intact. Record the human's explicit acceptance of the named architecture choices as
+individual ADR decisions. Constitution ratification remains a separate decision; unrelated proposals
+retain their actual status. No founding-bundle hash or approval receipt establishes acceptance.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:decision-rule authority-conflicts -->
@@ -30,8 +31,12 @@ an exception must identify its governing authority, consequences and current ver
 
 <!-- program-kit:knowledge-rule context.constitution-roadmap-authority -->
 The constitution is not an ordinary feature specification and never enters the feature
-specification/plan/task/implement lifecycle. Drafting revokes stale ratification evidence. Only a
-dedicated human gate followed by hash-bound validation makes the constitution authoritative.
+specification/plan/task/implement lifecycle. The last ratified constitution remains the governing baseline
+while amendments are proposed. Follow its amendment policy for substantive changes, obtain explicit human
+ratification and record the actual decision's date/context and status in the constitution. Drafting an
+amendment does not make it authoritative or automatically revoke the existing ratification. A toolkit
+refresh or representation-only edit does not require amending or re-ratifying the constitution.
+No hash-bound validation, toolkit receipt or extra ceremony is required to record human authority.
 
 The specification roadmap owns intended epic outcomes, completion conditions, priorities and linked
 feature seeds. An epic can have several independently scoped feature specifications; a domain can

@@ -363,6 +363,80 @@ assert 'task_draft' not in sys.modules
         self.assertIn(content, rendered)
 
 
+class PlanningGuidanceTests(unittest.TestCase):
+    def test_dutch_browser_intent_routes_ui_without_selecting_a_stack(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        cases = (
+            'Nederlandse browserroute voor telefoon en computer.',
+            'De browserapp toont de berekening.',
+            'Browserondersteuning voor telefoon en computer is vereist.',
+            'Een browserapplicatie met toegankelijke bediening.',
+            'Een browserapp zonder database.',
+            '## Buiten scope\nEen database.\n## Binnen scope\nEen browserroute.',
+        )
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = root / 'specs/001-calculation'; chosen.mkdir(parents=True)
+            for prose in cases:
+                with self.subTest(prose=prose):
+                    (chosen / 'spec.md').write_text(prose, encoding='utf-8')
+                    before = snapshot(root)
+                    for action in ('planning', 'tasks', 'implementation', 'delivery'):
+                        value = phase.project(root, chosen, action)
+                        self.assertIn('web', value['responsibilities'])
+                        self.assertIn('browser-experience', {row['id'] for row in value['requirements']})
+                        self.assertTrue({'dotnet', 'typescript', 'api', 'persistence'}.isdisjoint(value['responsibilities']))
+                    self.assertEqual(before, snapshot(root))
+
+    def test_dutch_exclusions_and_unrelated_compounds_do_not_invent_browser_scope(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        cases = (
+            'Geen browserapp. Bereken onderdelen met een CLI.',
+            'Een CLI zonder browserroute.',
+            'Browserondersteuning is niet vereist.',
+            'De browserapplicatie is uitgesteld.',
+            '## Buiten scope\nNederlandse browserroute.\n## Binnen scope\nCLI-berekeningen.',
+            '## Toekomstig werk\nEen browserapp.',
+            'Een bestandsbrowser ordent lokale bestanden.',
+            'Een .NET API zonder browserroute.',
+        )
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = root / 'specs/001-calculation'; chosen.mkdir(parents=True)
+            for prose in cases:
+                with self.subTest(prose=prose):
+                    (chosen / 'spec.md').write_text(prose, encoding='utf-8')
+                    before = snapshot(root)
+                    value = phase.project(root, chosen, 'planning')
+                    self.assertNotIn('browser-experience', {row['id'] for row in value['requirements']})
+                    if '.NET API' in prose:
+                        self.assertIn('http-operation-contracts', {row['id'] for row in value['requirements']})
+                    self.assertEqual(before, snapshot(root))
+
+    def test_architecture_guidance_preserves_ratification_without_receipt_gates(self):
+        sys.path.insert(0, str(SCRIPTS))
+        import phase_obligations as phase
+        with FixtureDirectory() as directory:
+            root = Path(directory); chosen = feature(root)
+            constitution = root / '.specify/memory/constitution.md'; constitution.parent.mkdir(parents=True)
+            constitution.write_text('# Constitution\n**Status**: Ratified\nVersion: 0.2.0\n'
+                                   'Human ratification: 2026-10-27. Amendments require explicit review.\n')
+            before = snapshot(root)
+            value = phase.check(root, chosen, 'planning')
+            requirements = [row for row in value['requirements'] if row['id'] == 'architecture-authority']
+            self.assertEqual(1, len(requirements))
+            rendered = phase.render({**value, 'requirements': requirements}, 'planning', detailed=True)
+            output = ' '.join(rendered.split())
+            self.assertIn('last ratified constitution remains the governing baseline', output)
+            self.assertIn('explicit human ratification', output)
+            self.assertIn('individual ADR decisions', output)
+            self.assertIn('does not require amending or re-ratifying', output)
+            for obsolete in ('final architecture gate hash-binds', 'Drafting revokes stale ratification',
+                             'dedicated human gate followed by hash-bound validation'):
+                self.assertNotIn(obsolete, output)
+            self.assertEqual(before, snapshot(root))
+
+
 class FrameworkGuidanceTests(unittest.TestCase):
     def test_first_operation_constraints_are_canonical_scoped_and_bounded(self):
         sys.path.insert(0, str(SCRIPTS))

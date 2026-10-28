@@ -33,6 +33,11 @@ choices in normal ADR/plan/tasks and continue the earliest relevant native Spec 
 IDs, checked tasks, unfinished work, failures and actual human review dispositions. Missing toolkit
 checkpoint formats or approval hashes do not invalidate useful work.
 
+A toolkit refresh alone does not require amending or re-ratifying a constitution. Preserve the
+existing ratification and accepted ADRs. Amend substantive governance changes through the project's
+own amendment policy; assess any explicitly announced incompatible change for its actual effect
+before proposing an amendment. Updated toolkit wording does not itself change accepted decisions.
+
 Run the actual project compiler/analyzers and relevant behavior/security/contract checks for changed
 inputs. A toolkit installation pass supplies no application/runtime/provider acceptance. Dependency
 upgrades, device software preparation, consumer data changes and external rollout have separate

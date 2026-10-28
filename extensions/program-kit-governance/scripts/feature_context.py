@@ -5,7 +5,9 @@ import re
 
 CAPABILITIES = {
     'dotnet': r'(?<!\w)(?:c#|asp\.net(?:\s+core)?|\.net|dotnet)(?!\w)',
-    'web': r'\b(?:browser|frontend|react|vite|typescript)\b',
+    # Bounded surface terms include ordinary Dutch compounds without treating
+    # every word containing "browser" as a web feature or selecting a stack.
+    'web': r'\b(?:browser(?:s|apps?|applicaties?|routes?|ondersteuning)?|frontend|react|vite|typescript)\b',
     'api': r'\b(?:http|openapi|endpoint|api)\b',
     'persistence': r'\b(?:persistence|database|dbcontext|postgresql|sqlserver|sqlite|entityframeworkcore|entity framework|npgsql)\b',
     'capabilities': r'\b(?:capability|building.block|shellfeature|composition|activation)\b',
@@ -311,7 +313,7 @@ def affirmative(text):
             depth = len(heading[1])
             if excluded_depth is not None and depth <= excluded_depth:
                 excluded_depth = None
-            if re.search(r'non.?goals?|out of scope|excluded|future work', line, re.I):
+            if re.search(r'non.?goals?|out of scope|excluded|future work|buiten scope|uitgesloten|toekomstig werk', line, re.I):
                 excluded_depth = depth
         if excluded_depth is None:
             lines.append(line)
@@ -320,9 +322,9 @@ def affirmative(text):
     for clause in clauses:
         # Preserve an affirmative prefix in "API without database" while dropping
         # clauses such as "API and browser are out of scope" altogether.
-        if re.search(r'\b(?:out of scope|not required|excluded|future|deferred)\b', clause, re.I):
+        if re.search(r'\b(?:out of scope|not required|excluded|future|deferred|buiten scope|niet vereist|uitgesloten|uitgesteld)\b', clause, re.I):
             continue
-        result.append(re.split(r'\b(?:no|without)\s', clause, maxsplit=1, flags=re.I)[0])
+        result.append(re.split(r'\b(?:no|without|geen|zonder)\s', clause, maxsplit=1, flags=re.I)[0])
     return '\n'.join(result)
 
 
