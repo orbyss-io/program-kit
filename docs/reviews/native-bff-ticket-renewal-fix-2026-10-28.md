@@ -1,8 +1,7 @@
 # Native BFF ticket renewal after completed logout
 
 Date: 2026-10-28. **Confirmed in published Foundation 0.3.8; native correction
-implemented and pushed to Foundation main. A corrected release and Program Kit
-profile qualification are still required before consumer adoption.**
+published in Foundation 0.3.9 and qualified as a new Program Kit profile.**
 
 ## Finding
 
@@ -114,9 +113,23 @@ copy. Compilation succeeded; execution failed specifically at
 not a compiler/setup failure. Initial metadata-binding and test-import build
 failures were preserved and corrected before final validation.
 
-These checks do not establish remote CI success, a new published version,
-publication acceptance or consumer confirmation. Version 0.3.8's immutable
-published artifacts have not been replaced.
+These local checks establish candidate behavior, not consumer confirmation.
+Subsequent [exact-source Windows/Linux CI](https://github.com/orbyss-io/dotnet-foundation/actions/runs/40719451125)
+passed, including the required Firefox scenario. [Foundation 0.3.9](https://github.com/orbyss-io/dotnet-foundation/releases/tag/v0.3.9)
+is published from `f663ab74f0b83be84ff9bdd8f16d92eae49d5a09`; its
+[Release workflow](https://github.com/orbyss-io/dotnet-foundation/actions/runs/40722524484)
+succeeded on attempt 2. Attempt 1 uploaded all 30 runtime packages but timed out
+waiting for two NuGet packages to propagate. The original failure is retained;
+after all packages became public, their source commits and compiled payloads
+matched successful exact-source CI. Recovery used the same source/tag, with no
+version increment, tag movement or differing-source replacement. Host publication
+and exact release knowledge then completed. Version 0.3.8's immutable published
+artifacts have not been replaced.
+
+Public release knowledge SHA-256:
+`7b1075a20cee21b15f9299cebe3733b5d275f0bef6ec4b5cce7406d50e7a965f`.
+Published Host:
+`ghcr.io/orbyss-io/foundation-host@sha256:ad52ade8e0750fb61b2fde5eaae4b218ba5e79db39970efe421e7471c4e19f98`.
 
 ## Published-version reproducer
 
@@ -163,10 +176,21 @@ Automatic native sliding is affected independently of an application activity
 adapter. Disabling sliding does not repair explicit renewal; browser generation
 fences do not stop server upserts or native response headers.
 
-Adoption still requires successful exact-source Foundation CI, separately
-authorized corrected Foundation publication, then qualification of the new
-immutable packages/Host digest through a new Program Kit profile. Preserve old
-qualification evidence and consumer locks. Consumer toolkit refresh and profile
-adoption follow qualification; refreshing the existing 0.3.8 toolkit alone does
-not deliver the fix. Application activity policy, remember-intent transfer through
-OIDC and actual consumer acceptance remain their own checks.
+[Program Kit maintenance](https://github.com/orbyss-io/program-kit/actions/runs/40730144795)
+qualified the public packages, actual Host and versioned publisher knowledge as:
+
+`foundation-0.3.9-build-0.3.3-exporter-0.2.7-forms-0.2.1-localization-0.1.2-analyzer-0.3.8`.
+
+[Maintenance PR #62](https://github.com/orbyss-io/program-kit/pull/62) adds the
+profile without altering any of the 14 historical profile registrations. Build,
+exporter and analyzer keep their independent versions. The captured runtime source
+includes `IBffSessionTicketCache` and the corrected store. The profile's actual
+Host digest matches the completed Foundation release above.
+
+Consumer toolkit refresh supplies that qualified default and its native guidance;
+it preserves existing consumer locks and authored specifications. It does not
+materialize application composition, migrate dependencies, or demonstrate a consumer
+runtime. A consumer planning against 0.3.8 must explicitly reconcile the corrected
+profile and native cache seam before implementation. Preserve historical qualification
+and locks. Application activity policy, remember-intent transfer through OIDC and
+actual consumer acceptance remain their own checks.

@@ -8,5 +8,6 @@ and the [published-version diagnostic](../../tests/fixtures/bff-ticket-renewal-r
 
 The detailed private intake context and original local execution records remain
 under ignored `artifacts/`; they are not included in this public report.
-A corrected Foundation publication and new Program Kit profile qualification are
-still required before a consumer refresh can deliver the fix.
+Foundation 0.3.9 is published and a new Program Kit profile is qualified. Consumer
+toolkit refresh supplies that profile and guidance; application dependency adoption
+and consumer runtime acceptance remain separate.
