@@ -4,6 +4,8 @@
     {"id":"repair-feedback","coverage":"guided","reference":"references/repair-feedback/operating.md","signals":["Program Kit blockade","repair request","toolkit workaround","repair feedback"]},
     {"id":"functional-discovery","coverage":"guided","reference":"references/functional-discovery.md","signals":["product","concept","entity","lifecycle","business rule","user journey","interaction"]},
     {"id":"ui-design-model","coverage":"guided","reference":"references/ui-design-model.md","signals":["ui","ux","layout","branding","theme","login","logout","icons"]},
+    {"id":"ui-prototyping","coverage":"guided","reference":"references/ui-prototyping.md","signals":["ui prototype","clickable preview","wireframe","page navigation","layout exploration"]},
+    {"id":"ui-component-research","coverage":"guided","reference":"references/ui-component-research.md","signals":["component research","ui framework","component library","diagram editor"]},
     {"id":"ui-feedback-recovery","coverage":"guided","reference":"references/ui-feedback-and-recovery.md","signals":["form validation","loading screen","inline error","ui recovery","save feedback"]},
     {"id":"architecture-governance","coverage":"managed","reference":"references/architecture-method.md","signals":["architecture","adr","governance","decision","modularity"]},
     {"id":"vertical-slicing","coverage":"guided","reference":"references/vertical-slicing.md","signals":["journey","workflow","use case","feature","slice"]},

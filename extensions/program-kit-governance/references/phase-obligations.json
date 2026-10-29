@@ -4262,6 +4262,103 @@
       }
     },
     {
+      "path": "program-kit-governance/references/ui-prototyping.md",
+      "phases": [
+        "on-demand consumer UI design"
+      ],
+      "enforcement": "Consumer design conversation and actual local prototype review; no automatic feature or backend prerequisite.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.ui.md"
+        ],
+        "sections": [
+          "Understand and compose",
+          "Choose tools and components",
+          "Build and explore",
+          "Refine and retain"
+        ],
+        "requirements": [],
+        "review": "Review the requested page/journey coverage, local interactions, design revisions and retained decisions; registration proves no agent behavior or human acceptance."
+      },
+      "id": "program-kit-governance/references/ui-prototyping.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-governance/references/ui-prototyping.md"
+      },
+      "owner": "program-kit-governance",
+      "disposition": "manual",
+      "sections": {
+        "Understand and compose": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Choose tools and components": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Build and explore": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Refine and retain": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "not-inferred-from-registration"
+      },
+      "purpose": "Connected consumer UI prototypes with fictional data, iterative visual design and a readable handoff."
+    },
+    {
+      "path": "program-kit-governance/references/ui-component-research.md",
+      "phases": [
+        "on-demand consumer UI design"
+      ],
+      "enforcement": "Focused current primary-source research and representative component use; no fixed provider catalog or automatic dependency adoption.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.ui.md",
+          "extensions/program-kit-governance/references/ui-prototyping.md"
+        ],
+        "sections": [
+          "Explore and compare",
+          "Try the chosen interaction"
+        ],
+        "requirements": [],
+        "review": "Inspect task fit, primary sources, exact license/features and the actual local component interaction; research quality and user choice remain semantic review."
+      },
+      "id": "program-kit-governance/references/ui-component-research.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-governance/references/ui-component-research.md"
+      },
+      "owner": "program-kit-governance",
+      "disposition": "manual",
+      "sections": {
+        "Explore and compare": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Try the chosen interaction": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "not-inferred-from-registration"
+      },
+      "purpose": "Research suitable UI frameworks and component providers for the consumer's selected interaction."
+    },
+    {
       "path": "program-kit-governance/references/ui-evaluation-v1.md",
       "phases": [
         "explicit manual invocation"

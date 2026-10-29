@@ -181,6 +181,11 @@ Apply selected UI, branding, accessibility and localization guidance to the prod
 actual needs. Research current tools and honor user review of consequential branding.
 Install only the project dependencies and runtime capabilities the product selects.
 
+The consumer UI skill also supports [disposable interactive prototypes](docs/ui-prototyping.md):
+turn existing intent, actors and journeys into connected pages, research suitable components,
+and refine navigation, layouts and branding with fictional data and local interactions.
+In Codex, invoke `$speckit-program-kit-governance-ui` and describe the preview you want.
+
 ## Consumer repair feedback
 
 For explicitly scoped repair observations, use the installed repair-request guidance.

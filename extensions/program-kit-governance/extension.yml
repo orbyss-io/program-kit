@@ -68,7 +68,7 @@ provides:
       description: "Grill and confirm the selected feature before specification creation or updates."
     - name: "speckit.program-kit-governance.ui"
       file: "commands/speckit.program-kit-governance.ui.md"
-      description: "Adopt or safely generate the versioned UI, branding and discoverability profile."
+      description: "Design connected consumer UI prototypes, research components, or adopt the production UI profile."
     - name: "speckit.program-kit-governance.architecture"
       file: "commands/speckit.program-kit-governance.architecture.md"
       description: "Create or update the architecture baseline and ADR system."
