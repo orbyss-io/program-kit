@@ -55,6 +55,17 @@ def contracts_profile(pins):
     if not version or tuple(map(int,version.groups())) < (0,3,0):
         require('hostPayload' not in pins, 'Historical profiles cannot supply the new Host binding contract')
         return False
+    identity = pins.get('dependencyProfile', '')
+    if re.fullmatch(r'p-[0-9a-f]{12}', identity):
+        binding = pins.get('dependencyProfileBinding')
+        require(isinstance(binding, dict)
+                and set(binding) == {'id', 'foundationRelease', 'catalogResolutionSha256', 'sha256'}
+                and binding['id'] == identity and binding['foundationRelease'] == release
+                and re.fullmatch(r'[0-9a-f]{64}', str(binding['sha256'])) is not None
+                and re.fullmatch(r'[0-9a-f]{64}', str(binding['catalogResolutionSha256'])) is not None
+                and binding['catalogResolutionSha256'] == pins.get('catalogResolutionSha256'),
+                'Foundation contracts require the exact selected profile identity and source binding')
+        return True
     pattern=('foundation-'+re.escape(release)+r'-build-\d+\.\d+\.\d+-exporter-\d+\.\d+\.\d+'
              r'-forms-\d+\.\d+\.\d+-localization-\d+\.\d+\.\d+(?:-analyzer-\d+\.\d+\.\d+)?(?:-q-[0-9a-f]{8})?')
     require(re.fullmatch(pattern,pins.get('dependencyProfile','')) is not None,

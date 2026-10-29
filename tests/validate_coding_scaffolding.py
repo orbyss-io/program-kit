@@ -35,7 +35,7 @@ class ScaffoldTests(unittest.TestCase):
                 packages = {'api':['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'],
                             'runtime':['Orbyss.Foundation.Execution'],
                             'provider':['Orbyss.Foundation.PostgreSql']}.get(key, [])
-                items = ''.join(f'<PackageReference Include="{name}" Version="0.3.8"/>' for name in packages)
+                items = ''.join(f'<PackageReference Include="{name}" Version="0.3.10"/>' for name in packages)
                 items += ''.join(f'<ProjectReference Include="{os.path.relpath(root / ref, project.parent)}"/>' for ref in refs)
                 project.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework>'
                     '</PropertyGroup><ItemGroup>' + items + '</ItemGroup></Project>', encoding='utf-8')
@@ -75,9 +75,9 @@ class ScaffoldTests(unittest.TestCase):
             self.assertFalse((root / 'src/core/Labels/ILabelStore.cs').exists())
             old.unlink()
             api = root / self.owners['api']
-            api.write_text(api.read_text().replace('Version="0.3.8"', 'Version="0.3.7"'))
+            api.write_text(api.read_text().replace('Version="0.3.10"', 'Version="0.3.7"'))
             rejected = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            with self.assertRaisesRegex(ValueError, 'qualified Foundation runtime 0.3.8 or later'):
+            with self.assertRaisesRegex(ValueError, 'qualified Foundation runtime 0.3.10 or later'):
                 scaffold.preview(root, root / 'specs/001-label', 'typed-label', self.owners)
             self.assertEqual(rejected, {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()})
             self.assertIn('Version="0.3.7"', api.read_text(), 'Compatibility rejection must not upgrade consumer pins')
@@ -146,9 +146,9 @@ class ScaffoldTests(unittest.TestCase):
                 typed_operation.render({**self.owners, **change}, ROOT / 'extensions')
 
     def test_native_contracts_must_belong_to_the_actual_consuming_owner(self):
-        api=[{'id':p,'version':'0.3.8'} for p in ('Orbyss.Foundation.Json.AspNetCore','Orbyss.Foundation.Web.ProblemDetails')]
-        provider=[{'id':'Orbyss.Foundation.PostgreSql','version':'0.3.8'}]
-        runtime=[{'id':'Orbyss.Foundation.Execution','version':'0.3.8'}]
+        api=[{'id':p,'version':'0.3.10'} for p in ('Orbyss.Foundation.Json.AspNetCore','Orbyss.Foundation.Web.ProblemDetails')]
+        provider=[{'id':'Orbyss.Foundation.PostgreSql','version':'0.3.10'}]
+        runtime=[{'id':'Orbyss.Foundation.Execution','version':'0.3.10'}]
         projects={self.owners['api']:{'packages':api},self.owners['provider']:{'packages':provider},
                   self.owners['runtime']:{'packages':runtime}}
         scaffold.native_contracts(projects,self.owners)
@@ -160,18 +160,18 @@ class ScaffoldTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     scaffold.native_contracts({**projects,self.owners['api']:{'packages':old}},self.owners)
 
-    def test_revised_recipe_requires_stable_qualified_038_runtime_without_changing_inputs(self):
+    def test_revised_recipe_requires_stable_qualified_0310_runtime_without_changing_inputs(self):
         identities = {'api': ['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'],
                       'provider': ['Orbyss.Foundation.PostgreSql'], 'runtime': ['Orbyss.Foundation.Execution']}
-        for version in ('0.3.5', '0.3.6', '0.3.7', '0.3.8-preview.1', '0.3', '', None, '0.3.8', '0.3.9', '0.4.0'):
+        for version in ('0.3.5', '0.3.6', '0.3.7', '0.3.8', '0.3.9', '0.3.10-preview.1', '0.3', '', None, '0.3.10', '0.3.11', '0.4.0'):
             with self.subTest(version=version):
                 projects = {self.owners[owner]: {'packages': [{'id': identity, 'version': version} for identity in names]}
                             for owner, names in identities.items()}
                 before = json.dumps(projects, sort_keys=True)
-                if version in ('0.3.8', '0.3.9', '0.4.0'):
+                if version in ('0.3.10', '0.3.11', '0.4.0'):
                     scaffold.native_contracts(projects, self.owners)
                 else:
-                    with self.assertRaisesRegex(ValueError, 'qualified Foundation runtime 0.3.8 or later'):
+                    with self.assertRaisesRegex(ValueError, 'qualified Foundation runtime 0.3.10 or later'):
                         scaffold.native_contracts(projects, self.owners)
                 self.assertEqual(before, json.dumps(projects, sort_keys=True))
 

@@ -28,12 +28,13 @@ public sealed class EvidenceApiFeature(ShellSettings settings) : IWebShellFeatur
             .Validate(value => value.Desk.Length is > 0 and <= 40, "Evidence desk is required.");
         services.AddShellInitializer<EvidenceOptionsAdmission>(LifecyclePhase.Prepare, 0);
         var requestKey = new JsonProfileKey("evidence-request");
-        var requestLimits = new JsonProfileRequirement(JsonProfileKeys.StrictRequest, maximumBytes: 32768);
-        services.AddJsonRequestContract<EvidenceRequest>(requestKey, requestLimits);
+        var request = JsonContractFactory.Request<EvidenceRequest>(maximumBytes: 32768, profile: requestKey);
+        services.AddJsonContract(request);
         var responseKey = new JsonProfileKey("evidence-response");
-        var responseLimits = new JsonProfileRequirement(JsonProfileKeys.TolerantResponse, maximumBytes: 2048);
-        services.AddJsonResponseContract<EvidenceResponse>(responseKey, responseLimits);
-        services.AddJsonResponseContract<EvidenceInputContract>(responseKey, responseLimits);
+        var response = JsonContractFactory.Response<EvidenceResponse>(maximumBytes: 2048, profile: responseKey);
+        services.AddJsonContract(response);
+        var inputContract = JsonContractFactory.Response<EvidenceInputContract>(maximumBytes: 2048, profile: responseKey);
+        services.AddJsonContract(inputContract);
         services.AddScoped<EvidenceEndpoint>();
     }
 

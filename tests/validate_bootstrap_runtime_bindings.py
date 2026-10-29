@@ -128,6 +128,48 @@ def main():
         else:
             raise AssertionError('Malformed or mismatched analyzer profile admitted: ' + repr(invalid))
     results.append('bounded-independent-analyzer-profile-identity')
+    short = {'foundationRelease': '0.3.10', 'dependencyProfile': 'p-0123456789ab',
+             'catalogResolutionSha256': 'a' * 64,
+             'dependencyProfileBinding': {'id': 'p-0123456789ab', 'foundationRelease': '0.3.10',
+                 'catalogResolutionSha256': 'a' * 64, 'sha256': 'b' * 64}}
+    assert probe.contracts_profile(short)
+    for key, value in (('id', 'p-fedcba987654'), ('foundationRelease', '0.3.9'),
+                       ('catalogResolutionSha256', 'c' * 64), ('sha256', 'not-a-hash')):
+        forged = copy.deepcopy(short)
+        forged['dependencyProfileBinding'][key] = value
+        try:
+            probe.contracts_profile(forged)
+        except ValueError as error:
+            assert 'exact selected profile identity and source binding' in str(error)
+        else:
+            raise AssertionError('Changed short profile binding admitted: ' + key)
+    missing = {k: v for k, v in short.items() if k != 'dependencyProfileBinding'}
+    try:
+        probe.contracts_profile(missing)
+    except ValueError as error:
+        assert 'exact selected profile identity and source binding' in str(error)
+    else:
+        raise AssertionError('Unbound short profile identity admitted')
+    with FixtureDirectory() as folder:
+        profile_path = Path(folder) / 'profile.json'
+        selected = {'id': short['dependencyProfile'], 'catalogResolutionSha256': 'a' * 64,
+                    'families': {'foundation': {'releaseVersion': '0.3.10'}}}
+        write_json(profile_path, selected)
+        short['dependencyProfileBinding']['sha256'] = probe.file_sha256(profile_path)
+        sealer.verify_host_profile_binding(profile_path, selected, short)
+        before = profile_path.read_bytes()
+        for key, value in (('id', 'p-fedcba987654'), ('foundationRelease', '0.3.9'),
+                           ('catalogResolutionSha256', 'c' * 64), ('sha256', 'd' * 64)):
+            forged = copy.deepcopy(short)
+            forged['dependencyProfileBinding'][key] = value
+            try:
+                sealer.verify_host_profile_binding(profile_path, selected, forged)
+            except ValueError as error:
+                assert 'host exact profile source binding differs' in str(error)
+            else:
+                raise AssertionError('Sealer admitted a changed short profile source: ' + key)
+        assert profile_path.read_bytes() == before
+    results.append('short-profile-identity-and-exact-source-binding')
     assert maintained_cshells_source() == probe.CSHELLS_PREVIEW_SOURCE
     results.append('canonical-cshells-source-matches-maintained-native-restore-mapping')
     parent = ROOT / 'artifacts/bootstrap-runtime-binding-guards'

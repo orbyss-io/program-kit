@@ -52,12 +52,28 @@ class CandidateIdentifierTests(unittest.TestCase):
                     updater.candidate_identity(label, index)
             self.assertEqual(before, index)
 
+    def test_new_short_profile_keeps_its_original_entry_identity(self):
+        identity = 'p-0123456789ab'
+        entry = {'path': 'candidates/' + identity + '/profile.json', 'sha256': 'a' * 64,
+                 'evidence': {'path': 'candidates/' + identity + '/qualification.json', 'sha256': 'b' * 64}}
+        digest = blocks.canonical_sha256(entry)
+        self.assertIs(entry, blocks.original_candidate_entry(entry, identity))
+        self.assertTrue(blocks.profile_entry_matches_hash(entry, digest, identity))
+        changed = copy.deepcopy(entry)
+        changed['sha256'] = 'c' * 64
+        self.assertFalse(blocks.profile_entry_matches_hash(changed, digest, identity))
+
     def test_storage_rename_preserves_original_consumer_entry_hash_but_not_changed_metadata(self):
         index = blocks.load_json(blocks.profile_registry() / 'index.json')
         for identity, entry in index['profiles'].items():
             if not entry['path'].startswith('candidates/'):
                 continue
             short = entry['path'].split('/')[1]
+            if identity == short:
+                self.assertRegex(identity, r'^p-[0-9a-f]{12}$')
+                self.assertEqual(entry, blocks.original_candidate_entry(entry, identity))
+                self.assertTrue(blocks.profile_entry_matches_hash(entry, blocks.canonical_sha256(entry), identity))
+                continue
             self.assertEqual(blocks.candidate_identifier(identity), short)
             original = copy.deepcopy(entry)
             for reference in [original, *(original[k] for k in ('evidence', 'qualificationRecipe', 'knowledge'))]:

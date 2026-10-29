@@ -127,6 +127,12 @@ def main():
               'catalogResolutionSha256': blocks.catalog_resolution_sha256(catalog)}
     if tuple(map(int,inputs['foundationRelease'].split('.'))) >= (0,3,0):
         inputs['dependencyProfile'] = selected['id'] if selected else blocks.load_json(blocks.profile_registry() / 'index.json')['default']
+        if inputs['dependencyProfile'].startswith('p-'):
+            path = args.profile or blocks.profile_registry() / blocks.load_json(blocks.profile_registry() / 'index.json')['profiles'][inputs['dependencyProfile']]['path']
+            profile = selected or blocks.load_json(path)
+            inputs['dependencyProfileBinding'] = {'id': profile['id'], 'sha256': blocks.raw_sha256(path),
+                'foundationRelease': profile['families']['foundation']['releaseVersion'],
+                'catalogResolutionSha256': profile['catalogResolutionSha256']}
     shared_contracts = runtime_contract_module().contracts_profile(inputs)
     host = catalog['packages']['oci:ghcr.io/orbyss-io/foundation-host']
     image = verify_oci(host, catalog['sources'][host['source']])['reference']

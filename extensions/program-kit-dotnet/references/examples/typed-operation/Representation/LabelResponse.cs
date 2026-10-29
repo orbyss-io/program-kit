@@ -13,8 +13,6 @@ public sealed record LabelResponse(string Policy)
     private static JsonContractMetadata<LabelResponse> CreateContract()
     {
         var profile = new JsonProfileKey("sample-label-response");
-        var supported = JsonProfileRequirement.TolerantResponse(maximumBytes: 2048);
-
-        return JsonContractMetadata<LabelResponse>.Response(supported, profile);
+        return JsonContractFactory.Response<LabelResponse>(maximumBytes: 2048, profile: profile);
     }
 }
