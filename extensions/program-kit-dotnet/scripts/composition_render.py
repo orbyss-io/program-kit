@@ -37,8 +37,11 @@ def auth_binding(graph, shell_id):
 
 def hosted_route(binding):
     route = {'Id': binding['routeId'], 'Path': binding['path'],
-             'Page': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'},
-             'Bootstrap': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'}}
+             'Page': {'Mode': binding.get('pageMode', 'Authenticated'), 'ResponsePolicy': 'private'},
+             'Bootstrap': {'Mode': binding.get('bootstrapMode', 'Authenticated'), 'ResponsePolicy': 'private'}}
+    for section in ('Page', 'Bootstrap'):
+        if route[section]['Mode'] == 'Public':
+            route[section]['ResponsePolicy'] = 'default'
     for field, section in (('pagePermission', 'Page'), ('bootstrapPermission', 'Bootstrap')):
         if field in binding:
             route[section]['Permission'] = binding[field]
@@ -106,6 +109,8 @@ def selected_packages(graph, shell_id, admitted=None):
                 packages.extend(row['packageId'] for row in target.get('packages', [])
                                 if row['ecosystem'] == 'nuget' and row['packageId'].startswith('Orbyss.Foundation.'))
     shell = graph['resources'][shell_id]
+    if 'dynamicPages' in shell:
+        packages.append('Orbyss.Foundation.Web.DynamicPages')
     for activation in (admitted or {}).get('activations', []):
         if activation['path'] == shell['source'] and activation['shell'] == shell['name']:
             key = activation['packageKey']
@@ -480,6 +485,8 @@ def materialize(repository, graph, template, env_name=None, *, configuration_onl
                 'ManifestSha256': '0' * 64, 'CurrentRevision': 'unprepared',
                 'AssetResponsePolicy': 'public-asset',
                 'Routes': [hosted_route(binding) for binding in pages]}
+        if 'dynamicPages' in shell:
+            configuration['Foundation']['DynamicPages'] = deepcopy(shell['dynamicPages'])
         foundation.validate_bound_settings(configuration, selected)
         profiles['CShells']['Shells'][shell['name']] = {'Name': shell['name'], 'Features': features, 'Configuration': configuration}
         # Keep the scaffold contribution in the desired manifest on every sync.
@@ -758,6 +765,9 @@ def validate_consumer_shell(graph, shell_id, selected, shell, env_name):
     actual = {name for name, options in shell['Features'].items() if options is not False}
     require(actual == expected, 'consumer overlay changes canonical selected feature membership')
     validate_consumer_configuration(graph, shell_id, selected, shell['Configuration'], env_name)
+    dynamic = graph['resources'][shell_id].get('dynamicPages')
+    require(shell['Configuration'].get('Foundation', {}).get('DynamicPages') == dynamic,
+            'consumer overlay changes canonical dynamic page admission/settings')
     if model.bindings(graph, 'frontend'):
         routes = [row for row in model.bindings(graph, 'frontend') if row['shellRef'] == shell_id]
         if routes:

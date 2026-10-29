@@ -1,5 +1,6 @@
 """Automatic dependency update and rollback contracts; no network or agents."""
 import importlib.util
+import copy
 import json
 import hashlib
 import io
@@ -23,6 +24,46 @@ spec.loader.exec_module(m)
 
 
 class UpdateTests(unittest.TestCase):
+    def test_dynamic_pages_preparation_requires_publication_and_preserves_prior_catalog(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import update_dependency_profiles as updater
+        actual_index = updater.blocks.load_json(updater.REGISTRY / 'index.json')
+        legacy, _ = updater.blocks.qualified_dependency_profile(updater.REGISTRY, actual_index['default'],
+            updater.blocks.load_json(updater.blocks.default_catalog(Path(updater.blocks.__file__))))
+        legacy = copy.deepcopy(legacy)
+        legacy['packages'].pop('nuget:Orbyss.Foundation.Web.DynamicPages', None)
+        legacy['families']['foundation']['releaseVersion'] = '0.3.10'
+        for row in legacy['packages'].values():
+            if row['family'] == 'foundation':
+                row['version'] = legacy['families']['foundation'].get('toolVersions', {}).get(row['packageId'], '0.3.10')
+        profile = updater.blocks.dependency_profile_value(legacy, 'synthetic-base')
+        registry = self.root / 'registry'; registry.mkdir()
+        m.write_json(registry / 'old.json', legacy)
+        m.write_json(registry / 'index.json', {'default': profile['id'], 'profiles': {
+            profile['id']: {'path': 'old.json', 'knowledge': {'unitFixture': 'no publication evidence'}}}})
+        before = {path: path.read_bytes() for path in registry.rglob('*') if path.is_file()}
+        versions = {row['packageId']: row['version'] for row in legacy['packages'].values()}
+        def observe(pin, _):
+            return {'latest': '0.3.11' if pin['name'] == 'Orbyss.Foundation.WebDefaults' else versions[pin['name']]}
+        with patch.object(updater, 'REGISTRY', registry), \
+                patch.object(updater.blocks, 'qualified_dependency_profile', return_value=(legacy, profile)), \
+                patch.object(updater.maintenance, 'observe', side_effect=observe), \
+                patch.object(updater, 'sync_publisher_engineering'):
+            with patch.object(updater, 'require_published_foundation', side_effect=ValueError('not published')):
+                with self.assertRaisesRegex(ValueError, 'not published'):
+                    updater.prepare()
+            self.assertEqual(before, {path: path.read_bytes() for path in registry.rglob('*') if path.is_file()})
+            with patch.object(updater, 'require_published_foundation', return_value={'unitFixture': True}) as published:
+                candidate = updater.prepare()
+                published.assert_called_once_with('0.3.11')
+        catalog = updater.blocks.load_json(candidate / 'catalog.json')
+        dynamic = catalog['packages']['nuget:Orbyss.Foundation.Web.DynamicPages']
+        self.assertEqual('0.3.11', dynamic['version'])
+        self.assertEqual([{'featureIdentity': 'Orbyss.Foundation.Web.DynamicPages', 'targetSlot': 'shell'}], dynamic['activations'])
+        self.assertTrue(all(path.read_bytes() == data for path, data in before.items()))
+        self.assertTrue(updater.publisher_document_selected('docs/dynamic-page-and-recovery-adoption.md', set(), True))
+        self.assertFalse(updater.publisher_document_selected('docs/validation-dynamic-pages-recovery-2026-10-29.md', set(), True))
+
     def test_analyzer_only_preparation_preserves_all_other_pins_and_history(self):
         sys.path.insert(0, str(ROOT / 'scripts'))
         import update_dependency_profiles as updater
@@ -44,7 +85,9 @@ class UpdateTests(unittest.TestCase):
             if selected['artifacts'][key] != profile['artifacts'][key]])
         self.assertEqual('99.0.1', profile['families']['foundation']['toolVersions'][analyzer])
         self.assertEqual(selected['families']['foundation']['releaseVersion'], profile['families']['foundation']['releaseVersion'])
-        self.assertIn('-analyzer-99.0.1', profile['id'])
+        self.assertRegex(profile['id'], r'^p-[0-9a-f]{12}$')
+        self.assertNotEqual(selected['id'], profile['id'])
+        self.assertEqual(profile['id'], candidate.name)
         self.assertTrue(all(path.read_bytes() == data for path, data in before.items()))
 
     def test_independent_analyzer_requires_exact_public_tool_binding_without_changing_historical_shape(self):
@@ -163,7 +206,8 @@ class UpdateTests(unittest.TestCase):
         current = updater.blocks.load_json(candidate / 'profile.json')
         state = updater.blocks.load_json(candidate / 'state.json')
         self.assertNotEqual(actual_profile['id'], current['id'])
-        self.assertRegex(current['id'], r'-q-[0-9a-f]{8}$')
+        self.assertRegex(current['id'], r'^p-[0-9a-f]{12}$')
+        self.assertEqual(current['id'], candidate.name)
         self.assertEqual(actual_profile['families'], current['families'])
         self.assertEqual(actual_profile['artifacts'], current['artifacts'])
         self.assertEqual('prepared', state['status'])

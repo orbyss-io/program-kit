@@ -67,6 +67,25 @@ class PresentationProfileTests(unittest.TestCase):
         self.assertNotIn('Orbyss.Foundation.Web.Presentation', selected['packages'])
         self.assertEqual({'enabled': False}, selected['browserPresentation'])
 
+    def test_new_recovery_options_require_the_exact_selected_publisher_metadata(self):
+        settings = {'Locales': {'nl': {'sign-in': 'Aanmelden'}}, 'MaxPageBytes': 65536}
+        with self.assertRaisesRegex(ValueError, 'absent from the selected published'):
+            self.selected({'enabled': True, 'settings': settings})
+        row = next(row for row in self.effective['publisherKnowledge']['packages'] if row['id'].endswith('.Presentation'))
+        path = self.root / row['path']; facts = json.loads(path.read_bytes())
+        metadata = json.loads(facts['facts']['orbyss-foundation/settings.json'])
+        metadata['contracts'][0]['settings'].extend([
+            {'path': 'Foundation:Web:Presentation:Locales', 'type': 'object', 'default': {}, 'constraints': {}},
+            {'path': 'Foundation:Web:Presentation:MaxPageBytes', 'type': 'integer', 'default': 65536,
+             'constraints': {'minimum': 512, 'maximum': 1048576}}])
+        facts['facts']['orbyss-foundation/settings.json'] = json.dumps(metadata)
+        raw = json.dumps(facts).encode(); path.write_bytes(raw)
+        row.update(sha256=hashlib.sha256(raw).hexdigest(), byteLength=len(raw))
+        self.assertEqual(settings, {key: value for key, value in self.selected(
+            {'enabled': True, 'settings': settings})['browserPresentation']['settings'].items() if key in settings})
+        with self.assertRaisesRegex(ValueError, 'minimum'):
+            self.selected({'enabled': True, 'settings': {**settings, 'MaxPageBytes': 1}})
+
     def test_bad_public_option_type_or_theme_and_missing_published_capability_reject(self):
         for settings in ({'Theme': 'arbitrary-css'}, {'ApplicationName': 7}):
             with self.subTest(settings=settings), self.assertRaises(ValueError):

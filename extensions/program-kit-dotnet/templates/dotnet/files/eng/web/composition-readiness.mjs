@@ -30,12 +30,17 @@ try {
             require(session.status() === 200);
             require((await session.json()).authenticated === false);
             require((session.headers()['cache-control'] ?? '').includes('no-store'));
-            if (host.page) {
-              const entry = await anonymous.request.get(host.origin + host.page, { maxRedirects: 0 });
+            for (const selected of host.entries ?? (host.page ? [{ path: host.page, mode: 'Authenticated' }] : [])) {
+              require(selected.mode === 'Public' || selected.mode === 'Authenticated');
+              const entry = await anonymous.request.get(host.origin + selected.path, { maxRedirects: 0 });
               current.entryStatus = entry.status();
               const target = entry.headers().location ? new URL(entry.headers().location, host.origin) : null;
               current.challengePath = target?.pathname ?? null;
-              require(entry.status() === 302 && target?.origin === host.origin && target.pathname === (host.pathBase ?? '') + '/bff/login');
+              if (selected.mode === 'Public') {
+                require(entry.status() === 200 && target === null && (entry.headers()['content-type'] ?? '').includes('text/html'));
+              } else {
+                require(entry.status() === 302 && target?.origin === host.origin && target.pathname === (host.pathBase ?? '') + '/bff/login');
+              }
             }
           } finally { await anonymous.close(); }
           current.phase = 'login';

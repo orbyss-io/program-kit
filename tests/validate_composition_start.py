@@ -469,6 +469,7 @@ def main():
     page_binding = next(row for row in graph['bindings'] if row['kind'] == 'frontend')
     graph['bindings'].extend([
         {**page_binding, 'routeId': 'second-page', 'path': '/second-page'},
+        {**page_binding, 'routeId': 'public-page', 'path': '/public-page', 'pageMode': 'Public', 'bootstrapMode': 'Public'},
         {**page_binding, 'routeId': 'restricted-page', 'path': '/restricted-page', 'pagePermission': 'restricted.read'}])
     graph['resources']['private-evidence'] = {'kind': 'privateFiles', 'ownerRef': 'application'}
     graph['environments']['development']['resources']['private-evidence'] = {'directory': 'artifacts/private-evidence/policies'}
@@ -669,6 +670,7 @@ public sealed record ProbeResponse(string Policy);
             first = next(host for host in plan['hosts'] if host['id'] == 'application-host')
             first.update(productPath='/api/first-policy', productResponse={'policy': 'consumer-ready'})
             first['pageChecks'] = [{'path': '/second-page', 'status': 200},
+                                  {'path': '/public-page', 'status': 200},
                                   {'path': '/restricted-page', 'status': 302, 'denialPath': '/bff/access-denied'},
                                   {'path': '/private-evidence/private-evidence/retained.bin', 'status': 404}]
             plan_path = directory / 'consumer-feature-plan.json'

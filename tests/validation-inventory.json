@@ -3750,7 +3750,7 @@
       "needs": [],
       "prerequisites": [],
       "suites": [],
-      "budgetSeconds": 120,
+        "budgetSeconds": 180,
       "timeoutSeconds": 240
     },
     {

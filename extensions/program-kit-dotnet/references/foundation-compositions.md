@@ -296,10 +296,44 @@ serializer options, or reset a compatibility baseline. Contract changes still re
 
 A frontend can bind several distinct page routes in the same shell while sharing one
 compiled deployment root. Each `frontend` binding supplies its `routeId` and `path`,
-with optional `pagePermission` and `bootstrapPermission`. Both admissions remain
-authenticated and private; bootstrap permission adds to page admission. These fields
+with optional `pagePermission` and `bootstrapPermission`. Omitted `pageMode` and
+`bootstrapMode` preserve authenticated, private admission. Explicit `Public` selects
+anonymous admission with the default response policy; public entries must contain
+only deployment-safe public content. A public admission cannot carry a permission,
+and bootstrap cannot be public when its page is authenticated. Bootstrap permission
+adds to page admission. These fields
 preserve existing route restrictions during migration and never grant permissions to
 users. Product role/permission assignments remain consumer-owned.
+
+For request-specific initial HTML and metadata, a newly qualified Foundation 0.3.11
+profile provides the optional `Orbyss.Foundation.Web.DynamicPages` package. Select it
+with a shell resource's `dynamicPages` object using the publisher's native option names:
+
+```json
+"dynamicPages": {
+  "Routes": [{ "Id": "stall", "Path": "/stalls/{slug}", "Resolver": "stalls", "Mode": "Public" }],
+  "TimeoutSeconds": 5
+}
+```
+
+The compiler selects the exact package/activation and emits `Foundation:DynamicPages`.
+It requires the package in the consumer's selected qualified profile; upgrading the toolkit
+alone does not advance a retained profile. The owning application feature references the
+package (through its `capabilityPackages` selection) and registers its scoped
+`IDynamicPageResolver` using `AddDynamicPageResolver<T>("stalls")`. Implement both fresh
+resolution and post-render `VerifyAsync` against authoritative publication/resource
+authorization state. Unknown state rejects disclosure. No resource projection belongs
+in the composition, HostedPages revisions, immutable assets or retained bootstrap.
+Native runtime activation owns full route, resolver, policy and configuration admission;
+toolkit metadata checks do not replace that qualification.
+
+Keep layout, map libraries, branding, localization and resource business rules with the
+consumer. A trusted `IDynamicPageRenderer` can replace the complete document. Keep its
+output encoded and bounded; it cannot bypass post-render eligibility verification or
+native headers. Fresh GET/HEAD/conditional requests must recheck publication; applications
+also revalidate resource eligibility before revealing restored browser content. APIs,
+media, discovery, service workers and upstream caches require their own matching policy.
+See the captured publisher's `docs/dynamic-page-and-recovery-adoption.md` and package README.
 
 `eng/composition_run.py prepare` verifies prerequisites, acquires exact dependencies
 and browser executables, builds frontends, stages admitted assets/packages and provisions
