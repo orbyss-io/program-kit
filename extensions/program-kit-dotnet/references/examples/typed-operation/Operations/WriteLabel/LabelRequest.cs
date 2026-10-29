@@ -15,8 +15,6 @@ public sealed record LabelRequest(string Policy)
     private static JsonContractMetadata<LabelRequest> CreateContract()
     {
         var profile = new JsonProfileKey("sample-label-request");
-        var supported = JsonProfileRequirement.StrictRequest(maximumBytes: 1024);
-
-        return JsonContractMetadata<LabelRequest>.Request(supported, profile);
+        return JsonContractFactory.Request<LabelRequest>(maximumBytes: 1024, profile: profile);
     }
 }

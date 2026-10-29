@@ -259,6 +259,14 @@ Require every public operation to define:
 - OpenAPI metadata and compatibility evidence when externally consumed;
 - traceability to the owning vertical slice and verification of the observable outcome.
 
+For Foundation 0.3.10 or later, create consumer JSON contract metadata through
+`JsonContractFactory.Request<T>()` and `JsonContractFactory.Response<T>()` in
+`Orbyss.Foundation.Json.AspNetCore`. Keep one shared declaration on the DTO or operation owner.
+Use named supported byte/depth overrides and the optional typed `profile` key; omit unchanged defaults.
+Preserve existing supported intervals, including explicit minimum depths, when replacing boilerplate.
+These requirements do not set the shell's deployment budgets. Earlier pinned consumers retain their
+version-supported APIs until an explicit dependency adoption.
+
 Endpoints remain thin transport adapters. They may coordinate a simple transaction script or invoke
 application/domain behavior, but they do not own business invariants. Endpoint filters handle
 transport-cross-cutting concerns only and must not become a hidden domain pipeline.

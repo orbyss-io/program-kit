@@ -26,6 +26,11 @@ Inspect [the scoped ownership review and rejected changes](ownership-review.md)
 alongside actual source. It distinguishes structural/runtime failures from
 semantic source-review cases that an automated checker cannot certify.
 
+This source uses `JsonContractFactory.Request<T>()` and `JsonContractFactory.Response<T>()` from
+Foundation 0.3.10 or later. Qualify and adopt that released dependency before copying the example into
+a consumer. Keep custom profile keys and supported intervals intact; factory defaults do not set the
+shell's operational JSON budgets.
+
 ## Owners and actual behavior
 
 | Source | Responsibility |

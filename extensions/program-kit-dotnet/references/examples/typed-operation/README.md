@@ -1,11 +1,19 @@
 # Typed first operation
 
-This revised recipe requires a qualified Foundation runtime **0.3.8 or later** in its actual API/runtime/provider
-owners: descriptive JSON contracts, scoped endpoint registration and problem-status metadata use that release's
+This revised recipe requires a qualified Foundation runtime **0.3.10 or later** in its actual API/runtime/provider
+owners: `JsonContractFactory`, descriptive JSON contracts, scoped endpoint registration and problem-status metadata use that release's
 APIs. The finite adapter rejects older or incompatible native pins before writes; it never upgrades a preserved
 consumer lock. Qualify/adopt the dependency through its normal owner first. Consumers retaining older releases
 may continue ordinary manual implementation with that release's supported APIs and the same engineering rules;
 do not copy these newer helper calls into an incompatible project or treat manual editing as a version bypass.
+
+Construct new consumer metadata with `JsonContractFactory.Request<T>()` and
+`JsonContractFactory.Response<T>()` from `Orbyss.Foundation.Json.AspNetCore`. Keep the shared declaration on
+its DTO or operation owner and reuse it for native registration and endpoint mapping. Use named overrides
+for supported intervals instead of repeating positional numbers or standard profile strings. The defaults
+are 1 byte through 16 MiB and nesting depth 1 through 64; retain intentional existing overrides such as
+`minimumDepth: 2`. The optional typed `profile` selects a custom configured key, as in this example.
+These capacities describe what the contract supports; the shell still owns active deployment budgets.
 
 Export the exact installed optional sources into a new owned artifact directory:
 
