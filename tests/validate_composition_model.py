@@ -7,6 +7,7 @@ import subprocess
 import sys
 import unittest
 import tempfile
+from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -935,6 +936,83 @@ else:
             del routes[1]['Page']['Permission']
             with self.assertRaisesRegex(ValueError, 'hosted page access'):
                 renderer.validate_consumer_shell(graph, 'application-shell', selected, shell, 'development')
+
+    def test_public_frontend_is_explicit_and_cannot_weaken_bootstrap_or_permissions(self):
+        from composition_fixture import two_apps
+        import composition_render as renderer
+        graph = two_apps(ROOT)
+        binding = next(row for row in graph['bindings'] if row['kind'] == 'frontend')
+        binding.update(pageMode='Public', bootstrapMode='Public')
+        model.validate(graph)
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            files = renderer.materialize(Path(temporary), graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            shell = json.loads(files['eng/web-profile.shells.json'][0])['CShells']['Shells']['policies']
+            route = shell['Configuration']['Foundation']['HostedPages']['Routes'][0]
+            self.assertEqual({'Mode': 'Public', 'ResponsePolicy': 'default'}, route['Page'])
+            self.assertEqual({'Mode': 'Public', 'ResponsePolicy': 'default'}, route['Bootstrap'])
+            selected = json.loads(files[renderer.CONTRACT][0])['shells']['application-shell']
+            renderer.validate_consumer_shell(graph, 'application-shell', selected, shell, 'development')
+            route['Page']['Mode'] = 'Authenticated'
+            with self.assertRaisesRegex(ValueError, 'hosted page access'):
+                renderer.validate_consumer_shell(graph, 'application-shell', selected, shell, 'development')
+        for changes in ({'pagePermission': 'secret.read'}, {'bootstrapPermission': 'secret.read'},
+                        {'pageMode': 'Authenticated'}, {'pageMode': 'anonymous'}, {'bootstrapMode': None}):
+            invalid = deepcopy(graph)
+            next(row for row in invalid['bindings'] if row['kind'] == 'frontend').update(changes)
+            with self.subTest(changes=changes), self.assertRaisesRegex(ValueError, 'hosted page'):
+                model.validate(invalid)
+
+    def test_dynamic_page_selection_materializes_the_qualified_contract_and_rejects_overlay_drift(self):
+        import composition_render as renderer
+        graph = example()
+        shell = graph['resources']['application-shell']
+        shell['dynamicPages'] = {'Routes': [{'Id': 'stall', 'Path': '/stalls/{slug}',
+            'Resolver': 'stalls', 'Mode': 'Public'}]}
+        shell['presentation'] = {'enabled': True, 'settings': {'Locales': {'nl': {'sign-in': 'Aanmelden'}}, 'MaxPageBytes': 65536}}
+        model.validate(graph)
+        self.assertIn('Orbyss.Foundation.Web.DynamicPages', renderer.selected_packages(graph, 'application-shell'))
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            files = renderer.materialize(Path(temporary), graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            actual = json.loads(files['eng/web-profile.shells.json'][0])['CShells']['Shells'][shell['name']]
+            self.assertEqual(shell['dynamicPages'], actual['Configuration']['Foundation']['DynamicPages'])
+            self.assertIn('Orbyss.Foundation.Web.DynamicPages', actual['Features'])
+            self.assertEqual({'nl': {'sign-in': 'Aanmelden'}}, actual['Configuration']['Foundation']['Web']['Presentation']['Locales'])
+            selected = json.loads(files[renderer.CONTRACT][0])['shells']['application-shell']
+            renderer.validate_consumer_shell(graph, 'application-shell', selected, actual, 'development')
+            actual['Configuration']['Foundation']['DynamicPages']['Routes'][0]['Mode'] = 'Authenticated'
+            with self.assertRaisesRegex(ValueError, 'dynamic page admission'):
+                renderer.validate_consumer_shell(graph, 'application-shell', selected, actual, 'development')
+        for invalid in (None, [], {}, ''):
+            shell['dynamicPages'] = invalid
+            with self.subTest(value=invalid), self.assertRaisesRegex(ValueError, 'dynamicPages'):
+                model.validate(graph)
+
+    def test_browser_plan_preserves_each_public_and_authenticated_entry_before_execution(self):
+        from composition_fixture import two_apps
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+        import composition_run as run
+        graph = two_apps(ROOT)
+        graph['resources']['application-shell']['pathBase'] = '/market'
+        first = next(row for row in graph['bindings'] if row['kind'] == 'frontend')
+        graph['bindings'].append({**first, 'routeId': 'public', 'path': '/public',
+                                  'pageMode': 'Public', 'bootstrapMode': 'Public'})
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary)
+            toolchain = root / 'artifacts/program-kit/toolchain.json'
+            toolchain.parent.mkdir(parents=True); toolchain.write_text('{"unitFixture":true}')
+            def recording_only(*args, **kwargs):
+                raise RuntimeError('recorded plan; no browser or readiness claim')
+            command = SimpleNamespace(environment={'PLAYWRIGHT_BROWSERS_PATH': str(root / 'browser-cache')}, run=recording_only)
+            resolved = {'hosts': {'application-host': {'shells': ['application-shell'], 'publicOrigin': 'http://localhost:5001'}}}
+            with self.assertRaisesRegex(RuntimeError, 'recorded plan'):
+                run.browser_check(root, graph, resolved, command, root)
+            host = json.loads((root / 'browser-plan.json').read_text())['hosts'][0]
+            self.assertEqual('/market' + first['path'], host['page'])
+            self.assertEqual([{'path': '/market' + first['path'], 'mode': 'Authenticated'},
+                              {'path': '/market/public', 'mode': 'Public'}], host['entries'])
 
     def test_shared_frontend_rejects_ambiguous_routes_or_invalid_permissions(self):
         from composition_fixture import two_apps

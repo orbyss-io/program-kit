@@ -100,8 +100,11 @@ the endpoint, Core validator, UI or query after adding options.
 
 ## Browser journeys and validation
 
-Use the [secure web profile](secure-web-profiles.md) and maintained application-owned
-`IAuthenticationErrorWriter` example. Keep machine/API problem and signed-out JSON contracts.
+Use the [secure web profile](secure-web-profiles.md) and native `Web.Presentation` settings
+for branding/localization. Foundation 0.3.9 already has `IProblemPageRenderer` (errors only);
+0.3.11 adds full `IBrowserRecoveryPageRenderer` layout replacement. Preserve native controls,
+antiforgery and headers. The application `IAuthenticationErrorWriter` example remains an optional
+boundary override. Keep machine/API problem and signed-out JSON contracts.
 Application callback failures need readable branded recovery independent of provider theming.
 Verify session state through the native cookie/session capability: a failed new attempt can leave
 an independently valid session. Offer Continue only after observing that session; always offer a

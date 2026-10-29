@@ -1,0 +1,747 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0": {
+      "CShells.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.0.31, )",
+        "resolved": "0.0.31",
+        "contentHash": "se7fS2KnM3mFQjIDvB+KfvZNGdKbc68ITzlSde5V16ZGEeVZdHkRgkTlnJnFalXqkipiIr1oUQdXmqtEV6AE0g==",
+        "dependencies": {
+          "JetBrains.Annotations": "2025.2.4"
+        }
+      },
+      "CShells.AspNetCore.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.0.31, )",
+        "resolved": "0.0.31",
+        "contentHash": "XrBPCiHjM4EN97okF96qcS1AQ1xyrvY5Idf+swF4Gw9OXNpd2VQvLjd9w4r03zyKUQ6NK2LrmZPJbsdRHGCM6Q==",
+        "dependencies": {
+          "CShells.Abstractions": "0.0.31",
+          "JetBrains.Annotations": "2025.2.4"
+        }
+      },
+      "Microsoft.AspNetCore.OpenApi": {
+        "type": "Direct",
+        "requested": "[10.0.11, )",
+        "resolved": "10.0.11",
+        "contentHash": "R/1EATnPLU+gRfB6lwVkMcymmyAY5ppBBdRN/5lhNEiT3xP1sWccuSFkU/f1lQvN/WgRq5Vn8AhCdE3fqgsL/w==",
+        "dependencies": {
+          "Microsoft.OpenApi": "[2.7.5, 3.0.0)"
+        }
+      },
+      "Orbyss.Forms.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "6BtRc7naw96Q6bn9ThkNS3Ts8OcPm2eBLXiudcSpVKdpM9XiP/siw+pzalisxZMUgYkOE3vyWDS84Y/zCCYJkg=="
+      },
+      "Orbyss.Forms.JsonForms": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "hqTF0GqdU7UQ5fHBJPF0vbqXrd7voXvlNpAHNM7hvpoQcpkzoxiJ1Moynit9PPEsboAZTg1Ba56MekQVyUnTDg==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Localization": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "Mo0aZ4YG2Q4Zk1AUKCO/Zc3OuDutJoW49I/pz6dHo94hiunzQaDJqU5H00yYb4Ll6Fid2O9YxsTB0l8LGJ0OLw==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1",
+          "Orbyss.Localization.Abstractions": "0.1.0"
+        }
+      },
+      "Orbyss.Forms.Management": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "p0C+iDWDBpa2VDlP0QD5lbKKY5XM9lOkdgp1Zc0x+Hv/wvkCEWZ3lTTf96u6eiJq7vVEm5FWbPMmR7o+wYR7Zw==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1",
+          "Orbyss.Forms.JsonForms": "0.2.1",
+          "Orbyss.Forms.Storage.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Management.Mcp.AspNetCore": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "kIHSvyGf2gRHNrcjRJn3T4+O/c/z+4d8BJ4Tx+s4osn9TA53gvLU1146YnLOdzKvYitdEv9zuhv4T850N0YlXw==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "ModelContextProtocol.AspNetCore": "2.2.0",
+          "Orbyss.Forms.Management.Tool": "0.2.1",
+          "Orbyss.Foundation.Mcp.AspNetCore": "0.2.0"
+        }
+      },
+      "Orbyss.Forms.Management.Tool": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "q0H1BMXhar/dBFxjEjJX0+LpCUY6fHpexCtQia3sigWuz+hKsjvJRV5eCOSXlywplOpz6+vL3HhbFi9Qe0DjrA==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "Orbyss.Forms.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Storage.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "drqjcCfMd17qETgIncCgk9pIhB9CIu47W5stTIQa0Z+DPhTLMwlrlS0qy50u8bx3+jIdX1FgRzu8zutvSQHiYQ==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Storage.FileSystem": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "9JdOH8xa4cHf4jUQSBc7ZKUV2OcJ2GkX/2qE8fH8+3k9Yevn+Skon4rM16BLBbdAavKsD0nCmhAw/XoJQtHCUg==",
+        "dependencies": {
+          "Orbyss.Forms.Storage.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Storage.InMemory": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "hLnznmK7EEHUkknlzgo5RNyVvlYkdgOMc340DQAPhLQQNphBhCP2YZO2OiBE/A34oABsEUVryZT9yLIb68UB/A==",
+        "dependencies": {
+          "Orbyss.Forms.Storage.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Submissions": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "l+kAO4FSTOCmhkvBTFnai2HmCdAVZg4uJzZuN4HViafdNPHWfEdqG+QxKWUw6YzZicBoEMasPP2OXf7JaTM3Qw==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1",
+          "Orbyss.Forms.Storage.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Submissions.Mcp.AspNetCore": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "TjBC51HuLjGa3nMPn3DweSQnp15Og0KYqEpKEEzmJ9FJ6qeDmcxtWgAGBXnE9NhF1W0pgt6usRblYFtW3je18g==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "ModelContextProtocol.AspNetCore": "2.2.0",
+          "Orbyss.Forms.Submissions.Tool": "0.2.1",
+          "Orbyss.Foundation.Mcp.AspNetCore": "0.2.0"
+        }
+      },
+      "Orbyss.Forms.Submissions.Tool": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "8JN26aBGOxuhutDRpwe/2g8TEgHFvruJzVj33UB6idz4To0zs3hpczIfcjow3Py/EZK2xoMWczfiB3PzWZ1uQA==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "Orbyss.Forms.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Web.Management": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "ygLneOSCXrDlMq7/aeoUrNwsFtThrxjUBtPESpRzMr9tS5ovIVpOehOPVgS39qqvJVl08iJ27FssDcE26Zlyvw==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Web.Runtime": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "LV3WjjkwepEfV3thed7zav/KW7MaPhOi0oC/KXJ4oKLt97x/KQOBCd6AZoEM/ZLdfC2brsLgqnWHrHzdex9xmQ==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Forms.Web.Submissions": {
+        "type": "Direct",
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "uplxzBNw1U5BikG1zS7k3Mnguvah84se7S/bz5Tqh6RyT1t/k91oW9Fq+o3+Hx9/cqXMYGi0mSywy95vT4eIsw==",
+        "dependencies": {
+          "Orbyss.Forms.Abstractions": "0.2.1"
+        }
+      },
+      "Orbyss.Foundation.Analyzers": {
+        "type": "Direct",
+        "requested": "[0.3.8, )",
+        "resolved": "0.3.8",
+        "contentHash": "4K3d2WA/23EoWr2xWwDJ7S78qQD+h340bcWyY2n+VqYvDXJ+oVJI02Dbh4e67+qtfmBLqC8nSgAi3dpRxtNpiw=="
+      },
+      "Orbyss.Foundation.Authentication": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "b31E5AAumVprix9T4j4NV2Cfzct0XlurBtblpbpkmp/47BY34HrcaEims16hEBQwYgIiGblXS9vUNpQE0NnIOw==",
+        "dependencies": {
+          "Orbyss.Foundation.Authentication.Core": "0.3.11",
+          "Orbyss.Foundation.Web.ProblemDetails": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Authentication.Assurance": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "SquF4V605a5lD2VSMNtKxD2geSwfEl6XVUBeacPfsSw5qRA0I/6WOs5WGIFUJa2T7UYdlOvJZE7TJgzkCyrY1w=="
+      },
+      "Orbyss.Foundation.Authentication.BffCookie": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "SBpzluO66OVbp51BYOBSqEJQptB6bWycI+ghWZirWy8a++BDv90PvUXmUWGC5cwZ+4wLS2QvM57+jkFwMRypEg==",
+        "dependencies": {
+          "Microsoft.AspNetCore.Authentication.OpenIdConnect": "10.0.14",
+          "Microsoft.AspNetCore.OpenApi": "10.0.14",
+          "Orbyss.Foundation.Authentication": "0.3.11",
+          "Orbyss.Foundation.Json.AspNetCore": "0.3.11",
+          "Orbyss.Foundation.WebDefaults": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Authentication.ClientCredentials": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "wfAjIlyAIBVWp+DC/VJqoMMsBa/LDNGYY4yyuMWmAEOHb+JzZiEArNhJ2q9ZS1LlroSSLrxjha9suKs7kPMDpg=="
+      },
+      "Orbyss.Foundation.Authentication.Core": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "vApm8LNsk4c1GvuIWHhP35h1F6El60YN8c2Lr9PeuSE4btDsXYvqZs4ciLXvYtUVZt598tpnTBpJGzr0mwNmtw=="
+      },
+      "Orbyss.Foundation.Authentication.DownstreamApi": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "CV+CSq1ytdmNlrVZDv6W1ADEvTZ0qC5kX1TQt2BCgSJjZsF0tiCrbMrs8ykQtDiCMNTBg5oCJiHhRkqK9WgS/g==",
+        "dependencies": {
+          "Orbyss.Foundation.Authentication.ClientCredentials": "0.3.11",
+          "Orbyss.Foundation.Authentication.TokenExchange": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Authentication.DPoP": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "J64DyvZw60rET0/+4/sz8u+hYOd6+z4TFF5YvmBtKgUD+GnyxdM5+WUM27cTcZbBc5K8mrwJb3PDhDpMqPw7Cg==",
+        "dependencies": {
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.14",
+          "Orbyss.Foundation.Authentication.SpaPkce": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Authentication.SpaPkce": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "/m+BSIqUoWkFiJ44VaGYBqwxYu0z+MFnAlOPhrMT7qtpFfzpM3VER+wkiN0vf3TaH+EaU/pVi7baLC7th/sfRQ==",
+        "dependencies": {
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.14",
+          "Orbyss.Foundation.Authentication": "0.3.11",
+          "Orbyss.Foundation.WebDefaults": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Authentication.TokenExchange": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "ZLhpAIzxVXsZaPgd82doIsk/EIZJQ3wS0DJFS2ki9SI3ZA9urN2is40DBx7AKG9qPY/NvN33ndVZp321Cq0q0Q=="
+      },
+      "Orbyss.Foundation.Build": {
+        "type": "Direct",
+        "requested": "[0.3.3, )",
+        "resolved": "0.3.3",
+        "contentHash": "KiFGcAmRV8IJw2rgWtbtpgXN0OcUxKHvdafJIn7qGJfWJj98vJbEkN10tE50X9WZ0wLFD5BqnpKpAmxEds88pw=="
+      },
+      "Orbyss.Foundation.Collections.Core": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "NIzyWRLT6V32Dz42U4vrlGw7Ji/gdK2QkZbSJTeC6cgr/mwGxl79a2FFlrG641aNMJ0TSaa+RlBwgCGl37jvEw=="
+      },
+      "Orbyss.Foundation.DomainEvents": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "0AD4Unt99uR76oKCnTFCGgMQBYNEYnX7wwKAlniDuPyWe1hXogDE47SvwjTWIwNjEYGOwGj4JC9dJ9f42AyUUw==",
+        "dependencies": {
+          "Orbyss.Foundation.DomainEvents.Abstractions": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.DomainEvents.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "DdUPvRGg3B2VS/5vo59RZmCwg+Q4jhLwg+KAElD8KT7LG3bvrieVVyjhoI3XAUpJD4LeDCoNEZiD/Sg+e5PPXw=="
+      },
+      "Orbyss.Foundation.Execution": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "5y0oGPlaHZDyl9w9Hut/fdrqb15twOQb3le87cv7iFw+HccPlsvS4Xhv3ckQe00CkGvsPP94trMqO2Y8vPOjxA==",
+        "dependencies": {
+          "Orbyss.Foundation.Execution.Core": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Execution.Core": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "V98yY7xN0suTa60vpoxlyzhvFtkKkIw0P6ob7i4pR02e5z4btf8BeT+ghUViY7i38S5TpcD5NCV/zztxQUfvCA=="
+      },
+      "Orbyss.Foundation.Identity.Admin.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "aLxXLTvRt2KsThAcQv6PhOafQitr9i9wMwmMPStgz1uUhRBAuzHzL7bwYbQ7iNjyecEtwQBJIDuQv4OX9NQknw=="
+      },
+      "Orbyss.Foundation.Identity.Keycloak.Admin": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "xhWxCAkbMvSy12vF1WEws0DcEOI9ud8zbwMAOJGX6hRahX2w5VKKRZisZ29fzgFKVLEY3h+oAo7hFllluAXeKw==",
+        "dependencies": {
+          "Orbyss.Foundation.Identity.Admin.Abstractions": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Json": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "l21wQrmf30vlNEE4Tj3R9SaXd2/e8t5n+hdrkM0PWjs3Dkh5B5OJnYEmnwusmmWju10fY3r0EktP43ZsdipU7g==",
+        "dependencies": {
+          "Orbyss.Foundation.Collections.Core": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Json.AspNetCore": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "O+IWN8RKb8K17Maev1q4M4LXovoFlStOEzv8782fan4gZuqJWHhg7xsJ1OA4A+ZufQyH4F01c3ebgk6lS/H63g==",
+        "dependencies": {
+          "Microsoft.AspNetCore.OpenApi": "10.0.14",
+          "Orbyss.Foundation.Json": "0.3.11",
+          "Orbyss.Foundation.Web.ProblemDetails": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Mcp.AspNetCore": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "dqbcPmpTja1PFLsjLm1ctzwY+1txdt3dknVhk3MeUGAVeAQAx1XXpidGDJ9SXQsg4NoaI9Afu+tGZGIT3HHxog==",
+        "dependencies": {
+          "ModelContextProtocol": "2.3.0",
+          "ModelContextProtocol.AspNetCore": "2.3.0"
+        }
+      },
+      "Orbyss.Foundation.PostgreSql": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "e1BYGw8PXiNFUn1QQeq9SA7Au31B0RFb/P/5EGMdogfzyslhYpGeTgv3razljoiHsGh4phMMNgQRAdYTqmVydw==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "10.0.14",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.14",
+          "Npgsql": "10.0.3",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
+          "Orbyss.Foundation.Execution": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Tasks": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "WA/iu98Y3V3tQVgFf/hDAA5wF2cqwu5PXYL/3JGCEx+HmlGrO88NmrC+mAciGa6kigdHuDILbem90scbfLnEIQ==",
+        "dependencies": {
+          "Orbyss.Foundation.Tasks.Abstractions": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Tasks.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "L+S4XNU9pFRW5Ps3yXPB1qMrNdrPVDhSjHBtMAL7HBSTuhkauh2ohRqqhQdXIRCKnuI750aPgrb/znHsDdO2TQ=="
+      },
+      "Orbyss.Foundation.Web.Discovery": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "P2/79M1WsqmXW2lVOZu+kvSlI7xxQQ+NjbxJjnorY8EGcsqSGhBaKsQe4mwc+7iibw7gEYhX/+Qr8iooLNN8PQ==",
+        "dependencies": {
+          "Orbyss.Foundation.Json": "0.3.11",
+          "Orbyss.Foundation.Web.Discovery.Abstractions": "0.3.11",
+          "Orbyss.Foundation.WebDefaults": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Web.Discovery.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "O/n9DSmP3SymE2Z8hEpw9tGu3Rr1mkQi0DH47K2KW0g0aQ+38yPcrbGGbukLagpEEVLCauNmNCRyh1URLiOIMA=="
+      },
+      "Orbyss.Foundation.Web.DynamicPages": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "5HI9WHxvo//rpi7ORHHo6gKNj6I0N7xDIV8FYZW/2Zn8jNdSWOB9Gdrw0o1kIx9GpKhQebRuAgyorqmgzdueew==",
+        "dependencies": {
+          "Orbyss.Foundation.Authentication": "0.3.11",
+          "Orbyss.Foundation.Json": "0.3.11",
+          "Orbyss.Foundation.WebDefaults": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Web.HostedPages": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "yDuJj2qSo3JbKUcVHlyBIBK6uGQdcIowc5sZFWM5Ct/gXMI3Je4FaNXvKBSNrXXIC+R20HUZs8z8GhYvuWeQAg==",
+        "dependencies": {
+          "Orbyss.Foundation.Authentication": "0.3.11",
+          "Orbyss.Foundation.Json": "0.3.11",
+          "Orbyss.Foundation.WebDefaults": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Web.OpenApi": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "WjZdfsJI5mSfV30sj6Xvt76CrU5cgPLaTTQ1WuJjF4e91D6tqEHcYdaeyjYGGWzTAHGAQuzZbc51Y6ytX8OJug==",
+        "dependencies": {
+          "Microsoft.AspNetCore.OpenApi": "10.0.14"
+        }
+      },
+      "Orbyss.Foundation.Web.Presentation": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "XfrrmS0EcnrK7xcqvsyCQjDa1Y8gImc5ajMD6TLaR1YOIctiZl+BPi6jGgIAFMxNzOuk3MA2Jez29oTS/8REJg==",
+        "dependencies": {
+          "Microsoft.AspNetCore.OpenApi": "10.0.14",
+          "Orbyss.Foundation.Authentication": "0.3.11",
+          "Orbyss.Foundation.Json.AspNetCore": "0.3.11",
+          "Orbyss.Foundation.WebDefaults": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Web.ProblemDetails": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "Ud5kmwS8W4HERJAfybv0vzIF5Y1tfJEIO8XNF4ix3RapJFWQax2vAWYeTegiXFVMnvWboUVTst+mpdFgIbyFXQ==",
+        "dependencies": {
+          "Orbyss.Foundation.Json": "0.3.11",
+          "Orbyss.Foundation.Web.ProblemDetails.Core": "0.3.11"
+        }
+      },
+      "Orbyss.Foundation.Web.ProblemDetails.Core": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "EtS5a8Qa1PK12S2QCUGrxVUkgJ7Iuz0BMhYyk6xnlw//w+63tOpf9N+fZsyWAq0MsSR/pMADkaEEolQGxSndKQ=="
+      },
+      "Orbyss.Foundation.WebDefaults": {
+        "type": "Direct",
+        "requested": "[0.3.11, )",
+        "resolved": "0.3.11",
+        "contentHash": "P7GRu5zy7hzjVLpgbPwW7LtYWj5QFV9iaIUyDMbwI0RT2stxiozyInhkBs6klponbc6UmG33d+p9v2tZoEZ1Yg=="
+      },
+      "Orbyss.Localization.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "hRPViweIbH3MqHScR0uGZV8PocOXCTGAuxR0paNaG0poFCCNAO2AAWYdAudzk6BcL6k40LnHbHauMY5JU0q+Yw=="
+      },
+      "Orbyss.Localization.Formats": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "sDe32jWXuoO/F2Rjgm/Hv55WSJYY2fWIDTmugY2pftosIFuDcjlFiDtILgIeL26xWwo4/fOQFqeIwN2b/q81bg==",
+        "dependencies": {
+          "Orbyss.Localization.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Management": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "U2XB2dFdc/gvkwdB9icVFdOgXdrIsGiZVVnodsJ06JOfRgq7N10cBf5lp5NUvTgdNY8fDRkCpaUFCPk5wls9hg==",
+        "dependencies": {
+          "Orbyss.Localization.Abstractions": "0.1.2",
+          "Orbyss.Localization.Formats": "0.1.2",
+          "Orbyss.Localization.Storage.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Management.Mcp.AspNetCore": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "n7dM7BjipVlYTIFd45LFRe1XZkJLP5tD0EI1YhkQb/S/ru20PvB3Lp9tx/473XcDQwdLT+PJpeeVY8W+vBCOhQ==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "ModelContextProtocol.AspNetCore": "2.2.0",
+          "Orbyss.Foundation.Mcp.AspNetCore": "0.1.0",
+          "Orbyss.Localization.Management": "0.1.2",
+          "Orbyss.Localization.Management.Tool": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Management.Tool": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "3v7cMKFTM/IfFQQ9qNwMhsD8OLIF2RNTDLqLXEuNOOK9n/Ppw6pwyYyVGxZOTdpLp0HRdwx2R2yZsyJm5SidQQ==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "Orbyss.Localization.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Runtime": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "UaQC4x33RuaPpawvManm5fm9L8TQSiOvu1dWWM45fG4MXhNWLTobNgWkp3RKyOGplQYhCFJfUlKktEBgWh32jA==",
+        "dependencies": {
+          "Orbyss.Localization.Abstractions": "0.1.2",
+          "Orbyss.Localization.Storage.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Runtime.Mcp.AspNetCore": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "zABjG2/3rCOe526UhOnwjLGVb5TP0oPSKVpBNJzS7EetV0i9Nl0ND3BseDOul04ZWFBAzSrj2gn21bSvNYpcnw==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "ModelContextProtocol.AspNetCore": "2.2.0",
+          "Orbyss.Foundation.Mcp.AspNetCore": "0.1.0",
+          "Orbyss.Localization.Runtime": "0.1.2",
+          "Orbyss.Localization.Runtime.Tool": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Runtime.Tool": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "64j53roxvDnlCSVyFKfGGQ16f5VkDztUqZ6MROv7Y5ay0xNqQGtXDo8jshkLX+3g1zBWzyb+V5wSK2dDFwPcag==",
+        "dependencies": {
+          "ModelContextProtocol": "2.2.0",
+          "Orbyss.Localization.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Storage.Abstractions": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "3xNrLrfbw296YRvOL3qxvfzGkWqzggBekZf2WfFxfYxDo8SQJd7hnuhmf5IBrP2e4ZjlwLWCYBhggkp8SNvCcw==",
+        "dependencies": {
+          "Orbyss.Localization.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Storage.FileSystem": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "oSWDRzlz9sWFM9kwyoMeEqHL5/L9Cw9pMmaWV7hhijUH4cfmWFdRj2sexpmul7L1uw5QRIgJH5v9g3mqfq+t0w==",
+        "dependencies": {
+          "Orbyss.Localization.Storage.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Storage.InMemory": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "QhQDoF+JURp/LzgDSn+u0rTM2sPuokrBD+bA9JFwR9I5trb3EGDCOuXvm6WLNdLecBQElMeRHBm1Ol/bBtHaQA==",
+        "dependencies": {
+          "Orbyss.Localization.Storage.Abstractions": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Web.Management": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "8lvCbj+I4k38dNVr56GbfW6RABruhRx4vzFn1lZko52bf0KOwVqAn2nOKavtDeaKz4mJpOOFDqQb/r/kO3KiWA==",
+        "dependencies": {
+          "Orbyss.Localization.Abstractions": "0.1.2",
+          "Orbyss.Localization.Management": "0.1.2"
+        }
+      },
+      "Orbyss.Localization.Web.Runtime": {
+        "type": "Direct",
+        "requested": "[0.1.2, )",
+        "resolved": "0.1.2",
+        "contentHash": "454tTNLqpUAYKyHri9h15yqJNIldAXpdUIM5sGT5cN1sFa0RofSfqAKyOnscJF3g17gJYMrY7ovRS+vBT1BZYQ==",
+        "dependencies": {
+          "Orbyss.Localization.Abstractions": "0.1.2",
+          "Orbyss.Localization.Runtime": "0.1.2"
+        }
+      },
+      "JetBrains.Annotations": {
+        "type": "Transitive",
+        "resolved": "2025.2.4",
+        "contentHash": "TwbgxAkXxY+vNEhNVx/QXjJ4vqxmepOjsgRvvImQPbHkHMMb4W+ahL3laMsxXKtNT7iMy+E1B3xkqao2hf1n3A=="
+      },
+      "Microsoft.AspNetCore.Authentication.JwtBearer": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "DaTs32NtRkTabidrvhLhcXpa+Uguw0rN5FaX8Q1HmzbYtcI72iSauYlN4WmqbrXp6QQoB8fmZlHk5/bjiMTY7A==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.19.2"
+        }
+      },
+      "Microsoft.AspNetCore.Authentication.OpenIdConnect": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "W5g9xaWjPudw7GNwxCqP9uLxpwE1+LkRf4f8i0aF6Ga1AY3qU2UvBa4+41Opz15sO5oTCLwYYXcvb477Ry8NZQ==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.19.2"
+        }
+      },
+      "Microsoft.Bcl.Cryptography": {
+        "type": "Transitive",
+        "resolved": "10.0.2",
+        "contentHash": "LG9Yll3B5aNpxv0+D47g6LiOiKBIlodhcHdQwcYzo8VeexFLGqx5ymetmA2aBRyo9cCcWsQWrFsdbsr8LvmWDw=="
+      },
+      "Microsoft.EntityFrameworkCore": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "vY3931PYPIDBbKovGHbACmpOWvURvKNyRXfCjMh5yLW+FH6vLWeqUu2xzSCRo4Oz4tgx9GYpd0JlV5LDyAoQdg==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Abstractions": "10.0.14",
+          "Microsoft.EntityFrameworkCore.Analyzers": "10.0.14"
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "/SaznoTTFfKzxYEbCPAwwKBR3XT92DZgH4jJ3/cqs2skP3o2D+TL6i9Aaj+8Azwtu6/sRd0ve4P2mN12nfVmCw=="
+      },
+      "Microsoft.EntityFrameworkCore.Analyzers": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "gaANlGNTxkgODX2eeVT8jjd3AmlFilQV4DFf8qoW30+wUCm2o4N7nEHtZvnHIwfhaJni2DqcjE47Au7tC0Q5jA=="
+      },
+      "Microsoft.EntityFrameworkCore.Relational": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "Ut0kgtfoKX9QElQVEXSEAgdQc79jISWStVWSOhfPDDHNSKMwFzSXG3gtdYFTAbsBoV+8NtXdVaj4xwdqeky8UA==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "10.0.14"
+        }
+      },
+      "Microsoft.Extensions.AI.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.11.0",
+        "contentHash": "h4DX/TdJU4fk1GGaf19n6Kujkj6VXbGeL4UEOsQ8+ZJC5fVApPauokCtvBP684BYbczUYZQNfo1mbmyHG4WVSg=="
+      },
+      "Microsoft.IdentityModel.Abstractions": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "HJbo/lnSfNHUfphPRT910poQc4T2/9+8svFLvzuaYHGAOJ2Tu+oEDqpX0BVP3BJ4OuUM1kylEKyaiX2fCAK3Cw=="
+      },
+      "Microsoft.IdentityModel.JsonWebTokens": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "ui3fuBT4fs8kdKfBthI4NzLYIBIneEVS8UrL1JVBzAn80UiKmngBBi0BEByE7n/9c+EElcfFlCMFFTqpkBSLNA==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Tokens": "8.19.2"
+        }
+      },
+      "Microsoft.IdentityModel.Logging": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "r5YLDIxGOnkVJHrqXv/iD1FM1CgGrQOdriXuvuWvTPmKbnGANhEysq9XKmN6IHjf2a+9bAGEpnoRBsAQlvJU5w==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Abstractions": "8.19.2"
+        }
+      },
+      "Microsoft.IdentityModel.Protocols": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "sGxSsSrZXNmca6D+jHH2rVRyo2nNRd/g4H9CFbPmLLq0xgoH1U0orLWE5minfijw7+zq49tBs7txenbfAErRoQ==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Tokens": "8.19.2"
+        }
+      },
+      "Microsoft.IdentityModel.Protocols.OpenIdConnect": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "1XOcyY36cVymzE3qKdzKaUEZ4Pzt7ZpSa14JZoPPK1NLFUkQDs85TCqpV6XDo0YjFXj6nVK00AfOHppjghjhtw==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Protocols": "8.19.2",
+          "System.IdentityModel.Tokens.Jwt": "8.19.2"
+        }
+      },
+      "Microsoft.IdentityModel.Tokens": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "GtPC1S02uH1gOO4fQ+zRysIicKmEXaYFP8PIkdJYXqMyruYhopre4ozVHp0XiDSA0+GJvOZH9prxCPvgBMg4Ww==",
+        "dependencies": {
+          "Microsoft.Bcl.Cryptography": "10.0.2",
+          "Microsoft.IdentityModel.Logging": "8.19.2"
+        }
+      },
+      "Microsoft.OpenApi": {
+        "type": "Transitive",
+        "resolved": "2.7.5",
+        "contentHash": "0FA67RSnRM4tcBKqiqVu/HPdZ9+QOKbmeRjxRUGTCjPU4C0bmUhd97Dso7Yild5P7nOV6GxJ2xrK0Kv/O9xp0w=="
+      },
+      "ModelContextProtocol": {
+        "type": "Transitive",
+        "resolved": "2.3.0",
+        "contentHash": "PHZ0q8xTAoysqUKpA5gC0RGJSfwpZhfsNz+9Sw0X0RzFFVHjIE52sx6C+ogMn+LSE+FfiYiNscPJhM6q6DMT6Q==",
+        "dependencies": {
+          "ModelContextProtocol.Core": "[2.3.0]"
+        }
+      },
+      "ModelContextProtocol.AspNetCore": {
+        "type": "Transitive",
+        "resolved": "2.3.0",
+        "contentHash": "YaRK007jAIFYAGH65I2SPsXVHzaFDRBx+d3swxLCziRYysmk9zGCWm+Lqdt5geHq0wDwCcvwYkMzAOSUWLpajw==",
+        "dependencies": {
+          "ModelContextProtocol": "[2.3.0]"
+        }
+      },
+      "ModelContextProtocol.Core": {
+        "type": "Transitive",
+        "resolved": "2.3.0",
+        "contentHash": "EDpbQholhVWoNumb0Ab3oGv9LmXOLgaD5ixEIUkrnzpnqD0TJCSHTJ5G71/J1KlrQ98aWDclWTPMffKTnCJoMw==",
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "10.11.0"
+        }
+      },
+      "Npgsql": {
+        "type": "Transitive",
+        "resolved": "10.0.3",
+        "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
+      },
+      "Npgsql.EntityFrameworkCore.PostgreSQL": {
+        "type": "Transitive",
+        "resolved": "10.0.3",
+        "contentHash": "IPGrrZnRkuW7OlHDhUESZz4G5DLkW7Nej/O3Cx+0iTsgyU5XJxBgpsvTHLloo3WWuAKKbDHXBvWPVkX1deRh1Q==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "[10.0.4, 11.0.0)",
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
+          "Npgsql": "10.0.3"
+        }
+      },
+      "System.IdentityModel.Tokens.Jwt": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "gqhDC/icByKEutygpr+OFgAmjwTVowyzFjWB8K0q1ww8uFj5a1BQNL+QvijUl9uhq4p8OdDwcAIrjVC+eC9FVA==",
+        "dependencies": {
+          "Microsoft.IdentityModel.JsonWebTokens": "8.19.2",
+          "Microsoft.IdentityModel.Tokens": "8.19.2"
+        }
+      }
+    }
+  }
+}

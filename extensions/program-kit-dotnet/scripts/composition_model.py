@@ -17,7 +17,7 @@ INPUT = 'eng/foundation-composition.json'
 VERSION = 2
 RESOURCE_FIELDS = {
     'host': ({'kind', 'runtimeDirectory'}, {'ownerRef'}),
-    'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings', 'presentation', 'pathBase'}),
+    'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings', 'presentation', 'pathBase', 'dynamicPages'}),
     'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef', 'responsibility', 'capabilityPackages'}),
     'databaseServer': ({'kind', 'engine'}, {'ownerRef'}),
     'database': ({'kind', 'engine', 'name'}, {'ownerRef'}),
@@ -400,7 +400,8 @@ def validate(model, repository=None):
                 require(type(presentation['enabled']) is bool, 'presentation.enabled must be boolean')
                 settings = presentation.get('settings', {})
                 require(isinstance(settings, dict) and set(settings) <= {'ApplicationName', 'Locale', 'Theme',
-                        'RoutePrefix', 'ReturnPath', 'ResponsePolicy', 'AssetResponsePolicy', 'SignOutConfirmation', 'Copy'},
+                        'RoutePrefix', 'ReturnPath', 'ResponsePolicy', 'AssetResponsePolicy', 'SignOutConfirmation', 'Copy',
+                        'Locales', 'MaxPageBytes'},
                         'presentation settings must use the native public option names')
                 require(presentation['enabled'] or not settings, 'disabled presentation cannot author active settings')
                 entrypoints = presentation.get('entrypoints', {})
@@ -409,6 +410,9 @@ def validate(model, repository=None):
                         'custom presentation entrypoints require exact reviewed source SHA-256 values')
                 require(presentation['enabled'] or not entrypoints, 'disabled presentation cannot author client bindings')
             require(isinstance(row.get('settings', {}), dict), 'shell settings must be a typed object')
+            if 'dynamicPages' in row:
+                require(isinstance(row['dynamicPages'], dict) and bool(row['dynamicPages']),
+                        'dynamicPages must be a nonempty native settings object')
             require(set(row.get('settings', {})) <= {'DiscoveryTimeoutSeconds', 'RemoteAuthenticationTimeoutSeconds',
                     'SessionIdleMinutes', 'SessionAbsoluteMinutes'}, 'unsupported shell policy overrides')
             for key, value in row.get('settings', {}).items():
@@ -482,7 +486,7 @@ def validate(model, repository=None):
     unique = set()
     for row in model['bindings']:
         require(isinstance(row, dict) and row.get('kind') in BINDING_FIELDS, 'unknown binding type')
-        optional = {'pagePermission', 'bootstrapPermission'} if row['kind'] == 'frontend' else ({'section'} if row['kind'] == 'privateFiles' else set())
+        optional = {'pagePermission', 'bootstrapPermission', 'pageMode', 'bootstrapMode'} if row['kind'] == 'frontend' else ({'section'} if row['kind'] == 'privateFiles' else set())
         object_fields(row, BINDING_FIELDS[row['kind']], optional, label='binding')
         key = json.dumps(row, sort_keys=True)
         require(key not in unique, 'duplicate binding')
@@ -532,6 +536,14 @@ def validate(model, repository=None):
                 if field in row:
                     require(isinstance(row[field], str) and row[field].strip() == row[field] and
                             0 < len(row[field]) <= 256, 'invalid hosted page permission')
+            for prefix in ('page', 'bootstrap'):
+                require(row.get(prefix + 'Mode', 'Authenticated') in ('Public', 'Authenticated'),
+                        'invalid hosted page access mode')
+                require(row.get(prefix + 'Mode', 'Authenticated') != 'Public' or prefix + 'Permission' not in row,
+                        'public hosted page access cannot select a permission')
+            require(row.get('pageMode', 'Authenticated') != 'Authenticated' or
+                    row.get('bootstrapMode', 'Authenticated') == 'Authenticated',
+                    'hosted page bootstrap cannot weaken page admission')
         elif row['kind'] == 'apiCall':
             require(row['intent'] in ('application', 'delegated'), 'unsupported call intent')
             require(isinstance(row['permissions'], list) and set(row['permissions']) <=

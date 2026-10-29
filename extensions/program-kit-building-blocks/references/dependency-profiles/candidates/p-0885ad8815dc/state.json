@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "profile": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/p-0885ad8815dc/profile.json",
+    "sha256": "6b357d932ef766f4d64a64c4dec5693881aa112021b8c9733d58384ffc5380fe"
+  },
+  "catalog": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/p-0885ad8815dc/catalog.json",
+    "sha256": "803caa63e8654df815c996c2d0462c222514c27ec089e553394f4d6147e7c2b7"
+  },
+  "snapshot": {
+    "path": "catalogs/candidate-382ad7a5/target-803caa63e8654df815c996c2d0462c222514c27ec089e553394f4d6147e7c2b7.json",
+    "sha256": "803caa63e8654df815c996c2d0462c222514c27ec089e553394f4d6147e7c2b7",
+    "base": {
+      "path": "catalogs/candidate-382ad7a5/base-8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae.json",
+      "sha256": "8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae"
+    }
+  },
+  "identity": "p-0885ad8815dc",
+  "status": "qualified",
+  "publisherRelease": {
+    "commit": "bc66af8d7a707b4d2ae1f199dfdcdfd3a428f07a",
+    "workflow": "https://github.com/orbyss-io/dotnet-foundation/actions/runs/40891887060"
+  },
+  "recipe": {
+    "path": "candidates/p-0885ad8815dc/recipe-2a5febcd.json",
+    "sha256": "2872ef1eba9a2a8e569c5542a115aeb203b3f837eb44208b66c54897ae70d566"
+  },
+  "proof": {
+    "path": "candidates/p-0885ad8815dc/qualification.json",
+    "sha256": "7d420f55df1ea66634ff073317fa5e342ff457e0663c26b862afee43a4eed5bd"
+  },
+  "lockSha256": "51b069060f6977a252d60bc66b0f9d16b33dab0b810c526d9b6f69cecc774517",
+  "knowledge": {
+    "path": "candidates/p-0885ad8815dc/knowledge/index.json",
+    "sha256": "2c959296e94aba3e0e4b2eec6837b4d2d3670fe790a48bf8a5615c696d994f57"
+  }
+}

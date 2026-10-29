@@ -282,6 +282,11 @@ def publisher_contracts(repository, configuration=None, selected_packages=None, 
     if available:
         result['browserPresentation'] = {'enabled': presentation.get('enabled', True)}
         if result['browserPresentation']['enabled']:
+            prefix = 'Foundation:Web:Presentation:'
+            supported = {setting['path'][len(prefix):].split(':', 1)[0]
+                         for _, _, setting in rows(result) if setting['path'].startswith(prefix)}
+            require(set(presentation.get('settings', {})) <= supported,
+                    'presentation option absent from the selected published settings contract')
             configured = defaults(result, 'Foundation:Web:Presentation:')
             configured.update(presentation_defaults or {})
             configured.update(presentation.get('settings', {}))

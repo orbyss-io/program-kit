@@ -468,6 +468,12 @@ into the application. The application-owned writer example below is for a retain
 publisher without that capability or a justified custom presentation using its public
 extension seam; it is not the default ahead of an available native feature.
 
+`IProblemPageRenderer` already replaces errors in Foundation 0.3.9. Foundation 0.3.11
+adds `Locales`, language headers, `MaxPageBytes` and `IBrowserRecoveryPageRenderer`.
+The typed `presentation.settings` requires those options in the selected publisher metadata.
+Start with settings; consumers own translations/branding. A trusted layout override preserves
+native controls and antiforgery; null/throwing/oversized output uses the native safe fallback.
+
 Browser presentation is part of application acceptance. Keep authentication machine/API problems
 and `/bff/signed-out` typed JSON as protocol contracts. An application-owned presentation feature
 uses `IAuthenticationErrorWriter` for safe browser callback/access-denied output and provides public
@@ -478,14 +484,11 @@ the existing writer and independent cookie-session observation. Register it thro
 real HTTP feature and map its public session page separately; qualify against the selected publisher.
 Preserve final private/no-store/no-index/security policies; no route shadowing or private bootstrap
 for anonymous recovery. Inspect actual session state independently of a callback-error URL.
-Bundle the maintained `eng/web/authentication-recovery-focus.ts` into a public owner-local asset
-and pass its actually served shell-relative module path to the presentation example. External code
-preserves the selected CSP without inline scripts and must be available to anonymous recovery.
-Initial autofocus alone can fail behind a provider popup. The module handles pending heading focus
-on document activation/visibility without stealing a user's chosen control; dynamic owner pages
-dispose the previous `focusAuthenticationRecovery` selection before replacing content.
-Retain readable HTML/keyboard recovery without scripts. Test actual application-selected focus after
-returning to the owner window; a test-side heading focus call cannot establish that behavior.
+For a custom writer, serve `eng/web/authentication-recovery-focus.ts` as a public shell-local
+module under the selected CSP and pass its served path to the example. It defers heading focus
+until document activation/visibility and respects a chosen control. Dispose its previous
+`focusAuthenticationRecovery` selection before replacing content. Preserve scriptless keyboard
+recovery. Test actual focus on returning from a provider popup; test-side focus proves nothing.
 Where the exact selected publisher exposes initial-login availability recovery, include `/bff/login`
 in the writer's explicit browser-purpose paths. Published Foundation 0.3.4 keeps the writer interface
 and `TryAddSingleton` replacement seam, and additionally routes proven native provider transport,

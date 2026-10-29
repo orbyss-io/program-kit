@@ -129,6 +129,14 @@ def prepare(refresh_publisher_knowledge=False, reason=None, tool=None):
                 role='Independently selected native browser presentation, confirmation and private session lifecycle.')
             package['activations'] = [{'featureIdentity': 'Orbyss.Foundation.Web.Presentation', 'targetSlot': 'shell'}]
             target['packages'][identity] = package
+    if tuple(map(int, families['foundation'].split('.'))) >= (0, 3, 11):
+        identity = 'nuget:Orbyss.Foundation.Web.DynamicPages'
+        if identity not in target['packages']:
+            package = copy.deepcopy(target['packages']['nuget:Orbyss.Foundation.Web.ProblemDetails'])
+            package.update(packageId='Orbyss.Foundation.Web.DynamicPages', version=families['foundation'],
+                role='Optional request-time pages with consumer-owned publication and authorization checks.')
+            package['activations'] = [{'featureIdentity': 'Orbyss.Foundation.Web.DynamicPages', 'targetSlot': 'shell'}]
+            target['packages'][identity] = package
     if refresh_publisher_knowledge and current['families'] != profile_families(target):
         raise ValueError('Publisher-knowledge refresh requires unchanged package families; use normal dependency preparation for upgrades')
     target['resolutionRevision']+=1
@@ -206,6 +214,7 @@ PUBLISHER_GUIDANCE = frozenset({
     'README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'src/Orbyss.Foundation.Host/NOTICE.md',
     'docs/authentication.md', 'docs/foundation-contracts-adoption.md',
     'docs/host-transport-budgets.md', 'docs/hosted-application-pages.md',
+    'docs/dynamic-page-and-recovery-adoption.md',
     'docs/json-canonicalization-decision.md', 'docs/package-loader-qualification.md',
 })
 
