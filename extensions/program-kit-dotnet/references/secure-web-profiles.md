@@ -3,20 +3,17 @@
 ## Purpose
 
 <!-- program-kit:knowledge-rule principle.secure-web-owner-contract -->
-This is an implementation contract, not a menu of unanswered questions. Once a profile is selected,
-the Orbyss Foundation web building blocks supplies its authentication, common authorization, HTTP,
-configuration, operational, and test behavior. An application `.Api` implementation supplies route
-ownership, wire contracts, stable permission/policy metadata or an explicit anonymous declaration,
-and its business outcomes; it does not create an application-root web-boundary feature.
+Selected Foundation web profiles own authentication, common authorization, HTTP, configuration,
+operations and tests. Consumer `.Api` packages own routes, wire contracts, stable permission/policy
+metadata or explicit anonymous access, and business outcomes. Do not add an application-root
+web-boundary feature.
 
 Keep endpoint/binding/wire contracts/mappings together per operation; composition registers/maps only.
-Shared permission keys belong to semantic feature contracts. On Foundation 0.3.10 or later, construct consumer
-JSON metadata with `JsonContractFactory.Request<T>()` and `JsonContractFactory.Response<T>()`, using named
-capacity overrides and an optional typed profile key. Keep the declaration on its DTO or operation owner;
-preserve intentional supported intervals when simplifying existing code. Reuse descriptive JSON definitions for native
-registration/OpenAPI while retaining typed readers/results and cold DI. Supported intervals differ from active
-budgets; schemas do not replace runtime admission. Preserve binding/status/schema identities. See the
-[operation contract recipe](examples/typed-operation/README.md) for the complete integration and limits.
+Shared permission keys belong to semantic feature contracts. Use the
+[version-qualified factory recipe](examples/typed-operation/README.md) for shared DTO/operation JSON
+metadata. Reuse definitions for native registration/OpenAPI with typed readers/results and cold DI.
+Supported intervals differ from shell budgets; schemas do not replace runtime admission.
+Preserve binding/status/schema identities and the recipe's integration limits.
 
 The profile contract version is recorded in `docs/architecture/bootstrap-decisions.json` and
 `eng/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking

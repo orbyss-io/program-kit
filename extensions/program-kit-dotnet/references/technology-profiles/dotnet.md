@@ -238,15 +238,13 @@ internal sealed class Endpoint(INoteLookup notes)
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule principle.minimal-api-contract-verification -->
-The operation-owned `ResponseMapping` uses the selected qualified typed Foundation response budget
-and problem contribution contracts. This layout example does not supply that application mapping,
-authorization or metadata: each operation must define and test them. For a protected read, pass the
-admitted identity through the application-owned resource policy; do not parse provider claims here.
+Operation-owned `ResponseMapping` uses qualified Foundation typed response budgets and problem contracts.
+The layout omits mapping, authorization and metadata: define/test them per operation. Protected reads
+pass admitted identity through the application resource policy; never parse provider claims here.
 
-Record stable operation identity, ownership, paths and behavior in the normal plan/tasks.
-Generate and compare OpenAPI through eng/ and test the actual operation contracts. Use ordinary
-code review for thin composition and domain ownership. Separate api-proof and artifact-ownership
-attestations are not required; a folder name alone is not semantic proof.
+Record operation identity, ownership, paths and behavior in plan/tasks. Generate/compare OpenAPI through
+`eng/`, test actual contracts, and review composition/domain ownership. No separate api-proof or
+artifact-ownership attestations are required; folders alone establish no semantics.
 
 Require every public operation to define:
 
@@ -259,17 +257,12 @@ Require every public operation to define:
 - OpenAPI metadata and compatibility evidence when externally consumed;
 - traceability to the owning vertical slice and verification of the observable outcome.
 
-For Foundation 0.3.10 or later, create consumer JSON contract metadata through
-`JsonContractFactory.Request<T>()` and `JsonContractFactory.Response<T>()` in
-`Orbyss.Foundation.Json.AspNetCore`. Keep one shared declaration on the DTO or operation owner.
-Use named supported byte/depth overrides and the optional typed `profile` key; omit unchanged defaults.
-Preserve existing supported intervals, including explicit minimum depths, when replacing boilerplate.
-These requirements do not set the shell's deployment budgets. Earlier pinned consumers retain their
-version-supported APIs until an explicit dependency adoption.
+On Foundation 0.3.10+, use `JsonContractFactory.Request<T>()` / `Response<T>()` from
+`Orbyss.Foundation.Json.AspNetCore` for shared DTO/operation metadata with named capacity/profile
+overrides. Preserve supported intervals; shell budgets remain separate.
 
-Endpoints remain thin transport adapters. They may coordinate a simple transaction script or invoke
-application/domain behavior, but they do not own business invariants. Endpoint filters handle
-transport-cross-cutting concerns only and must not become a hidden domain pipeline.
+Endpoints adapt transport and may coordinate application/domain work; business invariants stay
+outside them. Filters handle transport concerns, never hidden domain pipelines.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule principle.active-api-capability-bindings -->
