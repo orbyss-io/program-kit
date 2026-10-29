@@ -15,6 +15,9 @@ usable in the task that consumes them without duplicating the full research. Put
 review/checks on the first coherent case of a new or uncertain approach before replicating it;
 this technical review adds no automatic human checkpoint or per-task full-app acceptance run.
 Private file/class refinements can evolve within the agreed contracts.
+For UI tasks, carry the relevant agreed design reference and selected component choices forward
+where they guide the work. Include comparison with the actual implemented experience at the existing
+runnable story review; do not introduce a per-screen gate or repeat the entire design note per task.
 For a large task, name small observable increments and their real prerequisites/checks. Settings
 belong beside their first consumer; complete inventory reconciliation belongs at closure. A first
 working provider case does not waive the agreed contention, expiry, drain, restart or ownership checks.

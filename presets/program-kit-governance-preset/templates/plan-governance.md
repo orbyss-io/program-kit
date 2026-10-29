@@ -5,6 +5,12 @@ dependency boundaries. Link relevant ADRs/domain/C4 views when useful. Preserve 
 choices and explain substantive changes. A small plan or legitimate custom stack needs no toolkit
 receipt, roadmap status, fixed table format or consumer qualification ceremony.
 
+For affected UI work, inspect the relevant agreed design and explain how the plan realizes it with
+the accepted frontend, components, assets and styling. Link the chosen reference; reuse suitable
+prototype material without treating its mock code or dependencies as production decisions. Review
+choices that affect what the person sees, understands or does through the existing engineering
+feedback method. Routine internal changes that preserve the experience need no renewed design review.
+
 Make consequential choices traceable in ordinary plan, research or ADR prose: applicable source
 and selected-version facts, constraints, chosen approach, useful rejected alternatives, semantic
 commitments and verification. Separate documented facts from assumptions, decisions and unknowns

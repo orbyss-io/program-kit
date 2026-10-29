@@ -20,6 +20,16 @@ explain the consequence, propose a resolution and identify affected work. Distin
 selected-version facts, local assumptions, experiments and unknowns. A task authored by an agent
 is no authority for an unjustified design; a previous plan cannot defend an invalid assumption.
 
+For affected UI journeys, consider whether the finding changes what the person sees, understands
+or does. Consult the current agreed design and its rationale; distinguish chosen experience from
+illustrative records, mock behavior and exploratory alternatives. A new approval step or a component
+limitation can change the journey. Explain the affected choice, research useful alternatives and
+show a focused revised preview where it helps the person decide. Resolve an unsettled consequential
+change with the human before dependent work; record the actual answer in the existing design note
+and owning spec/plan/tasks as relevant. Preserve the previous reference and unrelated choices.
+Neither a new technical plan nor an old prototype automatically settles a contradiction. Routine
+internal refinements preserving the experience need no renewed approval or prototype update.
+
 ## Resolve and resume
 
 1. Identify the actual product or technical decision owner. Resolve routine facts through focused

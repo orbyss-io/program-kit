@@ -41,6 +41,30 @@ links, decisions, simulated behavior and gaps. These provide references for late
 specifications and implementation. Choosing a prototype framework does not silently change the
 production stack. Existing shared UI profiles and generated production output keep their owners.
 
+UI decisions also arise naturally during product and feature conversations: when a journey exposes
+a consequential navigation, information, action or recovery choice, the agent discusses it there.
+Sketches and prototypes are available when helpful; each journey does not require generated screens.
+
+Once you choose a design, its prototype and note are linked from product intent or the relevant
+feature document. The note records what you chose and what remains illustrative or exploratory.
+Specification reuses the agreed experience; planning explains how to implement it, and tasks carry
+the relevant reference forward. The agent inspects the affected design rather than redesigning it.
+
+Existing reviews consider how later decisions affect what you see, understand or do. A new approval
+step, for example, may warrant a focused journey revision; an internal refactor preserving the
+experience needs no new design decision. Consequential changes return to the design conversation,
+with their reason and affected preview where useful, preserving unrelated choices. At the normal
+runnable story review, compare the actual implementation with the agreed experience. After delivery,
+the implemented UI and current decisions become the reference; prototypes remain available for
+rationale and exploration without becoming a second application to maintain.
+
+This follows the emphasis on shared intent, reusable components and ongoing collaboration in
+[Figma's handoff guidance](https://www.figma.com/blog/the-designers-handbook-for-developer-handoff/)
+and [agent guidance](https://help.figma.com/hc/en-us/articles/34855090823063-MCP-server-best-practices).
+[GOV.UK's prototyping guidance](https://www.gov.uk/service-manual/design/making-prototypes) also
+distinguishes exploring a design from engineering production code. These inform the approach;
+the consumer chooses its design tools and frontend.
+
 No backend, identity provider, database, full production acceptance suite or additional intake
 approval is needed to explore a design. Use existing installed tools and ordinary project packages.
 Real services, publication and implementation remain separately scoped work. Prototype review

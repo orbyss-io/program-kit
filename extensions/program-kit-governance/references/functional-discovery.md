@@ -72,6 +72,12 @@ reusing answers already supplied. Derive information hierarchy and navigation fr
 before recommending an archetype or layout. Explain alternatives through use: list/detail versus
 separate screens, for example, rather than requiring the user to select internal profile enums.
 
+As a journey develops, bring consequential UI choices into that same conversation: entry points,
+information needed for a decision, available actions, navigation and visible outcomes or recovery.
+Do not defer these questions wholesale until planning, or ask them again when already settled.
+Use a sketch or the consumer UI skill's prototype when it helps resolve a choice; a journey does
+not automatically require a questionnaire, generated screens or a new approval round.
+
 Explore creation/edit entry, feedback, empty/error states and recovery when they change usability
 or product meaning. A brief screen sequence or textual layout sketch can expose assumptions; use
 a wireframe when it resolves a consequential choice. Do not generate artwork or high-fidelity screens

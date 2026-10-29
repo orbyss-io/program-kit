@@ -10,6 +10,12 @@ For after-plan or after-tasks, `{SCRIPT} check --feature-dir <feature> --phase a
 (or `after-tasks`) supplies relevant references without changing files or running engineering.
 Read the relevant sources behind that index. Rendering references does not perform this review.
 
+For affected UI journeys at specification, plan, task or implementation review, follow current
+design references in product intent/feature documents and inspect the relevant pages and decisions.
+Consider whether new choices affect what the person sees, understands or does. Apply
+`references/engineering-feedback.md` to meaningful changes while preserving settled design; do not
+require a prototype, a screen mapping table or a new design approval for routine internal refinements.
+
 ## Post-plan technical review
 
 After planning, inspect the actual spec, research, plan, contracts/data model where relevant,

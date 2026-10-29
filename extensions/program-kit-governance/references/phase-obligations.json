@@ -3871,7 +3871,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "62fa60b85ceda9101779d45ee533d7758c47e95d96e64864d22e0c0b8b8a0d88",
+        "sha256": "71a3101a5e90e7a548ba669e89956ea8ef5cc54586e4f97b03b45c1609b8fea3",
           "kind": "manual",
           "owner": "program-kit-governance",
           "reason": "Conversational correction through existing phase owners and authored documents; native Analyze reports read-only before separate authorized repair. Registration proves availability, not agent behavior or human acceptance."

@@ -32,6 +32,12 @@ Adapt patterns while preserving their explicit commitments. Catalog qualificatio
 design prerequisite; exact templates apply when a selected generator requires them. A file map,
 coding-unit manifest or every-task full-app acceptance run is not required.
 
+For affected UI work, use the current agreed design linked from the feature/product documents.
+Preserve its experience and reuse suitable assets/components; inspect production fitness before
+reusing prototype code. Compare the actual journey and presentation at the existing runnable story
+review. Resolve material UI deviations through engineering feedback, without a per-control approval
+or an automatic prototype refresh for every backend/internal change.
+
 Before dependent edits resolve consequential product, ownership, contract and risk choices using
 normal spec/ADR/plan/tasks. Investigate accessible facts and routine engineering choices locally.
 Keep the project's stack and local alternatives available. Selected generators enforce their own

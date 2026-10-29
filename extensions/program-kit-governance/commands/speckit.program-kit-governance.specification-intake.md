@@ -9,6 +9,15 @@ Use the shipped grilling skill proportionally. Reuse settled language, journeys,
 lifecycles, quality constraints and supplied examples. Ask only consequential unresolved questions.
 A rough request and a detailed existing design are both valid inputs.
 
+For affected human-facing journeys, follow any current UI design reference in product intent or
+the feature documents. Inspect the relevant prototype/pages and readable decisions, reusing what
+the user agreed instead of designing it again. Carry observable interactions into the spec; keep
+production component/framework selection in planning. Distinguish agreed experience, illustrative
+sample behavior and open questions. Raise UI choices as journeys expose them, without requiring a
+prototype or reopening unrelated design. Resolve a material mismatch through the existing
+`references/engineering-feedback.md` method; neither the prototype nor a new spec silently overrides
+an actual human decision.
+
 When handing off from product intake to the first feature, check the conversation's actual linked
 Review overview and human decision. If the roadmap/domain/C4 walkthrough was omitted or the
 confirmation scope was unclear, present the missing review and pause for a scoped decision before

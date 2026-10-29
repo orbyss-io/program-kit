@@ -78,5 +78,27 @@ which journeys/pages are represented, component choices and research links, impo
 what is simulated, and remaining gaps. Record actual user decisions and their scope; visual approval
 does not establish implementation acceptance. The code may be disposable, but retain the chosen
 design and customizations as references for later ordinary specifications and implementation.
-Link the reviewed material from those artifacts when relevant; no parallel blueprint schema,
-confirmation receipt or automatic rewrite of the product baseline is needed.
+
+When the user chooses a design, link the chosen prototype and design note from existing product
+intent or the relevant feature document so another session can find them. Use the conversation to
+explain what was agreed and why, what is illustrative and what remains exploratory. For example,
+the split workspace, inline editing and branding may be chosen while sample records and a mobile
+layout remain illustrative. Preserve the chosen version through ordinary source history or a
+retained variant as appropriate; do not let a later experiment silently replace the reviewed design.
+No per-control confirmation, approval receipt or new design registry is needed.
+
+Specification and planning reuse the relevant design rather than starting UI design over. Consult
+the actual pages/source and the note, keeping observable experience in the spec and production
+component/framework choices in the plan. Reuse suitable assets, tokens and components; prototype
+code still needs production engineering review. Visual agreement does not silently adopt mock
+rules, dependencies or integrations. Missing detail can be designed consistently without reopening
+settled choices; missing prototype files do not block independent work on known requirements.
+
+Use the existing [engineering feedback method](engineering-feedback.md) when a later decision
+affects the agreed experience. Raise the affected choice, explain its effect and show a focused
+preview where useful; preserve unrelated design and record the actual decision in the owning
+documents. At the existing runnable story review, compare the implemented journey, layout,
+branding and interactions with the agreed reference. Automated checks support this review rather
+than establishing human design acceptance. After delivery, the implemented UI and current accepted
+decisions guide further work; retain prototypes for rationale and new exploration without maintaining
+a second synchronized application. An older prototype does not override later accepted changes.

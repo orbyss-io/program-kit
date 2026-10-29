@@ -19,6 +19,11 @@ Support a suitable custom stack or manual alternative. Curated patterns are usef
 consumer choice does not need qualification in a toolkit registry. Actual selected library, compiler,
 SDK, security and product contracts remain constraints. Explain unknown facts and investigate them.
 
+For affected UI work, follow the design links in product intent/spec/plan to the relevant current
+pages, prototype source and decisions. Bring that experience into planning and carry its reference
+into tasks where useful. Read only the affected design; no full-product screen inventory or design
+receipt is required. Keep agreed behavior separate from illustrative mocks and research choices.
+
 Record consequential decisions, tests, exact prerequisites and agreed human review points directly
 in plan.md/tasks.md. Preserve existing IDs, checked boxes, failures and local edits on resume. Save
 useful task groups as they are ready. No hidden task checkpoint, approval receipt, bootstrap history
