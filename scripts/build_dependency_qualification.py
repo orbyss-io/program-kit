@@ -24,6 +24,17 @@ def require(condition, detail):
         raise ValueError('Incomplete dependency qualification: ' + detail)
 
 
+def verify_host_profile_binding(profile: Path, selected: dict, inputs: dict) -> None:
+    """Opaque short identities retain an exact source/profile binding before sealing."""
+    if not selected['id'].startswith('p-'):
+        return
+    expected = {'id': selected['id'], 'sha256': blocks.raw_sha256(profile),
+                'foundationRelease': selected['families']['foundation']['releaseVersion'],
+                'catalogResolutionSha256': selected['catalogResolutionSha256']}
+    require(inputs.get('dependencyProfile') == selected['id'] and inputs.get('dependencyProfileBinding') == expected,
+            'host exact profile source binding differs')
+
+
 def verify_named_host_evidence(host: Path, result: dict) -> None:
     """Recheck retained image, archive, native provenance and cleanup bytes before sealing."""
     require(blocks.load_json(host / 'runtime-inputs.json') == result['inputs'],
@@ -127,6 +138,7 @@ def build(profile: Path, native: Path, browser: Path, availability: Path, host: 
         blocks.retained_browser_evidence(blocks.profile_registry(), selected, retained_browser, available['artifacts'])
         summary = retained_browser
     host_result = blocks.load_json(host / 'qualification-result.json')
+    verify_host_profile_binding(profile, selected, host_result['inputs'])
     require(host_result.get('satisfied') is True and host_result['inputs']['catalogResolutionSha256'] == selected['catalogResolutionSha256'], 'host profile differs')
     if explicit:
         verify_named_host_evidence(host, host_result)
