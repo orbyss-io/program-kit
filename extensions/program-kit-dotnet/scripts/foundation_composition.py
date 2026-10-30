@@ -295,7 +295,7 @@ def publisher_contracts(repository, configuration=None, selected_packages=None, 
     return result
 
 
-def browser_declarations(repository):
+def browser_declarations(repository, *, require_autosave=False):
     """Use exact package-owned ESM declarations from the selected frozen knowledge."""
     import dependency_profile
     blocks = dependency_profile.resolver()
@@ -318,6 +318,23 @@ def browser_declarations(repository):
         require(digest(data) == documents[0]['sha256'] == files.get('browser/' + name),
                 'publisher browser declaration differs from its exact native package: ' + name)
         result[name] = data
+    optional = ('autosave.mjs', 'autosave.d.mts')
+    present = any('browser/' + name in files or any(
+        row['publisherPath'] == 'src/' + package + '/browser/' + name for row in knowledge['documents'])
+        for name in optional)
+    if present:
+        for name in optional:
+            source = 'src/' + package + '/browser/' + name
+            documents = [row for row in knowledge['documents'] if row['publisherPath'] == source]
+            require(len(documents) == 1 and 'browser/' + name in files,
+                    'native autosave capture requires both module and declaration source/package members')
+            data = blocks.publisher_document_bytes(registry, documents[0])
+            require(digest(data) == documents[0]['sha256'] == files['browser/' + name],
+                    'native autosave differs from its exact package/source: ' + name)
+            if name.endswith('.d.mts'):
+                result[name] = data
+    require(not require_autosave or present,
+            'selected public profile does not supply native autosave; adopt a qualified profile containing that capability')
     return result
 
 

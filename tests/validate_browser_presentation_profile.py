@@ -134,6 +134,74 @@ class PresentationProfileTests(unittest.TestCase):
                 foundation.browser_declarations(self.root)
             self.assertEqual(b'changed declaration', (self.root / 'session.d.mts').read_bytes())
 
+    def autosave_capture(self, supported=True):
+        row = next(row for row in self.effective['publisherKnowledge']['packages'] if row['id'].endswith('.Presentation'))
+        path = self.root / row['path']; value = json.loads(path.read_bytes()); value['payloadFiles'] = {}
+        documents = []
+        names = ['configuration.d.mts', 'presentation.d.mts', 'bff.d.mts', 'session.d.mts', 'spa.d.mts']
+        if supported:
+            names += ['autosave.mjs', 'autosave.d.mts']
+        for name in names:
+            data = ('// fictional exact package/source member: ' + name).encode()
+            (self.root / name).write_bytes(data)
+            digest = hashlib.sha256(data).hexdigest(); value['payloadFiles']['browser/' + name] = digest
+            documents.append({'publisherPath': 'src/Orbyss.Foundation.Web.Presentation/browser/' + name,
+                              'path': name, 'sha256': digest})
+        self.effective['publisherKnowledge']['documents'] = documents
+        self.save_capture(row, path, value)
+        native = dependency_profile.resolver()
+        resolver = SimpleNamespace(effective_dependency_context=lambda _: self.effective,
+                                   publisher_document_bytes=native.publisher_document_bytes)
+        return row, path, value, resolver
+
+    def save_capture(self, row, path, value):
+        raw = json.dumps(value).encode(); path.write_bytes(raw)
+        row.update(sha256=hashlib.sha256(raw).hexdigest(), byteLength=len(raw))
+
+    def test_autosave_is_optional_for_historical_profiles_and_required_only_by_selected_operation(self):
+        _, _, _, resolver = self.autosave_capture(supported=False)
+        before = {p.name: p.read_bytes() for p in self.root.iterdir() if p.is_file()}
+        with patch.object(dependency_profile, 'resolver', return_value=resolver):
+            self.assertEqual(5, len(foundation.browser_declarations(self.root)))
+            with self.assertRaisesRegex(ValueError, 'selected public profile does not supply native autosave'):
+                foundation.browser_declarations(self.root, require_autosave=True)
+        self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir() if p.is_file()})
+
+    def test_autosave_projects_exact_declaration_without_vendoring_runtime(self):
+        _, _, _, resolver = self.autosave_capture()
+        with patch.object(dependency_profile, 'resolver', return_value=resolver):
+            declarations = foundation.browser_declarations(self.root, require_autosave=True)
+        self.assertEqual((self.root / 'autosave.d.mts').read_bytes(), declarations['autosave.d.mts'])
+        self.assertNotIn('autosave.mjs', declarations)
+
+    def test_partial_or_duplicate_autosave_capture_is_not_treated_as_unsupported(self):
+        for name in ('autosave.mjs', 'autosave.d.mts'):
+            for owner in ('source', 'package', 'duplicate'):
+                with self.subTest(name=name, owner=owner):
+                    row, path, value, resolver = self.autosave_capture()
+                    documents = self.effective['publisherKnowledge']['documents']
+                    source = 'src/Orbyss.Foundation.Web.Presentation/browser/' + name
+                    if owner == 'source':
+                        documents[:] = [d for d in documents if d['publisherPath'] != source]
+                    elif owner == 'package':
+                        del value['payloadFiles']['browser/' + name]
+                    else:
+                        documents.append(copy.deepcopy(next(d for d in documents if d['publisherPath'] == source)))
+                    self.save_capture(row, path, value)
+                    with patch.object(dependency_profile, 'resolver', return_value=resolver):
+                        with self.assertRaisesRegex(ValueError, 'requires both module and declaration'):
+                            foundation.browser_declarations(self.root)
+
+    def test_changed_module_or_declaration_is_rejected_without_rehashing_authority(self):
+        for name in ('autosave.mjs', 'autosave.d.mts'):
+            with self.subTest(name=name):
+                _, _, _, resolver = self.autosave_capture()
+                changed = self.root / name; changed.write_bytes(b'changed published member')
+                with patch.object(dependency_profile, 'resolver', return_value=resolver):
+                    with self.assertRaisesRegex(ValueError, 'differs from its exact package/source'):
+                        foundation.browser_declarations(self.root)
+                self.assertEqual(b'changed published member', changed.read_bytes())
+
     def test_generated_binding_updates_untouched_entry_and_refuses_unreviewed_or_stale_custom_source(self):
         graph = two_apps(ROOT); template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
         frontend = graph['resources']['policy-web']; entry = frontend['directory'] + '/' + frontend['entry']
