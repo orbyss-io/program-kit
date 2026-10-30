@@ -42,7 +42,7 @@ import building_blocks as blocks
 catalog_path=installed/'program-kit-building-blocks/references/orbyss-building-blocks.json'
 catalog=blocks.load_json(catalog_path)
 path=root/'docs/architecture/building-block-selection.json';old=blocks.load_json(path)
-graph=blocks.load_json(root/'eng/architecture.json')['runtimeComposition']['projects']
+graph=blocks.load_json(root/'config/program-kit/architecture.json')['runtimeComposition']['projects']
 roles={p['path']:p['role'] for p in graph}
 targets=[]
 for target in old['targets']:
@@ -186,7 +186,7 @@ def scenario(mode):
             assert result['coding']['status'] == 'passed'
             baseline('old')
             scripts = consumer / '.specify/extensions/program-kit-governance/scripts'
-            run('old-current-check-after-native-context', [sys.executable, consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py',
+            run('old-current-check-after-native-context', [sys.executable, consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py',
                 '--repository', consumer, '--scope', 'Focused', '--check', 'snapshot-proof'])
             run('old-current-pattern-binding', [sys.executable, scripts / 'coding_patterns.py', 'bind-evidence', '--repository', consumer,
                 '--feature-dir', 'specs/001-learn', '--configuration', 'Release', '--id', 'local-f7'])
@@ -196,15 +196,15 @@ def scenario(mode):
             # bytes are independently retained in addition to the qualified pattern.
             run('native-lock', ['dotnet', 'restore', consumer / 'tests/Proof/SnapshotProof.csproj', '--use-lock-file', '-m:1'])
             write(consumer / 'docs/private/unrelated.txt', 'FICTIONAL_PRIVATE_F8_CANARY_DO_NOT_PROMOTE\n')
-            write(consumer / '.program-kit/evidence/original-f8.json', {'historicalOnly': True, 'source': F7,
+            write(consumer / 'config/program-kit/evidence/original-f8.json', {'historicalOnly': True, 'source': F7,
                 'claim': 'Fictional immutable witness; no approval or public provenance'})
             protected = ['src/Lookup/OwnerReport.cs', 'src/Lookup/SnapshotQuery.cs', 'docs/architecture/coding-patterns.json',
                          'docs/private/unrelated.txt', 'tests/Proof/packages.lock.json',
-                         '.program-kit/evidence/original-f8.json', 'eng/building-blocks.lock.json',
+                         'config/program-kit/evidence/original-f8.json', 'config/program-kit/building-blocks.lock.json',
                          'docs/architecture/building-block-selection.json', 'docs/architecture/architecture-map.json',
-                         '.program-kit/dependency-profile.json', 'docs/architecture/bootstrap-decisions.json',
+                         'config/program-kit/dependency-profile.json', 'docs/architecture/bootstrap-decisions.json',
                          'specs/001-learn/spec.md', 'specs/001-learn/plan.md', 'specs/001-learn/tasks.md']
-            protected += [p.relative_to(consumer).as_posix() for p in (consumer / '.program-kit/dependency-profiles').glob('*') if p.is_file()]
+            protected += [p.relative_to(consumer).as_posix() for p in (consumer / 'config/program-kit/dependency-profiles').glob('*') if p.is_file()]
             protected += [reference['path'] for reference in json.loads((consumer / 'docs/architecture/coding-patterns.json').read_bytes())['codingUnits'][0]['pattern']['inputs']
                           if reference['root'] == 'repository' and (consumer / reference['path']).is_file()]
             protected += [p.relative_to(consumer).as_posix() for p in (consumer / '.specify/program-kit/render-profiles').glob('*.json')
@@ -225,12 +225,12 @@ def scenario(mode):
             write(app, app.read_text().replace('SnapshotQuery', 'SnapshotScan'))
             baseline('human')
             # Native test setup is available but no feature or lesson is adopted.
-            write(consumer / 'eng/verification.json', {'schemaVersion': 1, 'testGroups': [], 'toolkitChecks': [{
+            write(consumer / 'config/program-kit/verification.json', {'schemaVersion': 1, 'testGroups': [], 'toolkitChecks': [{
                 'id': 'snapshot-proof', 'script': 'tests/Proof/check.py', 'arguments': [],
                 'inputs': ['src/Lookup/**', 'tests/Proof/**', 'global.json', 'runtime.txt', 'NuGet.Config',
                            'Directory.Build.props', 'Directory.Build.targets'], 'timeoutSeconds': 60}]})
-            write(consumer / 'eng/Invoke-RepositoryVerification.ps1', f'''param([string]$Scope='Focused',[string]$FeatureDirectory,[string]$ChangedFrom)
-& '{sys.executable.replace("'", "''")}' (Join-Path $PSScriptRoot '../.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py') --repository (Split-Path $PSScriptRoot) --scope Focused --check snapshot-proof
+            write(consumer / 'scripts/Invoke-RepositoryVerification.ps1', f'''param([string]$Scope='Focused',[string]$FeatureDirectory,[string]$ChangedFrom)
+& '{sys.executable.replace("'", "''")}' (Join-Path $PSScriptRoot '../.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py') --repository (Split-Path $PSScriptRoot) --scope Focused --check snapshot-proof
 exit $LASTEXITCODE
 ''')
             from specify_cli.presets import PresetResolver
@@ -314,12 +314,12 @@ old=root/'historical-catalog.json';blocks.atomic_write(old,blocks.pretty_json(ca
 selection,architecture=accepted_fixture(blocks,root,catalog)
 blocks.preserve_dependency_profile(root,blocks.load_json(selection),old)
 plan=blocks.resolve(root,selection,old,version)
-blocks.apply_materialization(root,root/'eng/building-blocks.lock.json',plan,catalog)
-before=(root/'.program-kit/dependency-profile.json').read_bytes()
+blocks.apply_materialization(root,root/'config/program-kit/building-blocks.lock.json',plan,catalog)
+before=(root/'config/program-kit/dependency-profile.json').read_bytes()
 current=installed/'program-kit-building-blocks/references/orbyss-building-blocks.json'
 actual=blocks.resolve(root,selection,current,version)
 assert actual['inputs']['catalog']['resolutionSha256']==blocks.catalog_resolution_sha256(catalog)
-assert before==(root/'.program-kit/dependency-profile.json').read_bytes()
+assert before==(root/'config/program-kit/dependency-profile.json').read_bytes()
 print(json.dumps({'retained':historical,'availableDefault':index['default'],'retainedResolutionSha256':blocks.catalog_resolution_sha256(catalog),'automaticAdoption':False,'fictionalAcceptedArchitecture':True}))
 ''')
             installed = consumer / '.specify/extensions'
@@ -327,7 +327,7 @@ print(json.dumps({'retained':historical,'availableDefault':index['default'],'ret
                                                 (ROOT / 'VERSION').read_text().strip()])
             profiles = installed / 'program-kit-building-blocks/scripts/dependency_profiles.py'
             index = json.loads((installed / 'program-kit-building-blocks/references/dependency-profiles/index.json').read_text())
-            protected = ['eng/building-blocks.lock.json', '.program-kit/dependency-profile.json',
+            protected = ['config/program-kit/building-blocks.lock.json', 'config/program-kit/dependency-profile.json',
                          'docs/architecture/building-block-selection.json']
             original = {p: (profile_root / p).read_bytes() for p in protected}
             run('available-qualified-profiles', [sys.executable, profiles, 'list', '--target', profile_root])
@@ -347,8 +347,8 @@ print(json.dumps({'retained':historical,'availableDefault':index['default'],'ret
             write(model_path, model)
             adopted = run('explicit-profile-acceptance', acceptance)
             assert adopted['materializationPerformed'] is False
-            assert (profile_root / 'eng/building-blocks.lock.json').read_bytes() == original['eng/building-blocks.lock.json']
-            assert (profile_root / '.program-kit/dependency-profile.json').read_bytes() != original['.program-kit/dependency-profile.json']
+            assert (profile_root / 'config/program-kit/building-blocks.lock.json').read_bytes() == original['config/program-kit/building-blocks.lock.json']
+            assert (profile_root / 'config/program-kit/dependency-profile.json').read_bytes() != original['config/program-kit/dependency-profile.json']
             result['profileAdoption'] = {'available': index['default'], 'automaticAdoption': False,
                 'explicitFictionalDecision': True, 'nativeMaterializationAndRuntimeStillDue': True}
             # The installed managed transaction owner supplies actual rollback,
@@ -367,7 +367,7 @@ print(json.dumps({'retained':historical,'availableDefault':index['default'],'ret
                 environment.pop('PROGRAMKIT_TEST_SYNC_FAIL_AFTER_ACTION', None)
             assert snapshot(rollback) == previous
             run('managed-retry', [*sync, '--web-profile', 'spa-pkce'])
-            custom = rollback / 'eng/spa-pkce.json'; custom.write_bytes(custom.read_bytes() + b'\nFictional authored customization\n')
+            custom = rollback / 'config/program-kit/spa-pkce.json'; custom.write_bytes(custom.read_bytes() + b'\nFictional authored customization\n')
             previous = snapshot(rollback)
             run('managed-conflict-preserves-all', [*sync, '--web-profile', 'bff-cookie'], 2)
             assert snapshot(rollback) == previous
@@ -411,12 +411,12 @@ print(json.dumps({'retained':historical,'availableDefault':index['default'],'ret
             result['afterUpdate'] = {p: sha(consumer / p) for p in old['protected']}
             scripts = consumer / '.specify/extensions/program-kit-governance/scripts'
             run('retained-tooling-source', [sys.executable, scripts / 'tooling_witness.py', 'verify',
-                                           '--receipt', '.program-kit/installation/migration.json'])
+                                           '--receipt', 'config/program-kit/installation/migration.json'])
             phase = [sys.executable, scripts / 'phase_obligations.py']
             feature = ['--repository', consumer, '--feature-dir', 'specs/001-learn', '--configuration', 'Release']
             old_registry = (consumer / 'docs/architecture/coding-patterns.json').read_bytes()
             run('updated-adapter-stales-old-proof', [*phase, 'prepare', *feature, '--operation', 'report', '--format', 'json'], 2, 'PKP005')
-            run('current-independent-check', [sys.executable, consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py',
+            run('current-independent-check', [sys.executable, consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py',
                                               '--repository', consumer, '--scope', 'Focused', '--check', 'snapshot-proof'])
             run('current-pattern-binding', [sys.executable, scripts / 'coding_patterns.py', 'bind-evidence', *feature, '--id', 'local-f7'])
             current = run('updated-qualified-prepare', [*phase, 'prepare', *feature, '--operation', 'report', '--format', 'json'])

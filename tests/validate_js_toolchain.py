@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-JS_TOOLCHAIN = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py"
+JS_TOOLCHAIN = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/js_toolchain.py"
 NPM_GRAPH = ROOT / "extensions/program-kit-governance/scripts/npm_graph.py"
 
 
@@ -18,7 +18,7 @@ def main() -> int:
         fixture_root = Path(value).resolve()
         repository = fixture_root / 'consumer'
         repository.mkdir()
-        managed = repository / "eng"
+        managed = repository / "scripts"
         managed.mkdir(parents=True)
         (managed / "js_toolchain.py").write_bytes(JS_TOOLCHAIN.read_bytes())
         (managed / "device_toolchain.py").write_bytes(JS_TOOLCHAIN.with_name("device_toolchain.py").read_bytes())

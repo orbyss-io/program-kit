@@ -83,7 +83,7 @@ def scenario(directory):
         phase, pattern = scripts / 'phase_obligations.py', scripts / 'coding_patterns.py'
         catalog_path = scripts.parent / 'references/phase-obligations.json'
         local_path = consumer / 'docs/architecture/coding-patterns.json'
-        native = extensions / 'program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py'
+        native = extensions / 'program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py'
         def command(name='prepare', scope='specs/001-notes', operation=True, source=False):
             return [phase, name, '--repository', consumer, '--feature-dir', scope, '--format', 'json',
                     *(['--operation', 'list'] if operation else []),
@@ -120,7 +120,7 @@ print('4 independent owner-filter assertions passed; no database/native runtime 
             {'id': identity, 'script': 'tests/query_pattern_check.py', 'arguments': arguments,
              'inputs': ['src/query_example.py', 'src/query_invalid.py', 'src/query_alternative.py'], 'timeoutSeconds': 20}
             for identity, arguments in [('notes-query', []), ('notes-query-invalid', ['--invalid']), ('notes-query-alternative', ['--alternative'])]]}
-        write(consumer / 'eng/verification.json', config)
+        write(consumer / 'config/program-kit/verification.json', config)
         write(consumer / 'docs/architecture/notes-pattern-review.md', '# Fictional ordinary source review\nThe independent oracle fixes expected owner results. This simulated reviewer accepts only this tiny pure-Python semantic example. Provider/HTTP/native application behavior remains due.\n')
         write(consumer / 'docs/patterns/private-query.md', 'LOCAL_OWNER_FILTER: filter by the admitted owner before returning query results. Preserve accepted model/contracts and use the selected provider checks. This fixture qualifies only its tiny Python example.\n')
         write(consumer / 'docs/private-unrelated.md', 'PRIVATE_CANARY_DO_NOT_EXPORT\n')

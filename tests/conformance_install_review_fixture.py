@@ -72,7 +72,7 @@ def scenario(archives):
         assert any(row['bundle_id'] == 'program-kit' for row in records['bundles'])
         scripts = consumer / '.specify/extensions/program-kit-governance/scripts'
         phase, task = scripts / 'phase_obligations.py', scripts / 'task_draft.py'
-        native = consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py'
+        native = consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py'
         assert phase.is_file() and task.is_file() and (scripts / 'operation_readiness.py').is_file()
         feature = consumer / 'specs/001-record'
         write(consumer / '.gitignore', '.specify/\n.github/\nartifacts/\nrequest.json\n')
@@ -117,10 +117,10 @@ def scenario(archives):
         write(consumer / 'src/Record.txt', 'ALPHA  \n')
         write(consumer / 'src/Next.txt', 'ALPHA\n')
         write(consumer / 'checks/record.py', 'from pathlib import Path\nassert Path("src/Record.txt").read_text().strip() == "ALPHA", "record-identity-changed"\nprint("Actual finite record identity preserved; no application acceptance")\n')
-        write(consumer / 'eng/verification.json', {'schemaVersion': 1, 'toolkitChecks': [{
+        write(consumer / 'config/program-kit/verification.json', {'schemaVersion': 1, 'toolkitChecks': [{
             'id': 'record-fixture', 'script': 'checks/record.py', 'arguments': [],
             'inputs': ['checks/record.py', 'src/Record.txt'], 'timeoutSeconds': 10}]})
-        write(consumer / 'eng/architecture.json', {'runtimeComposition': {'projects': [], 'bindings': []}})
+        write(consumer / 'config/program-kit/architecture.json', {'runtimeComposition': {'projects': [], 'bindings': []}})
         write(consumer / 'review.md', '# Fictional source review\nThe finite text owner preserves admitted ALPHA identity while removing insignificant trailing whitespace. The named check asserts the actual same value. Grouped authored findings exercise the installed review contract, not human product acceptance.\n')
         constitution = consumer / '.specify/memory/constitution.md'
         write(constitution, POLICY + '\n# Fictional fixture constitution\n**Status**: Draft\n**Version**: 1.0.0\n**Ratified**: PENDING_RATIFICATION\n**Last Amended**: 2026-10-22\n\n## Governance\nAmendments update the version and require compliance review. All decisions in this disposable fixture are simulated authoring; no consumer authority or product acceptance.\n')

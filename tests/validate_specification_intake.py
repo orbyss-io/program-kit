@@ -35,7 +35,7 @@ class IntakeTests(unittest.TestCase):
         result = intake.check_spec(self.root, self.spec)
         self.assertEqual('specs/001-register/spec.md', result['spec'])
         self.assertIsNone(result['brief'])
-        self.assertFalse((self.root / '.program-kit').exists())
+        self.assertFalse((self.root / 'config/program-kit').exists())
 
     def test_selected_inspection_rejects_empty_or_untitled_spec(self):
         for text in ('', 'An untitled incomplete specification'):

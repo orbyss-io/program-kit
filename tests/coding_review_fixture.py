@@ -125,12 +125,12 @@ def seed(consumer):
     write(consumer / 'provider.props', '<Project><ItemGroup Condition="\'$(Configuration)\' == \'Debug\'"><PackageReference Include="Npgsql" Version="10.0.0" /></ItemGroup></Project>')
     write(consumer / 'src/Notes.Http/Endpoint.cs', '// Small transport fixture; no business behavior claimed.\nnamespace Fixture; internal sealed class Endpoint {}\n')
     write(consumer / 'src/Notes.Store/Reader.cs', '// Owned query and cancellation are preparation duties; runtime implementation is later.\nnamespace Fixture; internal sealed class Reader {}\n')
-    write(consumer / 'eng/architecture.json', {'runtimeComposition': {'projects': rows, 'bindings': []}})
+    write(consumer / 'config/program-kit/architecture.json', {'runtimeComposition': {'projects': rows, 'bindings': []}})
     write(consumer / 'docs/architecture/building-block-selection.json', {'status': 'Accepted',
         'targets': [{'id': row['path'].split('/')[1], 'kind': 'dotnet-project', 'path': row['path'],
                      'placement': {'owner': 'notes', 'decisionIds': ['notes-runtime']}}
                     for row in rows if row['path'].startswith('src/Notes')], 'instances': []})
-    write(consumer / 'eng/Invoke-RepositoryVerification.ps1', 'throw "F2 routing fixture: application acceptance intentionally unimplemented"\n')
+    write(consumer / 'scripts/Invoke-RepositoryVerification.ps1', 'throw "F2 routing fixture: application acceptance intentionally unimplemented"\n')
     browser = consumer / 'specs/002-browser'
     write(browser / 'spec.md', '# Browser presentation\nFrontend-only browser presentation.\n- **Specification roadmap entry**: RM-02\n')
     write(browser / 'plan.md', 'A TypeScript browser presentation; no backend changes.\n')
@@ -247,7 +247,7 @@ def scenario(directory):
         stale = run('07-stale-contract', command('prepare'), 2)
         assert any(b.get('context') == 'contract-owner' for b in stale['coding']['blockers'])
         contract.write_bytes(contract_bytes)
-        verify = consumer / 'eng/Invoke-RepositoryVerification.ps1'
+        verify = consumer / 'scripts/Invoke-RepositoryVerification.ps1'
         verify_bytes = verify.read_bytes()
         verify.unlink()
         missing = run('08-missing-verification', command('prepare'), 2)

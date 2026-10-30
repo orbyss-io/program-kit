@@ -69,7 +69,7 @@ def prepare(project, run_id):
         shutil.copyfile(recipe_source, recipe)
         fixtures['bounded_process.py'] = '.specify/extensions/program-kit-governance/scripts/compatibility_process.py'
         if recipe_source.name == 'runtime_probe.py':
-            fixtures['owned_scratch.py'] = '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+            fixtures['owned_scratch.py'] = '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py'
         write(recipe.with_suffix('.contract.json'), {'schemaVersion': 1, 'result': 'compatibility-results.xml',
             'fixtures': fixtures, 'dependencyTargets': targets,
             'checks': [{'id': name, 'kind': 'runtime-compatibility', 'testCases': [name]} for name in cases]})
@@ -166,7 +166,7 @@ def refresh(project, run_id):
         if recipe == 'runtime_probe.py':
             contract_path = folder / (identity + '.contract.json')
             contract = read(contract_path)
-            contract['fixtures']['owned_scratch.py'] = '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+            contract['fixtures']['owned_scratch.py'] = '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py'
             write(contract_path, contract)
     preparation['fixtureFiles'] = {p.relative_to(project).as_posix(): digest(p) for p in (folder / 'verified').rglob('*') if p.is_file()}
     write(marker, preparation)

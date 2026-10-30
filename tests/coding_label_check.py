@@ -93,9 +93,9 @@ def check(root, invalid=False):
         governance = root / 'extensions/program-kit-governance/scripts'
     sys.path.insert(0, str(governance))
     from asset_sources import read as source_bytes, tree as source_tree
-    engineering = root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng'
+    engineering = root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts'
     if not engineering.is_dir():
-        engineering = root / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+        engineering = root / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
     sys.path.insert(0, str(engineering))
     from owned_scratch import native_path
     source = root / '.specify/extensions/program-kit-dotnet/references/examples/typed-operation'

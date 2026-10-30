@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "profile": "spa-pkce-v1",
+  "threatModel": "program-kit-web-threat-model-v1",
+  "securityEvidence": "program-kit-web-security-evidence-v1",
+  "selection": "explicit-architecture-choice-required",
+  "browserCredential": "bearer-token",
+  "tokenLocation": "memory-only",
+  "cors": "exact-origin-allowlist",
+  "configuration": "config/program-kit/spa-pkce.json",
+  "browserSessionAdapter": "tools/program-kit/web/spa-session.ts"
+}

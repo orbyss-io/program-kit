@@ -40,6 +40,9 @@ def confined(root, relative):
         require(not entry.is_symlink() and not getattr(entry, 'is_junction', lambda: False)(),
                 'aliased input/output; preserve source and correct the owner path')
     require(path.resolve().is_relative_to(root), 'input/output escapes repository')
+    parts = path.resolve().relative_to(root).parts
+    require(not parts or parts[0].casefold() != 'eng',
+            'root eng is disposable output; select a durable authored owner')
     return path
 
 
@@ -123,7 +126,7 @@ def preview(root, feature, unit_id, owners, *, operation=None, configuration='De
     prepared = native_context(root, owners, configuration, framework)
     projects = {p['path']: p for p in prepared['projects']}
     native_contracts(projects, owners)
-    graph = json.loads(confined(root, 'eng/architecture.json').read_text(encoding='utf-8'))['runtimeComposition']['projects']
+    graph = json.loads(confined(root, 'config/program-kit/architecture.json').read_text(encoding='utf-8'))['runtimeComposition']['projects']
     declarations = {p['path']: p for p in graph}
     roles = {'core': 'core', 'runtime': 'implementation', 'api': 'implementation', 'provider': 'provider', 'test': 'test'}
     for key, role in roles.items():
@@ -135,7 +138,7 @@ def preview(root, feature, unit_id, owners, *, operation=None, configuration='De
             require(expected_refs <= set(p['projectReferences']) & set(declarations[owners[key]].get('projectReferences', [])),
                     'declare native compile references for the ' + key + ' owner')
     require(confined(root, owners['frontend'] + '/package.json').is_file(), 'select the actual native frontend package')
-    contracts_path = confined(root, 'eng/openapi-contracts.json')
+    contracts_path = confined(root, 'config/program-kit/openapi-contracts.json')
     contracts = json.loads(contracts_path.read_text(encoding='utf-8')).get('contracts', [])
     contract_paths = []
     for item in contracts:
@@ -167,11 +170,11 @@ def preview(root, feature, unit_id, owners, *, operation=None, configuration='De
                         'desiredHash': digest(content), 'diff': ''.join(difflib.unified_diff(
                             (before or b'').decode('utf-8').splitlines(True), content.decode('utf-8').splitlines(True),
                             fromfile=relative + ' (current)', tofile=relative + ' (proposal)'))})
-    state_path = confined(root, '.program-kit/managed.json')
+    state_path = confined(root, 'config/program-kit/managed.json')
     require(state_path.is_file(), 'native sync state required; run normal native setup first')
     state = json.loads(state_path.read_text(encoding='utf-8'))
     require(not set(outputs) & set(state.get('files', {})), 'application destinations already have toolkit ownership; resolve through the existing owner before realization')
-    watched = ['.program-kit/managed.json', 'eng/openapi-contracts.json', *contract_paths, *owners.values()]
+    watched = ['config/program-kit/managed.json', 'config/program-kit/openapi-contracts.json', *contract_paths, *owners.values()]
     # Bind effective settings, source observations, transitive native imports and
     # selected pattern proof from the existing composer, plus exact adapter bytes.
     basis = {'context': fingerprint(prepared), 'owners': owners,
@@ -203,7 +206,7 @@ def apply(root, plan, outputs, expected):
                   for row in plan['actions'] if row['kind'] == 'create']
     if not operations:
         return {**plan, 'applied': True, 'transactionId': None, 'created': []}
-    state = confined(root, '.program-kit/managed.json').read_bytes()
+    state = confined(root, 'config/program-kit/managed.json').read_bytes()
     # Preserve native state exactly: no created business file enters managed.json.
     transaction = reconciliation.apply_plan(root, operations, state)
     return {**plan, 'applied': True, 'transactionId': transaction, 'created': [a['path'] for a in operations]}

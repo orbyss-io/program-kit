@@ -88,8 +88,9 @@ def main():
             'A retired workflow producer remains an active command')
     require([item['name'] for item in components['program-kit-building-blocks']['provides']['commands']]
             == ['speckit.program-kit-building-blocks.sync'], 'Building-block synchronization ownership changed')
-    require(not components['program-kit-dotnet']['provides']['commands'],
-            'Internal .NET adapter acquired an independent public synchronization route')
+    require([item['name'] for item in components['program-kit-dotnet']['provides']['commands']]
+            == ['speckit.program-kit-dotnet.regenerate-eng'],
+            '.NET commands must expose only deterministic regeneration; synchronization retains its existing owner')
     hooks = governance.get('hooks', {})
     require(set(hooks) == EXPECTED_HOOKS, 'Ordinary lifecycle hook coverage changed')
     for event, declarations in hooks.items():

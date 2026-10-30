@@ -29,7 +29,7 @@ styling; absence of the words "custom Keycloak theme" does not narrow an agreed 
 Preserve explicit exclusions/assigned deferrals and the observed theme parent/base styles.
 
 For authorized first-code work, use `scripts/ui_profile.py init --target .` only if both source
-files are absent, then edit the consumer-owned `.program-kit/ui/profile.json` and `content.json`.
+files are absent, then edit the consumer-owned `config/program-kit/ui/profile.json` and `content.json`.
 Use `validate`, `build`, then `check`. Never use init to replace existing inputs, bypass generation
 conflicts, or publish sample content. Port generated head fragments and semantic token variables
 into an accepted SSR/SSG framework through an explicit adapter; native HTML is a working default

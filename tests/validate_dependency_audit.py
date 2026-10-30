@@ -88,7 +88,7 @@ class AuditTests(unittest.TestCase):
         ledger['prerequisites'][0]['evidence'][0]['sha256'] = audit.sha(receipt)
         self.write(ledger_path, ledger)
         original = receipt.read_bytes()
-        archive = self.write('.program-kit/installation/proof-inputs/' + entry['sha256'] + '.original', toolkit.read_text())
+        archive = self.write('config/program-kit/installation/proof-inputs/' + entry['sha256'] + '.original', toolkit.read_text())
         toolkit.write_text('upgraded source')
         self.assertIn(source.resolve(), audit.evidence_inputs(self.root))
         self.assertEqual(original, receipt.read_bytes())
@@ -124,7 +124,7 @@ class AuditTests(unittest.TestCase):
                         self.root / '.specify/extensions/program-kit-building-blocks/references/dependency-profiles')
         manifest = json.dumps({'tools': {'orbyss.foundation.openapi.exporter': {'version': '0.2.4'}}}).encode()
         before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
-        rendered = renderer.render(self.root, 'eng/.config/dotnet-tools.json', manifest)
+        rendered = renderer.render(self.root, '.config/dotnet-tools.json', manifest)
         self.assertEqual('0.2.3', json.loads(rendered)['tools']['orbyss.foundation.openapi.exporter']['version'])
         self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
         # Exercise the actual standalone boundary without governance on sys.path,
@@ -138,16 +138,16 @@ class AuditTests(unittest.TestCase):
                 self.blocks.preserve_dependency_profile(self.root, self.blocks.load_json(self.selection),
                     self.root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json')
             result = subprocess.run([sys.executable, '-I', '-c', code, renderer.__file__, str(self.root),
-                                     'eng/.config/dotnet-tools.json', manifest.decode()],
+                                     '.config/dotnet-tools.json', manifest.decode()],
                                     capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             self.assertEqual('0.2.3', json.loads(result.stdout)['tools']['orbyss.foundation.openapi.exporter']['version'])
-        (self.root / '.program-kit/dependency-profile.json').unlink()
+        (self.root / 'config/program-kit/dependency-profile.json').unlink()
         installed['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'] = '0.2.2'
         installed['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter'] = '0.2.2'
         self.write('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json', installed)
         with self.assertRaisesRegex(ValueError, 'resolution'):
-            renderer.render(self.root, 'eng/.config/dotnet-tools.json', manifest)
+            renderer.render(self.root, '.config/dotnet-tools.json', manifest)
 
     def test_historical_scratch_classification_does_not_grant_current_compatibility(self):
         source=self.proof()
@@ -220,7 +220,7 @@ class AuditTests(unittest.TestCase):
         source = self.proof()
         protected = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file() and ('docs' in p.parts or '.specify' in p.parts)}
         plan = self.blocks.resolve(self.root, self.selection, CATALOG, '0.12.0')
-        lockpath = self.root / 'eng/building-blocks.lock.json'
+        lockpath = self.root / 'config/program-kit/building-blocks.lock.json'
         with patch.dict('os.environ', {'PROGRAMKIT_TEST_BUILDING_BLOCK_FAIL_AFTER_ACTION': '1'}):
             with self.assertRaises(OSError):
                 self.blocks.apply_materialization(self.root, lockpath, plan, self.catalog)
@@ -269,14 +269,14 @@ class AuditTests(unittest.TestCase):
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertEqual(2, len(audit.engineering_outputs(self.root)))
-        for relative in ['eng/.config/dotnet-tools.json', 'eng/ProgramKit.Packages.props']:
+        for relative in ['.config/dotnet-tools.json', 'config/program-kit/build/ProgramKit.Packages.props']:
             path = self.root / relative
             original = path.read_bytes()
             path.write_bytes(original + b' ')
             with self.assertRaisesRegex(ValueError, 'ownership hash changed'):
                 audit.engineering_outputs(self.root)
             path.write_bytes(original)
-        state = self.root / '.program-kit/managed.json'
+        state = self.root / 'config/program-kit/managed.json'
         state.unlink()
         with self.assertRaisesRegex(ValueError, 'no installed ownership'):
             audit.engineering_outputs(self.root)
@@ -308,11 +308,11 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
         installed = self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files'
-        for relative in ('eng/ProgramKit.Packages.props', 'eng/.config/dotnet-tools.json'):
+        for relative in ('config/program-kit/build/ProgramKit.Packages.props', '.config/dotnet-tools.json'):
             destination = installed / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes((source / relative).read_bytes())
-        relative = 'eng/ProgramKit.Packages.props'
+        relative = 'config/program-kit/build/ProgramKit.Packages.props'
         import re
         previous = re.sub(rb'[^\n]*<PackageVersion Include="Orbyss.Foundation.Build" Version="[^"]+" />\n',b'',(installed / relative).read_bytes())
         self.assertNotEqual(previous, (source / relative).read_bytes())
@@ -320,7 +320,7 @@ class AuditTests(unittest.TestCase):
         from repository_sync import provider
         previous=provider('program-kit-dotnet/scripts/dependency_profile.py').render(self.root,relative,previous)
         (self.root / relative).write_bytes(previous)
-        state_path = self.root / '.program-kit/managed.json'
+        state_path = self.root / 'config/program-kit/managed.json'
         state = json.loads(state_path.read_text())
         for key in ('templateHash', 'lastWrittenHash', 'installedHash', 'baselineHash'):
             state['files'][relative][key] = audit.sha(self.root / relative)

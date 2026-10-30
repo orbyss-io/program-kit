@@ -87,7 +87,7 @@ def official_export(evidence, catalog, blocks):
     assert proof['contractFeatures'] == features
     assert 'NUMERIC_EFFECT_ONLY_CONFIGURE_SERVICES_RAN' not in (evidence / 'official-export.log').read_text()
     assert all(proof['sideEffects'][key] is False for key in ('listenerStarted', 'consumerHostedServicesStarted', 'shellInitializersRun'))
-    sys.path.insert(0, str(TEMPLATE / 'eng'))
+    sys.path.insert(0, str(TEMPLATE / 'scripts'))
     import openapi_capabilities
     admitted = openapi_capabilities.require(document, openapi_capabilities.selected(ROOT), 'producer')
     (evidence / 'capability-admission.json').write_text(json.dumps(admitted, indent=2))
@@ -198,8 +198,8 @@ def generate_typescript(evidence, document, *, adapter=None, nullable=False):
     if document.resolve() != expected_document.resolve():
         raise ValueError('Generate only from the exact retained official exporter document')
     generator = evidence / client_name; generator.mkdir(exist_ok=True)
-    defaults = json.loads((TEMPLATE / 'eng/openapi-defaults.json').read_text())['typescriptGenerator']
-    typescript = json.loads((TEMPLATE.parent / 'web-profiles/common/eng/web/package.json').read_text())['devDependencies']['typescript']
+    defaults = json.loads((TEMPLATE / 'scripts/openapi-defaults.json').read_text())['typescriptGenerator']
+    typescript = json.loads((TEMPLATE.parent / 'web-profiles/common/tools/program-kit/web/package.json').read_text())['devDependencies']['typescript']
     (generator / 'package.json').write_text(json.dumps({'name': 'numeric-parity', 'version': '1.0.0', 'private': True,
         'scripts': {'generate': 'openapi-typescript ../official-exporter/' + document_name + ' -o types.ts'},
         'devDependencies': {defaults['package']: defaults['version']}}))
@@ -211,7 +211,7 @@ def generate_typescript(evidence, document, *, adapter=None, nullable=False):
     # infer npm's installation layout from the discovered launcher.
     for name in ('global.json', '.nvmrc', '.npm-version'):
         shutil.copyfile(TEMPLATE / name, evidence / name)
-    sys.path.insert(0, str(TEMPLATE / 'eng'))
+    sys.path.insert(0, str(TEMPLATE / 'scripts'))
     from device_toolchain import require_python
     shared_python = require_python(evidence)
     environment = os.environ.copy()
@@ -220,7 +220,7 @@ def generate_typescript(evidence, document, *, adapter=None, nullable=False):
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
         from windows_workflow_path import prepare_path
         environment['PATH'] = prepare_path(environment.get('PATH', ''), str(shared_python))
-    run(evidence, label_prefix + 'client-toolchain', [str(shared_python), str(TEMPLATE / 'eng/toolchain.py'),
+    run(evidence, label_prefix + 'client-toolchain', [str(shared_python), str(TEMPLATE / 'scripts/toolchain.py'),
         '--repository', str(evidence)], environment=environment)
     from foundation_qualification import npm_command
     npm, environment = npm_command(evidence, [])
@@ -359,7 +359,7 @@ def main():
         'actualOpenApiProducerVerified': True,
         'scopedDtoCandidateVerified': True, 'contractApproval': 'pending-consumer-review', 'sourceCommit': commit,
         'recipeSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        'capabilityValidatorSha256': hashlib.sha256((TEMPLATE / 'eng/openapi_capabilities.py').read_bytes()).hexdigest(),
+        'capabilityValidatorSha256': hashlib.sha256((TEMPLATE / 'scripts/openapi_capabilities.py').read_bytes()).hexdigest(),
         'selectedCapabilityProjectorSha256': hashlib.sha256((ROOT / 'extensions/program-kit-building-blocks/scripts/wire_capabilities.py').read_bytes()).hexdigest(),
         'sdk': subprocess.run(['dotnet', '--version'], cwd=evidence, capture_output=True, text=True, check=True).stdout.strip(),
         'cacheScope': 'Fresh disposable fixture and npm ci; user NuGet/tool/npm caches may be warm. Prepared metadata export timing excludes preparation, business operation execution and agent reasoning.',

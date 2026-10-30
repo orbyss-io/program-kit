@@ -536,7 +536,7 @@ def contributor(repository: Path, *, python_only: bool = False,
         raise ValueError(render(value))
     if python_only: return
     import importlib.util
-    spec = importlib.util.spec_from_file_location('device_js', template / 'eng/js_toolchain.py')
+    spec = importlib.util.spec_from_file_location('device_js', template / 'scripts/js_toolchain.py')
     runtime = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runtime)
     required = {'node': (template / '.nvmrc').read_text().strip(),

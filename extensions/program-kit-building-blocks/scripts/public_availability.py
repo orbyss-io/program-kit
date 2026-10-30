@@ -217,7 +217,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Verify selected or catalog-wide public building-block availability.")
     parser.add_argument("--target", default=".")
     parser.add_argument("--catalog", required=True)
-    parser.add_argument("--lock", default="eng/building-blocks.lock.json")
+    parser.add_argument("--lock", default="config/program-kit/building-blocks.lock.json")
     parser.add_argument("--all", action="store_true", help="Verify the complete release catalog instead of the consumer lock.")
     parser.add_argument('--profile', help='Qualified profile identity (or default); requires --all.')
     parser.add_argument("--evidence", default="artifacts/program-kit/building-block-availability.json")

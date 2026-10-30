@@ -13,8 +13,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1"
-RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
+BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/Build.ps1"
+RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/Restore.ps1"
 
 
 PACK_ENGINE_FILES = ('release_bundle.py', 'composition_model.py', 'foundation_qualification.py', 'prepare_hosted_pages.py', 'owned_scratch.py', 'central_packages.py', 'handoff_contract.py',
@@ -40,7 +40,7 @@ def assert_pack_capture(repository: Path) -> None:
         raise AssertionError('Wrapper fixture must seal actual inputs without claiming compiled packages')
     import hashlib
     for name in PACK_ENGINE_FILES:
-        path = repository / 'eng' / name
+        path = repository / 'scripts' / name
         if value['sourceInputs'].get('eng/' + name) != hashlib.sha256(path.read_bytes()).hexdigest():
             raise AssertionError('Maintained pack engine input was not captured: ' + name)
 
@@ -159,7 +159,7 @@ def write_solution(path: Path, projects: list[Path]) -> None:
 
 def create_repository(value: str, solution_name: str, test_flags: tuple[bool, ...]) -> tuple[Path, Path]:
     repository = Path(value)
-    managed = repository / "eng"
+    managed = repository / "scripts"
     managed.mkdir(parents=True)
     shutil.copyfile(BUILD, managed / "Build.ps1")
     shutil.copyfile(RESTORE, managed / "Restore.ps1")
@@ -192,7 +192,7 @@ def run_build(shell: str, repository: Path, tools: Path) -> tuple[subprocess.Com
             "-ExecutionPolicy",
             "Bypass",
             "-File",
-            str(repository / "eng/Build.ps1"),
+            str(repository / "scripts/Build.ps1"),
             "-SkipReleaseBundle",
         ],
         cwd=repository,

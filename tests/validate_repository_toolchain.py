@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-ENGINEERING = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+ENGINEERING = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
 sys.path.insert(0, str(ENGINEERING))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import toolchain
@@ -234,11 +234,11 @@ class RepositoryToolchainTests(unittest.TestCase):
     def test_initializer_checks_before_repository_mutation_and_resumes_after_user_completion(self):
         release = self.base / 'release'
         pins = release / initialize_device.PINS
-        (pins / 'eng').mkdir(parents=True)
+        (pins / 'scripts').mkdir(parents=True)
         (release / 'VERSION').write_text('1.2.3')
         self.pins(pins)
         for name in ('device_toolchain.py', 'js_toolchain.py'):
-            (pins / 'eng' / name).write_bytes((ENGINEERING / name).read_bytes())
+            (pins / 'scripts' / name).write_bytes((ENGINEERING / name).read_bytes())
         before = {p.relative_to(self.repo): p.read_bytes() for p in self.repo.rglob('*') if p.is_file()}
         self.binary(self.shared, 'node', '22.19.0')
         with patch.dict(os.environ, self.env, clear=True):

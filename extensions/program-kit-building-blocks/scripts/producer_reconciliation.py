@@ -36,7 +36,7 @@ def relative_path(target: Path, path: Path) -> str:
 
 
 def target_exporter_version(release: Path) -> str:
-    path = release / "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
+    path = release / "extensions/program-kit-dotnet/templates/dotnet/files/.config/dotnet-tools.json"
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
         version = value["tools"]["orbyss.foundation.openapi.exporter"]["version"]
@@ -48,9 +48,9 @@ def target_exporter_version(release: Path) -> str:
 
 
 def registered_contracts(target: Path) -> list[tuple[Path, dict]]:
-    registry_path = target / "eng/openapi-contracts.json"
+    registry_path = target / "config/program-kit/openapi-contracts.json"
     if not registry_path.is_file():
-        registry_path = target / '.program-kit/openapi-contracts.json'
+        registry_path = target / 'config/program-kit/openapi-contracts.json'
     if not registry_path.is_file():
         return []
     try:
@@ -261,7 +261,7 @@ def apply(target: Path, plan: dict) -> list[str]:
     originals = {relative_path(target, path): path.read_bytes() for path in changes}
     digest = hashlib.sha256(json.dumps({name: hashlib.sha256(data).hexdigest()
                            for name, data in sorted(originals.items())}).encode()).hexdigest()
-    archive = target / ".program-kit/selection-history" / f"openapi-producer-{digest}"
+    archive = target / "config/program-kit/selection-history" / f"openapi-producer-{digest}"
     for name, data in originals.items():
         path = archive / name
         path.parent.mkdir(parents=True, exist_ok=True)

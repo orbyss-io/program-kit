@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files"
-sys.path.insert(0, str(TEMPLATES / "eng"))
+sys.path.insert(0, str(TEMPLATES / "scripts"))
 import release_bundle as host
 sys.path.insert(0, str(ROOT / "extensions/program-kit-building-blocks/scripts"))
 import building_blocks
@@ -26,9 +26,9 @@ class CentralPinsTests(unittest.TestCase):
         self.props = self.repository / "Directory.Packages.props"
         self.props.write_bytes((ROOT / "tests/fixtures/runnable-host/central-package-pins/Directory.Packages.props").read_bytes())
         self.original = self.props.read_text(encoding="utf-8")
-        self.managed = self.repository / "eng/ProgramKit.Packages.props"
+        self.managed = self.repository / "config/program-kit/build/ProgramKit.Packages.props"
         self.managed.parent.mkdir(parents=True)
-        shutil.copyfile(TEMPLATES / "eng/ProgramKit.Packages.props", self.managed)
+        shutil.copyfile(TEMPLATES / "config/program-kit/build/ProgramKit.Packages.props", self.managed)
         self.features = {identity: {} for identity in (
             "Orbyss.Foundation.WebDefaults", "Orbyss.Foundation.Web.ProblemDetails", "Orbyss.Foundation.Web.OpenApi",
         )}
@@ -108,9 +108,9 @@ class CentralPinsTests(unittest.TestCase):
             "missing-import": self.original.replace('ProgramKit.Packages.props', 'Missing.props'),
             "wildcard-import": self.original.replace('ProgramKit.Packages.props', '*.props'),
             "property-import": self.original.replace('ProgramKit.Packages.props', '$(PropsFile)'),
-            "external-import": self.original.replace('eng/ProgramKit.Packages.props', '../outside.props'),
-            "cycle": self.original.replace('eng/ProgramKit.Packages.props', 'Directory.Packages.props'),
-            "conditional-import": self.original.replace("Exists('eng/ProgramKit.BuildingBlocks.props')", 'false'),
+            "external-import": self.original.replace('config/program-kit/build/ProgramKit.Packages.props', '../outside.props'),
+            "cycle": self.original.replace('config/program-kit/build/ProgramKit.Packages.props', 'Directory.Packages.props'),
+            "conditional-import": self.original.replace("Exists('config/program-kit/build/ProgramKit.BuildingBlocks.props')", 'false'),
             "choose": '<Project><Choose /></Project>',
             "disabled-cpm": self.original.replace('Centrally>true', 'Centrally>false'),
         }

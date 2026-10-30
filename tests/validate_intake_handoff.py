@@ -67,7 +67,7 @@ class IntakeHandoffTests(unittest.TestCase):
         for record in intake['artifacts'].values():
             self.assertEqual((fixture / record['path']).read_bytes(), self.inputs[record['path']])
         self.assertEqual(load_object(self.output / 'selection-template.json')['status'], 'Draft')
-        self.assertFalse((fixture / '.program-kit').exists())
+        self.assertFalse((fixture / 'config/program-kit').exists())
         self.assertIn('live-intake', document['id'])
         source = scenario.scenario_authority(self.output, ROOT / 'tests/live/schemas/v2')
         binding = sync_stages.authority(ROOT, 'fresh-candidate', self.output)

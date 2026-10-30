@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
 sys.path.insert(0, str(ENG))
 import build_output_recipe as outputs
 import repository_verification as verification
@@ -146,24 +146,24 @@ class BuildOutputRecipeTests(unittest.TestCase):
         manifest = {'runtimeComposition': {'projects': list(graph.values()), 'bindings': []}}
         original_intent = copy.deepcopy(manifest)
         next(row for row in original_intent['runtimeComposition']['projects'] if row['path'] == parent).pop('buildOutputCopies')
-        write('eng/architecture.json', json.dumps(original_intent))
+        write('config/program-kit/architecture.json', json.dumps(original_intent))
         document = ET.parse(root / parent).getroot()
         bad = copy.deepcopy(document)
         ET.SubElement(ET.SubElement(bad, 'Target', Name='UnreviewedCopy'), 'Exec', Command='must never execute')
         (root / parent).write_bytes(ET.tostring(bad))
-        rejected = subprocess.run([sys.executable, str(root / 'eng/repository_verification.py'), '--repository', str(root),
+        rejected = subprocess.run([sys.executable, str(root / 'scripts/repository_verification.py'), '--repository', str(root),
             '--scope', 'Affected', '--changed-path', parent, '--plan'], cwd=root, capture_output=True, text=True, timeout=60)
         self.assertNotEqual(0, rejected.returncode)
         diagnostic = rejected.stdout + rejected.stderr
         self.assertIn('buildProjectReferences/buildOutputCopies', diagnostic)
-        self.assertIn('eng/build_output_recipe.py', diagnostic)
+        self.assertIn('scripts/build_output_recipe.py', diagnostic)
         self.assertIn(parent, diagnostic)
         (evidence / 'unsupported-target.log').write_text(diagnostic, encoding='utf-8')
         # The fixture explicitly replaces only its own known unreviewed target;
         # the product does not convert or waive arbitrary consumer customizations.
         (root / parent).write_bytes(ET.tostring(document))
-        write('eng/architecture.json', json.dumps(manifest))
-        preview = command([sys.executable, str(root / 'eng/build_output_recipe.py'), '--repository', str(root),
+        write('config/program-kit/architecture.json', json.dumps(manifest))
+        preview = command([sys.executable, str(root / 'scripts/build_output_recipe.py'), '--repository', str(root),
                            '--project', parent], 'installed-recipe-preview')
         for node in ET.fromstring(preview):
             document.append(node)
@@ -175,7 +175,7 @@ class BuildOutputRecipeTests(unittest.TestCase):
               'if (!File.Exists(Path.Combine(AppContext.BaseDirectory,"tools/owned-tool/Owned.Tool.dll"))) throw new Exception("Missing owned binary"); '
               'Console.WriteLine("OWNED_PAYLOAD_PRESENT");')
         manifest = {'runtimeComposition': {'projects': list(graph.values()), 'bindings': []}}
-        write('eng/architecture.json', json.dumps(manifest))
+        write('config/program-kit/architecture.json', json.dumps(manifest))
         sdk = command(['dotnet', '--version'], 'selected-sdk').strip()
         command(['dotnet', 'restore', 'tests/Consumer/Consumer.csproj', '--configfile', 'NuGet.Config'], 'restore')
         command(['dotnet', 'restore', 'tests/Consumer/Consumer.csproj', '--locked-mode', '--configfile', 'NuGet.Config'], 'locked-restore')
@@ -214,10 +214,10 @@ class BuildOutputRecipeTests(unittest.TestCase):
                        for name in archive.namelist() if name.startswith('tools/owned-tool/') and not name.endswith('/')}
         self.assertEqual(renamed, payload)
         architecture.execute(root, manifest, 'Debug')
-        command([sys.executable, str(root / 'eng/repository_architecture.py'), '--repository', str(root),
-                 '--manifest', 'eng/architecture.json', '--configuration', 'Debug',
+        command([sys.executable, str(root / 'scripts/repository_architecture.py'), '--repository', str(root),
+                 '--manifest', 'config/program-kit/architecture.json', '--configuration', 'Debug',
                  '--output', 'artifacts/installed-architecture.xml'], 'installed-architecture')
-        assembly_project = root / 'eng/assembly_graph/AssemblyGraph.csproj'
+        assembly_project = root / 'tools/program-kit/assembly_graph/AssemblyGraph.csproj'
         # The maintained inspector reads PE metadata; no producer assembly is loaded.
         metadata = json.loads(command(['dotnet', 'run', '--project', str(assembly_project), '--configuration', 'Release', '--no-build', '--',
             str(root / 'src/Owned.Provider/bin/Debug/net10.0/Owned.Provider.dll')], 'actual-pe-metadata'))

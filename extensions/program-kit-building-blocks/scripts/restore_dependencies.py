@@ -110,7 +110,7 @@ def reference_free_imports(repository: Path, path: Path, seen: set[Path]) -> Non
 def nuget_project_graph(repository: Path, subjects: set[str]) -> dict[str, set[str]]:
     """Read the complete active literal graph, without admitting scratch history."""
     repository = repository.resolve()
-    manifest = repository / 'eng/architecture.json'
+    manifest = repository / 'config/program-kit/architecture.json'
     rows = load_json(manifest).get('runtimeComposition', {}).get('projects', []) if manifest.is_file() else []
     declared = {row['path']: row for row in rows}
     physical = {p.relative_to(repository).as_posix() for directory in ('src', 'tests')
@@ -170,7 +170,7 @@ def nuget_project_graph(repository: Path, subjects: set[str]) -> dict[str, set[s
 
 def nuget_active_inventory(repository: Path, subjects: set[str]) -> set[str]:
     """Current declared/physical/solution roots, shared by evaluation and upgrade."""
-    declared_path = repository/'eng/architecture.json'
+    declared_path = repository/'config/program-kit/architecture.json'
     declared = {row['path'] for row in load_json(declared_path).get('runtimeComposition', {}).get('projects', [])} if declared_path.is_file() else set()
     candidates = [*repository.glob('*.*proj')]
     candidates.extend(path for directory in ('src', 'tests') for path in (repository/directory).rglob('*.*proj'))
@@ -367,7 +367,7 @@ def input_basis(repository: Path, lock: dict) -> dict:
     # Exact runtime evidence and managed dependency assignments are inputs; native locks are
     # outputs and verified separately so renew followed by locked can converge.
     paths.add("artifacts/program-kit/toolchain.json")
-    paths.add('eng/architecture.json')
+    paths.add('config/program-kit/architecture.json')
     paths.add(native_restore_graph.CONFIG)
     records = {relative: hashlib.sha256(safe_path(repository, relative).read_bytes()).hexdigest()
                if safe_path(repository, relative).is_file() else None for relative in sorted(paths)}
@@ -461,7 +461,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Explicitly renew or verify native locks for selected building blocks.")
     parser.add_argument("mode", choices=("renew", "locked", "request-renew", "request-locked"))
     parser.add_argument("--target", default=".")
-    parser.add_argument("--lock", default="eng/building-blocks.lock.json")
+    parser.add_argument("--lock", default="config/program-kit/building-blocks.lock.json")
     parser.add_argument("--evidence")
     parser.add_argument("--approved", action="store_true")
     parser.add_argument("--request", help="Reviewed request file; its complete current inputs must match before network access.")

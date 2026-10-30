@@ -210,7 +210,7 @@ class SettingsAuthorities(HandoffTests):
         evidence,host,packages,envelope=self.native_authority()
         self.selected['components'][0]['packages'].append('CShells.Options')
         for scope in sorted(handoff_contract.HOST_SCOPES):self.selected['categories']['settings']['files'].append('contracts/'+scope+'.json')
-        self.write('eng/application-handoff.json',self.selected)
+        self.write('config/program-kit/application-handoff.json',self.selected)
         self.write('contracts/oci/evidence.json',evidence)
         for scope in sorted(handoff_contract.HOST_SCOPES):
             self.write('contracts/'+scope+'.json',{'schemaVersion':2,'kind':'foundation-host-image','scope':scope,'evidencePath':'contracts/oci/evidence.json','evidenceSha256':handoff.digest(self.root/'contracts/oci/evidence.json')})
@@ -417,7 +417,7 @@ class SettingsAuthorities(HandoffTests):
         from validate_application_handoff import ROOT,TEMPLATE
         sys.path.insert(0,str(ROOT/'extensions/program-kit-governance/scripts'))
         import json_schema
-        schema=TEMPLATE/'eng/settings-metadata.schema.json'
+        schema=TEMPLATE/'scripts/settings-metadata.schema.json'
         validator,_=json_schema.engine(json_schema.load(schema),schema)
         metadata=copy.deepcopy(self.metadata)
         item=metadata['settings'][0];item.pop('default',None);item['secret']=True

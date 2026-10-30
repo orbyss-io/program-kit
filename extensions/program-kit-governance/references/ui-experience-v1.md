@@ -10,7 +10,7 @@ and brand preferences and derive navigation from user journeys. Profile defaults
 provisional baseline after that discovery; they are not evidence of the user's preferences. Preserve
 explicit requests to use defaults and keep accessibility, privacy and reduced-motion obligations.
 
-The consumer owns `.program-kit/ui/profile.json` and `content.json`. Start with:
+The consumer owns `config/program-kit/ui/profile.json` and `content.json`. Start with:
 
 ```powershell
 python .specify/extensions/program-kit-governance/scripts/ui_profile.py init --target .

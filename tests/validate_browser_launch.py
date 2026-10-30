@@ -11,7 +11,7 @@ import uuid
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
 sys.path[:0] = [str(ENG), str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(ROOT / 'extensions/program-kit-governance/scripts')]
 import composition_run
 sys.modules.setdefault('foundation_process', importlib.import_module('compatibility_process'))

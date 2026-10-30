@@ -100,7 +100,7 @@ cancellation and OpenAPI behavior within the selected host. A third-party endpoi
 its own capability gap and decision; vertical slicing does not imply one.
 
 For the Program Kit .NET-to-TypeScript chain, use the effective profile's managed exporter,
-`.oasdiff-version` and isolated `openapi-typescript` defaults. `eng/openapi_init.py` initializes
+`.oasdiff-version` and isolated `openapi-typescript` defaults. `scripts/openapi_init.py` initializes
 that contract. A custom export utility requires an explicit justified choice and examination of
 the real unsupported capability; do not invent one from an unaccepted host proposal.
 

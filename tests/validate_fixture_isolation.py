@@ -41,9 +41,9 @@ class FixtureIsolationTests(unittest.TestCase):
     def test_preparation_blocks_ancestor_items_and_targets_before_sdk_imports(self):
         with tempfile.TemporaryDirectory(prefix='pk-import-') as directory:
             root = Path(directory).resolve()
-            (root / 'eng').mkdir()
-            (root / 'eng/Consumer.props').write_bytes((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props').read_bytes())
-            props = b'<Project><Import Project="eng/Consumer.props" /></Project>'
+            (root / 'scripts').mkdir()
+            (root / 'scripts/Consumer.props').write_bytes((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props').read_bytes())
+            props = b'<Project><Import Project="scripts/Consumer.props" /></Project>'
             targets = b'<Project><PropertyGroup><SyntheticConsumerTargets>inherited</SyntheticConsumerTargets></PropertyGroup></Project>'
             (root / 'Directory.Build.props').write_bytes(props)
             (root / 'Directory.Build.targets').write_bytes(targets)

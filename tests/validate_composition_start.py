@@ -60,7 +60,7 @@ def add_typed_operation(root):
     document = ET.fromstring(text); dependencies = document.find('PropertyGroup/FoundationFeatureDependencies')
     dependencies.text = dependencies.text + ';Orbyss.Foundation.Json.AspNetCore;Orbyss.Foundation.Web.ProblemDetails'
     project.write_bytes(ET.tostring(document) + b'\n')
-    architecture = root / 'eng/architecture.json'; value = json.loads(architecture.read_bytes())
+    architecture = root / 'config/program-kit/architecture.json'; value = json.loads(architecture.read_bytes())
     for row in value['runtimeComposition']['projects']:
         if row['path'] == owners['runtime']:
             row['projectReferences'].append(owners['core'])
@@ -84,9 +84,9 @@ def sample_database(root, evidence, *, observe=False):
     """Separate explicit disposable deployment/observation; no product startup DDL."""
     script = '''import json,re,sys
 from pathlib import Path
-root=Path.cwd();sys.path.insert(0,str(root/'eng'))
+root=Path.cwd();sys.path.insert(0,str(root/'scripts'))
 import composition_run as run
-graph=run.read(root/'eng/foundation-composition.json'); contract=run.read(root/run.render.CONTRACT)
+graph=run.read(root/'config/program-kit/foundation-composition.json'); contract=run.read(root/run.render.CONTRACT)
 resolved=run.read(root/run.render.RESOLVED);credentials=run.private_credentials(root,graph)
 _,environment=run.compose_model(root,graph,contract,resolved,credentials)
 receipt=run.latest(root); command=run.Commands(root,root/'artifacts/composition/runs/typed-sample')
@@ -260,7 +260,7 @@ def browser_command(arguments, root, evidence, expected=0):
 
 def wait_for_typed_host_restart(root, host, evidence):
     """Wait for actual native HTTP readiness before checking retained product data."""
-    sys.path.insert(0, str(root / 'eng'))
+    sys.path.insert(0, str(root / 'scripts'))
     import foundation_fixture
     import foundation_qualification
     elapsed = foundation_fixture.poll(
@@ -280,7 +280,7 @@ def install_native_tooling(root, directory):
     else:
         script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); import build_release; build_release.build_tooling_from_source(Path.cwd(),Path(sys.argv[1]))"
         command([sys.executable, '-c', script, str(directory)], ROOT, directory / 'current-bundle-build')
-    sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
     from owned_scratch import filesystem_path
     release = Path(filesystem_path(directory / 'release')); release.mkdir()
     version = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
@@ -325,9 +325,9 @@ def dispose_fixture(root, preparation, evidence):
     """
     script = '''import json,sys
 from pathlib import Path
-root=Path.cwd(); sys.path.insert(0,str(root/'eng'))
+root=Path.cwd(); sys.path.insert(0,str(root/'scripts'))
 import composition_run as run
-graph=run.read(root/'eng/foundation-composition.json')
+graph=run.read(root/'config/program-kit/foundation-composition.json')
 receipt=run.read(root/run.STATE)
 # A failed build can leave an honest failure record without Compose fields.
 # Use the retained successful preparation for cleanup only; its exact output
@@ -355,7 +355,7 @@ def add_unimplemented_product_plan(root):
     solution = root / 'Application.slnx'; document = ET.fromstring(solution.read_bytes())
     ET.SubElement(document, 'Project', Path=core)
     solution.write_bytes(ET.tostring(document) + b'\n')
-    path = root / 'eng/architecture.json'; architecture = json.loads(path.read_text())
+    path = root / 'config/program-kit/architecture.json'; architecture = json.loads(path.read_text())
     graph = architecture['runtimeComposition']
     graph['projects'].append({'path': core, 'role': 'core', 'projectReferences': [], 'packageReferences': [],
         'responsibilities': [{'name': 'Planned.Core.ProductContract', 'kind': 'contract', 'effects': []}]})
@@ -369,8 +369,8 @@ def add_unimplemented_product_plan(root):
 
 def verify_build_stages(root, feature, directory):
     """Exercise the emitted Build entrypoint and real host-scoped freshness guards."""
-    command(['pwsh', '-NoProfile', '-File', 'eng/Build.ps1', '-LockedMode', '-SkipTests'], root, directory / 'typed-build')
-    sys.path.insert(0, str(root / 'eng'))
+    command(['pwsh', '-NoProfile', '-File', 'scripts/Build.ps1', '-LockedMode', '-SkipTests'], root, directory / 'typed-build')
+    sys.path.insert(0, str(root / 'scripts'))
     import runtime_closure
     from program_kit_version import PROGRAM_KIT_VERSION
     resolved = json.loads((root / 'eng/foundation-composition.resolved.json').read_text())
@@ -402,7 +402,7 @@ def verify_build_stages(root, feature, directory):
 
 def prepare_comparison_tool(root, binary):
     """Stage and probe the reviewed comparator before any emitted Build call."""
-    sys.path.insert(0, str(root / 'eng'))
+    sys.path.insert(0, str(root / 'scripts'))
     import toolchain
     pin = (root / '.oasdiff-version').read_text().strip()
     toolchain.install_oasdiff(root, pin, str(binary))
@@ -447,7 +447,7 @@ def main():
     # qualifies the stated native path envelope, not arbitrary-depth SDK builds.
     directory = ROOT / 'artifacts/t' / ('cs-' + uuid.uuid4().hex[:8])
     root = directory / 'c'
-    (root / 'eng').mkdir(parents=True)
+    (root / 'scripts').mkdir(parents=True)
     if args.tooling:
         install_native_tooling(root, directory)
     started = time.monotonic()
@@ -522,7 +522,7 @@ def main():
             raise ValueError('extra dependency was not rejected by native ownership admission')
     finally:
         project.write_bytes(original_project)
-    pins = root / 'eng/ProgramKit.Foundation.props'; original_pins = pins.read_bytes()
+    pins = root / 'config/program-kit/build/ProgramKit.Foundation.props'; original_pins = pins.read_bytes()
     try:
         pins.write_bytes(original_pins.replace(b'</Project>', b'<ItemGroup><PackageVersion Include="Orbyss.Foundation.Mcp.AspNetCore" Version="0.3.3" /></ItemGroup></Project>'))
         command([*native, 'check', *options], ROOT, directory / 'unowned-pin-rejection', expected=2)
@@ -538,7 +538,7 @@ def main():
     if args.tooling:
         prepare_comparison_tool(root, args.oasdiff)
     if args.execute:
-        command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'prepare')
+        command([sys.executable, 'scripts/composition_run.py', 'prepare'], root, directory / 'prepare')
         preparation = json.loads((root / 'artifacts/composition/prepared.json').read_text())
         frontend_output = root / graph['resources']['policy-web']['directory'] / 'dist'
         prepared_manifest = json.loads((frontend_output / 'manifest.json').read_text())
@@ -548,7 +548,7 @@ def main():
         try:
             # Preparation can leave managed prerequisites stopped. Update must
             # admit just this host's dependencies before its --no-deps activation.
-            command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'cold-update')
+            command([sys.executable, 'scripts/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'cold-update')
             cold = containers(preparation['project'])
             if args.single_host is False and 'r-' + __import__('hashlib').sha256(b'assessment-host').hexdigest()[:16] in cold:
                 raise ValueError('cold selected update activated an unrelated host')
@@ -557,10 +557,10 @@ def main():
                 raise ValueError('selected activation cleared another host or retained its own pending marker')
             # No source change follows preparation. Plain update must activate
             # the remaining prepared bundle rather than report unchanged.
-            command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'pending-plain-update')
+            command([sys.executable, 'scripts/composition_run.py', 'update'], root, directory / 'pending-plain-update')
             if json.loads((root / 'artifacts/composition/prepared.json').read_text()).get('pendingActivationHosts'):
                 raise ValueError('ready prepared bundles still have pending activation')
-            command([sys.executable, 'eng/composition_run.py', 'run'], root, directory / 'run')
+            command([sys.executable, 'scripts/composition_run.py', 'run'], root, directory / 'run')
             preparation = json.loads((root / 'artifacts/composition/prepared.json').read_text())
             private_root = root / graph['environments']['development']['resources']['private-evidence']['directory']
             active = containers(preparation['project'])
@@ -577,14 +577,14 @@ def main():
             if private_bytes != bytes(65536):
                 raise ValueError('private Host write did not reach the selected retained directory')
             command(['docker', 'restart', application_container], root, directory / 'private-host-restart')
-            command([sys.executable, 'eng/composition_run.py', 'run', '--host', 'application-host'], root, directory / 'private-restart-readiness')
+            command([sys.executable, 'scripts/composition_run.py', 'run', '--host', 'application-host'], root, directory / 'private-restart-readiness')
             if (private_root / 'retained.bin').read_bytes() != private_bytes:
                 raise ValueError('Host restart lost retained private bytes')
             # Stop a real shared prerequisite and update the selected host. Its
             # existing container must be restarted, never recreated.
             database_service = 'r-' + __import__('hashlib').sha256(b'postgresql').hexdigest()[:16]
             command(['docker', 'stop', active[database_service]], root, directory / 'dependency-stop')
-            command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'stopped-dependency-update')
+            command([sys.executable, 'scripts/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'stopped-dependency-update')
             if containers(preparation['project'])[database_service] != active[database_service]:
                 raise ValueError('selected update recreated the retained database prerequisite')
             before = containers(preparation['project'])
@@ -654,8 +654,8 @@ public sealed record ProbeResponse(string Policy);
             # preparation owns their restore; ordinary update acquires nothing.
             if args.tooling:
                 declare_typed_settings(root, directory / 'typed-settings-source')
-            command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'consumer-dependencies-prepare')
-            command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'consumer-update')
+            command([sys.executable, 'scripts/composition_run.py', 'prepare'], root, directory / 'consumer-dependencies-prepare')
+            command([sys.executable, 'scripts/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'consumer-update')
             after = containers(preparation['project'])
             import hashlib
             changed = 'r-' + hashlib.sha256(b'application-host').hexdigest()[:16]
@@ -676,7 +676,7 @@ public sealed record ProbeResponse(string Policy);
             plan_path = directory / 'consumer-feature-plan.json'
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
             product_result = directory / 'consumer-feature-result.json'
-            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-feature')
+            browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-feature')
             if json.loads(product_result.read_text())['status'] != 'ready':
                 raise ValueError('first consumer feature did not pass actual authenticated HTTP')
             edit_elapsed = round(time.monotonic() - edit_started, 3)
@@ -688,11 +688,11 @@ public sealed record ProbeResponse(string Policy);
             if args.tooling:
                 review_fixture_response_edit(root, previous_probe, directory / 'reviewed-response-edit')
             prepared_before = containers(preparation['project'])
-            command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'consumer-edit-prepare')
+            command([sys.executable, 'scripts/composition_run.py', 'prepare'], root, directory / 'consumer-edit-prepare')
             prepared_edit = json.loads((root / 'artifacts/composition/prepared.json').read_text())
             if 'application-host' not in prepared_edit.get('pendingActivationHosts', []):
                 raise ValueError('changed prepared bundle did not retain activation intent')
-            command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'consumer-prepared-update')
+            command([sys.executable, 'scripts/composition_run.py', 'update'], root, directory / 'consumer-prepared-update')
             prepared_after = containers(preparation['project'])
             host_services = {'r-' + hashlib.sha256(name.encode()).hexdigest()[:16]
                              for name in prepared_edit['pendingActivationHosts']}
@@ -703,7 +703,7 @@ public sealed record ProbeResponse(string Policy);
                 raise ValueError('plain update did not activate every prepared host bundle')
             first['productResponse'] = {'policy': 'consumer-prepared-ready'}
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
-            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-prepared-feature')
+            browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-prepared-feature')
             if json.loads(product_result.read_text())['status'] != 'ready':
                 raise ValueError('prepared content was not served by the activated published Host')
             after = prepared_after
@@ -711,23 +711,23 @@ public sealed record ProbeResponse(string Policy);
             if args.tooling:
                 import shutil
                 import composition_render
-                sys.path.insert(0, str(root / 'eng'))
+                sys.path.insert(0, str(root / 'scripts'))
                 import foundation_qualification as qualification
                 # Loader must use the migrated provider realm, with no credential output.
-                command([sys.executable, 'eng/web_identity.py', '--repository', '.', '--shell', 'application-shell'],
+                command([sys.executable, 'scripts/web_identity.py', '--repository', '.', '--shell', 'application-shell'],
                     root, directory / 'selected-web-identity')
                 selected_identity = json.loads((directory / 'selected-web-identity/stdout.log').read_text())
                 os.environ['PROGRAMKIT_IDENTITY_REALM_FILE'] = selected_identity['realmFile']
                 os.environ['PROGRAMKIT_IDENTITY_AUTHORITY'] = selected_identity['authority']
                 os.environ['PLAYWRIGHT_BROWSERS_PATH'] = str(root / 'artifacts/cache/playwright-browsers')
-                command(['node', '--input-type=module', '-e', "await import('./eng/web/persona-fixture.ts')"], root, directory / 'migrated-personas')
+                command(['node', '--input-type=module', '-e', "await import('./tools/program-kit/web/persona-fixture.ts')"], root, directory / 'migrated-personas')
                 os.environ['PROGRAMKIT_PERMISSION_PROBE_PATH'] = '/api/permission-probe'
                 browser_dir = directory / 'maintained-bff'; browser_dir.mkdir()
                 projection = composition_render.recipe_projection(graph, 'application-shell')
                 browser_config = qualification.authentication_browser_configuration(root, projection, browser_dir, args.engines.split(','))
                 command(['node', str(root / 'eng/web/node_modules/@playwright/test/cli.js'), 'test',
                          '--config', str(browser_config), 'authentication.spec.ts'], root, browser_dir / 'execution')
-                command(['pwsh', '-NoProfile', '-File', 'eng/Test-Web.ps1', '-BaseUrl', first['origin'],
+                command(['pwsh', '-NoProfile', '-File', 'scripts/Test-Web.ps1', '-BaseUrl', first['origin'],
                          '-Shell', 'application-shell', '-PermissionProbePath', '/api/permission-probe'],
                         root, directory / 'emitted-test-web')
                 for shell_id, frontend_id in [('application-shell', 'policy-web'), ('assessment-shell', 'assessment-web')]:
@@ -736,16 +736,16 @@ public sealed record ProbeResponse(string Policy);
                     shell = graph['resources'][shell_id]['name']
                     feature_ids = [graph['resources'][row['featureRef']]['featureIdentity'] for row in graph['bindings']
                                    if row['kind'] == 'featureShell' and row['shellRef'] == shell_id]
-                    arguments = [sys.executable, 'eng/openapi_init.py', '--repository', '.', '--identity', shell,
+                    arguments = [sys.executable, 'scripts/openapi_init.py', '--repository', '.', '--identity', shell,
                                  '--document-name', 'v1', '--shell', shell, '--application-directory', 'web/' + frontend_id,
                                  '--application-script', 'check', '--application-tsconfig', 'web/' + frontend_id + '/tsconfig.json']
                     for feature_id in feature_ids: arguments.extend(['--feature', feature_id])
                     command(arguments, root, directory / ('openapi-init-' + shell))
-                    command([sys.executable, 'eng/js_toolchain.py', '--repository', '.', 'npm', '--', '--prefix',
+                    command([sys.executable, 'scripts/js_toolchain.py', '--repository', '.', 'npm', '--', '--prefix',
                              'tools/openapi/' + shell, 'install', '--package-lock-only', '--ignore-scripts',
                              '--strict-peer-deps', '--engine-strict'], root, directory / ('openapi-lock-' + shell))
                 # Init and generator locks are source changes: restage normally, never reseal old evidence.
-                command(['pwsh', '-NoProfile', '-File', 'eng/Build.ps1', '-LockedMode', '-SkipTests', '-InitializeOpenApiBaseline'],
+                command(['pwsh', '-NoProfile', '-File', 'scripts/Build.ps1', '-LockedMode', '-SkipTests', '-InitializeOpenApiBaseline'],
                         root, directory / 'typed-openapi-pipeline')
                 export_output = (directory / 'typed-openapi-pipeline/stdout.log').read_text()
                 if 'TOOLING_SERVICE_ACTIVATED' in export_output:
@@ -770,12 +770,12 @@ window.programKitTypedExample = { storeLabel };
                 before_effect = sample_database(root, directory / 'sample-before-operation', observe=True)
                 if before_effect != {'value': 'ready', 'revision': 0}:
                     raise ValueError('metadata export or registration caused an application write')
-                command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'],
+                command([sys.executable, 'scripts/composition_run.py', 'update', '--host', 'application-host'],
                     root, directory / 'typed-client-update')
                 first['typedOperation'] = {'body': {'policy': 'stored'}, 'response': {'policy': 'configured-stored'}}
                 typed_plan = directory / 'typed-client-plan.json'; typed_plan.write_text(json.dumps(plan), encoding='utf-8')
                 typed_result = directory / 'typed-client-result.json'
-                browser_command(['node', 'eng/web/composition-readiness.mjs', str(typed_plan), str(typed_result)],
+                browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(typed_plan), str(typed_result)],
                     root, directory / 'typed-client-operation')
                 first.pop('typedOperation')
                 committed = sample_database(root, directory / 'sample-committed-observation', observe=True)
@@ -788,7 +788,7 @@ window.programKitTypedExample = { storeLabel };
                 restart_plan = {**plan, 'hosts': [{**first, 'productPath': '/api/sample-label',
                     'productResponse': {'policy': 'configured-stored'}}]}
                 restart_path = directory / 'typed-operation-restart-plan.json'; restart_path.write_text(json.dumps(restart_plan), encoding='utf-8')
-                browser_command(['node', 'eng/web/composition-readiness.mjs', str(restart_path),
+                browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(restart_path),
                     str(directory / 'typed-operation-restart-result.json')], root, directory / 'typed-operation-retained')
                 result.update(actualTypedRequestResponse=True, actualGeneratedTypesAndClient=True,
                     actualProviderPortResolution=True, actualNondefaultScalarOptions=True,
@@ -807,7 +807,7 @@ window.programKitTypedExample = { storeLabel };
                         or prefix['constraints'] != {'minLength': 1, 'maxLength': 32}):
                     raise ValueError('Actual packed source-backed options metadata differs from its owner')
                 result['actualPackedSettingsMetadata'] = True
-                presentation = json.loads((root / 'eng/foundation-settings.contract.json').read_bytes())['shells']['application-shell']['browserPresentation']
+                presentation = json.loads((root / 'config/program-kit/foundation-settings.contract.json').read_bytes())['shells']['application-shell']['browserPresentation']
                 settings = presentation['settings']
                 control_plan = {**plan, 'hosts': [{**first, 'productPath': '/api/sample-label',
                     'productResponse': {'policy': 'configured-stored'}, 'presentationProbe': {
@@ -815,7 +815,7 @@ window.programKitTypedExample = { storeLabel };
                 control_path = directory / 'native-generated-controls-plan.json'
                 control_path.write_text(json.dumps(control_plan), encoding='utf-8')
                 control_result = directory / 'native-generated-controls-result.json'
-                browser_command(['node', 'eng/web/composition-readiness.mjs', str(control_path), str(control_result)],
+                browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(control_path), str(control_result)],
                     root, directory / 'native-generated-controls')
                 control_observed = json.loads(control_result.read_bytes())
                 if control_observed['status'] != 'ready' or not all(check.get('nativeGeneratedControls') is True for check in control_observed['checks']):
@@ -826,7 +826,7 @@ window.programKitTypedExample = { storeLabel };
             frontend.write_text(frontend.read_text().replace("heading.textContent = 'Application foundation'", "heading.textContent = 'Consumer edited frontend'").replace("createElement('h1')", "createElement('h2')"), encoding='utf-8')
             styles = frontend.with_name('styles.css')
             styles.write_text(styles.read_text() + '\nh2 { color: rebeccapurple; }\n', encoding='utf-8')
-            command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'frontend-update')
+            command([sys.executable, 'scripts/composition_run.py', 'update'], root, directory / 'frontend-update')
             updated_manifest = json.loads((frontend_output / 'manifest.json').read_text())
             if updated_manifest['currentRevision'] == prepared_manifest['currentRevision'] or prepared_revision not in updated_manifest['revisions']:
                 raise ValueError('frontend update did not retain the prepared revision alongside a new revision')
@@ -838,14 +838,14 @@ window.programKitTypedExample = { storeLabel };
                 raise ValueError('frontend edit recreated unrelated services')
             first['expectedHeading'] = 'Consumer edited frontend'
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
-            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'frontend-feature-result.json')], root, directory / 'frontend-feature')
+            browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(plan_path), str(directory / 'frontend-feature-result.json')], root, directory / 'frontend-feature')
             for engine in args.engines.split(','):
                 privacy = {**plan, 'engines': [engine], 'hosts': [first], 'privacyProbe': True}
                 privacy_plan = directory / ('privacy-' + engine + '.json')
                 privacy_plan.write_text(json.dumps(privacy), encoding='utf-8')
                 privacy_result = directory / ('privacy-' + engine + '-result.json')
                 evidence = directory / ('privacy-' + engine)
-                browser_command(['node', 'eng/web/composition-readiness.mjs', str(privacy_plan), str(privacy_result)], root, evidence, expected=2)
+                browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(privacy_plan), str(privacy_result)], root, evidence, expected=2)
                 outcome = json.loads(privacy_result.read_text())
                 if outcome['status'] != 'failed' or outcome.get('failure', {}).get('phase') != 'privacy-failure-check':
                     raise ValueError('privacy negative case did not reach the intended authenticated failure')
@@ -861,31 +861,32 @@ window.programKitTypedExample = { storeLabel };
             graph['resources']['reports-api'] = {'kind': 'protectedResource', 'authorityRef': 'product-identity',
                                                   'ownerRef': graph['resources']['application-api']['ownerRef']}
             graph['environments']['development']['resources']['reports-api'] = {'audience': 'reports-api'}
-            (root / 'eng/foundation-composition.json').write_text(json.dumps(graph), encoding='utf-8')
+            (root / 'config/program-kit/foundation-composition.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/foundation-composition.json').write_text(json.dumps(graph), encoding='utf-8')
             command(sync, ROOT, directory / 'identity-reconcile-scaffold')
-            command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'identity-reconcile-prepare')
+            command([sys.executable, 'scripts/composition_run.py', 'prepare'], root, directory / 'identity-reconcile-prepare')
             current_identity = json.loads((root / 'artifacts/composition/private/identity-state.json').read_text())['product-identity']
             if current_identity['users'] != prior_identity['users'] or any(current_identity['clients'][name] != identity for name, identity in prior_identity['clients'].items()):
                 raise ValueError('identity reconciliation replaced existing users or registration identities')
             if 'reports-api' not in current_identity['clients']:
                 raise ValueError('new protected resource was not provisioned into the existing identity authority')
-            command([sys.executable, 'eng/composition_run.py', 'run'], root, directory / 'identity-reconcile-run')
-            command([sys.executable, 'eng/composition_run.py', 'stop', '--host', 'application-host'], root, directory / 'private-unavailable-stop')
+            command([sys.executable, 'scripts/composition_run.py', 'run'], root, directory / 'identity-reconcile-run')
+            command([sys.executable, 'scripts/composition_run.py', 'stop', '--host', 'application-host'], root, directory / 'private-unavailable-stop')
             retained_root = private_root.with_name(private_root.name + '-retained-test')
             private_root.rename(retained_root)
             try:
-                command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'private-unavailable', expected=2)
+                command([sys.executable, 'scripts/composition_run.py', 'prepare'], root, directory / 'private-unavailable', expected=2)
                 if private_root.exists() or 'private storage is unavailable' not in (directory / 'private-unavailable/stderr.log').read_text():
                     raise ValueError('missing retained storage was recreated or accepted')
             finally:
                 retained_root.rename(private_root)
-            command([sys.executable, 'eng/composition_run.py', 'run', '--host', 'application-host'], root, directory / 'private-volume-recovery')
-            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'post-reconcile-feature-result.json')], root, directory / 'post-reconcile-feature')
+            command([sys.executable, 'scripts/composition_run.py', 'run', '--host', 'application-host'], root, directory / 'private-volume-recovery')
+            browser_command(['node', 'tools/program-kit/web/composition-readiness.mjs', str(plan_path), str(directory / 'post-reconcile-feature-result.json')], root, directory / 'post-reconcile-feature')
             # The ordinary product gate still rejects the incomplete binding.
             # Run this last: its metadata-helper restore legitimately adds lock
             # inputs and invalidates prior staging; do not reseal that evidence.
-            command([sys.executable, 'eng/repository_architecture.py', '--repository', '.',
-                     '--manifest', 'eng/architecture.json', '--configuration', 'Release',
+            command([sys.executable, 'scripts/repository_architecture.py', '--repository', '.',
+                     '--manifest', 'config/program-kit/architecture.json', '--configuration', 'Release',
                      '--build-subject', 'Application.slnx', '--output', 'artifacts/product-architecture.xml'],
                     root, directory / 'pending-product-architecture', expected=2)
             if 'Binding must name real compiled interface and implementation types' not in (directory / 'pending-product-architecture/stderr.log').read_text():
@@ -902,11 +903,11 @@ window.programKitTypedExample = { storeLabel };
                           ordinaryRuntimeProviderActivated=True, preparedPlainUpdateActivated=True,
                           measurement='Deterministic edit/build/authenticated operation; no agent reasoning-time claim')
         finally:
-            model_file = root / 'eng/foundation-composition.json'
+            model_file = root / 'config/program-kit/foundation-composition.json'
             original = model_file.read_bytes()
             try:
                 model_file.write_text('{"schemaVersion": "deliberately-invalid-pending-edit"}', encoding='utf-8')
-                command([sys.executable, 'eng/composition_run.py', 'stop'], root, directory / 'stop')
+                command([sys.executable, 'scripts/composition_run.py', 'stop'], root, directory / 'stop')
                 if containers(preparation['project']):
                     raise ValueError('owned shutdown left running services after a pending model edit')
             finally:

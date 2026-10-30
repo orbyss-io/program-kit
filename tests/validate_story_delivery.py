@@ -87,14 +87,15 @@ def seed(root, feature, *, evaluation=False):
     import toolkit_verification as toolkit
     (root / 'checks').mkdir(exist_ok=True)
     (root / 'checks/story.py').write_text('assert 2 + 2 == 4\nprint("Synthetic state-machine check; no application behavior claim")\n')
-    (root / 'eng').mkdir(exist_ok=True)
-    (root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [{
+    (root / 'scripts').mkdir(exist_ok=True)
+    (root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+    (root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [{
         'id': 'story-state', 'script': 'checks/story.py', 'arguments': [], 'inputs': ['checks/story.py'], 'timeoutSeconds': 10}]}))
     (root / 'review.md').write_text('Fictional scoped workflow review: state transitions and source freshness only. No application, semantic correctness or human acceptance claim. F7 actual application proof is separate.')
     retained = root / 'artifacts/tests/toolkit-runs/story-fixture/result.json'
     if not retained.is_file():
         with patch.object(toolkit.uuid, 'uuid4', return_value=SimpleNamespace(hex='story-fixture')):
-            toolkit.execute(root, ['story-state'], toolkit.declarations(root, json.loads((root / 'eng/verification.json').read_text())))
+            toolkit.execute(root, ['story-state'], toolkit.declarations(root, json.loads((root / 'config/program-kit/verification.json').read_text())))
     with patch.object(delivery, 'require_policy'):
         delivery.transition(root, feature, {'action': 'initialize', 'baseline': 'original-commit',
                                            'source': 'simulated requesting-human conversation'}, now=0)
@@ -187,17 +188,17 @@ class DeliveryTests(unittest.TestCase):
         import building_blocks as blocks
         selected_catalog = blocks.new_project_catalog()
         analyzer_version = selected_catalog['packages']['nuget:Orbyss.Foundation.Analyzers']['version']
-        template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+        template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
         for name in ('ProgramKit.Build.props', 'ProgramKit.Build.targets'):
-            shutil.copyfile(template / name, self.root / 'eng' / name)
+            shutil.copyfile(template / name, self.root / 'scripts' / name)
         (self.root / 'Directory.Packages.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>'
             '<PackageVersion Include="Orbyss.Foundation.Analyzers" Version="' + analyzer_version + '" /></ItemGroup></Project>')
-        (self.root / 'Directory.Build.targets').write_text('<Project><Import Project="eng/ProgramKit.Build.targets" /></Project>')
+        (self.root / 'Directory.Build.targets').write_text('<Project><Import Project="config/program-kit/build/ProgramKit.Build.targets" /></Project>')
         (self.root / 'NuGet.Config').write_text('<configuration><packageSources><clear/><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources>'
             '<packageSourceMapping><clear/><packageSource key="nuget.org"><package pattern="*" /></packageSource></packageSourceMapping>'
             '<fallbackPackageFolders><clear/></fallbackPackageFolders><config><add key="globalPackagesFolder" value="' + (self.root / 'packages').as_posix() + '" /></config></configuration>')
         props = self.root / 'Directory.Build.props'
-        props.write_text('<Project><Import Project="eng/ProgramKit.Build.props" /><PropertyGroup><DefineConstants>BASELINE</DefineConstants></PropertyGroup></Project>')
+        props.write_text('<Project><Import Project="config/program-kit/build/ProgramKit.Build.props" /><PropertyGroup><DefineConstants>BASELINE</DefineConstants></PropertyGroup></Project>')
         project_text = ('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework>'
                         '<OutputType>Exe</OutputType><Version>1.0.0</Version><ImplicitUsings>enable</ImplicitUsings>'
                         '</PropertyGroup></Project>')
@@ -213,7 +214,7 @@ class DeliveryTests(unittest.TestCase):
         commands = []
         # This real native case supplies the actual ownership/baseline now consumed
         # by direct presentation; the other state-machine cases remain fictional.
-        graph = self.root / 'eng/architecture.json'
+        graph = self.root / 'config/program-kit/architecture.json'
         graph.parent.mkdir(exist_ok=True)
         graph.write_text(json.dumps({'runtimeComposition': {'projects': [
             {'path': 'src/' + name + '/' + name + '.csproj', 'role': 'implementation', 'projectReferences': [],
@@ -255,9 +256,10 @@ class DeliveryTests(unittest.TestCase):
             'assert output == "baseline runtime", output\n')
         declaration = {'id': 'story-state', 'script': 'checks/story.py', 'arguments': [], 'inputs': [
             'checks/story.py', 'src/Create/Create.csproj', 'src/Create/Program.cs', 'Directory.Build.props',
-            'Directory.Build.targets', 'Directory.Packages.props', 'NuGet.Config', 'eng/ProgramKit.Build.props',
-            'eng/ProgramKit.Build.targets'], 'timeoutSeconds': 120}
-        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [declaration]}))
+            'Directory.Build.targets', 'Directory.Packages.props', 'NuGet.Config', 'config/program-kit/build/ProgramKit.Build.props',
+            'config/program-kit/build/ProgramKit.Build.targets'], 'timeoutSeconds': 120}
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [declaration]}))
         import toolkit_verification as toolkit
         toolkit.execute(self.root, ['story-state'], toolkit.declarations(self.root, {'schemaVersion': 1, 'toolkitChecks': [declaration]}))
         native_checks = [path.relative_to(self.root).as_posix() for path in (self.root / 'artifacts/tests/toolkit-runs').glob('*/result.json')
@@ -527,16 +529,16 @@ class DeliveryTests(unittest.TestCase):
 
     def scoped_presentation(self):
         self.complete('T001', 'T002')
-        (self.root / 'eng').mkdir(exist_ok=True)
+        (self.root / 'scripts').mkdir(exist_ok=True)
         self.graph = two_apps(ROOT)
-        self.composition = self.root / 'eng/foundation-composition.json'
+        self.composition = self.root / 'config/program-kit/foundation-composition.json'
         self.composition.write_text(json.dumps(self.graph))
         self.scope = {'schemaVersion': 1, 'inputs': [
             {'path': 'src/Create.txt', 'kind': 'file'},
-            {'path': 'eng/foundation-composition.json', 'kind': 'foundation-composition', 'version': 1,
+            {'path': 'config/program-kit/foundation-composition.json', 'kind': 'foundation-composition', 'version': 1,
              'hosts': ['application-host'], 'environments': ['development']}]}
         self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
-            basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
+            basisPaths=['src/Create.txt', 'config/program-kit/foundation-composition.json'], materialScope=self.scope,
             entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         self.accept()
 
@@ -866,7 +868,7 @@ class DeliveryTests(unittest.TestCase):
         self.composition.write_text(json.dumps(self.graph, indent=4))
         self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
-            basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
+            basisPaths=['src/Create.txt', 'config/program-kit/foundation-composition.json'], materialScope=self.scope,
             entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         review = delivery.load_delivery(self.feature)['checkpoints']['US1']
         self.assertEqual('accepted', review['human']); self.assertEqual(prior, review['decisions'])
@@ -912,20 +914,20 @@ class DeliveryTests(unittest.TestCase):
 
     def test_verification_sibling_group_requires_current_checks_without_new_human_decision(self):
         import review_material
-        file = self.root / 'eng/verification.json'; file.parent.mkdir(exist_ok=True)
+        file = self.root / 'config/program-kit/verification.json'; file.parent.mkdir(exist_ok=True)
         value = {'schemaVersion': 1, 'testGroups': [{'id': 'create', 'projects': ['tests/Create.csproj'], 'inputs': ['src/Create/**']}]}
         file.write_text(json.dumps(value))
-        scope = {'schemaVersion': 1, 'inputs': [{'path': 'eng/verification.json', 'kind': 'verification', 'version': 1,
+        scope = {'schemaVersion': 1, 'inputs': [{'path': 'config/program-kit/verification.json', 'kind': 'verification', 'version': 1,
                                                'projects': ['tests/Create.csproj']}]}
-        original = review_material.basis(self.root, scope, ['eng/verification.json'])
+        original = review_material.basis(self.root, scope, ['config/program-kit/verification.json'])
         value['testGroups'].append({'id': 'export', 'projects': ['tests/Export.csproj'], 'inputs': ['src/Export/**']})
         file.write_text(json.dumps(value))
-        self.assertEqual(original, review_material.basis(self.root, scope, ['eng/verification.json']))
+        self.assertEqual(original, review_material.basis(self.root, scope, ['config/program-kit/verification.json']))
         value['testGroups'][0]['reuse'] = False; file.write_text(json.dumps(value))
-        self.assertNotEqual(original, review_material.basis(self.root, scope, ['eng/verification.json']))
+        self.assertNotEqual(original, review_material.basis(self.root, scope, ['config/program-kit/verification.json']))
         value['unknownFutureBehavior'] = True; file.write_text(json.dumps(value))
         with self.assertRaisesRegex(ValueError, 'unknown verification'):
-            review_material.basis(self.root, scope, ['eng/verification.json'])
+            review_material.basis(self.root, scope, ['config/program-kit/verification.json'])
 
     def test_failed_checks_cannot_renew_scoped_engineering(self):
         self.scoped_presentation()

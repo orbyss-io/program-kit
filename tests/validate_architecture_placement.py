@@ -68,7 +68,7 @@ def main():
     blocks = bt.load_module(bt.RESOLVER)
     context = ct.load_module(Path(filesystem_path(ROOT)))
     catalog = blocks.load_json(bt.CATALOG)
-    sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
     from repository_architecture import validate_manifest
     with FixtureDirectory(prefix='planned-modularity-') as temporary:
         planned_root = Path(temporary)
@@ -185,7 +185,7 @@ def main():
         accepted_lock = blocks.accept_selection(root, selection_path, bt.CATALOG,
             selection["authority"]["architectureMap"], ["placement"], "Reviewed synthetic placement", "0.10.0")
         assert blocks.load_json(selection_path)["status"] == "Accepted"
-        bt.expect_error(blocks, "PKB404", lambda: blocks.apply_materialization(root, root / "eng/building-blocks.lock.json", accepted_lock, catalog))
+        bt.expect_error(blocks, "PKB404", lambda: blocks.apply_materialization(root, root / "config/program-kit/building-blocks.lock.json", accepted_lock, catalog))
         assert not any((root / target["path"]).exists() for target in selection["targets"])
         for output in accepted_lock["managedOutputs"]:
             if output["kind"] in {"nuget-project", "npm-package"}:

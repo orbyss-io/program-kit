@@ -14,7 +14,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'scripts'),str(ROOT/'extensions/program-kit-governance/scripts'),
-              str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng')]
+              str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts')]
 import asset_sources as assets
 from owned_scratch import filesystem_path,native_path
 
@@ -111,17 +111,17 @@ class NativePackTests(unittest.TestCase):
             self.assertTrue((consumer/'.specify/extensions/program-kit-governance/templates/ui-experience/acceptance/package.json').is_file())
             ui=consumer/'.specify/extensions/program-kit-governance/scripts/ui_profile.py'
             for action in ('init','build','check'):run('ui-'+action,[sys.executable,native_path(ui),action,'--target',native_path(consumer)])
-            profile=json.loads((consumer/'.program-kit/ui/profile.json').read_text())
-            content=json.loads((consumer/'.program-kit/ui/content.json').read_text())
+            profile=json.loads((consumer/'config/program-kit/ui/profile.json').read_text())
+            content=json.loads((consumer/'config/program-kit/ui/content.json').read_text())
             expected=ui_profile.outputs(profile,content)
             self.assertTrue(all((consumer/name).read_bytes()==data for name,data in expected.items()))
             # The actual installed current helper executes an explicitly anchored
             # current consumer case through the supported toolkit adapter. No
             # historical source or invented C# application owner is involved.
-            engineering=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'
-            (consumer/'eng').mkdir(exist_ok=True)
+            engineering=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
+            (consumer/'scripts').mkdir(exist_ok=True)
             for name in ('toolkit_verification.py','retained_inputs.py','owned_scratch.py'):
-                shutil.copyfile(engineering/name,consumer/'eng'/name)
+                shutil.copyfile(engineering/name,consumer/'scripts'/name)
             required=consumer/'required_current_cases.py'
             required.write_bytes(b'import unittest\nclass Required(unittest.TestCase):\n def test_actual_current_obligation(self): self.assertEqual(7, 7)\n')
             runner='.specify/extensions/program-kit-governance/scripts/case_inventory.py'

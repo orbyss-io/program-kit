@@ -11,8 +11,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1"
-RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
+BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/Build.ps1"
+RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/Restore.ps1"
 
 
 PACK_ENGINE_FILES = ('release_bundle.py', 'composition_model.py', 'foundation_qualification.py', 'prepare_hosted_pages.py', 'owned_scratch.py', 'central_packages.py', 'handoff_contract.py',
@@ -38,7 +38,7 @@ def assert_pack_capture(repository: Path) -> None:
         raise AssertionError('Wrapper fixture must seal actual inputs without claiming compiled packages')
     import hashlib
     for name in PACK_ENGINE_FILES:
-        path = repository / 'eng' / name
+        path = repository / 'scripts' / name
         if value['sourceInputs'].get('eng/' + name) != hashlib.sha256(path.read_bytes()).hexdigest():
             raise AssertionError('Maintained pack engine input was not captured: ' + name)
 
@@ -89,7 +89,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-build-contract-") as value:
         workspace = Path(value)
         repository = workspace / "consumer"
-        managed = repository / "eng"
+        managed = repository / "scripts"
         managed.mkdir(parents=True)
         shutil.copyfile(BUILD, managed / "Build.ps1")
         shutil.copyfile(RESTORE, managed / "Restore.ps1")
@@ -246,7 +246,7 @@ def main() -> int:
             if any(line.startswith(step + ' ') for line in calls for step in later):
                 raise AssertionError(f'Release processing continued after failed {operation}: {calls}')
 
-        consumer = repository / "eng/verify.ps1"
+        consumer = repository / "scripts/verify.ps1"
         consumer.parent.mkdir(parents=True, exist_ok=True)
         consumer.write_text(
             f'"$env:APPDATA|$env:LOCALAPPDATA|$env:NUGET_PACKAGES" | Set-Content -LiteralPath "{repository / "consumer-environment.txt"}"\n',
@@ -254,11 +254,11 @@ def main() -> int:
         )
         shutil.copyfile(
             ROOT
-            / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
+            / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/Invoke-RepositoryVerification.ps1",
             managed / "Invoke-RepositoryVerification.ps1",
         )
-        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKitPython.psm1', managed / 'ProgramKitPython.psm1')
-        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py', managed / 'python_runtime_contract.py')
+        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts/ProgramKitPython.psm1', managed / 'ProgramKitPython.psm1')
+        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts/python_runtime_contract.py', managed / 'python_runtime_contract.py')
         # This unit fixture isolates wrapper/environment routing. Actual compiled
         # architecture failures are exercised by validate_architecture_recipe and
         # validate_standalone_engineering, not by its fake dotnet command.

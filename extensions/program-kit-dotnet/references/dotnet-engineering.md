@@ -7,8 +7,8 @@ ownership rules are profile requirements.
 
 <!-- program-kit:decision-rule async-ownership -->
 <!-- program-kit:knowledge-rule principle.async-representation -->
-- `Task`/`Task<T>` is the default asynchronous representation. Use `ValueTask` only for a measured hot path
-  whose consumers obey its single-consumption constraints.
+- `Task`/`Task<T>` is the default async result. Use `ValueTask` only for measured hot paths
+  with single-consumption callers.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.bounded-async-work -->
 - `async void` is limited to event handlers. Do not use `.Result`, `.Wait()`, sync-over-async, unobserved work,
@@ -34,7 +34,7 @@ ownership rules are profile requirements.
   bounded execution policy. Returning a task directly is valid only when disposal, `finally` and exception
   handling do not need to span its completion. Observe all child outcomes from `Task.WhenAll`, including
   cancellation. Async streams propagate enumeration cancellation and dispose their enumerators.
-- Choose continuation behavior for the actual caller context; do not mechanically add or remove
+- Choose continuations for caller context; do not mechanically add or remove
   `ConfigureAwait`. Distinguish per-process Foundation scheduling from distributed work ownership.
 <!-- /program-kit:knowledge-rule -->
 
@@ -43,13 +43,13 @@ ownership rules are profile requirements.
 <!-- program-kit:knowledge-rule principle.synchronization-contract -->
 - Use `lock` or `System.Threading.Lock` for short synchronous critical sections. Never await while holding it.
 - Use `SemaphoreSlim` for asynchronous mutual exclusion or bounded concurrency, with acquisition/release paired
-  in `try/finally` after successful acquisition. It is not a universal lock and provides no fairness guarantee.
-- Prefer concurrent collections only when their precise atomicity is understood. `ConcurrentDictionary`
-  delegates can execute more than once and outside its internal locks; factories must tolerate that behavior.
+  in `try/finally` after successful acquisition. It is neither a universal lock nor fair.
+- Use concurrent collections only with understood atomicity. `ConcurrentDictionary`
+  delegates can execute more than once and outside its internal locks; factories must tolerate repeats.
 - Prefer message passing or bounded channels when ownership transfer is clearer than shared mutable state.
 - `Interlocked` supports individual atomic operations; compound invariants still need coordination.
-  `volatile` does not make read-modify-write atomic. Document lock order and keep uncontrolled callbacks,
-  external I/O and slow work outside critical sections. Singleton lifetime does not establish thread safety.
+  `volatile` does not make read-modify-write atomic. Name lock order; keep uncontrolled callbacks,
+  external I/O and slow work outside critical sections. Singletons do not imply thread safety.
 - A channel design defines capacity, full mode, cancellation, completion and failed-consumer behavior.
   Specialized locks and lock-free algorithms require a scoped investigation and measured justification.
 <!-- /program-kit:knowledge-rule -->

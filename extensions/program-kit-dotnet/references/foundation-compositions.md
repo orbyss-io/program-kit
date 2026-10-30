@@ -5,7 +5,7 @@
 An accepted Foundation Host/BFF/Keycloak/PostgreSQL decision selects this maintained
 composition route. Before adding container topology, authentication presentation,
 public asset serving or the first product endpoint, inspect the accepted exact
-profile and `eng/foundation-composition.json`. A legacy `--web-profile bff-cookie`
+profile and `config/program-kit/foundation-composition.json`. A legacy `--web-profile bff-cookie`
 scaffold supplies compatibility files; it does not create that active v2 graph.
 Do not interpret its presence as completed composition adoption or a need to recreate
 native middleware. Other explicitly selected hosts retain their own engineering route.
@@ -142,7 +142,7 @@ The maintained lifecycle fixture includes an actual emitted private binding and
 missing/invented-key negatives, without changing the accepted private location.
 <!-- /program-kit:knowledge-rule -->
 
-The sole authoring input is schema version 2 of `eng/foundation-composition.json`.
+The sole authoring input is schema version 2 of `config/program-kit/foundation-composition.json`.
 Start from `templates/dotnet/compositions/application-foundation.json` or its
 `application-foundation-postgresql.json` variant, then populate the consumer's Accepted
 owners, feature paths, assigned endpoints/clients and database bindings. The retained
@@ -197,7 +197,7 @@ store their hashes in readiness records. Provider code still owns typed binding,
 validation, snapshot/reload and disposal semantics. A declaration cannot prove compiled
 registration; actual selected activation remains necessary.
 For an environment-only secret rotation, use an explicit
-`python eng/composition_run.py run --host <host-id>` with the new process input so
+`python scripts/composition_run.py run --host <host-id>` with the new process input so
 native Compose observes it. Source-only freshness deliberately stores no secret value
 hash and cannot infer a rotation; a no-op source update is not rotation evidence.
 
@@ -231,7 +231,7 @@ Activation-test projects and their feature `ProjectReference` bindings are
 consumer-owned. Program Kit does not generate or rebind them during composition
 migration/synchronization. Tests that instantiate or inspect web feature types must
 directly reference both `CShells.Abstractions` and `CShells.AspNetCore.Abstractions`,
-using the matching central pins already imported from `eng/ProgramKit.Packages.props`:
+using the matching central pins already imported from `config/program-kit/build/ProgramKit.Packages.props`:
 
 ```xml
 <PackageReference Include="CShells.Abstractions" PrivateAssets="all" />
@@ -246,11 +246,11 @@ locks; do not remove `PrivateAssets="all"` from feature projects to make tests c
 Native host readiness complements these consumer registration/preparation assertions.
 
 Record each planned test responsibility's actual direct uses in `testSeams` in
-`eng/architecture.json`: `shell-lifecycle` requires only CShells.Abstractions;
+`config/program-kit/architecture.json`: `shell-lifecycle` requires only CShells.Abstractions;
 `api-feature` and shell `activation` require both contracts; `pure-core` adds neither.
 This mapping is bounded to those public seams. Missing or unsupported selected test use
 is unresolved, not permission to add blanket dependencies. Keep production PrivateAssets.
-For a new declared test owner, `python eng/test_project.py --project <csproj>` previews
+For a new declared test owner, `python scripts/test_project.py --project <csproj>` previews
 the project and synchronized inventory, bound to the accepted central pins. Apply with
 `--apply-digest <reviewed digest>`. It creates no behavioral assertions and cannot replace
 an existing consumer project; actual restore, locked dependency review, build and tests
@@ -258,12 +258,12 @@ remain required. Existing tests receive only reviewed demonstrably needed direct
 
 During task reconciliation, match planned test owners to actual projects. Reviewed unused
 empty scaffolds can be archived with their locks and declared successor ownership in
-`eng/verification.json`; do not create empty tests to make a broad gate green. Use named
+`config/program-kit/verification.json`; do not create empty tests to make a broad gate green. Use named
 Focused activation and architecture tests plus real browser/build checks as prerequisites,
 then run Affected from the retained implementation baseline once descendant behavior tests
 exist. Preserve task IDs, effort, historical failures and story human reviews.
 
-After reviewed archival, preview `python eng/repository_verification.py --reconcile-owners`.
+After reviewed archival, preview `python scripts/repository_verification.py --reconcile-owners`.
 Its explicit `testOwnershipReplacements` resolve stale owners in verification.json,
 verification.setup.json and authored verification-inputs.json rules. Missing, active,
 ambiguous or cyclic replacements fail. Apply only the reviewed plan with
@@ -335,7 +335,7 @@ also revalidate resource eligibility before revealing restored browser content. 
 media, discovery, service workers and upstream caches require their own matching policy.
 See the captured publisher's `docs/dynamic-page-and-recovery-adoption.md` and package README.
 
-`eng/composition_run.py prepare` verifies prerequisites, acquires exact dependencies
+`scripts/composition_run.py prepare` verifies prerequisites, acquires exact dependencies
 and browser executables, builds frontends, stages admitted assets/packages and provisions
 owned databases and identity registrations. Existing identity users and registration IDs are
 preserved; removed owned clients are disabled. `run` starts the generated Docker Compose and checks real activation,
@@ -352,7 +352,7 @@ the full evaluated/compiled product architecture check remains an implementation
 verification obligation. Foundation readiness does not claim that check has passed.
 
 Generated settings, realm imports and Compose files are outputs. Legacy finite
-inputs require explicit `eng/composition_migrate.py` preview/apply, followed by normal
+inputs require explicit `scripts/composition_migrate.py` preview/apply, followed by normal
 managed reconciliation and fresh implementation entry. Preserve task IDs, valid owned
 code, baseline, effort, original locks and Accepted decision history. Reconcile active
 scoped decisions, affected plans and retired placements; no repeated bootstrap/intake.

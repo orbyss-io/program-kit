@@ -58,7 +58,7 @@ def seed(root, *, installed=False, features=True):
         'elements': [{'id': 'lookup', 'type': 'bounded-context', 'decision_refs': ['snapshot-owner']}],
         'decisions': [{'id': 'snapshot-owner', 'status': 'Accepted'}],
         'sources': [], 'strategic_model': {'bounded_contexts': [{'element': 'lookup', 'status': 'accepted'}], 'contracts': []}})
-    write(root / 'eng/architecture.json', {'runtimeComposition': {'projects': [{
+    write(root / 'config/program-kit/architecture.json', {'runtimeComposition': {'projects': [{
         'path': 'src/Lookup/Lookup.csproj', 'role': 'helper', 'projectReferences': [],
         'responsibilities': [{'name': 'SnapshotLookup', 'kind': 'pure-helper', 'effects': []}]}, {
         'path': 'tests/Proof/SnapshotProof.csproj', 'role': 'test', 'projectReferences': ['src/Lookup/Lookup.csproj'],
@@ -66,7 +66,7 @@ def seed(root, *, installed=False, features=True):
     write(root / 'docs/architecture/building-block-selection.json', {'status': 'Accepted', 'targets': [{
         'id': 'lookup', 'kind': 'dotnet-project', 'path': 'src/Lookup/Lookup.csproj',
         'placement': {'owner': 'lookup', 'decisionIds': ['snapshot-owner']}}], 'instances': []})
-    write(root / 'eng/Invoke-RepositoryVerification.ps1', '# Named checks use the native verification owner.\n')
+    write(root / 'scripts/Invoke-RepositoryVerification.ps1', '# Named checks use the native verification owner.\n')
     if not features:
         return sdk  # Human-operated flow must author its own feature/intake/state.
     for number, description in [('001-learn', 'immutable snapshot query'), ('002-apply', 'immutable snapshot query'), ('003-live', 'live mutable query')]:
@@ -148,7 +148,7 @@ def scenario(directory):
         result['sdk'] = seed(consumer)
         scripts = consumer / '.specify/extensions/program-kit-governance/scripts'
         pattern = scripts / 'coding_patterns.py'
-        native = consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py'
+        native = consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py'
         phase = scripts / 'phase_obligations.py'
         local_path = consumer / 'docs/architecture/coding-patterns.json'
         def prepare(name, feature='001-learn', expected=0, code=None, source=False):
@@ -183,7 +183,7 @@ def scenario(directory):
         inputs = ['src/Lookup/Note.cs', 'src/Lookup/SnapshotScan.cs', 'src/Lookup/SnapshotQuery.cs', 'src/Lookup/OwnerReport.cs', 'tests/Proof/Program.cs', 'tests/Proof/SnapshotProof.csproj', 'src/Lookup/Lookup.csproj', 'global.json', 'runtime.txt', 'NuGet.Config', 'Directory.Build.props', 'Directory.Build.targets']
         config = {'schemaVersion': 1, 'testGroups': [], 'toolkitChecks': [
             {'id': 'snapshot-proof', 'script': 'tests/Proof/check.py', 'arguments': ['--benchmark'], 'inputs': inputs, 'timeoutSeconds': 65}]}
-        write(consumer / 'eng/verification.json', config)
+        write(consumer / 'config/program-kit/verification.json', config)
         gap = prepare('01-supported-task-gap')
         assert gap['coding']['canProceed'] and not gap['coding']['patterns']
         check('02-baseline-correctness-and-performance')
@@ -400,10 +400,10 @@ def shared_preparation(review, consumer, run, pattern, prepare):
     for name in ('Directory.Build.props', 'Directory.Build.targets', 'NuGet.Config', 'global.json', 'runtime.txt'):
         shutil.copyfile(shared / name, public_example / name)
     check_inputs = ['.specify/extensions/' + base + '/' + n for n in ('Note.cs', 'SnapshotScan.cs', 'SnapshotQuery.cs', 'OwnerReport.cs', 'Program.cs', 'SnapshotProof.csproj', 'Directory.Build.props', 'Directory.Build.targets', 'NuGet.Config', 'global.json', 'runtime.txt')]
-    write(shared / 'eng/verification.json', {'schemaVersion': 1, 'testGroups': [], 'toolkitChecks': [{
+    write(shared / 'config/program-kit/verification.json', {'schemaVersion': 1, 'testGroups': [], 'toolkitChecks': [{
         'id': 'shared-snapshot-proof', 'script': '.specify/extensions/' + base + '/check.py', 'arguments': ['--benchmark'],
         'inputs': check_inputs, 'timeoutSeconds': 65}]})
-    native = shared / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py'
+    native = shared / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py'
     shared_check = [sys.executable, native, '--repository', shared, '--scope', 'Focused', '--check', 'shared-snapshot-proof']
     shared_code = public_example / 'SnapshotQuery.cs'
     valid_shared = shared_code.read_bytes()

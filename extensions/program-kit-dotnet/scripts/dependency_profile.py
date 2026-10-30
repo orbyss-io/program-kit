@@ -21,9 +21,12 @@ def resolver():
 
 
 def engineering_default(root: Path) -> dict | None:
-    if (root / 'docs/architecture/building-block-selection.json').is_file() or (root / '.program-kit/dependency-profile.json').is_file():
+    if any((root / '.program-kit' / name).is_file() and not (root / 'config/program-kit' / name).is_file()
+           for name in ('dependency-profile.json', 'managed.json')):
+        raise ValueError('PKB111 legacy selected dependency authority requires explicit migration; no new-project default was substituted')
+    if (root / 'docs/architecture/building-block-selection.json').is_file() or (root / 'config/program-kit/dependency-profile.json').is_file():
         return None
-    managed = root / '.program-kit/managed.json'
+    managed = root / 'config/program-kit/managed.json'
     previous = json.loads(managed.read_text(encoding='utf-8')).get('newProjectDependencyProfile') if managed.is_file() else None
     if managed.is_file() and previous is None:
         return None  # Existing installations follow their existing reviewed upgrade path.
@@ -42,12 +45,12 @@ def retained_catalog(root: Path) -> dict | None:
 
 
 def render(root: Path, relative: str, content: bytes) -> bytes:
-    if relative not in {'eng/.config/dotnet-tools.json', 'eng/ProgramKit.Packages.props', 'eng/building-blocks.catalog.json'}:
+    if relative not in {'.config/dotnet-tools.json', 'config/program-kit/build/ProgramKit.Packages.props', 'scripts/building-blocks.catalog.json'}:
         return content
     effective = resolver().effective_dependency_context(root)
     if effective['authority'] == 'legacy-installation': return content
     catalog = effective['catalog']
-    if relative == 'eng/building-blocks.catalog.json':
+    if relative == 'scripts/building-blocks.catalog.json':
         return (json.dumps(catalog, indent=2) + '\n').encode('utf-8')
     if relative.endswith('dotnet-tools.json'):
         value = json.loads(content)

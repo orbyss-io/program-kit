@@ -72,7 +72,7 @@ def catalog_transition(target: Path, release: Path, resolver, selection: dict) -
     old_hash = selection.get("catalog", {}).get("resolutionSha256")
     if not isinstance(old_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", old_hash):
         raise ReconciliationError("PKU116 accepted catalog hash is malformed")
-    archive = target / ".program-kit/selection-history" / f"exporter-{old_hash}-{new_hash}"
+    archive = target / "config/program-kit/selection-history" / f"exporter-{old_hash}-{new_hash}"
     seal = archive / 'originals.json'
     if archive.exists():
         try:
@@ -114,7 +114,7 @@ def catalog_transition(target: Path, release: Path, resolver, selection: dict) -
                               version_path.read_text(encoding="utf-8"), re.MULTILINE)
     if version_match is None:
         raise ReconciliationError("PKU116 prior exporter transition installation version is missing")
-    lock = target / "eng/building-blocks.lock.json"
+    lock = target / "config/program-kit/building-blocks.lock.json"
     if lock.is_file():
         paths["lock.json"] = lock
     return {"archive": archive, "oldCatalog": old_path, "paths": paths,

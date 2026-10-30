@@ -17,7 +17,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
-sys.path.insert(0, str(TEMPLATE / 'eng'))
+sys.path.insert(0, str(TEMPLATE / 'scripts'))
 import application_handoff as handoff
 import handoff_contract
 import release_bundle as bundle
@@ -26,28 +26,30 @@ import verify_handoff
 
 class HandoffTests(unittest.TestCase):
     def test_engineering_source_excludes_generated_outputs_but_binds_native_inputs(self):
-        self.write('eng/tool/Tool.csproj', '<Project/>')
-        self.write('eng/tool/Program.cs', 'class Tool {}')
-        self.write('eng/tool/Contract.schema.json', {'type': 'object'})
-        self.write('eng/__pycache__/cached.pyc', 'generated interpreter cache')
-        self.write('eng/tool/obj/generated.nuget.g.props', '<Project/>')
-        self.write('eng/tool/bin/Release/generated.targets', '<Project/>')
-        self.write('eng/tool/obj/project.assets.json', {'libraries': {}})
-        self.write('eng/tool/packages.lock.json', {'version': 1})
+        self.write('tools/helper/Tool.csproj', '<Project/>')
+        self.write('tools/helper/Program.cs', 'class Tool {}')
+        self.write('tools/helper/Contract.schema.json', {'type': 'object'})
+        self.write('tools/helper/__pycache__/cached.pyc', 'generated interpreter cache')
+        self.write('tools/helper/obj/generated.nuget.g.props', '<Project/>')
+        self.write('tools/helper/bin/Release/generated.targets', '<Project/>')
+        self.write('tools/helper/obj/project.assets.json', {'libraries': {}})
+        self.write('tools/helper/packages.lock.json', {'version': 1})
+        self.write('eng/inputs.json', {'generated': True})
         first = handoff_contract.source_inputs(self.root)
-        self.assertIn('eng/tool/Program.cs', first)
-        self.assertIn('eng/tool/Tool.csproj', first)
-        self.assertIn('eng/tool/Contract.schema.json', first)
-        self.assertNotIn('eng/__pycache__/cached.pyc', first)
-        self.assertIn('eng/tool/obj/project.assets.json', first)
-        self.assertIn('eng/tool/packages.lock.json', first)
-        self.assertNotIn('eng/tool/obj/generated.nuget.g.props', first)
-        self.assertNotIn('eng/tool/bin/Release/generated.targets', first)
-        self.write('eng/tool/obj/generated.nuget.g.props', '<Project>changed generated output</Project>')
+        self.assertNotIn('eng/inputs.json', first)
+        self.assertIn('tools/helper/Program.cs', first)
+        self.assertIn('tools/helper/Tool.csproj', first)
+        self.assertIn('tools/helper/Contract.schema.json', first)
+        self.assertNotIn('tools/helper/__pycache__/cached.pyc', first)
+        self.assertIn('tools/helper/obj/project.assets.json', first)
+        self.assertIn('tools/helper/packages.lock.json', first)
+        self.assertNotIn('tools/helper/obj/generated.nuget.g.props', first)
+        self.assertNotIn('tools/helper/bin/Release/generated.targets', first)
+        self.write('tools/helper/obj/generated.nuget.g.props', '<Project>changed generated output</Project>')
         self.assertEqual(first, handoff_contract.source_inputs(self.root))
-        for relative, content in [('eng/tool/Program.cs', 'class Changed {}'),
-                                  ('eng/tool/Tool.csproj', '<Project Sdk="Example"/>'),
-                                  ('eng/tool/obj/project.assets.json', {'libraries': {'Changed': {}}})]:
+        for relative, content in [('tools/helper/Program.cs', 'class Changed {}'),
+                                  ('tools/helper/Tool.csproj', '<Project Sdk="Example"/>'),
+                                  ('tools/helper/obj/project.assets.json', {'libraries': {'Changed': {}}})]:
             self.write(relative, content)
             self.assertNotEqual(first[relative], handoff_contract.source_inputs(self.root)[relative])
 
@@ -72,18 +74,18 @@ class HandoffTests(unittest.TestCase):
         self.write('docs/application/review-scenarios.md', 'GET /capacity returns capacity 2. GET /admission?units=1 admits; units=0 and units=3 deny; units=bad returns HTTP 400. Tests: receiver_app.py Settings and validate_application_handoff.py test_real_http_examples_and_settings_parity.\n')
         self.write('docs/application/runtime-requirements.md', 'One Python process serves two APIs over loopback HTTP. Source and settings are read-only; artifacts/port.txt is writable. No storage, migrations, authentication or health endpoint. Infra supplies its own workflow.\n')
         self.selected = {'schemaVersion':1,'applicationId':'stable.example','components':[{'id':'shared-runtime','packages':['Example.App'],'contracts':['Admission','Capacity']}],
-             'bundleDescriptor':'artifacts/application-bundle.json','openapiRegistry':'eng/openapi-contracts.json',
+             'bundleDescriptor':'artifacts/application-bundle.json','openapiRegistry':'config/program-kit/openapi-contracts.json',
              'requiredSettingsScopes':{'application':['shared-process']}, 'categories': {
                  'documentation': {'status':'included','reason':'Delivered stateless behavior and tested examples.', 'files':['docs/application/'+x+'.md' for x in ['application','build-and-run','review-scenarios']]},
                  'runtime': {'status':'included','reason':'Actual stateless single-process requirements.','files':['docs/application/runtime-requirements.md']},
                  'settings': {'status':'included','reason':'Exported directly from the application declaration.','files':['contracts/settings.json']},
                  'assets': {'status':'not-applicable','reason':'No frontend or consumer image.','files':[]},
                  'migrations': {'status':'not-applicable','reason':'No persistent data.','files':[]}}}
-        self.write('eng/application-handoff.json', self.selected)
+        self.write('config/program-kit/application-handoff.json', self.selected)
         names=[]
         self.receipts=[]
         for identity, doc in documents.items():
-            name=f'eng/{identity}.json'; names.append(name)
+            name=f'contracts/{identity}.contract.json'; names.append(name)
             for prefix in ('raw','api','baseline'):
                 self.write(f'contracts/{prefix}-{identity}.json',doc)
             stage={'directory':'web','packageJson':'web/package.json','lockFile':'web/package-lock.json','script':'build'}
@@ -102,7 +104,7 @@ class HandoffTests(unittest.TestCase):
                 for f in ('packageJson','lockFile',out):self.write(declaration[k][f], '{}\n')
                 receipt[k]={f+'Sha256':handoff.digest(self.root/declaration[k][f]) for f in ('packageJson','lockFile',out)}
             self.receipts.append(receipt)
-        self.write('eng/openapi-contracts.json',{'schemaVersion':1,'contracts':names})
+        self.write('config/program-kit/openapi-contracts.json',{'schemaVersion':1,'contracts':names})
         self.packages=self.root/'artifacts/packages';self.packages.mkdir(parents=True)
         # Synthetic canonical descriptor verifies packaging, not Foundation runtime activation.
         with zipfile.ZipFile(self.packages/'Example.App.1.2.3.nupkg','w') as z:
@@ -126,7 +128,7 @@ class HandoffTests(unittest.TestCase):
             bundle.stage(self.root,self.packages,self.stage)
         bundle.describe(self.root,self.stage,'ghcr.io/orbyss-io/foundation-host','v0.2.4','sha256:'+'b'*64,self.root/'artifacts/application-bundle.json')
         self.write('artifacts/program-kit/openapi/pipeline.json',{'schemaVersion':1,'satisfied':True,
-              'registrySha256':handoff.digest(self.root/'eng/openapi-contracts.json'),'sourceInputs':handoff.source_inputs(self.root),'contracts':self.receipts})
+              'registrySha256':handoff.digest(self.root/'config/program-kit/openapi-contracts.json'),'sourceInputs':handoff.source_inputs(self.root),'contracts':self.receipts})
 
     def test_receiver_is_self_contained_and_deterministic(self):
         index=handoff.assemble(self.root)
@@ -135,7 +137,7 @@ class HandoffTests(unittest.TestCase):
         # Two logical components may share the same package/runtime; this is not deployment topology.
         self.selected['components']=[{'id':identity+'-capability','packages':['Example.App'],'contracts':[identity]}
                                      for identity in ('Admission','Capacity')]
-        self.write('eng/application-handoff.json',self.selected)
+        self.write('config/program-kit/application-handoff.json',self.selected)
         index=handoff.assemble(self.root);self.assertEqual(len(index['components']),2)
         path=self.root/'artifacts/handoff/application-handoff.zip'; first=path.read_bytes()
         self.assertEqual(index,handoff.assemble(self.root));self.assertEqual(first,path.read_bytes())
@@ -170,7 +172,7 @@ class HandoffTests(unittest.TestCase):
         self.packages=self.root/'artifacts/packages';self.stage=self.root/'artifacts/release-bundle'
         self.produce()
         self.assertEqual(handoff.assemble(self.root)['application']['id'],'stable.example')
-        (self.root/'eng/application-handoff.json').unlink()
+        (self.root/'config/program-kit/application-handoff.json').unlink()
         with self.assertRaisesRegex(ValueError,'PKH004'):self.produce()
 
     def test_real_http_examples_and_settings_parity(self):
@@ -205,18 +207,18 @@ class HandoffTests(unittest.TestCase):
         self.write('src/receiver_app.py',(self.root/'src/receiver_app.py').read_text()+'\n# changed\n')
         with self.assertRaisesRegex(ValueError,'PKH005|PKR022'):handoff.assemble(self.root)
         self.write('src/receiver_app.py',(ROOT/'tests/fixtures/application-handoff/receiver_app.py').read_text())
-        self.selected['components'][0]['contracts'].append('unknown');self.write('eng/application-handoff.json',self.selected)
+        self.selected['components'][0]['contracts'].append('unknown');self.write('config/program-kit/application-handoff.json',self.selected)
         with self.assertRaisesRegex(ValueError,'PKH009'):handoff.assemble(self.root)
-        self.selected['components'][0]['contracts'].pop();self.write('eng/application-handoff.json',self.selected)
+        self.selected['components'][0]['contracts'].pop();self.write('config/program-kit/application-handoff.json',self.selected)
         original_id=self.selected['applicationId']
-        self.selected['applicationId']='mismatched.identity';self.write('eng/application-handoff.json',self.selected)
+        self.selected['applicationId']='mismatched.identity';self.write('config/program-kit/application-handoff.json',self.selected)
         with self.assertRaisesRegex(ValueError,'PKH008'):handoff.assemble(self.root)
-        self.selected['applicationId']=original_id;self.write('eng/application-handoff.json',self.selected)
+        self.selected['applicationId']=original_id;self.write('config/program-kit/application-handoff.json',self.selected)
         self.write('contracts/duplicate-settings.json',self.metadata)
         self.selected['categories']['settings']['files'].append('contracts/duplicate-settings.json')
-        self.write('eng/application-handoff.json',self.selected)
+        self.write('config/program-kit/application-handoff.json',self.selected)
         with self.assertRaisesRegex(ValueError,'PKH007'):handoff.assemble(self.root)
-        self.selected['categories']['settings']['files'].pop();self.write('eng/application-handoff.json',self.selected)
+        self.selected['categories']['settings']['files'].pop();self.write('config/program-kit/application-handoff.json',self.selected)
         (self.root/'docs/application/application.md').unlink()
         with self.assertRaisesRegex(ValueError,'PKH003'):handoff.assemble(self.root)
 
@@ -225,20 +227,20 @@ class HandoffTests(unittest.TestCase):
                  '--target',str(self.root),'--profile-selected','--foundation-host-accepted',
                  '--building-block-sources-approved','--web-profile','none']
         self.write('NuGet.config',(TEMPLATE/'NuGet.config').read_text())
-        originals={name:(self.root/name).read_bytes() for name in ['eng/application-handoff.json','docs/application/application.md','eng/openapi-contracts.json']}
+        originals={name:(self.root/name).read_bytes() for name in ['config/program-kit/application-handoff.json','docs/application/application.md','config/program-kit/openapi-contracts.json']}
         for _ in range(2):
             result=subprocess.run(command,capture_output=True,text=True)
             self.assertEqual(0,result.returncode,result.stdout+result.stderr)
         for name,data in originals.items():self.assertEqual(data,(self.root/name).read_bytes())
         canonical=ROOT/'extensions/program-kit-building-blocks/scripts/public_availability.py'
-        self.assertEqual(canonical.read_bytes(),(self.root/'eng/public_availability.py').read_bytes())
+        self.assertEqual(canonical.read_bytes(),(self.root/'scripts/public_availability.py').read_bytes())
         # Removing disposable toolkit/integration/cache directories retains source/config/guides.
-        for name in ('.specify','.program-kit','.agents','artifacts/cache','artifacts/tools'):
+        for name in ('.specify','config/program-kit','.agents','artifacts/cache','artifacts/tools'):
             path=(self.root/name).resolve();self.assertTrue(path.is_relative_to(self.root.resolve()))
             if path.exists():shutil.rmtree(path)
-        spec=importlib.util.spec_from_file_location('retained_availability',self.root/'eng/public_availability.py')
+        spec=importlib.util.spec_from_file_location('retained_availability',self.root/'scripts/public_availability.py')
         availability=importlib.util.module_from_spec(spec);spec.loader.exec_module(availability)
-        catalog=json.loads((self.root/'eng/building-blocks.catalog.json').read_text())
+        catalog=json.loads((self.root/'scripts/building-blocks.catalog.json').read_text())
         host_key='oci:ghcr.io/orbyss-io/foundation-host'
         lock={'inputs':{'catalog':{'id':catalog['catalogId']}},'targets':[{'packages':[{'packageKey':host_key,'version':catalog['packages'][host_key]['version']}]}]}
         self.assertEqual(availability.selected_keys(catalog,lock),[host_key])
@@ -247,16 +249,16 @@ class HandoffTests(unittest.TestCase):
         package=next(x for x in catalog['packages'].values() if x['ecosystem']=='nuget')
         from validate_building_block_availability import Response
         with self.assertRaises(availability.AvailabilityError):availability.verify_nuget(package,lambda *_a,**_k:Response({'versions':[]}))
-        host_spec=importlib.util.spec_from_file_location('retained_host_policy',self.root/'eng/verify_host_image.py')
+        host_spec=importlib.util.spec_from_file_location('retained_host_policy',self.root/'scripts/verify_host_image.py')
         host_policy=importlib.util.module_from_spec(host_spec);host_spec.loader.exec_module(host_policy)
         evidence={'artifacts':[{'packageKey':host_key,'version':'0.2.4','status':'manifest-digest','reference':'ghcr.io/orbyss-io/foundation-host@sha256:'+'b'*64}]}
         host_policy.verify(evidence,evidence['artifacts'][0]['reference'])
         with self.assertRaises(ValueError):host_policy.verify(evidence,'ghcr.io/orbyss-io/foundation-host@sha256:'+'c'*64)
         # Re-export real fixture inputs after native scaffold adds source/tool configuration.
         self.produce()
-        result=subprocess.run([sys.executable,str(self.root/'eng/application_handoff.py'),'--repository',str(self.root)],cwd=self.root,capture_output=True,text=True)
+        result=subprocess.run([sys.executable,str(self.root/'scripts/application_handoff.py'),'--repository',str(self.root)],cwd=self.root,capture_output=True,text=True)
         self.assertEqual(0,result.returncode,result.stdout+result.stderr)
-        self.assertFalse((self.root/'.program-kit').exists())
+        self.assertFalse((self.root/'config/program-kit').exists())
         self.assertFalse((self.root/'.specify').exists())
 
     def test_schema_contracts_match_generated_outputs(self):
@@ -265,20 +267,20 @@ class HandoffTests(unittest.TestCase):
         index=handoff.assemble(self.root)
         for instance,name in [(self.selected,'application-handoff'),(self.metadata,'settings-metadata'),(index,'handoff-index')]:
             path=TEMPLATE/f'eng/{name}.schema.json'
-            validator,_=json_schema.engine(json_schema.load(path),path,resources=[TEMPLATE/'eng/application-bundle.schema.json'])
+            validator,_=json_schema.engine(json_schema.load(path),path,resources=[TEMPLATE/'scripts/application-bundle.schema.json'])
             self.assertEqual([],list(validator.iter_errors(instance)))
 
     def test_publisher_required_contract_coverage_cannot_be_omitted(self):
-        self.write('eng/openapi-contracts.json',{'schemaVersion':1,'contracts':['eng/Admission.json']})
+        self.write('config/program-kit/openapi-contracts.json',{'schemaVersion':1,'contracts':['eng/Admission.json']})
         self.receipts = [x for x in self.receipts if x['identity']=='Admission']
         self.selected['components'][0]['contracts']=['Admission']
-        self.write('eng/application-handoff.json',self.selected)
+        self.write('config/program-kit/application-handoff.json',self.selected)
         self.produce()
         with self.assertRaisesRegex(ValueError,'PKH009.*default/Capacity'):
             handoff.assemble(self.root)
 
     def test_framework_gap_never_becomes_ready(self):
-        self.selected['requiredSettingsScopes']['foundation']=['host','shell:default','nuplane'];self.write('eng/application-handoff.json',self.selected)
+        self.selected['requiredSettingsScopes']['foundation']=['host','shell:default','nuplane'];self.write('config/program-kit/application-handoff.json',self.selected)
         with self.assertRaisesRegex(ValueError,'PKH011.*foundation'):handoff.assemble(self.root)
         index=handoff.assemble(self.root,draft=True);self.assertEqual(index['status'],'incomplete')
         with self.assertRaisesRegex(ValueError,'PKH011'):verify_handoff.verify(self.root/'artifacts/handoff/application-handoff.zip')
@@ -306,7 +308,7 @@ class HandoffTests(unittest.TestCase):
             self.produce()
         self.selected['categories']['settings']['files'] = ['contracts/package-settings.json']
         self.selected['requiredSettingsScopes'] = {'Example.App':['shared-process']}
-        self.write('eng/application-handoff.json',self.selected)
+        self.write('config/program-kit/application-handoff.json',self.selected)
         replace(envelope)
         index = handoff.assemble(self.root)
         self.assertEqual(index['status'],'ready')
@@ -336,7 +338,7 @@ class HandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'PKH011'):handoff.assemble(self.root)
         replace(envelope)
         self.selected['requiredSettingsScopes']['foundation']=['host','shell:default','nuplane']
-        self.write('eng/application-handoff.json',self.selected)
+        self.write('config/program-kit/application-handoff.json',self.selected)
         with self.assertRaisesRegex(ValueError,'PKH011.*foundation'):handoff.assemble(self.root)
 
     def test_secrets_and_unsafe_paths_archives_are_rejected(self):

@@ -163,7 +163,7 @@ class DevelopmentTests(unittest.TestCase):
     def test_failed_entry_requires_a_fresh_successful_invocation_after_repair(self):
         import task_draft
         before = task_draft.current(self.feature)['delivery']
-        path = self.root / 'eng/architecture.json'; path.parent.mkdir(exist_ok=True)
+        path = self.root / 'config/program-kit/architecture.json'; path.parent.mkdir(exist_ok=True)
         graph = {'runtimeComposition': {'projects': [{'path': 'src/Policy/Policy.csproj',
                  'role': 'core'}], 'bindings': []}}
         path.write_text(json.dumps(graph))
@@ -183,7 +183,7 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(before, task_draft.current(self.feature)['delivery'])
 
     def test_planned_roles_gate_after_plan_tasks_and_source_without_builds(self):
-        eng = self.root / 'eng'; eng.mkdir(exist_ok=True)
+        eng = self.root / 'scripts'; eng.mkdir(exist_ok=True)
         graph = {'runtimeComposition': {'projects': [
             {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core',
              'responsibilities': [{'name': 'Notes.INotes', 'kind': 'contract', 'effects': []}]},
@@ -209,9 +209,9 @@ class DevelopmentTests(unittest.TestCase):
 
     def test_planned_source_requires_manifest_but_empty_repository_is_valid(self):
         (self.feature / 'plan.md').write_text('Implement src/Notes.Core/Notes.Core.csproj in C#.')
-        with self.assertRaisesRegex(ValueError, 'eng/architecture.json'):
+        with self.assertRaisesRegex(ValueError, 'config/program-kit/architecture.json'):
             knowledge.check(self.root, self.feature, 'after-plan')
-        eng = self.root / 'eng'; eng.mkdir(exist_ok=True)
+        eng = self.root / 'scripts'; eng.mkdir(exist_ok=True)
         (eng / 'architecture.json').write_text('{"runtimeComposition":{"projects":[],"bindings":[]}}')
         knowledge.check(self.root, self.feature, 'after-plan')
 
@@ -393,7 +393,7 @@ class DevelopmentTests(unittest.TestCase):
             knowledge.check(self.root,self.feature,'delivery')
 
     def test_successful_engineering_command_does_not_certify_semantic_or_human_acceptance(self):
-        eng = self.root / 'eng'
+        eng = self.root / 'scripts'
         eng.mkdir(exist_ok=True)
         (eng / 'Invoke-RepositoryVerification.ps1').write_text(
             "Write-Output 'Fixture engineering oracle ran'\nexit 0\n", encoding='utf-8')
@@ -466,7 +466,7 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual('delivery', json.loads(ledger.read_text())['prerequisites'][0]['trigger'])
 
     def test_closure_does_not_reuse_prior_scoped_pass_as_acceptance(self):
-        eng = self.root/'eng'; eng.mkdir(exist_ok=True)
+        eng = self.root/'scripts'; eng.mkdir(exist_ok=True)
         (eng/'Invoke-RepositoryVerification.ps1').write_text('exit 0')
         prior = self.root/'artifacts/tests/runs/old'; prior.mkdir(parents=True)
         scoped = {'schemaVersion': 1, 'scope': 'Focused', 'status': 'completed',
@@ -485,7 +485,7 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(1, len(list((self.root/'artifacts/program-kit/runs').glob('*/run.json'))))
 
     def test_failed_engineering_remains_failed_and_preserves_diagnostics(self):
-        eng = self.root/'eng';eng.mkdir(exist_ok=True)
+        eng = self.root/'scripts';eng.mkdir(exist_ok=True)
         (eng/'Invoke-RepositoryVerification.ps1').write_text('Write-Error "actual application failure"; exit 7')
         with self.assertRaisesRegex(ValueError,'Application verification failed'):
             knowledge.execute(self.root,self.feature)

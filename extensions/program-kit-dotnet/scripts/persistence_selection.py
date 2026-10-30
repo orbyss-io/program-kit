@@ -7,7 +7,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 PROFILES = {'ef-postgresql': 'EfPostgreSql', 'ef-sqlserver': 'EfSqlServer', 'ef-sqlite': 'EfSqlite'}
-AGGREGATE = 'eng/ProgramKit.Persistence.props'
+AGGREGATE = 'config/program-kit/build/ProgramKit.Persistence.props'
 ADMISSIONS = ('ownership', 'atomicity', 'concurrency', 'providerSemantics', 'migrations',
               'queries', 'authorization', 'dataProtection', 'operations', 'realProviderTests')
 
@@ -50,7 +50,7 @@ def resolve(root, feature=None, requested=None):
         feature = read(root / '.specify/feature.json', {}).get('feature_directory')
     decisions = read(root / 'docs/architecture/bootstrap-decisions.json', {})
     ownership = read(inside(root, feature) / 'artifact-ownership.json', {}) if feature else {}
-    managed = read(root / '.program-kit/managed.json', {})
+    managed = read(root / 'config/program-kit/managed.json', {})
     declarations = decisions.get('persistence', managed.get('persistenceOwners', []))
     if not isinstance(declarations, list):
         raise ValueError('PKP001 persistence must be a list of data owners')
@@ -164,7 +164,7 @@ def upgrade_scope(root, selection):
     recorded = {item['owner']: item for item in selection.get('installedOwners', [])}
     installed = {item['owner'] for item in selection.get('installedOwners', [])
                  if item.get('status') == 'admitted'}
-    legacy_profile = read(root / '.program-kit/managed.json', {}).get('persistenceProfile', 'none')
+    legacy_profile = read(root / 'config/program-kit/managed.json', {}).get('persistenceProfile', 'none')
     # A structured proposed owner is recorded intent, not an installed provider.
     # Retain the legacy guard when there is no structured owner provenance.
     legacy_unassigned = legacy_profile not in {'none', None} and not recorded
@@ -206,7 +206,7 @@ def packages(owner, template):
         return {}
     if profile == 'custom':
         return owner.get('packages', {})
-    path = template / 'eng/profiles/persistence' / f'ProgramKit.Persistence.{PROFILES[profile]}.props'
+    path = template / 'config/program-kit/build/profiles/persistence' / f'ProgramKit.Persistence.{PROFILES[profile]}.props'
     return {node.attrib['Include']: node.attrib['Version'] for node in ET.parse(path).iter('PackageVersion')
             if owner.get('testProvisioning') != 'supervisor' or not node.attrib['Include'].startswith('Testcontainers.')}
 
@@ -262,7 +262,7 @@ def coherence(root, selection, template, *, materialized=False):
     if not central.is_file():
         return errors + (['PKP004 materialize central package imports'] if materialized else [])
     # Reuse the strict bundle import/central-pin authority, including duplicate/conflicting pins.
-    path = template / 'eng/central_packages.py'
+    path = template / 'scripts/central_packages.py'
     spec = importlib.util.spec_from_file_location('persistence_bundle_pins', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

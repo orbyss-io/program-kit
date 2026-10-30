@@ -87,7 +87,7 @@ def composition_context(root, tags):
             decisions.append(path.relative_to(root).as_posix())
     if not decisions:
         return None
-    active = root / 'eng/foundation-composition.json'
+    active = root / 'config/program-kit/foundation-composition.json'
     state = 'absent'
     if active.is_file() and active.resolve().is_relative_to(root.resolve()):
         try:
@@ -97,7 +97,7 @@ def composition_context(root, tags):
             state = 'unreadable'
     elif active.is_file():
         state = 'outside-repository'
-    return {'decisionSources': decisions, 'activeInput': 'eng/foundation-composition.json',
+    return {'decisionSources': decisions, 'activeInput': 'config/program-kit/foundation-composition.json',
             'state': state,
             'guidance': '.specify/extensions/program-kit-dotnet/references/foundation-compositions.md',
             'meaning': 'Discovery only: no configuration validation, runtime execution or acceptance.'}
@@ -248,7 +248,7 @@ def text_page(output, page=1, limit=10000):
 
 def validate_planned_architecture(root, feature):
     """Explicit optional .NET graph check; generic guidance never invokes it."""
-    path = root / 'eng/architecture.json'
+    path = root / 'config/program-kit/architecture.json'
     if not path.is_file():
         return False
     from dotnet_adapter import bootstrap

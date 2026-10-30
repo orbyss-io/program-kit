@@ -9,7 +9,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import repository_architecture as architecture
 import test_project
 
@@ -37,21 +37,24 @@ class TestDependencies(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix='test-dependencies-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
-        (self.root / 'eng').mkdir()
+        (self.root / 'scripts').mkdir()
         self.project = {'path': 'tests/Owned.Tests/Owned.Tests.csproj', 'role': 'test',
                         'projectReferences': [], 'packageReferences': ['xunit.v3.mtp-v2'],
                         'responsibilities': [{'name': 'owned lifecycle proof', 'kind': 'test',
                                               'effects': [], 'testSeams': ['shell-lifecycle']}]}
         self.manifest = {'runtimeComposition': {'projects': [self.project], 'bindings': []}}
         self.save()
-        (self.root / 'Directory.Packages.props').write_text('<Project><Import Project="eng/selected.props" /></Project>')
-        (self.root / 'eng/selected.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>'
+        (self.root / 'Directory.Packages.props').write_text('<Project><Import Project="config/program-kit/build/selected.props" /></Project>')
+        (self.root / 'config/program-kit/build/selected.props').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/build/selected.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>'
             '<PackageVersion Include="CShells.Abstractions" Version="0.0.30" />'
             '<PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.30" />'
             '<PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" /></ItemGroup></Project>')
 
     def save(self):
-        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
 
     def test_planning_rejects_missing_direct_contract_and_unknown_or_absent_uses(self):
         with self.assertRaisesRegex(ValueError, 'missing direct.*CShells.Abstractions'):
@@ -67,7 +70,7 @@ class TestDependencies(unittest.TestCase):
                 architecture.test_compile_contracts(project, required=True)
 
     def test_new_projects_derive_only_actual_contracts_and_keep_selected_pins(self):
-        before = (self.root / 'eng/selected.props').read_bytes()
+        before = (self.root / 'config/program-kit/build/selected.props').read_bytes()
         for seam, expected in (('pure-core', set()), ('shell-lifecycle', {'CShells.Abstractions'}),
                                ('api-feature', {'CShells.Abstractions', 'CShells.AspNetCore.Abstractions'}),
                                ('activation', {'CShells.Abstractions', 'CShells.AspNetCore.Abstractions'})):
@@ -81,25 +84,25 @@ class TestDependencies(unittest.TestCase):
                 self.assertEqual('all', references[contract]['PrivateAssets'])
                 self.assertNotIn('Version', references[contract])
                 self.assertEqual('0.0.30', plan['compileContractPins'][contract])
-            inventory = json.loads(plan['changes']['eng/architecture.json'])['runtimeComposition']['projects'][0]
+            inventory = json.loads(plan['changes']['config/program-kit/architecture.json'])['runtimeComposition']['projects'][0]
             self.assertEqual(set(references), set(inventory['packageReferences']))
-        self.assertEqual(before, (self.root / 'eng/selected.props').read_bytes())
+        self.assertEqual(before, (self.root / 'config/program-kit/build/selected.props').read_bytes())
 
     def test_apply_is_bound_to_selected_inputs_and_preserves_existing_authored_project(self):
         plan = test_project.preview(self.root, self.project['path'])
-        original = (self.root / 'eng/architecture.json').read_bytes()
+        original = (self.root / 'config/program-kit/architecture.json').read_bytes()
         with self.assertRaisesRegex(ValueError, 'inputs changed'):
             test_project.apply(self.root, self.project['path'], 'wrong-digest')
-        self.assertEqual(original, (self.root / 'eng/architecture.json').read_bytes())
+        self.assertEqual(original, (self.root / 'config/program-kit/architecture.json').read_bytes())
         test_project.apply(self.root, self.project['path'], plan['planDigest'])
         target = self.root / self.project['path']; before = target.read_bytes()
-        architecture.validate_manifest(self.root, json.loads((self.root / 'eng/architecture.json').read_text()))
+        architecture.validate_manifest(self.root, json.loads((self.root / 'config/program-kit/architecture.json').read_text()))
         with self.assertRaisesRegex(ValueError, 'consumer-owned'):
             test_project.preview(self.root, self.project['path'])
         self.assertEqual(before, target.read_bytes())
 
     def test_missing_selected_pin_and_dynamic_pins_fail_without_partial_write(self):
-        selected = self.root / 'eng/selected.props'
+        selected = self.root / 'config/program-kit/build/selected.props'
         for content in ('<Project><ItemGroup><PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" /></ItemGroup></Project>',
                         '<Project><Import Project="$(OtherPins)" /></Project>'):
             selected.write_text(content)
@@ -111,7 +114,7 @@ class TestDependencies(unittest.TestCase):
         self.project['packageReferences'].append('CShells.Abstractions')
         self.save()
         self.assertEqual(1, len(architecture.validate_planned(self.root, self.manifest, require_responsibilities=True)))
-        selected = self.root / 'eng/selected.props'
+        selected = self.root / 'config/program-kit/build/selected.props'
         selected.write_text(selected.read_text().replace('<PackageVersion Include="CShells.Abstractions" Version="0.0.30" />', ''))
         with self.assertRaisesRegex(ValueError, 'missing selected central.*Owned.Tests.*CShells.Abstractions'):
             architecture.validate_planned(self.root, self.manifest, require_responsibilities=True)
@@ -128,11 +131,13 @@ class NativeRunner(unittest.TestCase):
         for index, (identity, version) in enumerate(sorted(test_project.QUALIFIED_MTP_RUNNERS)):
             with self.subTest(identity=identity, version=version):
                 root = self.root / ('native-' + str(index))
-                (root / 'eng').mkdir(parents=True)
+                (root / 'scripts').mkdir(parents=True)
                 project = {'path': 'tests/Proof/Proof.csproj', 'role': 'test', 'projectReferences': [],
                            'packageReferences': [identity], 'responsibilities': [
                                {'name': 'named native proof', 'kind': 'test', 'effects': [], 'testSeams': ['pure-core']}]}
-                (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [project], 'bindings': []}}))
+                (root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+                (root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+                (root / 'config/program-kit/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [project], 'bindings': []}}))
                 (root / 'global.json').write_bytes((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/global.json').read_bytes())
                 (root / 'Directory.Build.props').write_text('<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup></Project>')
                 (root / 'Directory.Packages.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup><PackageVersion Include="' + identity + '" Version="' + version + '" /></ItemGroup></Project>')

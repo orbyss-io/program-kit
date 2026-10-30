@@ -67,7 +67,7 @@ def scenario(review, *, installed_consumer=None, qualification_only=False):
         feature = consumer / 'specs/001-learn'
         extensions = consumer / '.specify/extensions'
         governance = extensions / 'program-kit-governance/scripts'
-        engine = extensions / 'program-kit-dotnet/templates/dotnet/files/eng'
+        engine = extensions / 'program-kit-dotnet/templates/dotnet/files/scripts'
         phase = governance / 'phase_obligations.py'
         task = governance / 'task_draft.py'
         pattern = governance / 'coding_patterns.py'
@@ -79,11 +79,11 @@ def scenario(review, *, installed_consumer=None, qualification_only=False):
         write(core / 'Rows.Core.csproj', '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>\n')
         lookup = consumer / 'src/Lookup/Lookup.csproj'
         write(lookup, lookup.read_text().replace('</Project>', '<ItemGroup><ProjectReference Include="../Rows.Core/Rows.Core.csproj" /></ItemGroup></Project>'))
-        graph = json.loads((consumer / 'eng/architecture.json').read_text())
+        graph = json.loads((consumer / 'config/program-kit/architecture.json').read_text())
         graph['runtimeComposition']['projects'][0]['projectReferences'] = ['src/Rows.Core/Rows.Core.csproj']
         graph['runtimeComposition']['projects'].append({'path': 'src/Rows.Core/Rows.Core.csproj', 'role': 'core', 'projectReferences': [],
              'responsibilities': [{'name': 'SnapshotRows', 'kind': 'contract', 'effects': []}]})
-        write(consumer / 'eng/architecture.json', graph)
+        write(consumer / 'config/program-kit/architecture.json', graph)
         accepted = json.loads((consumer / 'docs/architecture/building-block-selection.json').read_text())
         accepted['targets'].append({'id': 'rows', 'kind': 'dotnet-project', 'path': 'src/Rows.Core/Rows.Core.csproj',
                                    'placement': {'owner': 'lookup', 'decisionIds': ['snapshot-owner']}})
@@ -138,7 +138,7 @@ Native role constraints resolve architecture_rules.py; no second role table belo
         unit['pattern']['inputs'] = [ref(p) for p in ('src/Rows.Core/Note.cs', 'src/Rows.Core/Rows.Core.csproj',
               'src/Lookup/SnapshotQuery.cs', 'src/Lookup/SnapshotScan.cs', 'src/Lookup/OwnerReport.cs',
               'src/Lookup/Lookup.csproj', 'tests/Proof/Program.cs', 'tests/Proof/check.py', 'tests/Proof/SnapshotProof.csproj',
-              'global.json', 'runtime.txt', 'NuGet.Config', 'Directory.Build.props', 'Directory.Build.targets', 'eng/verification-runner.py')]
+              'global.json', 'runtime.txt', 'NuGet.Config', 'Directory.Build.props', 'Directory.Build.targets', 'scripts/verification-runner.py')]
         unit['pattern']['checks'] = [{'kind': 'toolkit', 'id': 'snapshot-proof'}]
         write(consumer / 'docs/architecture/coding-patterns.json', {'schemaVersion': 1,
             'sources': [{'id': 'local.lesson', 'locator': {'kind': 'repository', 'path': 'docs/patterns/lesson.md'}}],
@@ -146,7 +146,7 @@ Native role constraints resolve architecture_rules.py; no second role table belo
                       'owner': 'fictional snapshot maintainer', 'level': 'recommended', 'limits': 'Finite immutable owner report',
                       'bindings': {'recipes': ['extensions/program-kit-dotnet/references/examples/snapshot-query/README.md']}}}, 'codingUnits': [unit]})
         inputs = [r['path'] for r in unit['pattern']['inputs']]
-        write(consumer / 'eng/verification-runner.py', '''"""Finite supported native adapter: one actual compiled oracle suite, no reuse claim."""
+        write(consumer / 'scripts/verification-runner.py', '''"""Finite supported native adapter: one actual compiled oracle suite, no reuse claim."""
 import argparse,json,subprocess
 from pathlib import Path
 parser=argparse.ArgumentParser()
@@ -167,13 +167,13 @@ args.result.write_text(json.dumps({'schemaVersion':1,'status':'completed','execu
  'evidence':[p.relative_to(root).as_posix() for p in (stdout,stderr)]}))
 print('PASS: one actual compiled oracle suite through the native adapter; no reusable qualification claimed')
 ''')
-        write(consumer / 'eng/verification.json', {'schemaVersion': 1, 'runner': 'adapter', 'testGroups': [{'id': 'snapshot',
+        write(consumer / 'config/program-kit/verification.json', {'schemaVersion': 1, 'runner': 'adapter', 'testGroups': [{'id': 'snapshot',
             'projects': ['tests/Proof/SnapshotProof.csproj'], 'inputs': ['src/Lookup/**', 'src/Rows.Core/**']}],
             'toolkitChecks': [{'id': 'snapshot-proof', 'script': 'tests/Proof/check.py', 'arguments': [], 'inputs': inputs, 'timeoutSeconds': 60}]})
         # A real finite engineering command delegates to the existing named-check owner.
-        write(consumer / 'eng/Invoke-RepositoryVerification.ps1', f'''param([string]$Scope, [string]$FeatureDirectory, [string]$ChangedFrom)
+        write(consumer / 'scripts/Invoke-RepositoryVerification.ps1', f'''param([string]$Scope, [string]$FeatureDirectory, [string]$ChangedFrom)
 $proofPython = '{sys.executable.replace("'", "''")}'
-$proofScript = Join-Path $PSScriptRoot '../.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py'
+$proofScript = Join-Path $PSScriptRoot '../.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py'
 & $proofPython $proofScript --repository (Split-Path $PSScriptRoot) --scope Focused --check snapshot-proof
 exit $LASTEXITCODE
 ''')
@@ -353,7 +353,7 @@ print(json.dumps(value))
         qualified = prepare('04-qualified-task')
         assert qualified['coding']['patterns'][0]['qualification']['status'] == 'qualified'
         run('04b-native-linked-positive', [sys.executable, engine / 'repository_architecture.py', '--repository', consumer,
-                                          '--manifest', 'eng/architecture.json', '--planned'])
+                                          '--manifest', 'config/program-kit/architecture.json', '--planned'])
         if installed_consumer is not None:
             run('04c-actual-installed-implementation-prehook', [sys.executable, governance / 'implementation_preflight.py',
                 '--feature-dir', feature.relative_to(consumer), '--configuration', 'Release'])
@@ -410,11 +410,11 @@ print(json.dumps(value))
         after_rule = next(r for u in changed['coding']['skills'] for r in u['rules'] if r['id'] == 'native.allowed-role-references')
         assert before_rule['fingerprint'] != after_rule['fingerprint'] and before_rule['text'] != after_rule['text']
         run('17-native-linked-expectation-changes', [sys.executable, engine / 'repository_architecture.py', '--repository', consumer,
-                                                   '--manifest', 'eng/architecture.json', '--planned'], 2)
+                                                   '--manifest', 'config/program-kit/architecture.json', '--planned'], 2)
         browser_after = prepare('18-independent-browser-after', target=browser)
         assert browser_before == browser_after
         write(review / 'snapshots/canonical-consumption.json', {'before': before_rule, 'after': after_rule,
-              'linkedRecipe': 'program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py',
+              'linkedRecipe': 'program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py',
               'duplicatePolicyStringsEdited': False, 'browserViewUnchanged': True})
         tasks_before_stale = tasks.read_bytes()
         run('19-stale-completion-preserves-progress', finish_command, 2)

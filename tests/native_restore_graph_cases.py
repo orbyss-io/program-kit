@@ -21,9 +21,10 @@ def exercise(root, restore):
     # This is an exact new owned fixture; no pre-existing checkout is reused.
     with nullcontext(str(consumer)) as temporary:
         repository = Path(temporary).resolve()
-        (repository/'eng').mkdir()
+        (repository/'scripts').mkdir()
+        (repository/'config/program-kit').mkdir(parents=True)
         (repository/'global.json').write_text(json.dumps({'sdk': sdk}))
-        (repository/'eng/restore-graph.json').write_text(json.dumps({'schemaVersion': 1, 'adapter': 'native-msbuild',
+        (repository/'config/program-kit/restore-graph.json').write_text(json.dumps({'schemaVersion': 1, 'adapter': 'native-msbuild',
             'configuration': 'Debug', 'sdkVersion': sdk['version']}))
         (repository/'Directory.Build.props').write_text('<Project><PropertyGroup><BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)artifacts/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath><NuGetLockFilePath>$(MSBuildThisFileDirectory)locks/$(MSBuildProjectName).json</NuGetLockFilePath></PropertyGroup></Project>')
         feed = repository/'feed'; feed.mkdir()
@@ -40,12 +41,12 @@ def exercise(root, restore):
                     'Independent': 'src/Independent/Independent.csproj'}
         for name, relative in projects.items():
             target = repository/relative; target.parent.mkdir(parents=True, exist_ok=True)
-            reference = '<Import Project="../../eng/owner-links.props" />' if name == 'Owner' else ''
+            reference = '<Import Project="../../scripts/owner-links.props" />' if name == 'Owner' else ''
             if name == 'Reverse':
                 reference = '<ItemGroup><ProjectReference Include="../../src/Shared/Owner.csproj" /></ItemGroup>'
             package = '<ItemGroup><PackageReference Include="ProgramKit.EvaluatedFixture" Version="1.0.0" /></ItemGroup>' if name == 'Owner' else ''
             target.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>'+reference+package+'</Project>')
-        (repository/'eng/owner-links.props').write_text('<Project><ItemGroup><ProjectReference Include="$(MSBuildThisFileDirectory)../src/Dependency/Dependency.fsproj" /></ItemGroup></Project>')
+        (repository/'scripts/owner-links.props').write_text('<Project><ItemGroup><ProjectReference Include="$(MSBuildThisFileDirectory)../src/Dependency/Dependency.fsproj" /></ItemGroup></Project>')
         (repository/'Program.slnx').write_text('<Solution>'+''.join(f'<Project Path="{relative}" />' for name, relative in projects.items() if name != 'Dependency')+'</Solution>')
         profile = repository/'eng/retained-profile.json'; profile.write_text('{"retained":"original"}')
         original_profile = profile.read_bytes()

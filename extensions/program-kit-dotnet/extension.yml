@@ -15,7 +15,10 @@ requires:
   speckit_version: ">=1.1.1,<2.0.0"
 
 provides:
-  commands: []
+  commands:
+    - name: "speckit.program-kit-dotnet.regenerate-eng"
+      file: "commands/speckit.program-kit-dotnet.regenerate-eng.md"
+      description: "Rebuild disposable engineering projections from durable selected inputs without AI."
   scripts:
     - name: "engineering-baseline"
       file: "scripts/dotnet_sync.py"

@@ -67,7 +67,7 @@ def materialize(root, fixture):
     document = ET.fromstring(solution.read_bytes())
     ET.SubElement(document, 'Project', Path='src/Application.Core/Application.Core.csproj')
     solution.write_bytes(ET.tostring(document) + b'\n')
-    architecture = root / 'eng/architecture.json'; value = json.loads(architecture.read_bytes())
+    architecture = root / 'config/program-kit/architecture.json'; value = json.loads(architecture.read_bytes())
     value['runtimeComposition']['projects'].append({'path': 'src/Application.Core/Application.Core.csproj',
         'role': 'core', 'projectReferences': [], 'responsibilities': [
             {'name': 'Application.Core.IOwnedNotes', 'kind': 'contract', 'effects': []}]})
@@ -107,9 +107,9 @@ def database_script():
     """Only the synthetic admin boundary provisions identities; DDL uses deployment login."""
     return r'''import base64,hashlib,hmac,json,os,subprocess,sys
 from pathlib import Path
-root=Path.cwd();sys.path.insert(0,str(root/'eng'))
+root=Path.cwd();sys.path.insert(0,str(root/'scripts'))
 import composition_run as run
-graph=run.read(root/'eng/foundation-composition.json');contract=run.read(root/run.render.CONTRACT)
+graph=run.read(root/'config/program-kit/foundation-composition.json');contract=run.read(root/run.render.CONTRACT)
 resolved=run.read(root/run.render.RESOLVED);credentials=run.private_credentials(root,graph)
 _,environment=run.compose_model(root,graph,contract,resolved,credentials)
 receipt=run.latest(root,require_prepared=False);command=run.Commands(root,root/'artifacts/composition/runs'/('owner-'+sys.argv[1]))
@@ -166,7 +166,7 @@ elif mode=='restricted':
 def run_owner_operation(args, start):
     kit = start.ROOT; fixture = kit / 'tests/fixtures/composition-owner'
     directory = kit / 'artifacts/t' / ('co-' + uuid.uuid4().hex[:8]); root = directory / 'c'
-    (root / 'eng').mkdir(parents=True)
+    (root / 'scripts').mkdir(parents=True)
     began = time.monotonic()
     secret = base64.b64encode(os.urandom(32)).decode('ascii')
     environment = dict(os.environ, PROGRAMKIT_OWNER_HMAC=secret,
@@ -234,10 +234,10 @@ def run_owner_operation(args, start):
         run('native-migration-script', [*ef, 'migrations', 'script', '--idempotent', *target, '--no-build', '--output', 'artifacts/owner-migration.sql'])
         result['migrationSqlSha256'] = hashlib.sha256((root / 'artifacts/owner-migration.sql').read_bytes()).hexdigest()
         result['sourceSha256'] = {path.relative_to(fixture).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in fixture.rglob('*') if path.is_file()}
-        run('prepare', [sys.executable, 'eng/composition_run.py', 'prepare'])
+        run('prepare', [sys.executable, 'scripts/composition_run.py', 'prepare'])
         preparation = json.loads((root / 'artifacts/composition/prepared.json').read_bytes())
-        emitted = root / 'eng/composition_run.py'
-        maintained = kit / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py'
+        emitted = root / 'scripts/composition_run.py'
+        maintained = kit / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts/composition_run.py'
         require(emitted.read_bytes() == maintained.read_bytes(), 'Emitted native runner differs from current maintained source')
         result['emittedRunnerSha256'] = hashlib.sha256(emitted.read_bytes()).hexdigest()
         result['helperSha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
@@ -246,7 +246,7 @@ def run_owner_operation(args, start):
         run('deployment-identity', [sys.executable, '-c', sql, 'identity'])
         for label, marker in [('missing-schema', 'OWNER_SCHEMA_REQUIRED'), ('missing-grants', 'OWNER_GRANTS_REQUIRED')]:
             prior_runs = set((root / 'artifacts/composition/runs').iterdir())
-            run(label, [sys.executable, 'eng/composition_run.py', 'run'], expected=2)
+            run(label, [sys.executable, 'scripts/composition_run.py', 'run'], expected=2)
             fresh_runs = set((root / 'artifacts/composition/runs').iterdir()) - prior_runs
             require(fresh_runs, 'Native rejection produced no new run evidence')
             observed = '\n'.join(path.read_text(encoding='utf-8', errors='replace') for run_path in fresh_runs for path in run_path.rglob('*.log'))
@@ -262,7 +262,7 @@ def run_owner_operation(args, start):
                 require(restricted == {'rows': 0, 'insertAllowed': False, 'schemaCreate': False, 'publicCreate': False}, 'Prepare modified product rows or restricted runtime grants')
                 result[label]['independentDatabaseObservation'] = restricted
         run('runtime-grant', [sys.executable, '-c', sql, 'grant'])
-        run('native-ready', [sys.executable, 'eng/composition_run.py', 'run'])
+        run('native-ready', [sys.executable, 'scripts/composition_run.py', 'run'])
         realms = list((root / 'deploy/keycloak').rglob('*realm*.json'))
         require(len(realms) == 1, 'Expected exact generated managed realm')
         realm = realms[0]
@@ -316,10 +316,10 @@ def identity_script():
     return '''import json,sys
 from pathlib import Path
 from urllib.parse import quote
-root=Path.cwd();sys.path.insert(0,str(root/'eng'))
+root=Path.cwd();sys.path.insert(0,str(root/'scripts'))
 import composition_run as run
 import keycloak_composition as keycloak
-graph=run.read(root/'eng/foundation-composition.json');binding=run.model.environment(graph)['product-identity']
+graph=run.read(root/'config/program-kit/foundation-composition.json');binding=run.model.environment(graph)['product-identity']
 credentials=run.private_credentials(root,graph)
 password=credentials[run.variable('identity-admin:product-identity')]
 admin=keycloak.Administration(binding['publicOrigin'],password)

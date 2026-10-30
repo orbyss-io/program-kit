@@ -68,9 +68,9 @@ prompts. Roles and sample data are described without publishing credentials.
 For the existing Foundation consumer profile, these repository-root commands remain usable:
 
 ```powershell
-./eng/Restore.ps1 -LockedMode
-./eng/Invoke-RepositoryVerification.ps1
-./eng/Build.ps1 -LockedMode
+./scripts/Restore.ps1 -LockedMode
+./scripts/Invoke-RepositoryVerification.ps1
+./scripts/Build.ps1 -LockedMode
 ```
 
 The real application's guide adds its qualified prerequisites, actual artifact locations and

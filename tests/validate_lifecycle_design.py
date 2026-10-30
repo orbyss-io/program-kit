@@ -10,7 +10,7 @@ from owned_fixture import FixtureDirectory, filesystem_path
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import repository_architecture as architecture
 
 
@@ -64,7 +64,7 @@ class LifecycleDesignTests(unittest.TestCase):
         findings = architecture.lifecycle_findings(self.root, self.manifest, {self.provider})
         self.assertEqual(['invalid-project-role'], [row['id'] for row in findings])
         self.assertIn('architecture owner', findings[0]['message'])
-        self.assertIn('eng/architecture.json', findings[0]['message'])
+        self.assertIn('config/program-kit/architecture.json', findings[0]['message'])
         self.assertEqual(original, self.manifest)
         self.assertEqual([], architecture.lifecycle_findings(self.root, self.manifest, {self.application}))
 
@@ -102,7 +102,7 @@ class LifecycleDesignTests(unittest.TestCase):
         (feature/'spec.md').write_text('C# Notes application lifecycle.', encoding='utf-8')
         (feature/'plan.md').write_text('Change '+self.preset, encoding='utf-8')
         self.manifest['runtimeComposition']['projects'].append({'path': 'src/Unrelated/Unrelated.csproj', 'role': 'composition'})
-        manifest = self.root/'eng/architecture.json'; manifest.parent.mkdir()
+        manifest = self.root/'config/program-kit/architecture.json'; manifest.parent.mkdir()
         manifest.write_text(json.dumps(self.manifest), encoding='utf-8')
         result = knowledge.project(self.root, feature, 'planning')
         self.assertEqual({self.preset}, {row['project'] for row in result['lifecycleFindings']})
@@ -186,7 +186,7 @@ class LifecycleDesignTests(unittest.TestCase):
         registry = installed/'references/dependency-profiles'
         index = blocks.load_json(registry/'index.json')
         catalog, _ = blocks.qualified_dependency_profile(registry, historical, blocks.load_json(installed/'references/orbyss-building-blocks.json'))
-        managed = self.root/'.program-kit/managed.json'; managed.parent.mkdir()
+        managed = self.root/'config/program-kit/managed.json'; managed.parent.mkdir()
         managed.write_text(json.dumps({'newProjectDependencyProfile': {'profile': historical,
                            'entrySha256': blocks.canonical_sha256(index['profiles'][historical]),
                            'catalogResolutionSha256': blocks.catalog_resolution_sha256(catalog)}}), encoding='utf-8')

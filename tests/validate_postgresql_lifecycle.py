@@ -19,7 +19,7 @@ import foundation_composition
 import composition_model
 import composition_render
 import persistence_selection
-sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 from central_packages import central_package_versions
 from owned_scratch import native_path
 import composition_run
@@ -55,9 +55,9 @@ def main():
     cases = []
     source_files = [Path(__file__), policy, Path(composition_model.__file__), Path(composition_render.__file__),
                     Path(composition_run.__file__), Path(persistence_selection.__file__),
-                    ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props',
+                    ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props',
                     ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json',
-                    ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props', *EXAMPLE.iterdir()]
+                    ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Packages.props', *EXAMPLE.iterdir()]
     source_basis = {file.relative_to(ROOT).as_posix():hashlib.sha256(file.read_bytes()).hexdigest()
                     for file in source_files if file.is_file()}
     result = {'status': 'running', 'scope': 'Synthetic local deployment and native Foundation runtime units; no production migration or ownership repair',

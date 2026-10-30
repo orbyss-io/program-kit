@@ -85,7 +85,7 @@ def main():
             evidence['unit'] = unit_checks(directory)
         if not args.execute:
             evidence['status'] = 'passed'; print('Authentication presentation admission passed: ' + str(directory)); return
-        for source in [EXAMPLE, ROOT / 'tests/fixtures/authentication-presentation/Probe.cs', ROOT / 'tests/fixtures/authentication-presentation/browser.mjs', TEMPLATE / 'web-profiles/common/eng/web/authentication-recovery-focus.ts']:
+        for source in [EXAMPLE, ROOT / 'tests/fixtures/authentication-presentation/Probe.cs', ROOT / 'tests/fixtures/authentication-presentation/browser.mjs', TEMPLATE / 'web-profiles/common/tools/program-kit/web/authentication-recovery-focus.ts']:
             shutil.copyfile(source, directory / source.name)
             evidence['sources'][str(source.relative_to(ROOT))] = hashlib.sha256(source.read_bytes()).hexdigest()
         shutil.copyfile(TEMPLATE / 'files/global.json', directory / 'global.json')
@@ -128,13 +128,13 @@ def main():
                 evidence['assemblies'].append({'identity': identity, 'archiveSha256': hashlib.sha256(archive.read_bytes()).hexdigest()})
         browser_root = args.browser_root.resolve()
         package = json.loads((browser_root / 'node_modules/playwright/package.json').read_text())
-        expected = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json').read_text())['devDependencies']['@playwright/test']
+        expected = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/package.json').read_text())['devDependencies']['@playwright/test']
         if package['version'] != expected: raise ValueError('Prepared Playwright differs from selected exact pin')
         if run(['node', '--version']).strip().removeprefix('v') != (TEMPLATE / 'files/.nvmrc').read_text().strip().removeprefix('v'):
             raise ValueError('Node differs from selected exact pin')
         test_import = (browser_root / 'node_modules/@playwright/test/index.mjs').as_uri()
         (directory / 'package.json').write_text('{"type":"module"}')
-        focus_test = TEMPLATE / 'web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts'
+        focus_test = TEMPLATE / 'web-profiles/common/tools/program-kit/web/tests/authentication-recovery-focus.spec.ts'
         focus_directory = directory / 'focus-tests'; focus_directory.mkdir()
         (focus_directory / focus_test.name).write_text(focus_test.read_text().replace("'@playwright/test'", json.dumps(test_import)))
         evidence['sources'][str(focus_test.relative_to(ROOT))] = hashlib.sha256(focus_test.read_bytes()).hexdigest()
@@ -151,14 +151,14 @@ def main():
         observed = run(['node', 'browser.mjs', str(output), args.engines])
         evidence['browser'] = json.loads(observed)
         evidence['browserVersion'] = package['version']
-        authentication_source = TEMPLATE / 'web-profiles/common/eng/web/tests/authentication.spec.ts'
+        authentication_source = TEMPLATE / 'web-profiles/common/tools/program-kit/web/tests/authentication.spec.ts'
         authentication = authentication_source.read_text()
         hook_start = authentication.index("process.env.PLAYWRIGHT_NO_COPY_PROMPT = '1';")
         hook_end = authentication.index('const identityAuthority')
         hook = authentication[hook_start:hook_end]
         if 'test.afterEach(' not in hook: raise ValueError('Maintained authentication privacy hook is absent')
         secret = 'synthetic-private-credential-' + uuid.uuid4().hex
-        suppressor = (TEMPLATE / 'web-profiles/common/eng/web/private-diagnostics.mjs').as_posix()
+        suppressor = (TEMPLATE / 'web-profiles/common/tools/program-kit/web/private-diagnostics.mjs').as_posix()
         (directory / 'privacy.spec.ts').write_text(f"import {{expect,test}} from {json.dumps(test_import)};\nimport {{suppressPrivateErrors}} from {json.dumps(suppressor)};\n" + hook
             + "test('owned credential assertion privacy proof',async({page})=>{await page.setContent('<input aria-label=Credential>');"
             + 'await page.getByLabel("Credential").fill(' + json.dumps(secret) + ');'

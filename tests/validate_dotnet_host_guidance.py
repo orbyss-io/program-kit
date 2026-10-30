@@ -113,7 +113,7 @@ class HostGuidance(unittest.TestCase):
             root=Path(name);identity='foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
             catalog=blocks.new_project_catalog(identity)
             index=blocks.load_json(blocks.profile_registry()/'index.json')
-            managed=root/'.program-kit/managed.json';managed.parent.mkdir()
+            managed=root/'config/program-kit/managed.json';managed.parent.mkdir(parents=True, exist_ok=True)
             managed.write_text(json.dumps({'newProjectDependencyProfile':{'profile':identity,
                 'catalogResolutionSha256':blocks.catalog_resolution_sha256(catalog),
                 'entrySha256':blocks.canonical_sha256(index['profiles'][identity])}}),encoding='utf-8')

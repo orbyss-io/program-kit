@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
-sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(TEMPLATE / 'files/eng')]
+sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(TEMPLATE / 'files/scripts')]
 import validate_composition_tooling as tooling
 import composition_model as model
 import composition_render as render
@@ -22,7 +22,7 @@ class SelectedIdentity(unittest.TestCase):
     setUp = tooling.MigratedTooling.setUp
     def persona(self, environment):
         suite = self.root / 'eng/web'
-        shutil.copyfile(TEMPLATE / 'web-profiles/common/eng/web/persona-fixture.ts', suite / 'persona-fixture.ts')
+        shutil.copyfile(TEMPLATE / 'web-profiles/common/tools/program-kit/web/persona-fixture.ts', suite / 'persona-fixture.ts')
         selected = {key: value for key, value in os.environ.items() if not key.startswith('PROGRAMKIT_IDENTITY_')}
         return subprocess.run(['node', '--input-type=module', '-e', "await import('./persona-fixture.ts')"],
                               cwd=suite, env={**selected, **environment}, capture_output=True, text=True, timeout=30)

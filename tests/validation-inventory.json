@@ -36,7 +36,8 @@
         "extensions/program-kit-governance/scripts/release_guidance.py",
         "scripts/record_local_bundle.py",
         "scripts/Test-LocalInstall.ps1",
-        "scripts/product_version.py"
+        "scripts/product_version.py",
+        "extensions/program-kit-governance/scripts/ensure_utf8.py"
       ],
       "dependsOn": []
     },
@@ -130,10 +131,10 @@
         "tests/knowledge_review_fixture.py",
         "extensions/*/references/*.md",
         "extensions/*/references/technology-profiles/*.md",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/label-validation.schema.json",
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
         "docs/decisions/*",
         "extensions/program-kit-governance/scripts/coding_context.py",
@@ -204,10 +205,16 @@
         "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
         "tests/identity_projection_cases.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/.github/workflows/*.yml",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/*.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/profiles/persistence/*.props",
         "extensions/program-kit-building-blocks/commands/**",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.sync.md",
-        "extensions/program-kit-governance/scripts/sync_readiness.py"
+        "extensions/program-kit-governance/scripts/sync_readiness.py",
+        "extensions/program-kit-building-blocks/scripts/native_restore_graph.py",
+        "extensions/program-kit-building-blocks/scripts/producer_reconciliation.py",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "extensions/program-kit-building-blocks/scripts/restore_dependencies.py",
+        "extensions/program-kit-governance/scripts/dotnet_adapter.py",
+        "extensions/program-kit-governance/scripts/managed_compatibility.py"
       ],
       "dependsOn": [
         "profiles"
@@ -220,7 +227,7 @@
         "extensions/program-kit-building-blocks/references/dependency-qualification*",
         "scripts/update_dependency_profiles.py",
         "scripts/build_dependency_qualification.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
+        "extensions/program-kit-dotnet/templates/dotnet/files/.config/dotnet-tools.json"
       ],
       "dependsOn": []
     },
@@ -239,10 +246,10 @@
     },
     "architecture": {
       "inputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/README.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/README.md",
         "extensions/program-kit-governance/scripts/artifact_ownership.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
         "extensions/program-kit-governance/scripts/architecture*.py",
         "extensions/program-kit-governance/scripts/placement*.py",
         "extensions/program-kit-governance/references/architecture*",
@@ -260,20 +267,20 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
         "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc",
         "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/*toolchain*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/*toolchain*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Packages.props",
         "extensions/program-kit-dotnet/templates/dotnet/files/.python-version"
       ],
       "dependsOn": []
     },
     "test-generation": {
       "inputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/verification*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/test*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/test_project.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/verification*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/test*",
         "tests/verification_isolation_cases.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py"
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/toolkit_verification.py"
       ],
       "dependsOn": [
         "architecture",
@@ -282,13 +289,13 @@
     },
     "api-client": {
       "inputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/oasdiff*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/*client*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/label*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/openapi*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/oasdiff*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/*client*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/label*",
         "extensions/program-kit-building-blocks/scripts/wire_capabilities.py",
         "extensions/program-kit-dotnet/references/examples/typed-operation/**",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.config/dotnet-tools.json",
         "extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version"
       ],
       "dependsOn": [
@@ -301,7 +308,7 @@
         "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/**",
         "extensions/program-kit-dotnet/references/persistence-runtimes.json",
         "extensions/program-kit-dotnet/references/persistence-profiles.md",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/*postgres*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/*postgres*",
         "extensions/program-kit-dotnet/scripts/composition_model.py",
         "extensions/program-kit-dotnet/scripts/composition_render.py"
       ],
@@ -311,11 +318,11 @@
     },
     "composition-runtime": {
       "inputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/runtime_closure.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/prepare_hosted_pages.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/shell_composition.py"
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/composition*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/foundation*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/runtime_closure.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/prepare_hosted_pages.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/shell_composition.py"
       ],
       "dependsOn": []
     },
@@ -324,16 +331,17 @@
         "extensions/program-kit-dotnet/templates/dotnet/web-profiles/**",
         "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/**",
         "extensions/program-kit-governance/templates/ui-experience/**",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/web*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/web*",
         "extensions/program-kit-dotnet/scripts/ui*.py",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.ui.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.ui.md",
+        "extensions/program-kit-governance/scripts/ui_profile.py"
       ],
       "dependsOn": []
     },
     "handoff": {
       "inputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/*handoff*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/*settings*"
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/*handoff*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/*settings*"
       ],
       "dependsOn": [
         "architecture"
@@ -367,8 +375,8 @@
     "diagnostics": {
       "inputs": [
         "scripts/maintenance_packet.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/retained*",
         "extensions/program-kit-governance/scripts/tooling_witness.py",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.tooling.md"
       ],
@@ -376,11 +384,11 @@
     },
     "source-quality": {
       "inputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/source_quality.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/source_quality.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props",
         "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
         "extensions/program-kit-dotnet/references/examples/contract-layout/**",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.targets",
         "tests/validate_source_readability_native.py"
       ],
       "dependsOn": []
@@ -388,8 +396,9 @@
     "dotnet-runtime": {
       "inputs": [
         "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
-        "extensions/program-kit-dotnet/scripts/foundation_composition.py"
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Packages.props",
+        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/tools/program-kit/foundation-test-support/**"
       ],
       "dependsOn": []
     },
@@ -494,7 +503,7 @@
         "extensions/program-kit-governance/scripts/program_kit_runtime/**",
         "scripts/sync_shared_runtime.py",
         "extensions/program-kit-governance/scripts/package_execution.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py"
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/python_runtime_contract.py"
       ],
       "dependsOn": []
     },
@@ -529,6 +538,20 @@
         "extensions/program-kit-governance/references/asynchronous-workloads.md",
         "extensions/program-kit-dotnet/references/examples/async-workload/**",
         "extensions/program-kit-dotnet/scripts/provider_composition.py"
+      ],
+      "dependsOn": []
+    },
+    "disposable-engineering": {
+      "inputs": [
+        "extensions/program-kit-dotnet/commands/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/tools/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/Directory.*",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.gitignore",
+        "extensions/program-kit-dotnet/templates/dotnet/files/docs/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.gitattributes"
       ],
       "dependsOn": []
     }
@@ -2515,10 +2538,12 @@
       ],
       "inputs": [
         "tests/validate_release_bundle.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py"
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/release_bundle.py"
       ],
       "needs": [],
-      "prerequisites": ["tool:dotnet"],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
@@ -2527,14 +2552,38 @@
     {
       "id": "qualify_composition_owner_operation",
       "purpose": "Actual generated retained-profile Host/Keycloak/PostgreSQL login with external product configuration, separate native EF deployment, read-only provider admission and synthetic permission/owner-isolated operation.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_composition_start.py", "--execute", "--owner-operation", "--engines={engines}"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_composition_start.py",
+        "--execute",
+        "--owner-operation",
+        "--engines={engines}"
+      ],
       "kind": "integration",
-      "capabilities": ["scaffolding", "postgresql"],
-      "inputs": ["tests/composition_owner_fixture.py", "tests/fixtures/composition-owner/**"],
-      "reviewInputs": ["tests/validate_composition_start.py", "tests/composition_fixture.py", "tests/validate_private_ef_metadata.py"],
+      "capabilities": [
+        "scaffolding",
+        "postgresql"
+      ],
+      "inputs": [
+        "tests/composition_owner_fixture.py",
+        "tests/fixtures/composition-owner/**"
+      ],
+      "reviewInputs": [
+        "tests/validate_composition_start.py",
+        "tests/composition_fixture.py",
+        "tests/validate_private_ef_metadata.py"
+      ],
       "needs": [],
-      "prerequisites": ["module:specify_cli", "tool:docker", "tool:dotnet", "tool:node"],
+      "prerequisites": [
+        "module:specify_cli",
+        "tool:docker",
+        "tool:dotnet",
+        "tool:node"
+      ],
       "suites": [],
       "budgetSeconds": 300,
       "timeoutSeconds": 600,
@@ -2543,13 +2592,26 @@
     {
       "id": "validate_openapi_breaking_gate",
       "purpose": "Actual pinned oasdiff ERR threshold, unapproved/stale rejection, exact fictional review and unchanged-contract preservation; no consumer approval.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_openapi_breaking_gate.py"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_openapi_breaking_gate.py"
+      ],
       "kind": "integration",
-      "capabilities": ["api-client"],
-      "inputs": ["tests/validate_openapi_breaking_gate.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_contracts.py"],
+      "capabilities": [
+        "api-client"
+      ],
+      "inputs": [
+        "tests/validate_openapi_breaking_gate.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/openapi_contracts.py"
+      ],
       "needs": [],
-      "prerequisites": ["tool:oasdiff"],
+      "prerequisites": [
+        "tool:oasdiff"
+      ],
       "suites": [],
       "budgetSeconds": 30,
       "timeoutSeconds": 60,
@@ -2558,18 +2620,30 @@
     {
       "id": "validate_private_ef_metadata",
       "purpose": "Fresh installed descriptor-task packing, native selected-root staging, EF migrations and published Host activation with private EF Design tooling and the BFF baseline.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_private_ef_metadata.py"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_private_ef_metadata.py"
+      ],
       "kind": "integration",
-      "capabilities": ["composition-runtime", "postgresql"],
+      "capabilities": [
+        "composition-runtime",
+        "postgresql"
+      ],
       "inputs": [
         "tests/validate_private_ef_metadata.py",
         "tests/fixtures/private-ef-metadata/**",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/eng/web-profile.shells.json"
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/release_bundle.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/config/program-kit/web-profile.shells.json"
       ],
       "needs": [],
-      "prerequisites": ["tool:dotnet", "tool:docker"],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:docker"
+      ],
       "suites": [],
       "budgetSeconds": 300,
       "timeoutSeconds": 600,
@@ -3362,7 +3436,7 @@
         "tests/validate_authentication_presentation.py",
         "tests/fixtures/authentication-presentation/**",
         "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/private-diagnostics*",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/tests/authentication.spec.ts"
       ],
       "needs": [],
       "prerequisites": [
@@ -3377,9 +3451,9 @@
         "extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs",
         "tests/validate_authentication_presentation.py",
         "tests/fixtures/authentication-presentation/**",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/authentication-recovery-focus.ts",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts"
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/tests/authentication.spec.ts",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/authentication-recovery-focus.ts",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/tests/authentication-recovery-focus.spec.ts"
       ]
     },
     {
@@ -3413,8 +3487,8 @@
       "timeoutSeconds": 600,
       "manualOnly": true,
       "reviewInputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/label_validation.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/label-validation.schema.json",
         "tests/validate_label_validation.py",
         "tests/fixtures/label-validation/**"
       ]
@@ -3750,7 +3824,7 @@
       "needs": [],
       "prerequisites": [],
       "suites": [],
-        "budgetSeconds": 180,
+      "budgetSeconds": 180,
       "timeoutSeconds": 240
     },
     {
@@ -3846,8 +3920,8 @@
       "timeoutSeconds": 600,
       "manualOnly": true,
       "reviewInputs": [
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/web/composition-readiness.mjs",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/composition_run.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/tools/program-kit/web/composition-readiness.mjs",
         "tests/validate_browser_launch.py"
       ]
     },
@@ -4200,12 +4274,12 @@
       "manualOnly": true,
       "reviewInputs": [
         "tests/validate_spa_session.py",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package-lock.json",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/spa-session.ts",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/tests/spa-session.spec.ts",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_fixture.py"
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/package.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/package-lock.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/tools/program-kit/web/spa-session.ts",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/tools/program-kit/web/tests/spa-session.spec.ts",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/js_toolchain.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/scripts/foundation_fixture.py"
       ]
     },
     {
@@ -4862,8 +4936,8 @@
         "tests/fixtures/typed-operation-runtime/**",
         "tests/typed_operation_native_check.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.targets",
         "tests/coding_label_check.py",
         "tests/scaffold_review_fixture.py",
         "extensions/program-kit-dotnet/scripts/foundation_composition.py",
@@ -4882,13 +4956,27 @@
     {
       "id": "validate_native_source_scope",
       "purpose": "Actual task-scoped native project evaluation retains Core-only duties and rejects disabled SDK code-style analysis; no source compilation, agents or provider startup.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_coding_context.py", "CodingContextTests.test_actual_native_core_task_does_not_inherit_neighbor_host_units_or_duties"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_context.py",
+        "CodingContextTests.test_actual_native_core_task_does_not_inherit_neighbor_host_units_or_duties"
+      ],
       "kind": "unit",
-      "capabilities": ["source-quality"],
-      "inputs": ["tests/validate_coding_context.py"],
+      "capabilities": [
+        "source-quality"
+      ],
+      "inputs": [
+        "tests/validate_coding_context.py"
+      ],
       "needs": [],
-      "prerequisites": ["tool:dotnet", "module:yaml"],
+      "prerequisites": [
+        "tool:dotnet",
+        "module:yaml"
+      ],
       "suites": [],
       "budgetSeconds": 30,
       "timeoutSeconds": 60
@@ -5014,7 +5102,7 @@
       "inputs": [
         "tests/private_diagnostics_check.py",
         "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/private-diagnostics*",
-        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/tests/authentication.spec.ts"
       ],
       "needs": [],
       "prerequisites": [
@@ -5849,6 +5937,59 @@
       "prerequisites": [
         "tool:node"
       ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_disposable_eng",
+      "purpose": "Installed native skill and actual cold/deleted-eng rebuild preserve durable native policy, selected dependencies and authored source without AI.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_disposable_eng.py"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "disposable-engineering"
+      ],
+      "inputs": [
+        "tests/validate_disposable_eng.py"
+      ],
+      "needs": [
+        "build-release"
+      ],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git",
+        "module:specify_cli"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_handoff_layout",
+      "purpose": "Handoff source inventory binds durable scripts/tools/configuration and native helper restore outputs, excluding disposable eng projections.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_application_handoff.py",
+        "HandoffTests.test_engineering_source_excludes_generated_outputs_but_binds_native_inputs"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "handoff"
+      ],
+      "inputs": [],
+      "needs": [],
+      "prerequisites": [],
       "suites": [],
       "budgetSeconds": 30,
       "timeoutSeconds": 60

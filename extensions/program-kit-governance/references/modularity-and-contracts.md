@@ -346,10 +346,10 @@ paths together; unexpected programming exceptions must retain safe server-failur
 <!-- program-kit:knowledge-rule principle.architecture-semantic-evidence -->
 Keep ownership, semantic capability/event boundaries and dependency decisions in the existing
 architecture model, plan and ADRs. Use ordinary engineering configuration such as
-`eng/architecture.json` and the actual project/compiled graph for project roles, exact dependency
+`config/program-kit/architecture.json` and the actual project/compiled graph for project roles, exact dependency
 edges and capability bindings; no additional runtimeComposition dossier or catalog set is required.
 Validate that planned graph after-plan, after-tasks and before affected implementation with
-`python eng/repository_architecture.py --repository . --manifest eng/architecture.json --planned`.
+`python scripts/repository_architecture.py --repository . --manifest config/program-kit/architecture.json --planned`.
 List all selected owned runtime capabilities. Reject same-project bindings, relabeled Core/API roles,
 EF outside providers and `persistenceOwnerNamespaces` waivers. Actual activation, registration,
 resolution and lifetime tests complement compiled interface/registration-method checks.

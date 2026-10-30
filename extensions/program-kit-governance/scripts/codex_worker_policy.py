@@ -116,7 +116,7 @@ def inspect_adapter():
 def verify_windows_write(root: Path, argv: list[str], *, runner=subprocess.run) -> dict:
     """Use the selected executable and config profile for a model-free write test."""
     directories = [root, root / 'docs/architecture', root / '.specify/memory', root / '.specify/governance',
-                   root / '.specify/workflows/runs', root / '.program-kit']
+                   root / '.specify/workflows/runs', root / 'config/program-kit']
     created = []
     nonce = uuid.uuid4().hex
     targets = []

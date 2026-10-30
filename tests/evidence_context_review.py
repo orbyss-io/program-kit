@@ -30,7 +30,7 @@ def scenario(work, review, witness):
     for component in ('program-kit-governance','program-kit-dotnet','program-kit-building-blocks'):
         shutil.copytree(filesystem_path(ROOT/'extensions'/component),filesystem_path(work/'.specify/extensions'/component),ignore=shutil.ignore_patterns('__pycache__'))
     extensions=work/'.specify/extensions'; governance=extensions/'program-kit-governance/scripts'
-    native=extensions/'program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py'
+    native=extensions/'program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py'
     phase=governance/'phase_obligations.py'; patterns=governance/'coding_patterns.py'
     feature=work/'specs/001-evidence'
     write(feature/'spec.md','# Fictional evidence desk\nA signed-in fictional reviewer confirms title/date/text, retains one submission identity and reconciles an unknown result.\n- **Specification roadmap entry**: RM-F5\n')
@@ -82,10 +82,10 @@ def scenario(work, review, witness):
                                           'testSeams':['shell-lifecycle','api-feature']} ]})
     pins={row.get('Include'):row.get('Version') for row in ET.parse(work/probe).iter('PackageReference')}
     write(work/'Directory.Packages.props','<Project><ItemGroup>'+''.join('<PackageVersion Include="'+name+'" Version="'+version+'" />' for name,version in pins.items())+'</ItemGroup></Project>')
-    write(work/'eng/architecture.json',{'runtimeComposition':{'projects':projects,'bindings':bindings}})
+    write(work/'config/program-kit/architecture.json',{'runtimeComposition':{'projects':projects,'bindings':bindings}})
     run('compiled-actual-owner-graph',[sys.executable,native.with_name('repository_architecture.py'),
-        '--repository',work,'--manifest','eng/architecture.json','--output','proof/architecture.xml'])
-    shutil.copyfile(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1',work/'eng/Invoke-RepositoryVerification.ps1')
+        '--repository',work,'--manifest','config/program-kit/architecture.json','--output','proof/architecture.xml'])
+    shutil.copyfile(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts/Invoke-RepositoryVerification.ps1',work/'scripts/Invoke-RepositoryVerification.ps1')
     write(work/'web/package.json',{'name':'fictional-evidence-browser','version':'1.0.0','private':True,'type':'module','devDependencies':{'typescript':'7.0.2'}})
     write(work/'.gitignore','.specify/\nartifacts/\n**/bin/\n**/obj/\n')
     git=['git','-c','safe.directory='+str(work),'-c','core.excludesFile=']
@@ -119,12 +119,12 @@ assert process['exitCode']==0 and process['cleanupComplete'] and process['logsDr
 print('Independent F5 observation assertions passed; witnessed native application and actual browsers, not a new application execution or authenticated receipt.')
 ''')
     inputs=[path.relative_to(work).as_posix() for path in (work/'src').rglob('*') if path.is_file() and not {'bin','obj'} & set(path.parts)]
-    inputs+=['global.json','accepted-model.json','eng/architecture.json','proof/architecture.xml','proof/native-result.json','proof/browser-result.json','proof/actual-witness.json']
+    inputs+=['global.json','accepted-model.json','config/program-kit/architecture.json','proof/architecture.xml','proof/native-result.json','proof/browser-result.json','proof/actual-witness.json']
     for name in ('model-drift','owner-bypass'):
         candidates=list((review/'snapshots'/name).rglob('*.cs'))
         if candidates:write(work/'examples/invalid'/(name+'.cs.txt'),candidates[0].read_bytes())
         else:write(work/'examples/invalid'/(name+'.cs.txt'),'Fictional rejected control: wrong model or omitted owner predicate. See the separately compiled native controls.\n')
-    write(work/'eng/verification.json',{'schemaVersion':1,'testGroups':[],'toolkitChecks':[{'id':'evidence-observation','script':'tests/observation_check.py','arguments':[],
+    write(work/'config/program-kit/verification.json',{'schemaVersion':1,'testGroups':[],'toolkitChecks':[{'id':'evidence-observation','script':'tests/observation_check.py','arguments':[],
           'inputs':inputs,'timeoutSeconds':20}]})
     write(work/'docs/architecture/evidence-source-review.md','# Fictional authored source review\nCore owns valid immutable content, runtime owns admission, API owns wire mapping, provider owns atomic effects and owner predicates. Actual native and browser witnesses are retained. Fictional identity/headers are test-only; production native authentication/antiforgery remains mandatory. Events and physical fencing are separately scoped. This review is attributable source, not authenticated human product acceptance.\n')
     invariants=['principle.compilation-boundaries','principle.ui-state-recovery','principle.query-shape']

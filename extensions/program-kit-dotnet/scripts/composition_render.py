@@ -15,7 +15,7 @@ import composition_model as model
 import foundation_composition as foundation
 import identity_fixture
 
-CONTRACT = 'eng/foundation-settings.contract.json'
+CONTRACT = 'config/program-kit/foundation-settings.contract.json'
 RESOLVED = 'eng/foundation-composition.resolved.json'
 
 
@@ -163,7 +163,7 @@ def admit_runtime_reconciliation(repository, project):
     identity = r'\bShellFeature\s*\(\s*"' + re.escape(project['featureIdentity']) + r'"'
     if not re.search(identity, source):
         return
-    manifest = repository / '.program-kit/managed.json'
+    manifest = repository / 'config/program-kit/managed.json'
     state = json.loads(manifest.read_text(encoding='utf-8')) if manifest.is_file() else {}
     entry = state.get('files', {}).get(relative, {})
     authenticated = (entry.get('ownership') == 'scaffold' and entry.get('contribution') == 'foundation'
@@ -336,7 +336,7 @@ def realm_import(graph, authority_id, template, contracts, env_name=None):
     validate_realm(graph, authority_id, base, contracts, template, env_name)
     # Ownership marks belong to the provider adapter, not the neutral model.
     import importlib.util
-    spec = importlib.util.spec_from_file_location('keycloak_composition_stamp', template / 'files/eng/keycloak_composition.py')
+    spec = importlib.util.spec_from_file_location('keycloak_composition_stamp', template / 'files/scripts/keycloak_composition.py')
     adapter = importlib.util.module_from_spec(spec); spec.loader.exec_module(adapter)
     adapter.stamp(graph, authority_id, base)
     return base
@@ -459,10 +459,10 @@ def materialize(repository, graph, template, env_name=None, *, configuration_onl
         contract['serviceImages']['postgresql'] = json.loads(provider_file.read_text())['profiles']['ef-postgresql']['image']
     contract['serviceImageSources'] = {'keycloak': {'templateSha256': hashlib.sha256(identity_source.read_bytes()).hexdigest()},
                                       'postgresql': {'templateSha256': hashlib.sha256(provider_file.read_bytes()).hexdigest()}}
-    contract['runnerAdapterSha256'] = hashlib.sha256((template / 'files/eng/composition_run.py').read_bytes()).hexdigest()
-    contract['identityAdapterSha256'] = hashlib.sha256((template / 'files/eng/keycloak_composition.py').read_bytes()).hexdigest()
-    contract['browserAdapterSha256'] = hashlib.sha256((template / 'files/eng/web/composition-readiness.mjs').read_bytes()).hexdigest()
-    contract['qualificationAdapterSha256'] = hashlib.sha256((template / 'files/eng/foundation_qualification.py').read_bytes()).hexdigest()
+    contract['runnerAdapterSha256'] = hashlib.sha256((template / 'files/scripts/composition_run.py').read_bytes()).hexdigest()
+    contract['identityAdapterSha256'] = hashlib.sha256((template / 'files/scripts/keycloak_composition.py').read_bytes()).hexdigest()
+    contract['browserAdapterSha256'] = hashlib.sha256((template / 'files/tools/program-kit/web/composition-readiness.mjs').read_bytes()).hexdigest()
+    contract['qualificationAdapterSha256'] = hashlib.sha256((template / 'files/scripts/foundation_qualification.py').read_bytes()).hexdigest()
     profiles = {'CShells': {'Shells': {}}}
     outputs = {}
     for shell_id, shell in model.resources(graph, 'shell').items():
@@ -494,7 +494,7 @@ def materialize(repository, graph, template, env_name=None, *, configuration_onl
         existing = json.loads(outputs.get(shell['source'], (encoded({'CShells': {'Shells': {}}}), None))[0])
         existing['CShells']['Shells'][shell['name']] = {'Name': shell['name'], 'Features': {}}
         outputs[shell['source']] = (encoded(existing), 'scaffold')
-    outputs['eng/web-profile.shells.json'] = (encoded(profiles), 'managed')
+    outputs['config/program-kit/web-profile.shells.json'] = (encoded(profiles), 'managed')
     props = ET.Element('Project'); group = ET.SubElement(props, 'ItemGroup')
     native_pins = {row['packageId']: row['version'] for output in (admitted or {}).get('managedOutputs', [])
                    if output['kind'] == 'nuget-central-pins' for row in output['entries']}
@@ -506,7 +506,7 @@ def materialize(repository, graph, template, env_name=None, *, configuration_onl
     ET.indent(props, space='  ')
     # Native selection remains the sole writer of BuildingBlocks.props. Only
     # adapter dependencies not already admitted there belong to this contribution.
-    outputs['eng/ProgramKit.Foundation.props'] = (ET.tostring(props) + b'\n', 'managed')
+    outputs['config/program-kit/build/ProgramKit.Foundation.props'] = (ET.tostring(props) + b'\n', 'managed')
     frontend_template = template / 'hosted-pages/web'
     for name, frontend in model.resources(graph, 'frontend').items():
         if configuration_only:
@@ -554,7 +554,7 @@ def materialize(repository, graph, template, env_name=None, *, configuration_onl
             ET.indent(document, space='  ')
             files[project['path']] = ET.tostring(document) + b'\n'
         if source_owner:
-            state_path = repository / '.program-kit/managed.json'
+            state_path = repository / 'config/program-kit/managed.json'
             state = json.loads(state_path.read_text()) if state_path.is_file() else {}
             previous = state.get('files', {}).get(source_owner, {})
             untouched = (previous.get('ownership') == 'scaffold' and previous.get('contribution') == 'foundation'
@@ -599,29 +599,15 @@ def materialize(repository, graph, template, env_name=None, *, configuration_onl
                                          ['named provider connectivity admission'] if definition['responsibility'] == 'persistence' else ['owned runtime capability registration']}]}
         for row in model.resources(graph, 'feature').values()
         for definition in [model.project_definition(row, repository)]], 'coreReferences': [], 'bindings': []}}
-    outputs['eng/architecture.json'] = (encoded(architecture), 'scaffold')
+    outputs['config/program-kit/architecture.json'] = (encoded(architecture), 'scaffold')
     if (repository / 'Application.slnx').is_file() or (not list(repository.glob('*.sln')) and not list(repository.glob('*.slnx'))):
         solution = ET.Element('Solution')
         for row in model.resources(graph, 'feature').values():
             ET.SubElement(solution, 'Project', Path=row['path'])
         ET.indent(solution, space='  ')
         outputs['Application.slnx'] = (ET.tostring(solution) + b'\n', 'scaffold')
-    # Per-shell contracts let the maintained authentication fixture verify the selected URLs.
-    for shell_id in model.resources(graph, 'shell'):
-        projection = recipe_projection(graph, shell_id, env_name)
-        web_contract = json.loads((template / 'web-profiles/bff-cookie/eng/web/web-contract.json').read_text())
-        web_contract['origins'] = {'application': projection['application']['publicOrigin'], 'identity': projection['identity']['publicOrigin']}
-        web_contract['routes']['oidcCallback']['path'] = projection['application']['callbackPath']
-        web_contract['routes']['signedOutCallback']['path'] = projection['application']['signedOutCallbackPath']
-        web_contract['routes']['signedOutCallback']['successLocation'] = web_settings(
-            graph, shell_id, contracts[shell_id], env_name).get('LogoutLandingPath', '/bff/signed-out')
-        prefix = model.shell_path_base(graph, shell_id)
-        for route in web_contract['routes'].values():
-            route['path'] = prefix + route['path']
-            if 'successLocation' in route: route['successLocation'] = prefix + route['successLocation']
-        web_contract['ownership']['managedExactPaths'] = [route['path'] for route in web_contract['routes'].values()]
-        web_contract['ownership']['featureOwnedPrefix'] = prefix + '/api/'
-        outputs['eng/web/compositions/' + shell_id + '.json'] = (encoded(web_contract), 'managed')
+    outputs.update({path: (payload, 'managed') for path, payload in web_contract_projections(
+        graph, contract, json.loads((template / 'web-profiles/bff-cookie/tools/program-kit/web/web-contract.json').read_text())).items()})
     if configuration_only:
         # This optional operation compiles configuration only. Existing source,
         # solutions, architecture and shell overlays remain their authors' work.
@@ -634,6 +620,28 @@ def materialize(repository, graph, template, env_name=None, *, configuration_onl
     outputs['docs/architecture/foundation-configuration.md'] = (reference(graph, resolved).encode(), 'managed')
     return outputs
 
+
+
+def web_contract_projections(graph, contract, baseline):
+    """Pure per-shell projection shared by synchronization and offline regeneration."""
+    outputs = {}
+    env_name = contract['environment']
+    for shell_id in model.resources(graph, 'shell'):
+        projection = recipe_projection(graph, shell_id, env_name)
+        web_contract = deepcopy(baseline)
+        web_contract['origins'] = {'application': projection['application']['publicOrigin'], 'identity': projection['identity']['publicOrigin']}
+        web_contract['routes']['oidcCallback']['path'] = projection['application']['callbackPath']
+        web_contract['routes']['signedOutCallback']['path'] = projection['application']['signedOutCallbackPath']
+        web_contract['routes']['signedOutCallback']['successLocation'] = web_settings(
+            graph, shell_id, contract['shells'][shell_id], env_name).get('LogoutLandingPath', '/bff/signed-out')
+        prefix = model.shell_path_base(graph, shell_id)
+        for route in web_contract['routes'].values():
+            route['path'] = prefix + route['path']
+            if 'successLocation' in route: route['successLocation'] = prefix + route['successLocation']
+        web_contract['ownership']['managedExactPaths'] = [route['path'] for route in web_contract['routes'].values()]
+        web_contract['ownership']['featureOwnedPrefix'] = prefix + '/api/'
+        outputs['eng/web/compositions/' + shell_id + '.json'] = (encoded(web_contract), 'managed')
+    return {path: payload for path, (payload, _) in outputs.items()}
 
 def presentation_branding(graph, shell_id):
     pages = [row for row in model.bindings(graph, 'frontend') if row['shellRef'] == shell_id]
@@ -664,7 +672,7 @@ def presentation_frontend(repository, graph, name, selected, template, outputs):
     current = repository / entry
     shell_id = next(row['shellRef'] for row in model.bindings(graph, 'frontend') if row['frontendRef'] == name)
     reviewed = graph['resources'][shell_id].get('presentation', {}).get('entrypoints', {}).get(name)
-    manifest = repository / '.program-kit/managed.json'
+    manifest = repository / 'config/program-kit/managed.json'
     state = json.loads(manifest.read_bytes()) if manifest.is_file() else {}
     helper_path = folder + '/foundation-controls.ts'
     installed_helper = state.get('files', {}).get(helper_path, {})
@@ -716,10 +724,10 @@ def resolve(graph, contract):
 
 def reference(graph, resolved):
     return '\n'.join(['# Foundation composition', '',
-        'Author the typed resources and bindings in `eng/foundation-composition.json` using accepted architecture identities.',
+        'Author the typed resources and bindings in `config/program-kit/foundation-composition.json` using accepted architecture identities.',
         'Generated settings, realm imports and Compose files are projections. Resource composition does not require an aggregate C# project.', '',
         'Profile: `' + next(iter(resolved['packages'].values())) + '` (exact package authority remains the captured dependency profile and native locks).', '',
-        'Run `python eng/composition_run.py prepare`, then `python eng/composition_run.py run`.',
+        'Run `python scripts/composition_run.py prepare`, then `python scripts/composition_run.py run`.',
         'Use `update --host <id>` for an incremental application change and `stop` to preserve owned infrastructure data.',
         'Managed local identity personas/credentials are synthetic Development inputs. External identity is configured through assigned authority/client bindings.', '',
         '| Host | Shells | Selected roots | Runtime stage |', '| --- | --- | --- | --- |',
@@ -754,7 +762,7 @@ def validate_materialized(repository, graph, contract, profile, realm=None):
         source = repository / shell['source']
         if source.is_file():
             effective = shell_composition.merge_value(value, shell_composition.load(source, True))
-            companion = source.parent / 'eng/building-blocks.shells.json'
+            companion = source.parent / 'config/program-kit/building-blocks.shells.json'
             if companion.is_file():
                 effective = shell_composition.merge_value(effective, shell_composition.load(companion, True))
             validate_consumer_shell(graph, shell_id, selected, effective['CShells']['Shells'][shell['name']], contract['environment'])
@@ -791,6 +799,8 @@ def validate_consumer_configuration(graph, shell_id, selected, configuration, en
 
 
 def verify_outputs(repository, check_frontends=True):
+    require((repository / RESOLVED).is_file(),
+            'PKE001 missing disposable composition projection; run python scripts/regenerate_eng.py --repository . before this read-only verification')
     repository = Path(repository)
     graph = model.load(repository)
     contract = json.loads((repository / CONTRACT).read_text())
@@ -798,16 +808,16 @@ def verify_outputs(repository, check_frontends=True):
             contract['modelAdapterSha256'] == hashlib.sha256(Path(model.__file__).read_bytes()).hexdigest(),
             'composition adapter changed; preview and synchronize the managed contribution')
     require(json.loads((repository / RESOLVED).read_text()) == resolve(graph, contract), 'resolved composition is stale')
-    for field, path in (('runnerAdapterSha256', 'eng/composition_run.py'),
-                        ('identityAdapterSha256', 'eng/keycloak_composition.py'),
-                        ('browserAdapterSha256', 'eng/web/composition-readiness.mjs'),
-                        ('qualificationAdapterSha256', 'eng/foundation_qualification.py')):
+    for field, path in (('runnerAdapterSha256', 'scripts/composition_run.py'),
+                        ('identityAdapterSha256', 'scripts/keycloak_composition.py'),
+                        ('browserAdapterSha256', 'tools/program-kit/web/composition-readiness.mjs'),
+                        ('qualificationAdapterSha256', 'scripts/foundation_qualification.py')):
         require((repository / path).is_file() and contract[field] == hashlib.sha256((repository / path).read_bytes()).hexdigest(),
                 'managed executable adapter changed: ' + path + '; synchronize its selected contribution')
     for path, digest in contract.get('managedOutputs', {}).items():
         require((repository / path).is_file() and hashlib.sha256((repository / path).read_bytes()).hexdigest() == digest,
                 'managed composition output changed: ' + path + '; use normal reviewed reconciliation')
-    validate_materialized(repository, graph, contract, (repository / 'eng/web-profile.shells.json').read_bytes())
+    validate_materialized(repository, graph, contract, (repository / 'config/program-kit/web-profile.shells.json').read_bytes())
     import shell_composition
     effective = shell_composition.compose(repository, include_frontend_admission=check_frontends)['CShells']['Shells']
     for shell_id, shell in model.resources(graph, 'shell').items():

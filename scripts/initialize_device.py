@@ -11,12 +11,12 @@ import subprocess
 import urllib.request
 
 PINS = 'extensions/program-kit-dotnet/templates/dotnet/files'
-INPUTS = ('eng/device_toolchain.py',)
+INPUTS = ('scripts/device_toolchain.py',)
 
 
 def check(project: Path, pins: Path, authority: str) -> None:
     print('Program Kit initialization prerequisites; release-owned diagnostic source: ' + authority, flush=True)
-    spec = importlib.util.spec_from_file_location('initialize_device_policy', pins / 'eng/device_toolchain.py')
+    spec = importlib.util.spec_from_file_location('initialize_device_policy', pins / 'scripts/device_toolchain.py')
     policy = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(policy)
     policy.contributor(project, pins_directory=pins, exact_specify=False, python_only=True)
@@ -54,7 +54,7 @@ def invoke_native(project,ref,release,launcher,arguments):
         bridge=release/'scripts/invoke_specify.py'
         return subprocess.run([sys.executable,str(bridge),'--launcher',str(launcher),'--',*arguments],cwd=project).returncode
     files=('scripts/invoke_specify.py','extensions/program-kit-governance/scripts/render_profile.py',
-           'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
+           'extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py')
     with tempfile.TemporaryDirectory(prefix='program-kit-native-capture-') as directory:
         root=Path(directory)
         for relative in files:

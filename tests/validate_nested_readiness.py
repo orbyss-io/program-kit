@@ -12,7 +12,7 @@ from owned_fixture import FixtureDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'extensions/program-kit-dotnet/scripts'),
-               str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'),
+               str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'),
                str(ROOT / 'extensions/program-kit-governance/scripts')]
 import composition_run as runner
 import compatibility_process

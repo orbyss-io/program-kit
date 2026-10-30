@@ -90,11 +90,11 @@ def draft(root, catalog_path, identity, directory):
     originals = {'selection.json': selection_path, 'catalog.json': old_path,
                  'architecture.json': blocks.repository_path(root, accepted['authority']['architectureMap']),
                  'governance-extension.yml': root / '.specify/extensions/program-kit-governance/extension.yml'}
-    lock = root / 'eng/building-blocks.lock.json'
+    lock = root / 'config/program-kit/building-blocks.lock.json'
     if lock.is_file(): originals['lock.json'] = lock
     ledger = root / 'docs/architecture/bootstrap-prerequisites.json'
     if ledger.is_file(): originals['bootstrap-prerequisites.json'] = ledger
-    binding = root / '.program-kit/dependency-profile.json'
+    binding = root / 'config/program-kit/dependency-profile.json'
     if binding.is_file():
         originals['dependency-profile.json'] = binding
         originals['exact-profile.json'] = blocks.repository_path(root, blocks.load_json(binding)['profilePath'])
@@ -243,7 +243,7 @@ def accept(root, destination, directory, decision_id, rationale):
             raise ValueError('PKB613 preserved Accepted review differs')
         blocks.atomic_write_bytes(reviewed_path, architecture_path.read_bytes(), 'profile-transition-review')
         blocks.atomic_write(promotion_path, blocks.pretty_json(intent))
-    binding = root / '.program-kit/dependency-profile.json'
+    binding = root / 'config/program-kit/dependency-profile.json'
     if binding.exists():
         prior_hash = packet['originals'].get('dependency-profile.json')
         binding_selection = original if blocks.raw_sha256(binding) == prior_hash else accepted

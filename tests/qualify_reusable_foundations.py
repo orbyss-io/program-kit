@@ -25,7 +25,7 @@ import foundation_composition as composition
 sys.path.insert(0,str(ROOT/'tests'))
 sys.path.insert(0,str(ROOT/'extensions/program-kit-governance/scripts'))
 from compatibility_process import run
-sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 from owned_scratch import filesystem_path, native_path
 
 
@@ -34,7 +34,7 @@ def contract_tests():
     import importlib.util
     import http.server
     import threading
-    path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_qualification.py'
+    path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts/foundation_qualification.py'
     spec=importlib.util.spec_from_file_location('qualification_contract_test',path)
     adapter=importlib.util.module_from_spec(spec); spec.loader.exec_module(adapter)
     evidence=Path(filesystem_path(ROOT/'artifacts/tests/reusable-foundations'/('contracts-'+uuid.uuid4().hex[:16])))
@@ -120,7 +120,7 @@ def contract_tests():
     # Exercise the actual maintained setup supervisor, with restore deliberately
     # failing before build/services; neither Docker nor a package manager runs.
     child=evidence/'failed-readiness-child'; child.mkdir()
-    setup=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_setup.py'
+    setup=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts/foundation_setup.py'
     secret='qualification-diagnostic-secret-must-never-appear'
     untouched=child/'services-must-not-run'
     child_selected={'compositionId':'foundation-bff-keycloak','runtimeDirectory':'.',
@@ -260,7 +260,7 @@ def contract_tests():
         integration.unlink(); write(integration,observed)
     checks.append('escaping-integration-metadata-never-enters-labels')
     # Real maintained child capture writes the same process metadata consumed above.
-    fixture_path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_fixture.py'
+    fixture_path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts/foundation_fixture.py'
     capture_spec=importlib.util.spec_from_file_location('integration_failure_capture',fixture_path)
     fixture=importlib.util.module_from_spec(capture_spec)
     prior_module=sys.modules.get('foundation_process')
@@ -276,7 +276,7 @@ def contract_tests():
     checks.append('actual-maintained-failed-child-capture-produces-only-bounded-diagnostics')
     # New current helper markers refine only the finite pre-issuer boundary.
     import ast
-    helper_steps={node.value for node in ast.walk(ast.parse((ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_qualification.py').read_text()))
+    helper_steps={node.value for node in ast.walk(ast.parse((ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts/foundation_qualification.py').read_text()))
                   if isinstance(node,ast.Constant) and isinstance(node.value,str) and node.value in PRE_ISSUER_STEPS}
     assert helper_steps==set(PRE_ISSUER_STEPS)
     original_observed=json.loads(json.dumps(observed))
@@ -500,7 +500,7 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     """Real report shapes and supervised failure; establishes no browser readiness."""
     import copy
     import xml.etree.ElementTree as ET
-    source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts'
+    source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/tests/authentication.spec.ts'
     source_text=source.read_text()
     assert set(re.findall(r"^test\('([^']+)'",source_text,re.MULTILINE))==set(AUTHENTICATION_CASES)
     phase_declaration=re.search(r"type: 'program-kit-cross-site-phase', description: '([^']+)'",source_text)
@@ -1129,7 +1129,7 @@ def candidate(root, feed):
             metadata=json.loads(packed.read('orbyss-foundation/settings.json'))
         rows[package]={'path':destination.relative_to(root).as_posix(),'version':metadata['packageVersion'],
                        'sha256':hashlib.sha256(archive.read_bytes()).hexdigest()}
-    profile=root/'eng/foundation-development-candidate.json'
+    profile=root/'config/program-kit/foundation-development-candidate.json'
     write(profile,{'id':'reusable-foundations-development','baseProfile':effective['profile'],'status':'development-candidate','packages':rows})
     return {'profile':profile.relative_to(root).as_posix(),'sha256':hashlib.sha256(profile.read_bytes()).hexdigest()}
 
@@ -1237,12 +1237,12 @@ public sealed class ProductBoundaryTests
 }
 ''',encoding='utf-8')
         packages=root/'Directory.Packages.props'
-        test_pins=json.loads((root/'eng/foundation-test-support/packages.json').read_text())
+        test_pins=json.loads((root/'tools/program-kit/foundation-test-support/packages.json').read_text())
         packages.write_text(packages.read_text().replace('</Project>','<ItemGroup><PackageVersion Include="xunit.v3.mtp-v2" Version="'+test_pins['xunit.v3.mtp-v2']+'" /></ItemGroup></Project>'),encoding='utf-8')
         projects.append(tests.relative_to(root).as_posix())
     (root/'Application.slnx').write_text('<Solution>\n'+''.join('<Project Path="'+p+'" />\n' for p in projects)+'</Solution>\n',encoding='utf-8')
     (root/'VERSION').write_text('0.0.1-development\n' if feed else '0.0.1\n',encoding='utf-8')
-    architecture=composition.read(root/'eng/architecture.json')
+    architecture=composition.read(root/'config/program-kit/architecture.json')
     if postgres:
         for item in architecture['runtimeComposition']['projects']:
             if item['path'] in (config['projects'][0]['path'],config['projects'][1]['path']):
@@ -1255,7 +1255,7 @@ public sealed class ProductBoundaryTests
     if shape=='sport':
         architecture['runtimeComposition']['projects'].append({'path':'tests/Product/Product.Tests.csproj','role':'test','projectReferences':[],
             'responsibilities':[{'name':'ProductBoundaryTests','kind':'test','effects':['Actual HTTP owner-read authentication prerequisite']}]})
-    write(root/'eng/architecture.json',architecture)
+    write(root/'config/program-kit/architecture.json',architecture)
     # Preserve synthetic accepted history/customization and locks through reviewed sync.
     (root/'docs/architecture/adoption-history.md').write_text('Disposable accepted architecture history. No live consumer adoption.\n',encoding='utf-8')
     if postgres:
@@ -1274,7 +1274,7 @@ def qualify(root, shape, phase, evidence, generation):
     os.environ['PROGRAMKIT_QUALIFY_PRODUCT']='0' if shape=='base' else '1'
     if phase=='cold': require_cold_cache(root)
     started=time.monotonic()
-    command([sys.executable,'eng/foundation_setup.py','--repository','.','--execute','--qualification'],root,evidence/'readiness',readiness=True)
+    command([sys.executable,'scripts/foundation_setup.py','--repository','.','--execute','--qualification'],root,evidence/'readiness',readiness=True)
     runs=sorted((root/'artifacts/tests/runs').glob('foundation-*/result.json'),key=lambda p:p.stat().st_mtime)
     native=json.loads(runs[-1].read_text())
     if native['status']!='ready': raise ValueError('Generated composition failed actual readiness')
@@ -1317,7 +1317,7 @@ def migrate(root, config, evidence):
         write(evidence/'consumer-owned-orphan-inputs.before.json',{'beforeFeatureRemoval':True,'files':owned_orphans})
     directory=root/'artifacts/tests/runs'/('migration-'+uuid.uuid4().hex)
     directory.mkdir(parents=True)
-    command([sys.executable,'eng/foundation_qualification.py','--repository','.','--run-directory',directory.relative_to(root).as_posix(),
+    command([sys.executable,'scripts/foundation_qualification.py','--repository','.','--run-directory',directory.relative_to(root).as_posix(),
              '--migration','--product','--sync-script',str(SCRIPTS/'dotnet_sync.py')],root,evidence/'actual-product-migration')
     result=json.loads((directory/'integration.json').read_text())
     if result['status']!='passed' or not result.get('migration',{}).get('retainedProductAfterUpgrade'):
@@ -1370,7 +1370,7 @@ def main():
         config=model.legacy_view(graph,shell)
         sync(root,artifact/'synchronize-reviewed-ownership-repair')
         directory=root/'artifacts/tests/runs'/('migration-preparation-'+uuid.uuid4().hex); directory.mkdir()
-        command([sys.executable,'eng/foundation_qualification.py','--repository','.',
+        command([sys.executable,'scripts/foundation_qualification.py','--repository','.',
             '--run-directory',directory.relative_to(root).as_posix(),'--stage','build'],root,artifact/'prepare-selected-initial-bundle')
         migrate(root,config,artifact/'migration')
         write(artifact/'qualification.json',{'status':'migration-passed','consumer':str(root.relative_to(ROOT)),
@@ -1408,10 +1408,10 @@ def _observed(command, cwd, directory, **keywords):
 foundation_fixture.captured = _observed
 ''',encoding='utf-8')
             previous={name:os.environ.get(name) for name in ('PYTHONPATH','PROGRAMKIT_COMMAND_AUDIT')}
-            os.environ['PYTHONPATH']=os.pathsep.join((str(observer),str(root/'eng'),previous['PYTHONPATH'] or ''))
+            os.environ['PYTHONPATH']=os.pathsep.join((str(observer),str(root/'scripts'),previous['PYTHONPATH'] or ''))
             os.environ['PROGRAMKIT_COMMAND_AUDIT']=str(audit)
             try:
-                command([sys.executable,'eng/foundation_setup.py','--repository','.', '--execute'],root,artifact/'default-setup',readiness=True)
+                command([sys.executable,'scripts/foundation_setup.py','--repository','.', '--execute'],root,artifact/'default-setup',readiness=True)
             finally:
                 for name,value in previous.items():
                     if value is None: os.environ.pop(name,None)
@@ -1444,7 +1444,7 @@ foundation_fixture.captured = _observed
                 'commandAuditScope':'Test-only Python startup observer of maintained foundation_fixture.captured across owned descendants. Redacted argv and owned cwd only; delegates original command, arguments and supervision unchanged.',
                 'commandAudit':{str(path.relative_to(ROOT)):hashlib.sha256(path.read_bytes()).hexdigest() for path in audit.glob('*.json')},
                 'actualReadiness':str(receipt.relative_to(ROOT)),
-                'adapterSha256':hashlib.sha256((root/'eng/foundation_qualification.py').read_bytes()).hexdigest()})
+                'adapterSha256':hashlib.sha256((root/'scripts/foundation_qualification.py').read_bytes()).hexdigest()})
             print('Actual default setup independence: '+str(artifact))
             return 0
         directory=root/'artifacts/tests/runs'/('functional-'+uuid.uuid4().hex); directory.mkdir(parents=True)
@@ -1483,9 +1483,9 @@ foundation_fixture.captured = _observed
                 # Activation consumes the preserved bundle, not source files directly. Rebuild
                 # through its maintained stage so the reviewed temporary input actually ships
                 # into this disposable run; never patch the running Host's private snapshot.
-                command([sys.executable,'eng/foundation_qualification.py','--repository','.',
+                command([sys.executable,'scripts/foundation_qualification.py','--repository','.',
                     '--run-directory',directory.relative_to(root).as_posix(),'--stage','build'],root,artifact/'prepare-interaction-window-bundle')
-            command([sys.executable,'eng/foundation_qualification.py','--repository','.',
+            command([sys.executable,'scripts/foundation_qualification.py','--repository','.',
                      '--run-directory',directory.relative_to(root).as_posix(),'--check','host-activation'],root,artifact/'integration')
             if args.interactive_window_seconds is not None:
                 runtime=json.loads((directory/'effective-settings.runtime.json').read_text())

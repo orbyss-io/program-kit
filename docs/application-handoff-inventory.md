@@ -32,10 +32,10 @@ baseline.
 
 ### Application artifacts and identity
 
-[Build.ps1](../extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1) builds, tests,
+[Build.ps1](../extensions/program-kit-dotnet/templates/dotnet/files/scripts/Build.ps1) builds, tests,
 packs to `artifacts/packages/<version>`, stages `artifacts/release-bundle` and invokes the registered
 OpenAPI pipeline. Final descriptor/ZIP production is a separate
-[release_bundle.py](../extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py)
+[release_bundle.py](../extensions/program-kit-dotnet/templates/dotnet/files/scripts/release_bundle.py)
 `describe` step. Staged inputs are not yet a finished release.
 
 The descriptor gets version from `VERSION`, binds source commit and host image digest, and currently
@@ -53,24 +53,24 @@ The [runtime profile](../extensions/program-kit-dotnet/references/dotnet-runtime
 assigns descriptor emission to `Orbyss.Foundation.Build` at `orbyss-foundation/feature.json`.
 The bundle reader supports versions 1 and 2, including multiple features per package, and checks
 activation/dependencies/routes.
-[feature_metadata.py](../extensions/program-kit-dotnet/templates/dotnet/files/eng/feature_metadata.py)
+[feature_metadata.py](../extensions/program-kit-dotnet/templates/dotnet/files/scripts/feature_metadata.py)
 updates activation, not descriptor emission. Reuse these package, feature and shell identities.
 
-The [OpenAPI pipeline](../extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_pipeline.py)
+The [OpenAPI pipeline](../extensions/program-kit-dotnet/templates/dotnet/files/scripts/openapi_pipeline.py)
 exports, normalizes, checks compatibility, generates client types and compiles the consuming
 application for registered contracts. The
-[registry](../extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-contracts.json)
+[registry](../extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/openapi-contracts.json)
 starts with `contracts: []`; it does not prove every implemented API is registered.
-The [contract schema](../extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-contract.schema.json)
+The [contract schema](../extensions/program-kit-dotnet/templates/dotnet/files/scripts/openapi-contract.schema.json)
 already records identity, shell, features and output paths. Reference these instead of another API
 catalog. A feature, shell or API is not automatically a separate process.
 
 ### Configuration metadata
 
 Runtime configuration files contain values. The
-[bundle schema](../extensions/program-kit-dotnet/templates/dotnet/files/eng/application-bundle.schema.json)
+[bundle schema](../extensions/program-kit-dotnet/templates/dotnet/files/scripts/application-bundle.schema.json)
 defines the descriptor envelope, not every application's supported settings.
-The [SPA-PKCE schema](../extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/spa-pkce.schema.json)
+The [SPA-PKCE schema](../extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/scripts/spa-pkce.schema.json)
 covers one selected profile.
 
 A receiver needs keys, types, requiredness, supported defaults/constraints, scope, secret
@@ -98,8 +98,8 @@ orchestration are outside this feature.
 
 ### Human documentation inputs
 
-[eng/README.md](../extensions/program-kit-dotnet/templates/dotnet/files/eng/README.md) documents native
-commands. [Build props](../extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props)
+[scripts/README.md](../extensions/program-kit-dotnet/templates/dotnet/files/scripts/README.md) documents native
+commands. [Build props](../extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props)
 enable compiler XML documentation. Architecture/specification inputs carry intent and journeys,
 but do not establish delivered behavior.
 

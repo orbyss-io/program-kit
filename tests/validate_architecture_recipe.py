@@ -257,7 +257,7 @@ class RecipeTests(unittest.TestCase):
     def test_managed_private_analyzer_and_spoofed_origins(self):
         item = {'Identity': 'Orbyss.Foundation.Analyzers', 'PrivateAssets': 'all',
                 'IncludeAssets': 'runtime;build;analyzers',
-                'DefiningProjectFullPath': str(self.root / 'eng/ProgramKit.Build.props')}
+                'DefiningProjectFullPath': str(self.root / 'config/program-kit/build/ProgramKit.Build.props')}
         self.evaluated['Core/Slots.Core.csproj']['Items']['PackageReference'] = [item]
         self.check()
         for field, value in (('PrivateAssets', ''), ('IncludeAssets', 'all'),
@@ -282,7 +282,7 @@ class RecipeTests(unittest.TestCase):
     def test_managed_private_descriptor_builder_rejects_runtime_assets_and_spoofing(self):
         item = {'Identity': 'Orbyss.Foundation.Build', 'PrivateAssets': 'all',
                 'IncludeAssets': 'build;buildtransitive',
-                'DefiningProjectFullPath': str(self.root / 'eng/ProgramKit.Build.targets')}
+                'DefiningProjectFullPath': str(self.root / 'config/program-kit/build/ProgramKit.Build.targets')}
         self.evaluated['Provider/Slots.Provider.csproj']['Items']['PackageReference'] = [item]
         self.check()
         for field, value in (('PrivateAssets', ''), ('IncludeAssets', 'all'),

@@ -32,7 +32,7 @@ def main():
         root = Path(name)
         sys.path.insert(0,str(ROOT / 'extensions/program-kit-dotnet/scripts'))
         from dependency_profile import render
-        effective = render(root,'eng/ProgramKit.Packages.props',(TEMPLATE / 'eng/ProgramKit.Packages.props').read_bytes())
+        effective = render(root,'config/program-kit/build/ProgramKit.Packages.props',(TEMPLATE / 'config/program-kit/build/ProgramKit.Packages.props').read_bytes())
         package = next(n.attrib['Version'] for n in ET.fromstring(effective).iter('PackageVersion')
                        if n.attrib['Include'] == 'Orbyss.Foundation.Analyzers')
         (root / 'global.json').write_text(json.dumps({'sdk': sdk}))

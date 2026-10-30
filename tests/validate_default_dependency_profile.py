@@ -23,7 +23,7 @@ from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import building_blocks as blocks
 import profile_catalogs
 import release_bundle
@@ -147,8 +147,8 @@ def generate_native_probe(selected: dict, catalog: dict, work: Path, named: bool
     """Share byte-identical native inputs between ordinary lock preparation and qualification."""
     # Use the maintained engineering imports and public private-build package.
     for relative in ('Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props',
-                     'global.json', 'NuGet.config', 'eng/ProgramKit.Build.props',
-                     'eng/ProgramKit.Build.targets', 'eng/ProgramKit.Packages.props'):
+                     'global.json', 'NuGet.config', 'config/program-kit/build/ProgramKit.Build.props',
+                     'config/program-kit/build/ProgramKit.Build.targets', 'config/program-kit/build/ProgramKit.Packages.props'):
         destination = work / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(TEMPLATE / relative, destination)
@@ -169,7 +169,7 @@ def generate_native_probe(selected: dict, catalog: dict, work: Path, named: bool
                          for p in runtime.values())
     central.write_text(central.read_text().replace('</Project>', '<ItemGroup>\n' + versions +
         '\n<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />\n</ItemGroup></Project>'), encoding='utf-8')
-    packages = work / 'eng/ProgramKit.Packages.props'
+    packages = work / 'config/program-kit/build/ProgramKit.Packages.props'
     build_version = retarget_engineering_packages(packages, selected, named)
     feature = work / 'Feature/ProgramKit.Qualification.csproj'
     feature.parent.mkdir()

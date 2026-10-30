@@ -17,7 +17,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
-sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(TEMPLATE / 'files/eng'),
+sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(TEMPLATE / 'files/scripts'),
                 str(ROOT / 'extensions/program-kit-governance/scripts'),
                 str(ROOT / 'extensions/program-kit-building-blocks/scripts')]
 import building_blocks as blocks
@@ -120,10 +120,10 @@ def main():
     for name, (raw, _) in render.materialize(directory, graph, TEMPLATE).items():
         if name.startswith(frontend['directory'] + '/'):
             target = directory / name; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(raw)
-    builder = directory / 'eng/vendor/foundation-0.3.3/create_hosted_manifest.py'
+    builder = directory / 'tools/program-kit/vendor/foundation-0.3.3/create_hosted_manifest.py'
     builder.parent.mkdir(parents=True)
-    shutil.copyfile(TEMPLATE / 'files/eng/vendor/foundation-0.3.3/create_hosted_manifest.py', builder)
-    commands.run([sys.executable, str(TEMPLATE / 'files/eng/toolchain.py'), '--repository', str(directory)])
+    shutil.copyfile(TEMPLATE / 'files/tools/program-kit/vendor/foundation-0.3.3/create_hosted_manifest.py', builder)
+    commands.run([sys.executable, str(TEMPLATE / 'files/scripts/toolchain.py'), '--repository', str(directory)])
     npm, npm_environment = qualification.npm_command(directory, ['ci', '--ignore-scripts', '--fetch-retries=0', '--fetch-timeout=30000'])
     commands.run(npm, cwd=directory / frontend['directory'], environment=npm_environment, timeout=120)
     timings['preparationSeconds'] = round(time.monotonic() - started, 3)

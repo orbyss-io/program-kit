@@ -13,7 +13,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
-sys.path.insert(0, str(TEMPLATE / 'eng'))
+sys.path.insert(0, str(TEMPLATE / 'scripts'))
 import release_bundle as bundle
 from live.v2.lending_host import unpack_release_bundle, PublishedLendingHost, LendingHost
 from live.v2.common import LiveContractError
@@ -140,13 +140,13 @@ class ReleaseBundleTests(unittest.TestCase):
                                      '--target', str(target), '--profile-selected', '--foundation-host-accepted',
                                      '--building-block-sources-approved', '--web-profile', 'none'], capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-            installed = target / 'eng/legacy-feature-bridge.json'
-            self.assertEqual((TEMPLATE / 'eng/legacy-feature-bridge.json').read_bytes(), installed.read_bytes())
-            self.assertEqual((TEMPLATE / 'eng/owned_scratch.py').read_bytes(), (target / 'eng/owned_scratch.py').read_bytes())
+            installed = target / 'scripts/legacy-feature-bridge.json'
+            self.assertEqual((TEMPLATE / 'scripts/legacy-feature-bridge.json').read_bytes(), installed.read_bytes())
+            self.assertEqual((TEMPLATE / 'scripts/owned_scratch.py').read_bytes(), (target / 'scripts/owned_scratch.py').read_bytes())
             result = subprocess.run([sys.executable, '-I', '-c',
                                      'import sys;sys.path.insert(0,sys.argv[1]);import release_bundle;'
                                      'assert release_bundle.LEGACY_FEATURE_BRIDGE["packageVersions"] == ["0.2.2","0.2.3"]',
-                                     str(target / 'eng')], capture_output=True, text=True)
+                                     str(target / 'scripts')], capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
     def setUp(self):
@@ -157,7 +157,7 @@ class ReleaseBundleTests(unittest.TestCase):
         self.packages = self.root / 'artifacts/packages'
         self.packages.mkdir(parents=True)
         self.write('VERSION', '1.2.3\n')
-        self.write('eng/application-handoff.json', {'schemaVersion': 1, 'applicationId': 'example.release'})
+        self.write('config/program-kit/application-handoff.json', {'schemaVersion': 1, 'applicationId': 'example.release'})
         self.write('hostsettings.json', {})
         self.write('nuplane.settings.json', {'Nuplane': {'Setup': {'Feeds': []}, 'Loading': {'Enabled': True}}})
         self.write('shells.json', {'CShells': {'Shells': {'default': {'Features': {}}}}})
@@ -606,7 +606,7 @@ class ReleaseBundleTests(unittest.TestCase):
 
     def test_shipped_consumer_paths_cannot_publish_images(self):
         release = (TEMPLATE/'.github/workflows/application-release.yml').read_text()
-        startup = (TEMPLATE/'eng/composition_run.py').read_text()
+        startup = (TEMPLATE/'scripts/composition_run.py').read_text()
         for forbidden in ('docker build', 'docker push', 'buildx', 'packages: write'):
             self.assertNotIn(forbidden, release)
         self.assertNotIn('docker build', startup)
@@ -625,16 +625,16 @@ class ReleaseBundleTests(unittest.TestCase):
             {'id':'api', 'packageClosure':'artifacts/runnable-host/packages', 'baseline':'contracts/v1.json'},
             {'id':'custom', 'packageClosure':'consumer/special', 'baseline':'contracts/other.json'}]}
         payload = json.dumps(original).encode()
-        migrated = dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', payload, migrations)
+        migrated = dotnet_sync.apply_structured_migrations('config/program-kit/openapi-contracts.json', payload, migrations)
         expected = json.loads(payload)
         expected['contracts'][0]['packageClosure'] = 'artifacts/release-bundle/packages'
         self.assertEqual(json.loads(migrated), expected)
-        self.assertEqual(dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', migrated, migrations), migrated)
+        self.assertEqual(dotnet_sync.apply_structured_migrations('config/program-kit/openapi-contracts.json', migrated, migrations), migrated)
         native = json.dumps({'schemaVersion': 1, 'contracts': ['contracts/openapi/api.contract.json']}).encode()
-        self.assertEqual(native, dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', native, migrations))
+        self.assertEqual(native, dotnet_sync.apply_structured_migrations('config/program-kit/openapi-contracts.json', native, migrations))
         invalid = json.dumps({'contracts': [42]}).encode()
         with self.assertRaises(ValueError):
-            dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', invalid, migrations)
+            dotnet_sync.apply_structured_migrations('config/program-kit/openapi-contracts.json', invalid, migrations)
 
 
 if __name__ == '__main__': unittest.main()

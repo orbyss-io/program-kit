@@ -1,6 +1,6 @@
 # Build and run
 
-Consumer-owned authoring input. Start with [ordinary engineering](../../eng/README.md).
+Consumer-owned authoring input. Start with [ordinary engineering](../../scripts/README.md).
 
 Record verified prerequisites and exact native restore/build/test/contract/package commands. Add
 actual local startup, shutdown and request examples for delivered components, with expected results.

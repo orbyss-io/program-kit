@@ -146,7 +146,7 @@ def main() -> int:
         # Native CLI filesystem operations receive the existing shared extended
         # spelling. The physical project/source owners and persistent policy do
         # not change, and no third-party implementation is patched.
-        adapter=Path(__file__).resolve().parents[1]/'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+        adapter=Path(__file__).resolve().parents[1]/'extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py'
         if adapter.is_file():
             adapter_spec=importlib.util.spec_from_file_location('native_cli_owned_filesystem',adapter)
             filesystem=importlib.util.module_from_spec(adapter_spec);adapter_spec.loader.exec_module(filesystem)

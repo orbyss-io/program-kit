@@ -13,7 +13,7 @@ from pathlib import Path
 import re
 from urllib.parse import urlsplit
 
-INPUT = 'eng/foundation-composition.json'
+INPUT = 'config/program-kit/foundation-composition.json'
 VERSION = 2
 RESOURCE_FIELDS = {
     'host': ({'kind', 'runtimeDirectory'}, {'ownerRef'}),
@@ -193,6 +193,12 @@ def local_path(value, label, allow_dot=False):
             all(part not in ('', '.', '..') for part in value.split('/')), label + ' escapes the repository')
 
 
+def durable_source_path(value, label):
+    local_path(value, label)
+    require(value.split('/')[0].casefold() != 'eng',
+            label + ': root eng is disposable output; place authored source/configuration in its durable owner')
+
+
 def identifier(value, label):
     require(isinstance(value, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_.-]{0,127}', value),
             label + ' requires a stable literal identity')
@@ -270,7 +276,7 @@ def private_directories(model, env_name=None, repository=None):
     env = environment(model, env_name)
     base = Path(repository or '.').resolve()
     forbidden = [base / name for name in ('src', 'tests', 'tools', 'web', 'eng', 'docs', 'deploy', 'packages',
-                 'scripts', 'extensions', 'presets', 'catalogs', 'workflows', '.git', '.specify', '.program-kit',
+                 'scripts', 'extensions', 'presets', 'catalogs', 'workflows', '.git', '.specify', '.program-kit', 'config/program-kit',
                  '.agents', '.codex', '.github', 'release-bundle', 'artifacts/composition')]
     forbidden += [base / row['directory'] for row in resources(model, 'frontend').values()]
     forbidden += [base / ('release-bundle' if row['runtimeDirectory'] == '.' else row['runtimeDirectory'])
@@ -278,7 +284,7 @@ def private_directories(model, env_name=None, repository=None):
     forbidden += [base / ('artifacts/release-bundle' if row['runtimeDirectory'] == '.' else 'artifacts/' + row['runtimeDirectory'])
                   for row in resources(model, 'host').values()]
     forbidden += [(base / row['path']).parent for row in resources(model, 'feature').values()]
-    architecture = base / 'eng/architecture.json'
+    architecture = base / 'config/program-kit/architecture.json'
     if repository is not None and architecture.is_file():
         graph = json.loads(architecture.read_text(encoding='utf-8'))
         for row in graph.get('runtimeComposition', {}).get('projects', []):
@@ -311,7 +317,7 @@ def project_definition(feature, repository=None):
     require(declared is None or declared in ('runtime', 'http', 'persistence'), 'unsupported feature responsibility')
     owned = None
     if repository is not None:
-        path = Path(repository) / 'eng/architecture.json'
+        path = Path(repository) / 'config/program-kit/architecture.json'
         if path.is_file():
             graph = json.loads(path.read_text(encoding='utf-8'))
             matches = [row for row in graph.get('runtimeComposition', {}).get('projects', [])
@@ -353,7 +359,7 @@ def validate(model, repository=None):
     authority = model.get('authority')
     if authority is not None:
         object_fields(authority, {'architectureMap', 'decisionIds'}, {'selectionId'}, 'composition authority')
-        local_path(authority['architectureMap'], 'architecture authority')
+        durable_source_path(authority['architectureMap'], 'architecture authority')
         refs = authority['decisionIds']
         require(isinstance(refs, list) and refs and all(isinstance(ref, str) and ref for ref in refs)
                 and len(refs) == len(set(refs)), 'composition authority requires distinct decision identities')
@@ -377,7 +383,7 @@ def validate(model, repository=None):
                     and len({item.casefold() for item in row['inputs']}) == len(row['inputs']),
                     'declared source inputs require a bounded distinct path list')
             for path in row['inputs']:
-                local_path(path, name + '.inputs')
+                durable_source_path(path, name + '.inputs')
         kind = row['kind']
         if kind == 'host':
             local_path(row['runtimeDirectory'], name + '.runtimeDirectory', True)
@@ -388,7 +394,7 @@ def validate(model, repository=None):
             identifier(row['name'], name + '.name')
             require(row['name'].casefold() not in shell_names, 'ambiguous shell identity')
             shell_names.add(row['name'].casefold())
-            local_path(row['source'], name + '.source')
+            durable_source_path(row['source'], name + '.source')
             require(row['source'] == 'shells.json' or row['source'].endswith('/shells.json'), 'shell source must name shells.json')
             prefix = row.get('pathBase', '')
             require(isinstance(prefix, str) and len(prefix) <= 512 and (prefix == ''
@@ -418,7 +424,7 @@ def validate(model, repository=None):
             for key, value in row.get('settings', {}).items():
                 require(type(value) is int and 1 <= value <= 86400, 'invalid bounded policy ' + key)
         elif kind == 'feature':
-            local_path(row['path'], name + '.path')
+            durable_source_path(row['path'], name + '.path')
             require(row['path'].endswith('.csproj'), 'feature path must name a .csproj')
             require(row['role'] in ('implementation', 'provider'),
                     'resource composition does not introduce an aggregate source project')
@@ -466,7 +472,7 @@ def validate(model, repository=None):
                 require(isinstance(row.get('permissions', []), list) and
                         all(isinstance(item, str) and item for item in row.get('permissions', [])), 'invalid permission references')
         elif kind == 'frontend':
-            local_path(row['directory'], name + '.directory')
+            durable_source_path(row['directory'], name + '.directory')
             local_path(row['entry'], name + '.entry')
             require(row['entry'].endswith(('.ts', '.tsx')), 'maintained frontend recipe requires a TypeScript or TSX entry')
             branding = row.get('branding', default_branding())

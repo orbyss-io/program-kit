@@ -210,7 +210,7 @@ Record remaining uncertainty in ordinary tasks; happy-path checks prove only exe
 During planning identify affected delivered guides, public contracts, source-backed settings and
 runtime/data requirements. Add their implementation and meaningful review scenarios to ordinary
 feature tasks. During implementation maintain these consumer-owned inputs alongside behavior and
-normal tests. Delivery uses retained eng/application_handoff.py after actual bundle description and
+normal tests. Delivery uses retained scripts/application_handoff.py after actual bundle description and
 contract/settings export; it must reject required missing/stale coverage. Specifications and AI logs
 are not evidence of delivered behavior. Link the existing engineering README and docs/application/
 inputs; do not add an approval ledger. Infrastructure and documentation receivers own downstream

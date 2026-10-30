@@ -433,7 +433,7 @@ def main() -> int:
         try:
             os.chdir(project)
             write_installation(project, '1.0.0-preview.2')
-            baseline = project / '.program-kit/managed.json'
+            baseline = project / 'config/program-kit/managed.json'
             baseline.parent.mkdir(parents=True)
             baseline.write_text('{"programKitVersion":"1.0.0-preview.1","locks":"preserved"}')
             original_baseline = baseline.read_bytes()

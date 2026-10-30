@@ -85,7 +85,7 @@ class SelectionTests(unittest.TestCase):
 
     def test_source_policy_templates_select_released_native_controls(self):
         definition = runner.load_definition()
-        for name in ('.editorconfig', 'eng/ProgramKit.Build.props', 'eng/ProgramKit.Build.targets'):
+        for name in ('.editorconfig', 'config/program-kit/build/ProgramKit.Build.props', 'config/program-kit/build/ProgramKit.Build.targets'):
             with self.subTest(template=name):
                 checks, gaps, _ = runner.select_affected(definition,
                     ['extensions/program-kit-dotnet/templates/dotnet/files/' + name])
@@ -197,8 +197,8 @@ class SelectionTests(unittest.TestCase):
 
     def test_native_evidence_owners_have_focused_affected_coverage(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [
-            'extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py',
-            'extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py'])
+            'extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_verification.py',
+            'extensions/program-kit-dotnet/templates/dotnet/files/scripts/toolkit_verification.py'])
         self.assertFalse(gaps)
         ids = {c['id'] for c in checks}
         self.assertIn('validate_native_phases', ids)

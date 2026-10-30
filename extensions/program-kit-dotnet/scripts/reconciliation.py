@@ -18,7 +18,7 @@ def filesystem_root(path: Path) -> Path:
     """Use the shipped shared Windows path contract for transaction I/O only."""
     if os.name != 'nt':
         return path
-    source = Path(__file__).resolve().parents[1] / 'templates/dotnet/files/eng/owned_scratch.py'
+    source = Path(__file__).resolve().parents[1] / 'templates/dotnet/files/scripts/owned_scratch.py'
     if not source.is_file():
         raise ReconciliationError('Shared Windows path helper is missing; restore the complete installed Program Kit .NET component before reconciliation')
     specification = importlib.util.spec_from_file_location('reconciliation_owned_paths', source)
@@ -99,8 +99,8 @@ def rollback_transaction(target: Path, transaction: Path, journal: dict) -> None
         elif current_hash is not None:
             destination.unlink()
 
-    state_path = target / ".program-kit/managed.json"
-    state_backup = backup_root / ".program-kit/managed.json"
+    state_path = target / "config/program-kit/managed.json"
+    state_backup = backup_root / "config/program-kit/managed.json"
     state_current = _current_hash(state_path)
     old_state_hash = journal.get("oldStateHash")
     new_state_hash = journal.get("newStateHash")
@@ -108,7 +108,7 @@ def rollback_transaction(target: Path, transaction: Path, journal: dict) -> None
         value for value in (old_state_hash, new_state_hash) if isinstance(value, str)
     }
     if state_current is not None and state_current not in allowed_state:
-        conflicts.append(".program-kit/managed.json")
+        conflicts.append("config/program-kit/managed.json")
     elif state_backup.is_file():
         atomic_write(state_path, state_backup.read_bytes(), transaction.name)
     elif state_current is not None:
@@ -160,7 +160,7 @@ def apply_plan(target: Path, actions: list[dict], next_state: bytes) -> str:
     backup_root = transaction / "backup"
     transaction.mkdir(parents=True)
 
-    state_path = target / ".program-kit/managed.json"
+    state_path = target / "config/program-kit/managed.json"
     old_state = state_path.read_bytes() if state_path.is_file() else None
     serialized_actions: list[dict] = []
     for action in actions:
@@ -189,7 +189,7 @@ def apply_plan(target: Path, actions: list[dict], next_state: bytes) -> str:
             }
         )
     if old_state is not None:
-        state_backup = backup_root / ".program-kit/managed.json"
+        state_backup = backup_root / "config/program-kit/managed.json"
         state_backup.parent.mkdir(parents=True, exist_ok=True)
         state_backup.write_bytes(old_state)
 

@@ -131,7 +131,7 @@ externally changed after interruption and reports it for manual resolution.
 
 ## Lock and materialized state
 
-`.program-kit/building-blocks.lock.json` is generated and committed. It binds the canonical
+`config/program-kit/building-blocks.lock.json` is generated and committed. It binds the canonical
 selection hash, resolution-affecting and raw catalog hashes, accepted decision projection, Program
 Kit/resolver versions, named instances, exact target assignments, direct companion closure,
 activations, registries, configuration requirements, managed-output semantic hashes, and the plan
@@ -140,7 +140,7 @@ and live registry results.
 
 Materialization owns the smallest possible entries:
 
-- `.program-kit/eng/ProgramKit.BuildingBlocks.props` contains selected project-package pins only;
+- `config/program-kit/config/program-kit/build/ProgramKit.BuildingBlocks.props` contains selected project-package pins only;
 - labeled `ProgramKit.BuildingBlocks` regions contain direct `PackageReference` entries in the exact
   selected projects;
 - actual exact `dependencies` or `devDependencies` keys are reconciled in each selected
@@ -149,13 +149,13 @@ Materialization owns the smallest possible entries:
   variable such as `${PROGRAM_KIT_NPM_TOKEN}`;
 - real .NET CLI packages are reconciled into their selected tool manifest; packages whose names end
   in `.Tool` but provide MCP tool classes remain normal project references;
-- `<shell-directory>/.program-kit/building-blocks.shells.json` is the generated activation overlay
+- `<shell-directory>/config/program-kit/building-blocks.shells.json` is the generated activation overlay
   beside each exact selected `shells.json`; shell composition consumes it while `shells.json` remains
   consumer-owned. A package may contribute more than one activation identity (the Keycloak
   administration adapter does), and every identity is explicit;
-- `.program-kit/building-blocks.hosts.json` records selected version-tagged host inputs; public
+- `config/program-kit/building-blocks.hosts.json` records selected version-tagged host inputs; public
   verification resolves the immutable digest used by release staging;
-- `.program-kit/building-blocks.configuration.json` publishes required and optional configuration
+- `config/program-kit/building-blocks.configuration.json` publishes required and optional configuration
   knowledge without values.
 
 An edit inside an owned region or key is drift and blocks apply. An unregistered catalog package

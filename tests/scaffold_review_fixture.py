@@ -27,7 +27,7 @@ def scenario(directory, *, installed_consumer=None):
     review = Path(filesystem_path(Path(directory).resolve())); review.mkdir(parents=True, exist_ok=True)
     consumer = Path(filesystem_path(installed_consumer)) if installed_consumer is not None else review / 'consumer'
     consumer.mkdir(parents=True, exist_ok=installed_consumer is not None)
-    state_path = consumer / '.program-kit/managed.json'
+    state_path = consumer / 'config/program-kit/managed.json'
     # In the source-copy journey, establish an independently pre-existing,
     # nonempty fictional native baseline before fixture authoring. True installed
     # callers retain their actual original state, captured before all setup.
@@ -120,9 +120,9 @@ def scenario(directory, *, installed_consumer=None):
             author(project, '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>' + properties + '</PropertyGroup><ItemGroup>' + items + '</ItemGroup></Project>')
             declarations.append({'path': owners[key], 'role': role, 'projectReferences': references,
                 'responsibilities': [{'name': key + 'Labels', 'kind': kinds[key], 'effects': []}]})
-        author(consumer / 'eng/architecture.json', {'runtimeComposition': {'projects': declarations}})
+        author(consumer / 'config/program-kit/architecture.json', {'runtimeComposition': {'projects': declarations}})
         author(consumer / 'web/app/package.json', {'name': 'fictional-labels', 'private': True})
-        author(consumer / 'eng/openapi-contracts.json', {'contracts': ['contracts/labels.contract.json']})
+        author(consumer / 'config/program-kit/openapi-contracts.json', {'contracts': ['contracts/labels.contract.json']})
         author(consumer / 'contracts/labels.contract.json', {'generator': {'generatedTypes': owners['generatedTypes']}, 'application': {'directory': owners['frontend']}})
         author(consumer / 'specs/001-label/owners.json', owners)
         author(consumer / 'specs/001-label/tasks.md', '# Fictional source-realization task\n- [ ] Inspect and realize the existing native label owners.\n')
@@ -133,7 +133,7 @@ def scenario(directory, *, installed_consumer=None):
             return [sys.executable, scaffold, action, '--repository', '.', '--feature-dir', 'specs/001-label',
                     '--unit', unit, '--owners', 'specs/001-label/owners.json', *(['--plan-digest', digest] if digest else [])]
 
-        state_before = (consumer / '.program-kit/managed.json').read_bytes()
+        state_before = (consumer / 'config/program-kit/managed.json').read_bytes()
         if initial_state is not None:
             assert state_before == initial_state, 'Original actual native state must survive fixture setup'
         tasks_before = (consumer / 'specs/001-label/tasks.md').read_bytes()
@@ -189,7 +189,7 @@ def scenario(directory, *, installed_consumer=None):
         assert 'NATIVE_OUTER_DEADLINE_FRESHNESS_CALLER_AND_CONFIG_PASSED' in positive
         run('15-unsupported-unit-native-rejection', command(unit='unknown-pattern'), 2)
         snapshot('customized', paths)
-        assert (consumer / '.program-kit/managed.json').read_bytes() == state_before
+        assert (consumer / 'config/program-kit/managed.json').read_bytes() == state_before
         assert (consumer / 'specs/001-label/tasks.md').read_bytes() == tasks_before
         assert all(path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == expected
                    for path, expected in protected.items()), 'Pre-existing installed source changed'

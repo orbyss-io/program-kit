@@ -4,6 +4,10 @@ from pathlib import Path
 
 def resolve(blocks, repository, catalog_path=None):
     repository = repository.resolve()
+    for name in ('dependency-profile.json', 'managed.json'):
+        if (repository / '.program-kit' / name).is_file() and not (repository / 'config/program-kit' / name).is_file():
+            blocks.fail('PKB111', 'legacy selected dependency authority exists at .program-kit/' + name
+                        + '; preserve its exact profile and explicitly migrate before this query; no new-project default was substituted')
     sources = {}
 
     def bind(path):
@@ -20,8 +24,8 @@ def resolve(blocks, repository, catalog_path=None):
         candidate = blocks.default_catalog(Path(blocks.__file__))
     base = blocks.load_json(bind(candidate))
     selected_path = repository / 'docs/architecture/building-block-selection.json'
-    record_path = repository / '.program-kit/dependency-profile.json'
-    managed_path = repository / '.program-kit/managed.json'
+    record_path = repository / 'config/program-kit/dependency-profile.json'
+    managed_path = repository / 'config/program-kit/managed.json'
     selection = blocks.load_json(bind(selected_path)) if selected_path.is_file() else None
     record = blocks.load_json(bind(record_path)) if record_path.is_file() else None
     managed = blocks.load_json(bind(managed_path)) if managed_path.is_file() else {}
@@ -48,17 +52,17 @@ def resolve(blocks, repository, catalog_path=None):
         authority = 'captured-' + selection['status'].lower()
         if qualification: identity = qualification['profile']
     elif record is not None:
-        blocks.fail('PKB111', '.program-kit/dependency-profile.json has no selection; recover its captured selection instead of choosing a default')
+        blocks.fail('PKB111', 'config/program-kit/dependency-profile.json has no selection; recover its captured selection instead of choosing a default')
     else:
         identity = scaffold.get('profile') if isinstance(scaffold, dict) else (None if managed_path.is_file() else index['default'])
         if scaffold is not None and not identity:
-            blocks.fail('PKB611', '.program-kit/managed.json recorded scaffold profile is corrupt; restore its exact recorded authority')
+            blocks.fail('PKB611', 'config/program-kit/managed.json recorded scaffold profile is corrupt; restore its exact recorded authority')
         if identity:
             catalog, _ = blocks.qualified_dependency_profile(directory, identity, base)
             entry = index['profiles'][identity]
             if scaffold is not None and (blocks.catalog_resolution_sha256(catalog) != scaffold.get('catalogResolutionSha256')
                     or not blocks.profile_entry_matches_hash(entry, scaffold.get('entrySha256'), identity)):
-                blocks.fail('PKB611', '.program-kit/managed.json scaffold authority changed; restore its recorded profile or review an explicit dependency transition')
+                blocks.fail('PKB611', 'config/program-kit/managed.json scaffold authority changed; restore its recorded profile or review an explicit dependency transition')
             authority = 'recorded-scaffold' if scaffold is not None else 'qualified-default'
         else:
             catalog, authority = base, 'legacy-installation'

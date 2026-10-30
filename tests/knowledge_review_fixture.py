@@ -115,11 +115,11 @@ def scenario(directory):
         tree_output = run('04-tree-discovery', [ROOT / 'extensions/program-kit-governance/scripts/knowledge_discovery.py',
                                                'scan', '--repository', ROOT, '--format', 'json'], cwd=ROOT)
         sources = json.loads(tree_output)['sources']
-        examples = ('extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py',
-                    'extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json',
+        examples = ('extensions/program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py',
+                    'extensions/program-kit-dotnet/templates/dotnet/files/scripts/label-validation.schema.json',
                     'extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig',
                     'extensions/program-kit-governance/scripts/phase_obligations.py',
-                    'extensions/program-kit-dotnet/templates/dotnet/files/eng/source_quality.py')
+                    'extensions/program-kit-dotnet/templates/dotnet/files/scripts/source_quality.py')
         guide = ['# Discovery inspection guide', '',
                  'These are observations from the actual scan. Candidate declarations are lookup leads, not automatically active rules.', '',
                  '| Actual source | Disposition | Declaration candidates | What to inspect |', '| --- | --- | --- | --- |']
@@ -163,7 +163,7 @@ def scenario(directory):
         write(review / 'snapshots/canonical-prose-after.md', prose.read_text(encoding='utf-8'))
         prose.write_bytes(original_bytes)
 
-        native = consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py'
+        native = consumer / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py'
         original_native_bytes = native.read_bytes()
         original_native = original_native_bytes.decode('utf-8')
         native.write_text(original_native.replace('"core": {"core"}', '"core": set()', 1))
@@ -196,7 +196,7 @@ def scenario(directory):
         # Independent negative graph, run through the installed native validator.
         probe = consumer / 'independent_negative.py'
         write(probe, 'from pathlib import Path\nimport sys\n'
-              'sys.path.insert(0, str(Path(__file__).parent / ".specify/extensions/program-kit-dotnet/templates/dotnet/files/eng"))\n'
+              'sys.path.insert(0, str(Path(__file__).parent / ".specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts"))\n'
               'from repository_architecture import validate_planned\n'
               'graph = {"runtimeComposition": {"projects": ['
               '{"path":"src/Notes.Core/Notes.Core.csproj","role":"core","projectReferences":["src/Notes.Store/Notes.Store.csproj"]},'
@@ -220,10 +220,10 @@ def scenario(directory):
              'projectReferences': ['src/Notes.Core/Notes.Core.csproj']}], 'bindings': []}}
         for row in graph['runtimeComposition']['projects']:
             write(consumer / row['path'], '<Project Sdk="Microsoft.NET.Sdk" />\n')
-        graph_path = consumer / 'eng/architecture.json'
+        graph_path = consumer / 'config/program-kit/architecture.json'
         write(graph_path, graph)
         validator = [engine / 'repository_architecture.py', '--repository', consumer, '--planned']
-        run('19-direct-selection-valid', [*validator, '--manifest', 'eng/architecture.json'])
+        run('19-direct-selection-valid', [*validator, '--manifest', 'config/program-kit/architecture.json'])
         retired = json.loads(json.dumps(graph))
         retired['runtimeComposition']['projects'].append({
             'path': 'src/Notes.Bundle/Notes.Bundle.csproj', 'role': 'composition',
@@ -285,7 +285,7 @@ Every command, exit status and output digest is in [results.json](results.json).
 | 6. Scope and freshness | [Fingerprints before](output/07-fingerprints-before.stdout.txt), [after prose](output/10-fingerprints-after-prose.stdout.txt), [after native](output/12-fingerprints-after-native.stdout.txt) | Each mutation changes only its applicable rule fingerprint. The original full source digest remains attributable; old affected output cannot establish current proof. |
 | 7. Deliberate failures | [Missing marker](output/13-missing-rule.stdout.txt), [ambiguous marker](output/14-ambiguous-rule.stdout.txt), [missing native symbol](output/15-missing-native-symbol.stdout.txt) | Expected exit is 2. Check that the diagnostic identifies the missing/ambiguous owner. The matching input snapshots are [missing](snapshots/13-missing-rule.md), [ambiguous](snapshots/14-ambiguous-rule.md) and [native](snapshots/15-missing-native-symbol.json). |
 | 8. Independent boundary oracle | [Native rejection](output/16-independent-native-negative.stdout.txt) | A fictional Core project referencing a provider is rejected by the installed native validator. This expectation is authored independently of the catalog values. |
-| 9. Selection without a C# preset | [Application selection](output/17-select-application.stdout.txt), [provider selection](output/18-select-provider.stdout.txt), [shells.json](consumer/shells.json), [valid graph](consumer/eng/architecture.json), [validation](output/19-direct-selection-valid.stdout.txt) | The actual activation command selects Notes and Notes.PostgreSql directly. The planned graph has Core, implementation and provider projects; there is no Notes.Bundle project. This checks configuration and structure, not runtime activation. |
+| 9. Selection without a C# preset | [Application selection](output/17-select-application.stdout.txt), [provider selection](output/18-select-provider.stdout.txt), [shells.json](consumer/shells.json), [valid graph](consumer/config/program-kit/architecture.json), [validation](output/19-direct-selection-valid.stdout.txt) | The actual activation command selects Notes and Notes.PostgreSql directly. The planned graph has Core, implementation and provider projects; there is no Notes.Bundle project. This checks configuration and structure, not runtime activation. |
 | 10. Retired role and peer-reference boundary | [Retirement diagnostic](output/20-retired-preset-rejected.stderr.txt), [retained input](consumer/eng/retired-preset.json), [peer rejection](output/21-peer-implementation-rejected.stderr.txt) | Even a preset with an explicit reuse rationale is rejected with PKA022 and repair instructions. Its input is unchanged. Relabeling it as an implementation does not grant references to peer implementations. |
 
 The retained [consumer](consumer/) has its source changes restored after the

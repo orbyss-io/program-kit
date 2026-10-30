@@ -97,14 +97,14 @@ class PresentationProfileTests(unittest.TestCase):
             self.selected({'enabled': True})
 
     def test_spa_redirect_and_popup_have_distinct_matching_contract_and_vite_policies(self):
-        template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng'
+        template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/config/program-kit'
         configuration = json.loads((template / 'spa-pkce.json').read_bytes())
         original = copy.deepcopy(configuration)
         for mode, expected in (('redirect', 'same-origin'), ('popup', 'same-origin-allow-popups')):
             configuration['authenticationNavigation'] = mode
             spa_profile.validate_configuration(configuration)
-            security = json.loads(spa_profile.render_security_contract((template / 'web/spa-security.json').read_bytes(), configuration))
-            source = spa_profile.render_vite_security((template / 'web/vite.security.mjs').read_bytes(), configuration).decode()
+            security = json.loads(spa_profile.render_security_contract((template.parent.parent / 'tools/program-kit/web/spa-security.json').read_bytes(), configuration))
+            source = spa_profile.render_vite_security((template.parent.parent / 'tools/program-kit/web/vite.security.mjs').read_bytes(), configuration).decode()
             self.assertEqual(expected, security['headers']['Cross-Origin-Opener-Policy'])
             self.assertIn("'Cross-Origin-Opener-Policy': '" + expected + "'", source)
             self.assertEqual(original['redirectUris'], configuration['redirectUris'])
@@ -214,7 +214,7 @@ class PresentationProfileTests(unittest.TestCase):
             self.assertIn(b'configurationPath = "/account/configuration"', helper)
             self.assertIn(b'textContent = "Leave"', helper)
             current = self.root / entry; current.parent.mkdir(parents=True); current.write_bytes(original)
-            digest = hashlib.sha256(original).hexdigest(); manifest = self.root / '.program-kit/managed.json'; manifest.parent.mkdir()
+            digest = hashlib.sha256(original).hexdigest(); manifest = self.root / 'config/program-kit/managed.json'; manifest.parent.mkdir(parents=True, exist_ok=True)
             manifest.write_text(json.dumps({'files': {entry: {'ownership': 'scaffold', 'contribution': 'foundation',
                 'sourceIdentity': '../../scripts/foundation_composition.py', 'lastWrittenHash': digest, 'baselineHash': digest}}}))
             render.presentation_frontend(self.root, graph, 'policy-web', selected, template, {entry: (original, 'scaffold')})

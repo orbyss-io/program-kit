@@ -9,7 +9,7 @@ from unittest.mock import patch
 import zipfile
 import shutil
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import runtime_closure
 import release_bundle
 import hosted_bundle

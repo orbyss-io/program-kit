@@ -18,7 +18,7 @@ from xml.etree import ElementTree as ET
 
 ROOT=Path(__file__).resolve().parents[1]
 TEMPLATE=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files'
-sys.path.insert(0,str(TEMPLATE/'eng'))
+sys.path.insert(0,str(TEMPLATE/'scripts'))
 import handoff_contract as authority
 sys.path.insert(0,str(ROOT/'extensions/program-kit-governance/scripts'))
 from compatibility_process import run as bounded_run
@@ -250,13 +250,13 @@ def qualify(args):
         relative=authority.safe_name(item.get('Path'))
         item.set('Path','src/'+relative)
     solution.write(consumer/'PublishedTools.slnx',encoding='utf-8',xml_declaration=False)
-    shutil.copytree(TEMPLATE/'eng',consumer/'eng',ignore=shutil.ignore_patterns('__pycache__'))
+    shutil.copytree(TEMPLATE/'scripts',consumer/'scripts',ignore=shutil.ignore_patterns('__pycache__'))
     for name in ('global.json','.nvmrc','.npm-version','.oasdiff-version'):shutil.copy2(TEMPLATE/name,consumer/name)
     # These are inert setup markers, removed before any native engineering command.
-    for name in ('.program-kit','.specify','.agents'):(consumer/name).mkdir()
-    for name in ('.program-kit','.specify','.agents'):
+    for name in ('config/program-kit','.specify','.agents'):(consumer/name).mkdir()
+    for name in ('config/program-kit','.specify','.agents'):
         target=(consumer/name).resolve();require(target.is_relative_to(consumer.resolve()),'Toolkit marker escaped owned consumer.');shutil.rmtree(target)
-    require(not any((consumer/name).exists() for name in ('.program-kit','.specify','.agents')),'Toolkit removal failed.')
+    require(not any((consumer/name).exists() for name in ('config/program-kit','.specify','.agents')),'Toolkit removal failed.')
     captured_f6=consumer/'artifacts/retained-f6-inputs';captured_f6.mkdir(parents=True)
     for source in feed.glob('*.nupkg'):shutil.copy2(source,captured_f6/source.name)
     archives(captured_f6,value['packages'])
@@ -325,7 +325,7 @@ def qualify(args):
         shell['Features']={key:{} if configured is True else configured for key,configured in shell['Features'].items()}
     write(consumer/'shells.json',shells);write(consumer/'hostsettings.json',authority.read(api_directory/'hostsettings.json'))
     write(consumer/'nuplane.settings.json',{'Nuplane':{'Setup':{'Feeds':[]},'Loading':{'Enabled':True}}})
-    run([sys.executable,str(consumer/'eng/release_bundle.py'),'stage','--repository',str(consumer),'--packages',str(deployment),
+    run([sys.executable,str(consumer/'scripts/release_bundle.py'),'stage','--repository',str(consumer),'--packages',str(deployment),
          '--output',str(consumer/'artifacts/release-bundle')],consumer,logs/'native-stage.log',environment)
     refs=['contracts/application-settings.json'];package_ids=[]
     for package in (consumer/'artifacts/release-bundle/packages').glob('*.nupkg'):
@@ -373,9 +373,9 @@ def qualify(args):
     contract={**native,'packageClosure':'artifacts/release-bundle/packages','rawDocument':'contracts/raw.json','artifact':'contracts/api.json','baseline':'contracts/baseline.json',
               'compatibility':{'oasdiffVersion':(consumer/'.oasdiff-version').read_text().strip().removeprefix('v'),'approval':'contracts/approval.json'},
               'generator':{**stage,'script':'generate','generatedTypes':'client/contract.cjs'},'application':{**stage,'script':'build','tsconfig':'client/tsconfig.json'}}
-    write(consumer/'eng/api.contract.json',contract);write(consumer/'eng/openapi-contracts.json',{'schemaVersion':1,'contracts':['eng/api.contract.json']})
-    write(consumer/'eng/application-handoff.json',{'schemaVersion':1,'applicationId':'w3.native.specimen','bundleDescriptor':'artifacts/application-bundle.json',
-          'openapiRegistry':'eng/openapi-contracts.json','components':[{'id':'conformance','packages':sorted(package_ids),'contracts':[native['identity']]}],
+    write(consumer/'eng/api.contract.json',contract);write(consumer/'config/program-kit/openapi-contracts.json',{'schemaVersion':1,'contracts':['eng/api.contract.json']})
+    write(consumer/'config/program-kit/application-handoff.json',{'schemaVersion':1,'applicationId':'w3.native.specimen','bundleDescriptor':'artifacts/application-bundle.json',
+          'openapiRegistry':'config/program-kit/openapi-contracts.json','components':[{'id':'conformance','packages':sorted(package_ids),'contracts':[native['identity']]}],
           'requiredSettingsScopes':{'PublishedTools.Contract.Api':['application-settings']},'categories':{
               'documentation':{'status':'included','reason':'Delivered private conformance purpose.','files':['docs/application.md']},
               'runtime':{'status':'included','reason':'Actual specimen requirements and cold scope.','files':['docs/runtime.md']},
@@ -396,17 +396,17 @@ def qualify(args):
                 with published.open(name) as captured:
                     expected=authority.stream_sha256(captured,authority.MAX_ASSEMBLY,name)
                 require(authority.digest(actual)==expected,'Installed official exporter payload differs from immutable public archive: '+name)
-    run([sys.executable,str(consumer/'eng/openapi_pipeline.py'),'--repository',str(consumer),'--exporter',str(exporter[0]),'--initialize-baselines'],
+    run([sys.executable,str(consumer/'scripts/openapi_pipeline.py'),'--repository',str(consumer),'--exporter',str(exporter[0]),'--initialize-baselines'],
         consumer,logs/'native-api-pipeline.log',environment)
     pipeline=authority.read(consumer/'artifacts/program-kit/openapi/pipeline.json')
     require(pipeline['satisfied'] is True,'Actual native pipeline did not satisfy API output.')
     export=authority.read(consumer/'artifacts/program-kit/openapi'/ (native['identity']+'-export.json'))
     require(all(export.get('sideEffects',{}).get(key) is False for key in ('listenerStarted','consumerHostedServicesStarted','shellInitializersRun')),
             'Metadata-only export initialized runtime behavior.')
-    run([sys.executable,str(consumer/'eng/release_bundle.py'),'describe','--repository',str(consumer),'--staged',str(consumer/'artifacts/release-bundle'),
+    run([sys.executable,str(consumer/'scripts/release_bundle.py'),'describe','--repository',str(consumer),'--staged',str(consumer/'artifacts/release-bundle'),
          '--image','ghcr.io/orbyss-io/foundation-host','--tag','private-'+version,'--digest',prepared['hostImageReference'].split('@')[1],
          '--output',str(consumer/'artifacts/application-bundle.json')],consumer,logs/'native-describe.log',environment)
-    run([sys.executable,str(consumer/'eng/application_handoff.py'),'--repository',str(consumer)],consumer,logs/'native-handoff.log',environment)
+    run([sys.executable,str(consumer/'scripts/application_handoff.py'),'--repository',str(consumer)],consumer,logs/'native-handoff.log',environment)
     index=authority.read(consumer/'artifacts/handoff/index.json');require(index['status']=='ready' and index['schemaVersion']==2,'Native current handoff is not READY2.')
     receiver=work/'receiver';receiver.mkdir();archive=consumer/'artifacts/handoff/application-handoff.zip';shutil.copy2(archive,receiver/archive.name)
     with zipfile.ZipFile(archive) as captured:

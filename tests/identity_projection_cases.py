@@ -24,7 +24,7 @@ def exercise(root):
     replacement = 'quay.io/keycloak/keycloak:99.0.1@sha256:' + 'a' * 64
     for profile in ('bff-cookie', 'spa-pkce'):
         projected = json.loads(identity_fixture.render_provider_profile(
-            (template / f'web-profiles/{profile}/eng/web-profile.json').read_bytes(), replacement))
+            (template / f'web-profiles/{profile}/config/program-kit/web-profile.json').read_bytes(), replacement))
         assert projected['localIdentityProvider'] == 'keycloak-99.0.1'
         assert projected['localIdentityProviderImage'] == replacement
     with FixtureDirectory(prefix='identity-local-repair-') as directory:
@@ -32,7 +32,7 @@ def exercise(root):
         sources = fixture / 'source'
         shutil.copytree(filesystem_path(root / 'extensions'), sources / 'extensions', ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules'))
         copied = sources / 'extensions/program-kit-dotnet'
-        wrapper = copied / 'templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1'
+        wrapper = copied / 'templates/dotnet/files/scripts/Invoke-RepositoryVerification.ps1'
         wrapper.write_bytes(wrapper.read_bytes() + b'\n# Retained local isolation repair\n')
         consumer = fixture / 'consumer'
         command = [sys.executable, str(copied / 'scripts/dotnet_sync.py'), '--target', str(consumer),
@@ -42,18 +42,18 @@ def exercise(root):
         assert installed.returncode == 0, installed.stdout + installed.stderr
         # Fresh consumers must receive the transitive helpers used by their public
         # engineering entry points; source-tree imports cannot establish this.
-        inspected = subprocess.run([sys.executable, '-E', '-s', '-S', str(consumer/'eng/retained_inputs.py'),
+        inspected = subprocess.run([sys.executable, '-E', '-s', '-S', str(consumer/'scripts/retained_inputs.py'),
                                    'inspect', '--repository', str(consumer)], capture_output=True, text=True)
         assert inspected.returncode == 0, inspected.stdout + inspected.stderr
         assert json.loads(inspected.stdout)['configured'] is False
-        assert (consumer/'eng/toolkit_verification.py').is_file()
-        assert (consumer/'eng/source_quality.py').is_file()
-        module = consumer / 'eng/ProviderTestEnvironment.psm1'
+        assert (consumer/'scripts/toolkit_verification.py').is_file()
+        assert (consumer/'scripts/source_quality.py').is_file()
+        module = consumer / 'scripts/ProviderTestEnvironment.psm1'
         module.write_text('# Consumer-owned isolation module preserved by sync\n')
         module_bytes = module.read_bytes()
         # Reconcile the source template first. Actual sync writes and records the
         # accepted consumer repair; no generated-state hash is patched by this test.
-        wrapper.write_bytes((root / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1').read_bytes())
+        wrapper.write_bytes((root / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts/Invoke-RepositoryVerification.ps1').read_bytes())
         preview = subprocess.run(command + ['--check'], capture_output=True, text=True)
         assert preview.returncode == 1 and 'conflicts: 0' in preview.stdout, preview.stdout + preview.stderr
         applied = subprocess.run(command, capture_output=True, text=True)
@@ -61,9 +61,9 @@ def exercise(root):
         converged = subprocess.run(command + ['--check'], capture_output=True, text=True)
         assert converged.returncode == 0, converged.stdout + converged.stderr
         assert module.read_bytes() == module_bytes
-        descriptor = json.loads((consumer / 'eng/web-profile.json').read_text())
+        descriptor = json.loads((consumer / 'config/program-kit/web-profile.json').read_text())
         assert descriptor['localIdentityProviderImage'] == identity_fixture.provider_image((consumer / 'deploy/compose.identity.yml').read_bytes())
-        current = consumer / 'eng/Invoke-RepositoryVerification.ps1'
+        current = consumer / 'scripts/Invoke-RepositoryVerification.ps1'
         current.write_bytes(current.read_bytes() + b'\n# Unreviewed conflicting consumer edit\n')
         before = {p.relative_to(consumer): p.read_bytes() for p in consumer.rglob('*') if p.is_file()}
         conflict = subprocess.run(command, capture_output=True, text=True)

@@ -32,7 +32,7 @@ when an existing application has an unnecessary composition library.
    explicitly; preserve consumer-owned configuration and deployment data. Run the unchanged published
    Foundation image with the corrected bundle.
 6. If test projects were replaced, record `testOwnershipReplacements` in the existing
-   `eng/verification.json`. Each row names a retired `predecessor` project and its
+   `config/program-kit/verification.json`. Each row names a retired `predecessor` project and its
    current `successors`. Run fresh, unfiltered successor regressions. The mapping
    preserves original failures and does not grant result reuse or erase history.
 7. Run the affected lifecycle, provider, packaging and browser outcomes. Before a

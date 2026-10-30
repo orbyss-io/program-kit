@@ -46,9 +46,9 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
         registry = blocks.profile_registry() / 'catalogs/foundation-0-3-0-contracts'
         self.target = blocks.load_json(next(registry.glob('target-*.json')))
         self.base = blocks.load_json(blocks.default_catalog(Path(blocks.__file__)))
-        self.content = (ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props').read_bytes()
+        self.content = (ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Packages.props').read_bytes()
 
-    def render(self, catalog, content=None, relative='eng/ProgramKit.Packages.props'):
+    def render(self, catalog, content=None, relative='config/program-kit/build/ProgramKit.Packages.props'):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             selection, _ = fixtures.accepted_fixture(blocks, root, catalog)
@@ -64,7 +64,7 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
         self.assertEqual('0.2.0', pins['Orbyss.Foundation.Build'])
         self.assertEqual('0.3.0', pins['Orbyss.Foundation.Analyzers'])
         self.assertEqual(self.target, original)
-        retained = self.render(self.target, b'{}', 'eng/building-blocks.catalog.json')
+        retained = self.render(self.target, b'{}', 'scripts/building-blocks.catalog.json')
         self.assertEqual(self.target, json.loads(retained))
 
     def test_missing_or_duplicate_selected_build_pin_rejects_managed_rendering(self):
@@ -91,8 +91,8 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
                 self.assertEqual(original, version)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            fixtures.write_json(root / '.program-kit/managed.json', {})
-            self.assertEqual(self.content, self.renderer.render(root, 'eng/ProgramKit.Packages.props', self.content))
+            fixtures.write_json(root / 'config/program-kit/managed.json', {})
+            self.assertEqual(self.content, self.renderer.render(root, 'config/program-kit/build/ProgramKit.Packages.props', self.content))
 
 
 class OfficialToolBindingTests(unittest.TestCase):
@@ -117,7 +117,7 @@ class OfficialToolBindingTests(unittest.TestCase):
             pass
         def dispatch(arguments, **kwargs):
             self.assertIn('--locked-mode', arguments)
-            central = ET.parse(work / 'eng/ProgramKit.Packages.props')
+            central = ET.parse(work / 'config/program-kit/build/ProgramKit.Packages.props')
             actual = [node.attrib['Version'] for node in central.iter('PackageVersion')
                       if node.attrib.get('Include') == 'Orbyss.Foundation.Build']
             self.assertEqual(['0.2.0'], actual)

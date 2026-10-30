@@ -6,7 +6,7 @@ separate actions; a toolkit update does not establish that an application has mi
 
 For a new consumer, retain its accepted dependency profile and choose the BFF/Keycloak
 composition or its EF/PostgreSQL variant from the installed .NET composition templates.
-Copy the selected template to `eng/foundation-composition.json`; set the actual application
+Copy the selected template to `config/program-kit/foundation-composition.json`; set the actual application
 feature projects, selected package roots, runtime directory and native test adapter. A
 composition selects feature-owned behavior on the unchanged Foundation host. It needs
 neither an aggregate Composition library nor a consumer host executable.
@@ -26,7 +26,7 @@ When deselecting a feature, sync retains its customized source project as a cons
 group and releases its governed contribution. Its physical architecture role remains
 classified, while selected roots and runtime activations exclude it. Untouched scaffolds
 can retire; reconcile the application-owned solution if it still references such a project.
-`python eng/foundation_composition.py --repository . --effective` gives the redacted source
+`python scripts/foundation_composition.py --repository . --effective` gives the redacted source
 projection; its label distinguishes configured inputs from observed activated options.
 The maintained runtime inspector observes the actual activated options and provider sources.
 Its native shell provider is a flattened memory projection on the selected host; it cannot
@@ -34,7 +34,7 @@ recover the original host JSON/environment provider ordering. Read the paired co
 view for declared input attribution and the runtime view for actual typed values, owner DLL
 hashes and native provider observations. Neither view substitutes for an unobserved owner.
 
-Run explicitly authorized maintained setup checks using `eng/foundation_setup.py`; an
+Run explicitly authorized maintained setup checks using `scripts/foundation_setup.py`; an
 inspection without `--execute` starts no service. Materialization is not readiness. Readiness
 in this maintained adapter covers fresh disposable services, loopback HTTP Development
 origins and an owned private Docker alias on port 8080. Validated production TLS/proxy
@@ -53,7 +53,7 @@ redirect contract. Place HTTP API adapters under `/api` when that error contract
 This prefix and the maintained BFF routes are owner-defined protocol behavior, not timeout
 settings. An anonymous test must inspect the initial response and assert the intended exact
 contract; automatic redirects can hide it behind an identity-page response.
-Use `python eng/foundation_setup.py --repository . --status` to inspect the latest outcome
+Use `python scripts/foundation_setup.py --repository . --status` to inspect the latest outcome
 and input/evidence freshness without running a test or service. Mutable services still need
 fresh checks beside the dependent operation. The selected xUnit/MTP adapter can use the
 maintained Focused runner with `--native-report xunit-trx`; named native results reject empty,

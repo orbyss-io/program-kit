@@ -217,14 +217,14 @@ def main() -> int:
             if output["kind"] == "cshell-activations"
         }
         if activation_paths != {
-            "eng/building-blocks.shells.json",
-            "apps/secondary/eng/building-blocks.shells.json",
+            "config/program-kit/building-blocks.shells.json",
+            "apps/secondary/config/program-kit/building-blocks.shells.json",
         }:
             raise AssertionError(f"Shell activations were not materialized beside exact shell targets: {activation_paths}")
         write_json(selection_path, original_selection)
         refresh_registration(selection_path, repository / "docs/architecture/architecture-map.json")
         first = module.resolve(repository, selection_path, CATALOG, "0.10.0")
-        lock_path = repository / "eng/building-blocks.lock.json"
+        lock_path = repository / "config/program-kit/building-blocks.lock.json"
         module.apply_materialization(repository, lock_path, first, catalog)
         module.check_materialization(repository, first)
         restore_request = restore_module.restore_request(repository, lock_path, first, "renew")
@@ -241,7 +241,7 @@ def main() -> int:
             pass
         else:
             raise AssertionError('Root npm support must not admit escaping package targets')
-        if restore_request["repository"] != "." or restore_request["lock"] != "eng/building-blocks.lock.json":
+        if restore_request["repository"] != "." or restore_request["lock"] != "config/program-kit/building-blocks.lock.json":
             raise AssertionError("Credential-free restore request is not repository-portable")
         if any(Path(command["cwd"]).is_absolute() or any(Path(argument).is_absolute() for argument in command["args"]) for command in restore_request["commands"]):
             raise AssertionError("Credential-free restore request leaked an absolute consumer path")
@@ -315,7 +315,7 @@ def main() -> int:
             {"name": "consumer-web", "private": True, "dependencies": {"consumer-owned": "1.2.3"}},
         )
         npm_lock = module.resolve(npm_repository, selection_path, CATALOG, "0.10.0")
-        npm_lock_path = npm_repository / "eng/building-blocks.lock.json"
+        npm_lock_path = npm_repository / "config/program-kit/building-blocks.lock.json"
         module.apply_materialization(npm_repository, npm_lock_path, npm_lock, catalog)
         package_json = json.loads((npm_repository / "web/package.json").read_text(encoding="utf-8"))
         if package_json["dependencies"].get("consumer-owned") != "1.2.3":
@@ -353,7 +353,7 @@ def main() -> int:
             {"version": 1, "isRoot": True, "tools": {"consumer.tool": {"version": "2.0.0", "commands": ["consumer"]}}},
         )
         tool_lock = module.resolve(tool_repository, selection_path, CATALOG, "0.10.0")
-        module.apply_materialization(tool_repository, tool_repository / "eng/building-blocks.lock.json", tool_lock, catalog)
+        module.apply_materialization(tool_repository, tool_repository / "config/program-kit/building-blocks.lock.json", tool_lock, catalog)
         tools = json.loads((tool_repository / ".config/dotnet-tools.json").read_text(encoding="utf-8"))["tools"]
         if "consumer.tool" not in tools or tools.get("orbyss.foundation.openapi.exporter", {}).get("commands") != [
             "orbyss-foundation-openapi-export"

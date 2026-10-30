@@ -31,7 +31,7 @@ def main():
     # checking an update does not mutate lockfiles or demand unrelated SDKs.
     if args.upgrade or args.refresh_locks:
         import importlib.util
-        source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
+        source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts/device_toolchain.py'
         spec=importlib.util.spec_from_file_location('maintenance_device_policy',source)
         policy=importlib.util.module_from_spec(spec); spec.loader.exec_module(policy)
         policy.contributor(ROOT)

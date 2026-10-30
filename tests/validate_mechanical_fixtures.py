@@ -45,19 +45,19 @@ class ScaffoldJourney(unittest.TestCase):
             self.assertEqual(before, snapshot(root))
             installed = sync(root, *APPROVALS, '--web-profile', 'none')
             self.assertEqual(0, installed.returncode, installed.stdout + installed.stderr)
-            state = json.loads((root / '.program-kit/managed.json').read_text())
+            state = json.loads((root / 'config/program-kit/managed.json').read_text())
             self.assertEqual('none', state['selections']['web'])
-            self.assertTrue((root / 'eng/Build.ps1').is_file())
+            self.assertTrue((root / 'scripts/Build.ps1').is_file())
             self.assertTrue((root / 'Directory.Build.props').is_file())
             self.assertEqual(b'Consumer-owned design decisions.\n', authored.read_bytes())
             # Execute the emitted lightweight drift contract, without claiming
             # that the generated composition compiles or starts successfully.
             checked = sync(root, '--profile-selected', '--web-profile', 'none', '--check')
             self.assertEqual(0, checked.returncode, checked.stdout + checked.stderr)
-            shell = json.loads((root / 'eng/web-profile.shells.json').read_text())
+            shell = json.loads((root / 'config/program-kit/web-profile.shells.json').read_text())
             self.assertEqual({}, shell['CShells']['Shells']['default']['Features'])
             emitted = subprocess.run([sys.executable, '-I', '-c',
-                'import sys,json; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/"eng")); '
+                'import sys,json; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/"scripts")); '
                 'import shell_composition; print(json.dumps(shell_composition.compose(Path.cwd())))'],
                 cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=15)
             self.assertEqual(0, emitted.returncode, emitted.stdout + emitted.stderr)
@@ -76,11 +76,11 @@ class UpgradeJourney(unittest.TestCase):
             # of whether the corresponding packages are already restored.
             required = {'Orbyss.Foundation.Authentication', 'Orbyss.Foundation.WebDefaults',
                         'Orbyss.Foundation.Json.AspNetCore'}
-            emitted_profile = json.loads((root / 'eng/web-profile.shells.json').read_text())
+            emitted_profile = json.loads((root / 'config/program-kit/web-profile.shells.json').read_text())
             features = emitted_profile['CShells']['Shells']['default']['Features']
             self.assertTrue(required <= features.keys())
             composed = subprocess.run([sys.executable, '-I', '-c',
-                'import sys,json; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/"eng")); '
+                'import sys,json; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/"scripts")); '
                 'import shell_composition; print(json.dumps(shell_composition.compose(Path.cwd())))'],
                 cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=15)
             self.assertEqual(0, composed.returncode, composed.stdout + composed.stderr)
@@ -95,10 +95,10 @@ class UpgradeJourney(unittest.TestCase):
             self.assertEqual(before, snapshot(root))
             retry = sync(root, *APPROVALS, '--web-profile', 'spa-pkce')
             self.assertEqual(0, retry.returncode, retry.stdout + retry.stderr)
-            self.assertFalse((root / 'eng/web/bff-session.ts').exists())
-            self.assertTrue((root / 'eng/web/spa-session.ts').is_file())
+            self.assertFalse((root / 'tools/program-kit/web/bff-session.ts').exists())
+            self.assertTrue((root / 'tools/program-kit/web/spa-session.ts').is_file())
             self.assertEqual(b'Keep consumer-authored content.\n', authored.read_bytes())
-            managed = root / 'eng/spa-pkce.json'
+            managed = root / 'config/program-kit/spa-pkce.json'
             managed.write_bytes(managed.read_bytes() + b'\nConsumer customization\n')
             before = snapshot(root)
             conflict = sync(root, *APPROVALS, '--web-profile', 'bff-cookie')

@@ -34,7 +34,7 @@ def run(command, root, environment=None, expected_exit=0):
     if result.returncode:
         evidence = RUN/(attempt+'-local-state')
         evidence.mkdir()
-        for relative in ('.program-kit/consumer-upgrade.json', '.program-kit/installation/migration.json'):
+        for relative in ('config/program-kit/consumer-upgrade.json', 'config/program-kit/installation/migration.json'):
             original = root/relative
             if original.is_file(): shutil.copy2(filesystem_path(original), filesystem_path(evidence/original.name))
         for directory in ('artifacts/program-kit/consumer-upgrade', 'artifacts/program-kit/consumer-activation'):

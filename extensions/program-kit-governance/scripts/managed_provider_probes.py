@@ -94,14 +94,14 @@ def render(root, kind, identity, host_image):
         templates = extensions / 'program-kit-dotnet/templates/dotnet/web-profiles'
         fixture('realm-source.json', templates / 'common/deploy/keycloak/program-kit-realm.json')
         fixture('client-source.json', templates / 'bff-cookie/identity-client.json')
-        fixture('shell-source.json', templates / 'bff-cookie/eng/web-profile.shells.json')
-        fixture('package.json', templates / 'common/eng/web/package.json')
+        fixture('shell-source.json', templates / 'bff-cookie/config/program-kit/web-profile.shells.json')
+        fixture('package.json', templates / 'common/tools/program-kit/web/package.json')
         theme = templates / 'common/deploy/keycloak/themes'
         for source in sorted(p for p in theme.rglob('*') if p.is_file()):
             fixture('themes/' + source.relative_to(theme).as_posix(), source)
         targets = ['Probe.csproj', 'package.json']
         entry = 'identity_probe'
-    fixture('owned_scratch.py', extensions / 'program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
+    fixture('owned_scratch.py', extensions / 'program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py')
     fixture('runtime_fixture.py', governance / 'scripts/runtime_fixture.py')
     fixture('fixture_readiness.py', governance / 'scripts/fixture_readiness.py')
     fixture('runtime_probe.py', governance / 'examples/bootstrap-runtime/runtime_probe.py')

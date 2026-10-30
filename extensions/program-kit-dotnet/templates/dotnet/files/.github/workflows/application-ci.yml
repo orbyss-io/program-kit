@@ -39,19 +39,19 @@ jobs:
         run: npm install --global "npm@$(tr -d '\r\n' < .npm-version)"
 
       - name: Prepare selected typed frontends
-        run: python eng/prepare_hosted_pages.py --repository . --restore
+        run: python scripts/prepare_hosted_pages.py --repository . --restore
 
       - name: Run repository verification gate
         shell: pwsh
-        run: ./eng/Invoke-RepositoryVerification.ps1 -Mode CI
+        run: ./scripts/Invoke-RepositoryVerification.ps1 -Mode CI
 
       - name: Upload application handoff inputs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: application-handoff-inputs-${{ github.sha }}
           path: |
-            eng/application-handoff.json
-            eng/openapi-contracts.json
+            config/program-kit/application-handoff.json
+            config/program-kit/openapi-contracts.json
             docs/application/
             contracts/
             artifacts/program-kit/openapi/

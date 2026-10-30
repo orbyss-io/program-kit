@@ -18,8 +18,8 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix='pkfd-') as directory:
         root = Path(directory)
         for relative in ('Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props',
-                         'NuGet.config', 'global.json', 'eng/ProgramKit.Build.props',
-                         'eng/ProgramKit.Build.targets', 'eng/ProgramKit.Packages.props'):
+                         'NuGet.config', 'global.json', 'config/program-kit/build/ProgramKit.Build.props',
+                         'config/program-kit/build/ProgramKit.Build.targets', 'config/program-kit/build/ProgramKit.Packages.props'):
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(TEMPLATE / relative, target)

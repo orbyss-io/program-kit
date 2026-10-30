@@ -1,34 +1,124 @@
 {
   "schemaVersion": 1,
   "files": [
-    { "path": "eng/test_project.py", "ownership": "managed" },
-    { "path": "eng/ProgramKitPython.psm1", "ownership": "managed" },
-    { "path": "eng/python_runtime_contract.py", "ownership": "managed" },
-    { "path": "eng/web_readiness.py", "ownership": "managed" },
-    { "path": "eng/label_validation.py", "ownership": "managed" },
-    { "path": "eng/label-validation.schema.json", "ownership": "managed" },
-    { "path": "eng/web_identity.py", "ownership": "managed" },
-    { "path": "eng/keycloak_composition.py", "ownership": "managed" },
-    { "path": "eng/composition_model.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_model.py" },
-    { "path": "eng/composition_render.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_render.py" },
-    { "path": "eng/composition_migrate.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_migrate.py" },
-    { "path": "eng/composition_run.py", "ownership": "managed" },
-    { "path": "eng/windows_workflow_path.py", "ownership": "managed", "sourceRoot": "../../../program-kit-governance", "source": "scripts/windows_workflow_path.py" },
-    { "path": "eng/web/composition-readiness.mjs", "ownership": "managed" },
-    { "path": "eng/prepare_hosted_pages.py", "ownership": "managed" },
-    { "path": "eng/hosted_bundle.py", "ownership": "managed" },
-    { "path": "eng/vendor/foundation-0.3.3/create_hosted_manifest.py", "ownership": "managed" },
-    { "path": "eng/vendor/foundation-0.3.3/LICENSE", "ownership": "managed" },
-    { "path": "eng/vendor/foundation-0.3.3/README.md", "ownership": "managed" },
-    { "path": "eng/foundation_qualification.py", "ownership": "managed" },
-    { "path": "eng/foundation-qualification-support/QualificationFeature.cs", "ownership": "managed" },
-    { "path": "eng/foundation-qualification-support/RuntimeOptionsObservation.cs", "ownership": "managed" },
-    { "path": "eng/foundation-qualification-support/product_driver.mjs", "ownership": "managed" },
-    { "path": "eng/foundation-test-support/packages.json", "ownership": "managed" },
-    { "path": "eng/identity_fixture.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "identity_fixture.py" },
-    { "path": "eng/spa_profile.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "spa_profile.py" },
     {
-      "path": "eng/repository_verification.py",
+      "path": "scripts/test_project.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/ProgramKitPython.psm1",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/python_runtime_contract.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/web_readiness.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/label_validation.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/label-validation.schema.json",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/web_identity.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/keycloak_composition.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/composition_model.py",
+      "ownership": "managed",
+      "sourceRoot": "../../scripts",
+      "source": "composition_model.py"
+    },
+    {
+      "path": "scripts/composition_render.py",
+      "ownership": "managed",
+      "sourceRoot": "../../scripts",
+      "source": "composition_render.py"
+    },
+    {
+      "path": "scripts/composition_migrate.py",
+      "ownership": "managed",
+      "sourceRoot": "../../scripts",
+      "source": "composition_migrate.py"
+    },
+    {
+      "path": "scripts/composition_run.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/windows_workflow_path.py",
+      "ownership": "managed",
+      "sourceRoot": "../../../program-kit-governance",
+      "source": "scripts/windows_workflow_path.py"
+    },
+    {
+      "path": "tools/program-kit/web/composition-readiness.mjs",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/prepare_hosted_pages.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/hosted_bundle.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "tools/program-kit/vendor/foundation-0.3.3/create_hosted_manifest.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "tools/program-kit/vendor/foundation-0.3.3/LICENSE",
+      "ownership": "managed"
+    },
+    {
+      "path": "tools/program-kit/vendor/foundation-0.3.3/README.md",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/foundation_qualification.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "tools/program-kit/foundation-qualification-support/QualificationFeature.cs",
+      "ownership": "managed"
+    },
+    {
+      "path": "tools/program-kit/foundation-qualification-support/RuntimeOptionsObservation.cs",
+      "ownership": "managed"
+    },
+    {
+      "path": "tools/program-kit/foundation-qualification-support/product_driver.mjs",
+      "ownership": "managed"
+    },
+    {
+      "path": "tools/program-kit/foundation-test-support/packages.json",
+      "ownership": "managed"
+    },
+    {
+      "path": "scripts/identity_fixture.py",
+      "ownership": "managed",
+      "sourceRoot": "../../scripts",
+      "source": "identity_fixture.py"
+    },
+    {
+      "path": "scripts/spa_profile.py",
+      "ownership": "managed",
+      "sourceRoot": "../../scripts",
+      "source": "spa_profile.py"
+    },
+    {
+      "path": "scripts/repository_verification.py",
       "ownership": "managed"
     },
     {
@@ -84,27 +174,27 @@
       "ownership": "scaffold"
     },
     {
-      "path": "eng/web-profile.shells.json",
+      "path": "config/program-kit/web-profile.shells.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/application-bundle.schema.json",
+      "path": "scripts/application-bundle.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/runtime-closure.schema.json",
+      "path": "scripts/runtime-closure.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/openapi-contract.schema.json",
+      "path": "scripts/openapi-contract.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/openapi-defaults.json",
+      "path": "scripts/openapi-defaults.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/openapi-contracts.json",
+      "path": "config/program-kit/openapi-contracts.json",
       "ownership": "scaffold"
     },
     {
@@ -116,103 +206,103 @@
       "ownership": "managed"
     },
     {
-      "path": "eng/ProgramKit.Build.props",
+      "path": "config/program-kit/build/ProgramKit.Build.props",
       "ownership": "managed"
     },
     {
-      "path": "eng/ProgramKit.Build.targets",
+      "path": "config/program-kit/build/ProgramKit.Build.targets",
       "ownership": "managed"
     },
     {
-      "path": "eng/openapi_contracts.py",
+      "path": "scripts/openapi_contracts.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/openapi_init.py",
+      "path": "scripts/openapi_init.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/openapi_pipeline.py",
+      "path": "scripts/openapi_pipeline.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/openapi_capabilities.py",
+      "path": "scripts/openapi_capabilities.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/oasdiff_cli.py",
+      "path": "scripts/oasdiff_cli.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/program_kit_version.py",
+      "path": "scripts/program_kit_version.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/shell_composition.py",
+      "path": "scripts/shell_composition.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/.config/dotnet-tools.json",
+      "path": ".config/dotnet-tools.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/feature_metadata.py",
+      "path": "scripts/feature_metadata.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/toolchain.py",
+      "path": "scripts/toolchain.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/js_toolchain.py",
+      "path": "scripts/js_toolchain.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props",
+      "path": "config/program-kit/build/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props",
       "ownership": "managed"
     },
     {
-      "path": "eng/profiles/persistence/ProgramKit.Persistence.EfSqlServer.props",
+      "path": "config/program-kit/build/profiles/persistence/ProgramKit.Persistence.EfSqlServer.props",
       "ownership": "managed"
     },
     {
-      "path": "eng/profiles/persistence/ProgramKit.Persistence.EfSqlite.props",
+      "path": "config/program-kit/build/profiles/persistence/ProgramKit.Persistence.EfSqlite.props",
       "ownership": "managed"
     },
     {
-      "path": "eng/ProgramKit.Packages.props",
+      "path": "config/program-kit/build/ProgramKit.Packages.props",
       "ownership": "managed"
     },
     {
-      "path": "eng/Restore.ps1",
+      "path": "scripts/Restore.ps1",
       "ownership": "managed"
     },
     {
-      "path": "eng/Build.ps1",
+      "path": "scripts/Build.ps1",
       "ownership": "managed"
     },
     {
-      "path": "eng/Invoke-RepositoryVerification.ps1",
+      "path": "scripts/Invoke-RepositoryVerification.ps1",
       "ownership": "managed"
     },
     {
-      "path": "eng/release_bundle.py",
+      "path": "scripts/release_bundle.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/owned_scratch.py",
+      "path": "scripts/owned_scratch.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/legacy-feature-bridge.json",
+      "path": "scripts/legacy-feature-bridge.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/runtime_closure.py",
+      "path": "scripts/runtime_closure.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/build_output_recipe.py",
+      "path": "scripts/build_output_recipe.py",
       "ownership": "managed"
     },
     {
@@ -228,35 +318,35 @@
       "ownership": "scaffold"
     },
     {
-      "path": "eng/central_packages.py",
+      "path": "scripts/central_packages.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/ProgramKit.Persistence.props",
+      "path": "config/program-kit/build/ProgramKit.Persistence.props",
       "ownership": "managed"
     },
     {
-      "path": "eng/architecture.json",
+      "path": "config/program-kit/architecture.json",
       "ownership": "scaffold"
     },
     {
-      "path": "eng/architecture_rules.py",
+      "path": "scripts/architecture_rules.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/repository_architecture.py",
+      "path": "scripts/repository_architecture.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/assembly_graph/AssemblyGraph.csproj",
+      "path": "tools/program-kit/assembly_graph/AssemblyGraph.csproj",
       "ownership": "managed"
     },
     {
-      "path": "eng/assembly_graph/Program.cs",
+      "path": "tools/program-kit/assembly_graph/Program.cs",
       "ownership": "managed"
     },
     {
-      "path": "eng/test_results.py",
+      "path": "scripts/test_results.py",
       "ownership": "managed"
     },
     {
@@ -264,51 +354,51 @@
       "ownership": "managed"
     },
     {
-      "path": "eng/assembly_graph/NuGet.Config",
+      "path": "tools/program-kit/assembly_graph/NuGet.Config",
       "ownership": "managed"
     },
     {
-      "path": "eng/README.md",
+      "path": "scripts/README.md",
       "ownership": "scaffold"
     },
     {
-      "path": "eng/handoff_contract.py",
+      "path": "scripts/handoff_contract.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/application_handoff.py",
+      "path": "scripts/application_handoff.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/verify_handoff.py",
+      "path": "scripts/verify_handoff.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/application-handoff.schema.json",
+      "path": "scripts/application-handoff.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/settings-metadata.schema.json",
+      "path": "scripts/settings-metadata.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/settings-package-reference.schema.json",
+      "path": "scripts/settings-package-reference.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/handoff-index.schema.json",
+      "path": "scripts/handoff-index.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/building-blocks.catalog.json",
+      "path": "scripts/building-blocks.catalog.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/application-handoff.json",
+      "path": "config/program-kit/application-handoff.json",
       "ownership": "scaffold"
     },
     {
-      "path": "eng/public_availability.py",
+      "path": "scripts/public_availability.py",
       "ownership": "managed",
       "sourceRoot": "../../../program-kit-building-blocks",
       "source": "scripts/public_availability.py"
@@ -330,91 +420,103 @@
       "ownership": "scaffold"
     },
     {
-      "path": "eng/verify_host_image.py",
+      "path": "scripts/verify_host_image.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/device_toolchain.py",
+      "path": "scripts/device_toolchain.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/package_hash/PackageHash.csproj",
+      "path": "tools/program-kit/package_hash/PackageHash.csproj",
       "ownership": "managed"
     },
     {
-      "path": "eng/package_hash/Program.cs",
+      "path": "tools/program-kit/package_hash/Program.cs",
       "ownership": "managed"
     },
     {
-      "path": "eng/foundation_composition.py",
+      "path": "scripts/foundation_composition.py",
       "ownership": "managed",
       "sourceRoot": "../../scripts",
       "source": "foundation_composition.py"
     },
     {
-      "path": "eng/foundation_setup.py",
+      "path": "scripts/foundation_setup.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/foundation_fixture.py",
+      "path": "scripts/foundation_fixture.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/foundation_process.py",
+      "path": "scripts/foundation_process.py",
       "ownership": "managed",
       "sourceRoot": "../../../program-kit-governance",
       "source": "scripts/compatibility_process.py"
     },
     {
-      "path": "eng/foundation-test-support/EffectiveSettings.cs",
+      "path": "tools/program-kit/foundation-test-support/EffectiveSettings.cs",
       "ownership": "managed"
     },
     {
-      "path": "eng/foundation-test-support/CaseSuite.cs",
+      "path": "tools/program-kit/foundation-test-support/CaseSuite.cs",
       "ownership": "managed"
     },
     {
-      "path": "eng/foundation-test-support/SettingObservation.cs",
+      "path": "tools/program-kit/foundation-test-support/SettingObservation.cs",
       "ownership": "managed"
     },
     {
-      "path": "eng/foundation-test-support/SettingSource.cs",
+      "path": "tools/program-kit/foundation-test-support/SettingSource.cs",
       "ownership": "managed"
     },
     {
-      "path": "eng/foundation-test-support/IntegrationCase.cs",
+      "path": "tools/program-kit/foundation-test-support/IntegrationCase.cs",
       "ownership": "managed"
     },
     {
-      "path": "eng/toolkit_verification.py",
+      "path": "scripts/toolkit_verification.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/retained_inputs.py",
+      "path": "scripts/retained_inputs.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/retained_archives.py",
+      "path": "scripts/retained_archives.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/retained_locks.py",
+      "path": "scripts/retained_locks.py",
       "ownership": "managed"
     },
     {
-      "path": "eng/retained-inputs.schema.json",
+      "path": "scripts/retained-inputs.schema.json",
       "ownership": "managed"
     },
     {
-      "path": "eng/source_quality.py",
+      "path": "scripts/source_quality.py",
       "ownership": "managed"
+    },
+    {
+      "path": "scripts/regenerate_eng.py",
+      "ownership": "managed"
+    },
+    {
+      "path": ".gitignore",
+      "ownership": "scaffold"
+    },
+    {
+      "path": ".gitattributes",
+      "ownership": "scaffold"
     }
   ],
   "obsoleteFiles": [
     "eng/Dev.ps1",
     "eng/program-kit/create_application_bundle.py",
     "eng/runnable_host.py",
-    ".program-kit/runnable-host.schema.json",
+    "config/program-kit/runnable-host.schema.json",
     "Dockerfile",
     ".dockerignore"
   ]

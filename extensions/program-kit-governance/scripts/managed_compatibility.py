@@ -57,7 +57,7 @@ def render(root: Path, kind: str, identity: str, engines=('chromium',), host_ima
     elif kind == 'browser-runtime':
         parameters['node'] = pins['node']
         package = directory / (identity + '.package.json')
-        source = extensions / 'program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json'
+        source = extensions / 'program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/package.json'
         content = json.loads(source.read_text(encoding='utf-8'))
         for name in content['devDependencies']:
             if name in pins:

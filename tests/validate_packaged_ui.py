@@ -39,7 +39,7 @@ def main() -> int:
         assert 'parent=keycloak' in (output / 'integration/auth/keycloak/login/theme.properties').read_text()
         assert not any('/auth/' in resource['file'] for resource in resources)
         # Archived consumers with no new selection keep the old visual presentation after rebuild.
-        profile_path = consumer / '.program-kit/ui/profile.json'
+        profile_path = consumer / 'config/program-kit/ui/profile.json'
         profile = json.loads(profile_path.read_text())
         profile.pop('presentation')
         profile_path.write_text(json.dumps(profile), encoding='utf-8')

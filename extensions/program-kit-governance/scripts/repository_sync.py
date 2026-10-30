@@ -102,7 +102,7 @@ def context(repository: Path, phase: str, feature: str | None, history=None) -> 
     if feature:
         feature = contained(repository, feature).relative_to(repository).as_posix()
     decisions = load(repository / "docs/architecture/bootstrap-decisions.json", {})
-    managed = load(repository / ".program-kit/managed.json", {})
+    managed = load(repository / "config/program-kit/managed.json", {})
     selected = decisions.get("selected_profiles", [])
     if not isinstance(selected, list) or not all(isinstance(item, str) for item in selected):
         raise ValueError('PKS003 selected_profiles must be a list of profile names')
@@ -221,7 +221,7 @@ def describe(repository: Path, phase: str, feature: str | None = None, history=N
             required = required or not expected_dotnet or current.get("required", {}).get("dotnet") != expected_dotnet
         operations.append({"id": "toolchain", "adapter": "javascript", "pins": setup["toolchainPins"], "required": required, "network": False})
     selection = repository / "docs/architecture/building-block-selection.json"
-    lock_path = repository / "eng/building-blocks.lock.json"
+    lock_path = repository / "config/program-kit/building-blocks.lock.json"
     if not history and selection.is_file() and phase in {"implementation-setup", "implementation", "upgrade"}:
         blocks = provider("program-kit-building-blocks/scripts/building_blocks.py")
         catalog = package_execution.extension_root() / "program-kit-building-blocks/references/orbyss-building-blocks.json"
@@ -336,7 +336,7 @@ def _apply(repository: Path, plan: dict) -> dict:
             if operation["adapter"] == "javascript":
                 package_execution.javascript_runtime().context(repository, repository / "artifacts/program-kit/toolchain.json")
             elif operation["adapter"] == "building-blocks":
-                provider("program-kit-building-blocks/scripts/building_blocks.py").check_materialization(repository, load(repository / "eng/building-blocks.lock.json"))
+                provider("program-kit-building-blocks/scripts/building_blocks.py").check_materialization(repository, load(repository / "config/program-kit/building-blocks.lock.json"))
         return {**previous, "readiness": readiness(repository, setup["phase"], setup["feature"], history=history), "reused": True}
     write(repository / f".program-kit/sync/plans/{plan['planDigest']}.json", plan)
     receipt = {"schemaVersion": 1, "reviewedPlanDigest": plan["planDigest"], "context": setup, "operations": [], "status": "running"}
@@ -363,7 +363,7 @@ def _apply(repository: Path, plan: dict) -> dict:
                 record["evidenceSha256"] = digest(path)
             elif operation["adapter"] == "building-blocks":
                 blocks = provider("program-kit-building-blocks/scripts/building_blocks.py")
-                lock_path = repository / "eng/building-blocks.lock.json"
+                lock_path = repository / "config/program-kit/building-blocks.lock.json"
                 if operation["required"]:
                     catalog_path = package_execution.extension_root() / "program-kit-building-blocks/references/orbyss-building-blocks.json"
                     computed = blocks.materialized_plan(repository, blocks.resolve(repository, repository / "docs/architecture/building-block-selection.json", catalog_path, version()))
@@ -382,7 +382,7 @@ def _apply(repository: Path, plan: dict) -> dict:
             write(receipt_path, receipt)
             raise
     if not history and setup["phase"] in {"implementation-setup", "implementation", "upgrade"}:
-        materialized = load(repository / "eng/building-blocks.lock.json", {})
+        materialized = load(repository / "config/program-kit/building-blocks.lock.json", {})
         dependency_plan = sync_readiness.dependencies(repository, setup, materialized)
         if setup["phase"] == "upgrade":
             previous_dependencies = load(repository / ".program-kit/sync/dependencies.json", {})

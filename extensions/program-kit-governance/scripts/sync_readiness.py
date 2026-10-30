@@ -154,7 +154,7 @@ def blockers(repository: Path, setup: dict, operations: list[dict], restore_prov
         errors.extend(f"PKS013 create the plan-owned project/package skeleton first: {path}" for path in missing)
     if phase == "implementation":
         lock = read(repository / ".program-kit/sync/dependencies.json", {})
-        expected = dependencies(repository, setup, read(repository / "eng/building-blocks.lock.json", {}))
+        expected = dependencies(repository, setup, read(repository / "config/program-kit/building-blocks.lock.json", {}))
         if lock != expected:
             errors.append("PKS014 dependency subjects changed; rerun implementation-setup")
         if lock.get("targets"):

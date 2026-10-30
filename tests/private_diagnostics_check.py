@@ -9,7 +9,7 @@ import sys
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORTER = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/private-diagnostics.mjs'
+REPORTER = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/private-diagnostics.mjs'
 
 
 def main():

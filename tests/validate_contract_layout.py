@@ -13,7 +13,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT/'extensions/program-kit-dotnet/templates/dotnet/files'
 EXAMPLE = ROOT/'extensions/program-kit-dotnet/references/examples/contract-layout'
-sys.path.insert(0, str(TEMPLATE/'eng'))
+sys.path.insert(0, str(TEMPLATE/'scripts'))
 from central_packages import central_package_versions
 from source_quality import guidance
 
@@ -69,7 +69,7 @@ def main():
                       packageSha256=hashlib.sha256(archive.read_bytes()).hexdigest(), analyzerAssets=analyzers,
                       nativeLockSha256=hashlib.sha256((consumer/'packages.lock.json').read_bytes()).hexdigest(),
                       sourceSha256={p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-                                    for p in [Path(__file__), TEMPLATE/'.editorconfig', TEMPLATE/'eng/ProgramKit.Packages.props', *EXAMPLE.iterdir()] if p.is_file()})
+                                    for p in [Path(__file__), TEMPLATE/'.editorconfig', TEMPLATE/'config/program-kit/build/ProgramKit.Packages.props', *EXAMPLE.iterdir()] if p.is_file()})
         print('Native selected analyzer contract layout: '+str(evidence/'results.json'))
         return 0
     except BaseException as error:

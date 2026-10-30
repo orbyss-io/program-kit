@@ -149,9 +149,10 @@ class PatternTests(unittest.TestCase):
             root = Path(directory)
             script = root / 'check.py'
             script.write_text('print("actual bounded check")\n')
-            (root / 'eng').mkdir()
+            (root / 'scripts').mkdir()
             config = {'schemaVersion': 1, 'toolkitChecks': [{'id': 'pattern-proof', 'script': 'check.py', 'arguments': [], 'inputs': ['check.py'], 'timeoutSeconds': 10}]}
-            (root / 'eng/verification.json').write_text(json.dumps(config))
+            (root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/verification.json').write_text(json.dumps(config))
             row = toolkit.declarations(root, config)
             proof = toolkit.execute(root, ['pattern-proof'], row)
             check = {'kind': 'toolkit', 'id': 'pattern-proof'}

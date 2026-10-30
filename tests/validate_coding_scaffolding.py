@@ -20,9 +20,11 @@ class ScaffoldTests(unittest.TestCase):
     def test_native_preview_needs_real_recipe_inputs_without_lifecycle_or_pattern_receipts(self):
         with FixtureDirectory(native=True) as directory:
             root = Path(directory)
-            (root / '.program-kit').mkdir()
-            (root / '.program-kit/managed.json').write_bytes(b'{"files":{}}\n')
-            eng = root / 'eng'; eng.mkdir()
+            (root / 'config/program-kit').mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').write_bytes(b'{"files":{}}\n')
+            eng = root / 'config/program-kit'; eng.mkdir(parents=True, exist_ok=True)
             roles = {'core':'core', 'runtime':'implementation', 'api':'implementation', 'provider':'provider', 'test':'test'}
             kinds = {'core':'pure-policy', 'runtime':'runtime', 'api':'http', 'provider':'persistence', 'test':'test'}
             declarations = []
@@ -44,7 +46,7 @@ class ScaffoldTests(unittest.TestCase):
             (eng / 'architecture.json').write_text(json.dumps({'runtimeComposition':{'projects':declarations}}))
             frontend = root / self.owners['frontend']; frontend.mkdir(parents=True)
             (frontend / 'package.json').write_text('{"private":true}\n')
-            (eng / 'openapi-contracts.json').write_text('{"contracts":["eng/labels-api.json"]}\n')
+            (eng / 'openapi-contracts.json').write_text('{"contracts":["config/program-kit/labels-api.json"]}\n')
             contract = {'generator':{'generatedTypes':self.owners['generatedTypes']},
                         'application':{'directory':self.owners['frontend']}}
             (eng / 'labels-api.json').write_text(json.dumps(contract))
@@ -189,14 +191,16 @@ class ScaffoldTests(unittest.TestCase):
     def test_creation_is_consumer_owned_and_idempotent(self):
         with FixtureDirectory() as directory:
             root = Path(directory)
-            (root / '.program-kit').mkdir()
+            (root / 'config/program-kit').mkdir(parents=True, exist_ok=True)
             state = b'{"files":{},"authored":"unchanged"}\n'
-            (root / '.program-kit/managed.json').write_bytes(state)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').write_bytes(state)
             plan = {'planDigest': 'p', 'conflicts': [], 'actions': [
                 {'path': 'src/Operation.cs', 'kind': 'create', 'expectedHash': None}]}
             result = scaffold.apply(root, plan, {'src/Operation.cs': b'authored application'}, 'p')
             self.assertEqual(['src/Operation.cs'], result['created'])
-            self.assertEqual(state, (root / '.program-kit/managed.json').read_bytes())
+            self.assertEqual(state, (root / 'config/program-kit/managed.json').read_bytes())
             plan['actions'][0]['kind'] = 'unchanged'
             rerun = scaffold.apply(root, plan, {}, 'p')
             self.assertIsNone(rerun['transactionId'])
@@ -205,8 +209,10 @@ class ScaffoldTests(unittest.TestCase):
     def test_stale_preview_conflict_and_intervening_file_preserve_all_source(self):
         with FixtureDirectory() as directory:
             root = Path(directory)
-            (root / '.program-kit').mkdir()
-            (root / '.program-kit/managed.json').write_bytes(b'{}')
+            (root / 'config/program-kit').mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').write_bytes(b'{}')
             plan = {'planDigest': 'fresh', 'conflicts': [], 'actions': [
                 {'path': 'First.cs', 'kind': 'create', 'expectedHash': None},
                 {'path': 'Second.cs', 'kind': 'create', 'expectedHash': None}]}
@@ -224,22 +230,26 @@ class ScaffoldTests(unittest.TestCase):
     def test_interruption_rolls_back_all_created_source_and_preserves_state(self):
         with FixtureDirectory() as directory:
             root = Path(directory)
-            (root / '.program-kit').mkdir()
-            (root / '.program-kit/managed.json').write_bytes(b'{"files":{}}')
+            (root / 'config/program-kit').mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').write_bytes(b'{"files":{}}')
             with patch.dict(os.environ, {'PROGRAMKIT_TEST_SYNC_FAIL_AFTER_ACTION': '1'}), self.assertRaises(OSError):
                 reconciliation.apply_plan(root, [
                     {'kind': 'write', 'path': 'First.cs', 'content': b'one', 'expectedHash': None},
                     {'kind': 'write', 'path': 'Second.cs', 'content': b'two', 'expectedHash': None}], b'{"files":{}}')
             self.assertFalse((root / 'First.cs').exists())
             self.assertFalse((root / 'Second.cs').exists())
-            self.assertEqual(b'{"files":{}}', (root / '.program-kit/managed.json').read_bytes())
+            self.assertEqual(b'{"files":{}}', (root / 'config/program-kit/managed.json').read_bytes())
             self.assertFalse(reconciliation.pending_transactions(root))
 
     def test_change_during_commit_preserves_authored_destination_and_rolls_back_earlier_write(self):
         with FixtureDirectory() as directory:
             root = Path(directory)
-            (root / '.program-kit').mkdir()
-            (root / '.program-kit/managed.json').write_bytes(b'{}')
+            (root / 'config/program-kit').mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/managed.json').write_bytes(b'{}')
             original = reconciliation.atomic_write
             def edit(path, data, suffix):
                 original(path, data, suffix)
@@ -266,7 +276,7 @@ class ScaffoldTests(unittest.TestCase):
 
     def test_exclusive_creation_preserves_an_intervening_authored_file(self):
         with FixtureDirectory() as directory:
-            root=Path(directory);(root/'.program-kit').mkdir();(root/'.program-kit/managed.json').write_bytes(b'{}')
+            root=Path(directory);(root/'config/program-kit').mkdir(parents=True, exist_ok=True);(root/'config/program-kit/managed.json').write_bytes(b'{}')
             original=Path.open
             def open_file(path, mode='r', *args, **kwargs):
                 if path.name=='Second.cs' and mode=='xb':

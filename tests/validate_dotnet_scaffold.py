@@ -34,11 +34,11 @@ def snapshot(repository: Path) -> dict[str, bytes]:
 
 
 def assert_profile(repository: Path, expected: str) -> None:
-    state = json.loads((repository / ".program-kit/managed.json").read_text(encoding="utf-8"))
+    state = json.loads((repository / "config/program-kit/managed.json").read_text(encoding="utf-8"))
     assert state["schemaVersion"] == 2
     assert state["selections"]["web"] == expected
     shell = json.loads(
-        (repository / "eng/web-profile.shells.json").read_text(encoding="utf-8")
+        (repository / "config/program-kit/web-profile.shells.json").read_text(encoding="utf-8")
     )["CShells"]["Shells"]["default"]
     features = set(shell["Features"])
     if expected == "none":
@@ -83,21 +83,21 @@ def assert_profile(repository: Path, expected: str) -> None:
         identity_compose = (repository / "deploy/compose.identity.yml").read_text(encoding="utf-8")
         assert "./keycloak/themes:/opt/keycloak/themes:ro" in identity_compose
         identity_image = re.search(r'^\s*image:\s*(quay\.io/keycloak/keycloak:[^\s]+)', identity_compose, re.M).group(1)
-        descriptor = json.loads((repository / 'eng/web-profile.json').read_text())
+        descriptor = json.loads((repository / 'config/program-kit/web-profile.json').read_text())
         identity_version = identity_image.split('@')[0].rsplit(':', 1)[-1]
         assert descriptor['localIdentityProvider'] == 'keycloak-' + identity_version, 'Identity descriptor version drift'
         assert descriptor['localIdentityProviderImage'] == identity_image, 'Identity descriptor digest drift'
     spa_only = (
-        "eng/spa-pkce.json",
-        "eng/spa-pkce.schema.json",
-        "eng/verify_spa_profile.py",
-        "eng/web/spa-session.ts",
-        "eng/web/vite.security.mjs",
+        "config/program-kit/spa-pkce.json",
+        "scripts/spa-pkce.schema.json",
+        "scripts/verify_spa_profile.py",
+        "tools/program-kit/web/spa-session.ts",
+        "tools/program-kit/web/vite.security.mjs",
     )
     for relative in spa_only:
         assert (repository / relative).exists() == (expected == "spa-pkce"), relative
-    assert (repository / "eng/web/bff-session.ts").exists() == (expected == "bff-cookie")
-    assert (repository / "eng/web/tests/bff-session.spec.ts").exists() == (
+    assert (repository / "tools/program-kit/web/bff-session.ts").exists() == (expected == "bff-cookie")
+    assert (repository / "tools/program-kit/web/tests/bff-session.spec.ts").exists() == (
         expected == "bff-cookie"
     )
 
@@ -110,7 +110,7 @@ def seed_legacy_root_web_settings(repository: Path, profile: str) -> None:
     hostsettings = json.loads(hostsettings_path.read_text(encoding="utf-8"))
     hostsettings.setdefault("ProgramKit", {})["Web"] = fixture
     hostsettings_path.write_text(json.dumps(hostsettings, indent=2) + "\n", encoding="utf-8")
-    state_path = repository / ".program-kit/managed.json"
+    state_path = repository / "config/program-kit/managed.json"
     state = json.loads(state_path.read_text(encoding="utf-8"))
     state["programKitVersion"] = "0.9.0"
     state["appliedMigrations"] = [
@@ -183,24 +183,24 @@ def main() -> int:
         assert (target / "hostsettings.json").read_bytes() == legacy_bytes
         assert json.loads((target / "nuplane.settings.json").read_text())["Nuplane"] == legacy_host["Nuplane"]
         assert not (target / "Dockerfile").exists()
-        state = json.loads((target / ".program-kit/managed.json").read_text(encoding="utf-8"))
+        state = json.loads((target / "config/program-kit/managed.json").read_text(encoding="utf-8"))
         assert state["programKitVersion"]
         expected_sdk=json.loads((ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json').read_text())['sdk']['version']
         assert state["dotnetSdk"] == expected_sdk
         assert state["dotnetSdkSource"] == "program-kit-default"
         assert state["schemaVersion"] == 2
         none_shell_profile = json.loads(
-            (target / "eng/web-profile.shells.json").read_text(encoding="utf-8")
+            (target / "config/program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )
         assert none_shell_profile["CShells"]["Shells"]["default"]["Features"] == {}
         shell_spec = importlib.util.spec_from_file_location(
             "program_kit_shell_composition",
-            target / "eng/shell_composition.py",
+            target / "scripts/shell_composition.py",
         )
         assert shell_spec and shell_spec.loader
         shell_composition = importlib.util.module_from_spec(shell_spec)
         shell_spec.loader.exec_module(shell_composition)
-        building_overlay = target / "eng/building-blocks.shells.json"
+        building_overlay = target / "config/program-kit/building-blocks.shells.json"
         building_overlay.write_text(
             json.dumps(
                 {
@@ -223,13 +223,13 @@ def main() -> int:
             }
         finally:
             building_overlay.unlink()
-        assert (target / "eng/ProgramKit.Build.props").is_file()
-        assert not (target / ".program-kit/eng").exists()
+        assert (target / "config/program-kit/build/ProgramKit.Build.props").is_file()
+        assert not (target / "config/program-kit/eng").exists()
         assert (target / "Directory.Build.props").is_file()
-        build_script = (target / "eng/Build.ps1").read_text(encoding="utf-8")
+        build_script = (target / "scripts/Build.ps1").read_text(encoding="utf-8")
         assert "[switch]$LockedMode" in build_script
         assert "Join-Path (Join-Path $artifacts 'packages') $version" in build_script
-        runnable_builder = (target / "eng/release_bundle.py").read_text(encoding="utf-8")
+        runnable_builder = (target / "scripts/release_bundle.py").read_text(encoding="utf-8")
         assert "def is_runtime_package" in runnable_builder
         assert '"analyzer", "dotnettool", "template"' in runnable_builder
         application_ci = (target / ".github/workflows/application-ci.yml").read_text(encoding="utf-8")
@@ -244,7 +244,7 @@ def main() -> int:
         disabled_openapi = subprocess.run(
             [
                 sys.executable,
-                str(target / "eng/openapi_pipeline.py"),
+                str(target / "scripts/openapi_pipeline.py"),
                 "--repository",
                 str(target),
             ],
@@ -261,7 +261,7 @@ def main() -> int:
         assert '<package pattern="Nuplane.*" />' in nuget_text
         assert state["files"]["NuGet.config"]["ownership"] == "scaffold"
 
-        consumer_verifier = target / "eng/verify.ps1"
+        consumer_verifier = target / "scripts/verify.ps1"
         consumer_verifier.parent.mkdir(parents=True, exist_ok=True)
         consumer_verifier.write_text("Write-Host 'consumer aggregate gate'\n", encoding="utf-8")
         verifier_bytes = consumer_verifier.read_bytes()
@@ -270,7 +270,7 @@ def main() -> int:
         assert consumer_verifier.read_bytes() == verifier_bytes
 
         # A managed 0.9.0 schema upgrades atomically with its already-updated descriptor producer.
-        runnable_schema_path = target / "eng/application-bundle.schema.json"
+        runnable_schema_path = target / "scripts/application-bundle.schema.json"
         current_runnable_schema = json.loads(runnable_schema_path.read_text(encoding="utf-8"))
         legacy_runnable_schema = json.loads(json.dumps(current_runnable_schema))
         legacy_configuration = legacy_runnable_schema["properties"]["configuration"]
@@ -281,12 +281,12 @@ def main() -> int:
         legacy_configuration["properties"].pop("webProfileShellsSha256")
         legacy_schema_bytes = (json.dumps(legacy_runnable_schema, indent=2) + "\n").encode("utf-8")
         runnable_schema_path.write_bytes(legacy_schema_bytes)
-        schema_state_path = target / ".program-kit/managed.json"
+        schema_state_path = target / "config/program-kit/managed.json"
         schema_state = json.loads(schema_state_path.read_text(encoding="utf-8"))
         schema_state["programKitVersion"] = "0.9.0"
         legacy_schema_hash = hashlib.sha256(legacy_schema_bytes).hexdigest()
-        schema_state["files"]["eng/application-bundle.schema.json"]["lastWrittenHash"] = legacy_schema_hash
-        schema_state["files"]["eng/application-bundle.schema.json"]["installedHash"] = legacy_schema_hash
+        schema_state["files"]["scripts/application-bundle.schema.json"]["lastWrittenHash"] = legacy_schema_hash
+        schema_state["files"]["scripts/application-bundle.schema.json"]["installedHash"] = legacy_schema_hash
         schema_state_path.write_text(json.dumps(schema_state, indent=2) + "\n", encoding="utf-8")
         schema_upgraded = run("--target", str(target), *approvals)
         assert schema_upgraded.returncode == 0, schema_upgraded.stderr
@@ -299,7 +299,7 @@ def main() -> int:
             '<package pattern="Microsoft.*" />\n      <package pattern="System.*" />',
         ).encode("utf-8")
         nuget_config.write_bytes(legacy_nuget)
-        state_path = target / ".program-kit/managed.json"
+        state_path = target / "config/program-kit/managed.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))
         state["files"]["NuGet.config"] = {
             "ownership": "managed",
@@ -339,10 +339,10 @@ def main() -> int:
         )
 
         obsolete_content = b"managed by the previous Program Kit\n"
-        state_path = target / ".program-kit/managed.json"
+        state_path = target / "config/program-kit/managed.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))
         for relative in (
-            ".program-kit/runnable-host.schema.json",
+            "config/program-kit/runnable-host.schema.json",
             "eng/runnable_host.py",
             "eng/program-kit/create_application_bundle.py",
             "Dockerfile",
@@ -359,8 +359,8 @@ def main() -> int:
         state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
         upgraded = run("--target", str(target), *approvals)
         assert upgraded.returncode == 0, upgraded.stderr
-        assert not (target / ".program-kit/runnable-host.schema.json").exists()
-        assert (target / "eng/application-bundle.schema.json").is_file()
+        assert not (target / "config/program-kit/runnable-host.schema.json").exists()
+        assert (target / "scripts/application-bundle.schema.json").is_file()
         assert not (target / "eng/program-kit/create_application_bundle.py").exists()
         assert not (target / "Dockerfile").exists()
         assert not (target / ".dockerignore").exists()
@@ -368,7 +368,7 @@ def main() -> int:
         clean = run("--target", str(target), "--profile-selected", "--check")
         assert clean.returncode == 0, clean.stderr
 
-        managed = target / "eng/ProgramKit.Build.props"
+        managed = target / "config/program-kit/build/ProgramKit.Build.props"
         managed.write_text(managed.read_text(encoding="utf-8") + "<!-- consumer edit -->\n", encoding="utf-8")
         conflicted = run("--target", str(target), *approvals)
         assert conflicted.returncode == 2, conflicted.stderr
@@ -380,7 +380,7 @@ def main() -> int:
         old_path = obsolete_conflict / "eng/program-kit/create_application_bundle.py"
         old_path.parent.mkdir(parents=True, exist_ok=True)
         old_path.write_text("consumer-owned historical tool\n", encoding="utf-8")
-        conflict_state_path = obsolete_conflict / ".program-kit/managed.json"
+        conflict_state_path = obsolete_conflict / "config/program-kit/managed.json"
         conflict_state = json.loads(conflict_state_path.read_text(encoding="utf-8"))
         conflict_state["files"]["eng/program-kit/create_application_bundle.py"] = {
             "ownership": "managed",
@@ -399,7 +399,7 @@ def main() -> int:
             "--target", str(legacy_layout), *approvals, "--web-profile", "bff-cookie"
         )
         assert legacy_installed.returncode == 0, legacy_installed.stderr
-        legacy_state_path = legacy_layout / ".program-kit/managed.json"
+        legacy_state_path = legacy_layout / "config/program-kit/managed.json"
         legacy_state = json.loads(legacy_state_path.read_text(encoding="utf-8"))
         rekeyed_files: dict[str, dict] = {}
         for relative, record in legacy_state["files"].items():
@@ -414,7 +414,7 @@ def main() -> int:
                 rekeyed_files[relative] = record
         legacy_state["files"] = rekeyed_files
         legacy_state_path.write_text(json.dumps(legacy_state, indent=2) + "\n", encoding="utf-8")
-        new_managed_root = legacy_layout / "eng"
+        new_managed_root = legacy_layout / "scripts"
         for directory in sorted(
             (path for path in new_managed_root.rglob("*") if path.is_dir()),
             key=lambda path: len(path.parts),
@@ -435,8 +435,8 @@ def main() -> int:
             "--target", str(legacy_layout), *approvals, "--web-profile", "bff-cookie"
         )
         assert migrated_layout.returncode == 0, migrated_layout.stderr
-        assert (legacy_layout / "eng/ProgramKit.Build.props").is_file()
-        assert (legacy_layout / "eng/web/bff-session.ts").is_file()
+        assert (legacy_layout / "config/program-kit/build/ProgramKit.Build.props").is_file()
+        assert (legacy_layout / "tools/program-kit/web/bff-session.ts").is_file()
         assert not (legacy_layout / "eng/program-kit").exists()
         assert consumer_tool.read_text(encoding="utf-8") == "# consumer owned\n"
         legacy_clean = run(
@@ -450,7 +450,7 @@ def main() -> int:
         design.write_text("# Design\n\nA React browser UI calls authenticated HTTP features.\n", encoding="utf-8")
         browser_installed = run("--target", str(browser_target), *approvals)
         assert browser_installed.returncode == 0, browser_installed.stderr
-        browser_state = json.loads((browser_target / ".program-kit/managed.json").read_text(encoding="utf-8"))
+        browser_state = json.loads((browser_target / "config/program-kit/managed.json").read_text(encoding="utf-8"))
         assert browser_state["webProfile"] == "bff-cookie"
         assert browser_state["webProfileContract"] == "bff-cookie-v1"
         assert browser_state["webThreatModel"] == "program-kit-web-threat-model-v1"
@@ -458,7 +458,7 @@ def main() -> int:
         bff_settings = json.loads((browser_target / "hostsettings.json").read_text(encoding="utf-8"))
         assert "Web" not in bff_settings["Foundation"]
         bff_shell = json.loads(
-            (browser_target / "eng/web-profile.shells.json").read_text(encoding="utf-8")
+            (browser_target / "config/program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )["CShells"]["Shells"]["default"]
         assert "Orbyss.Foundation.Authentication.BffCookie" in bff_shell["Features"]
         assert "Orbyss.Foundation.Authentication.SpaPkce" not in bff_shell["Features"]
@@ -479,11 +479,11 @@ def main() -> int:
         assert bff_client["attributes"]["post.logout.redirect.uris"] == (
             "http://localhost:5000/signout-callback-oidc"
         )
-        assert (browser_target / "eng/compose_topology.py").is_file()
-        assert (browser_target / "eng/web/bff-session.ts").is_file()
-        assert (browser_target / "eng/web/tests/bff-session.spec.ts").is_file()
+        assert (browser_target / "scripts/compose_topology.py").is_file()
+        assert (browser_target / "tools/program-kit/web/bff-session.ts").is_file()
+        assert (browser_target / "tools/program-kit/web/tests/bff-session.spec.ts").is_file()
         bff_contract = json.loads(
-            (browser_target / "eng/web/web-contract.json").read_text(encoding="utf-8")
+            (browser_target / "tools/program-kit/web/web-contract.json").read_text(encoding="utf-8")
         )
         authenticated_body = bff_contract["routes"]["user"]["success"]["authenticatedBody"]
         assert authenticated_body["issuer"] == "non-empty-validated-uri-string"
@@ -498,8 +498,8 @@ def main() -> int:
         assert "CShells__Shells__default__Configuration__Foundation__Web__BackchannelAuthority" in bff_compose
         assert "program-kit-identity:8080/realms/program-kit" in bff_compose
         assert "extra_hosts" not in bff_compose and "localhost:host-gateway" not in bff_compose
-        assert (browser_target / "eng/web/package-lock.json").is_file()
-        assert (browser_target / "eng/security/web-security-evidence.json").is_file()
+        assert (browser_target / "tools/program-kit/web/package-lock.json").is_file()
+        assert (browser_target / "artifacts/security/web-security-evidence.json").is_file()
         assert (browser_target / "docs/architecture/program-kit/web-security-threat-model.md").is_file()
 
         # Valid consumer extension-point edits do not become Program Kit state drift.
@@ -513,7 +513,7 @@ def main() -> int:
         consumer_hostsettings_path.write_text(
             json.dumps(consumer_hostsettings, indent=2) + "\n", encoding="utf-8"
         )
-        openapi_registry_path = browser_target / "eng/openapi-contracts.json"
+        openapi_registry_path = browser_target / "config/program-kit/openapi-contracts.json"
         openapi_registry = json.loads(openapi_registry_path.read_text(encoding="utf-8"))
         openapi_registry["contracts"] = [
             {
@@ -540,7 +540,7 @@ def main() -> int:
         assert "updated: 0" in consumer_extension_check.stdout
         assert "conflicts: 0" in consumer_extension_check.stdout
         assert "state changed: no" in consumer_extension_check.stdout
-        permission_spec_relative = "eng/web/tests/authentication.spec.ts"
+        permission_spec_relative = "tools/program-kit/web/tests/authentication.spec.ts"
         permission_spec = browser_target / permission_spec_relative
         current_permission_contract = permission_spec.read_bytes()
         assert b"expect(authorizedResponse.ok()).toBeTruthy();" in current_permission_contract
@@ -555,7 +555,7 @@ def main() -> int:
         )
         assert legacy_permission_contract != current_permission_contract
         permission_spec.write_bytes(legacy_permission_contract)
-        browser_state_path = browser_target / ".program-kit/managed.json"
+        browser_state_path = browser_target / "config/program-kit/managed.json"
         browser_state = json.loads(browser_state_path.read_text(encoding="utf-8"))
         legacy_hash = hashlib.sha256(legacy_permission_contract).hexdigest()
         browser_state["schemaVersion"] = 1
@@ -580,27 +580,27 @@ def main() -> int:
         alternative_installed = run("--target", str(mentioned_alternative), *approvals)
         assert alternative_installed.returncode == 0, alternative_installed.stderr
         alternative_state = json.loads(
-            (mentioned_alternative / ".program-kit/managed.json").read_text(encoding="utf-8")
+            (mentioned_alternative / "config/program-kit/managed.json").read_text(encoding="utf-8")
         )
         assert alternative_state["webProfile"] == "bff-cookie"
 
         spa_target = target / "explicit-spa-consumer"
         spa_installed = run("--target", str(spa_target), *approvals, "--web-profile", "spa-pkce")
         assert spa_installed.returncode == 0, spa_installed.stderr
-        spa_state = json.loads((spa_target / ".program-kit/managed.json").read_text(encoding="utf-8"))
+        spa_state = json.loads((spa_target / "config/program-kit/managed.json").read_text(encoding="utf-8"))
         assert spa_state["webProfile"] == "spa-pkce"
         assert spa_state["webThreatModel"] == "program-kit-web-threat-model-v1"
         assert spa_state["webSecurityEvidence"] == "program-kit-web-security-evidence-v1"
         spa_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
         assert "Web" not in spa_settings["Foundation"]
         spa_shell = json.loads(
-            (spa_target / "eng/web-profile.shells.json").read_text(encoding="utf-8")
+            (spa_target / "config/program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )["CShells"]["Shells"]["default"]
         assert "Orbyss.Foundation.Authentication.SpaPkce" in spa_shell["Features"]
         assert "Orbyss.Foundation.Authentication.BffCookie" not in spa_shell["Features"]
-        spa_configuration_path = spa_target / "eng/spa-pkce.json"
+        spa_configuration_path = spa_target / "config/program-kit/spa-pkce.json"
         spa_configuration = json.loads(spa_configuration_path.read_text(encoding="utf-8"))
-        assert spa_state["files"]["eng/spa-pkce.json"]["ownership"] == "configuration"
+        assert spa_state["files"]["config/program-kit/spa-pkce.json"]["ownership"] == "configuration"
         realm = json.loads((spa_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8"))
         assert not any(client["clientId"] == "program-kit-bff" for client in realm["clients"])
         spa_client = next(client for client in realm["clients"] if client["clientId"] == "program-kit-spa")
@@ -620,10 +620,10 @@ def main() -> int:
         assert "CShells__Shells__default__Configuration__Foundation__Web__BackchannelAuthority" in compose
         assert "program-kit-identity:8080/realms/program-kit" in compose
         assert "extra_hosts" not in compose and "localhost:host-gateway" not in compose
-        playwright = (spa_target / "eng/web/playwright.config.ts").read_text(encoding="utf-8")
+        playwright = (spa_target / "tools/program-kit/web/playwright.config.ts").read_text(encoding="utf-8")
         assert "trace: 'off'" in playwright and "screenshot: 'off'" in playwright and "video: 'off'" in playwright
         verifier = subprocess.run(
-            [sys.executable, str(spa_target / "eng/verify_spa_profile.py"),
+            [sys.executable, str(spa_target / "scripts/verify_spa_profile.py"),
              "--repository", str(spa_target)],
             capture_output=True,
             text=True,
@@ -655,7 +655,7 @@ def main() -> int:
         assert "postLogoutRedirectUris" not in customized_client
         assert customized_realm["ssoSessionIdleTimeout"] == 1200
         customized_shell = json.loads(
-            (spa_target / "eng/web-profile.shells.json").read_text(encoding="utf-8")
+            (spa_target / "config/program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )
         assert (
             customized_shell["CShells"]["Shells"]["default"]["Configuration"]["Foundation"]["Web"]
@@ -671,7 +671,7 @@ def main() -> int:
         invalid_spa.mkdir()
         invalid_configuration = dict(spa_configuration)
         invalid_configuration["redirectUris"] = ["http://localhost:4173/*"]
-        invalid_configuration_path = invalid_spa / "eng/spa-pkce.json"
+        invalid_configuration_path = invalid_spa / "config/program-kit/spa-pkce.json"
         invalid_configuration_path.parent.mkdir()
         invalid_configuration_path.write_text(
             json.dumps(invalid_configuration, indent=2) + "\n", encoding="utf-8"
@@ -710,7 +710,7 @@ def main() -> int:
         )
         assert overridden_global["sdk"]["version"] == "9.0.100"
         override_state = json.loads(
-            (override_target / ".program-kit/managed.json").read_text(encoding="utf-8")
+            (override_target / "config/program-kit/managed.json").read_text(encoding="utf-8")
         )
         assert override_state["dotnetSdk"] == "9.0.100"
         assert override_state["dotnetSdkSource"] == "override"
@@ -834,7 +834,7 @@ def main() -> int:
                 destination = repository / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 destination.write_bytes(payload)
-            managed_path = repository / ".program-kit/managed.json"
+            managed_path = repository / "config/program-kit/managed.json"
             managed = json.loads(managed_path.read_text(encoding="utf-8"))
             managed["programKitVersion"] = "0.8.11"
             managed["appliedMigrations"] = [
@@ -862,7 +862,7 @@ def main() -> int:
         )
         assert modified_installed.returncode == 0, modified_installed.stderr
         seed_lost_spa_residue(modified_residue)
-        modified_path = modified_residue / ".program-kit/spa-pkce.json"
+        modified_path = modified_residue / "config/program-kit/spa-pkce.json"
         modified_path.write_text(modified_path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
         before_migration_conflict = snapshot(modified_residue)
         blocked_migration = run(
@@ -877,7 +877,7 @@ def main() -> int:
             "--target", str(conflict_transition), *approvals, "--web-profile", "spa-pkce"
         )
         assert installed_spa.returncode == 0, installed_spa.stderr
-        spa_input = conflict_transition / "eng/spa-pkce.json"
+        spa_input = conflict_transition / "config/program-kit/spa-pkce.json"
         spa_input.write_text(spa_input.read_text(encoding="utf-8") + "\n", encoding="utf-8")
         before_conflict = snapshot(conflict_transition)
         blocked_transition = run(

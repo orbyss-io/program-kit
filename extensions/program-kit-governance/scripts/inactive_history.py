@@ -12,9 +12,9 @@ import re
 import xml.etree.ElementTree as ET
 
 SELECTION = 'docs/architecture/building-block-selection.json'
-LOCK = 'eng/building-blocks.lock.json'
-COMPOSITION = 'eng/foundation-composition.json'
-PROFILE = '.program-kit/dependency-profile.json'
+LOCK = 'config/program-kit/building-blocks.lock.json'
+COMPOSITION = 'config/program-kit/foundation-composition.json'
+PROFILE = 'config/program-kit/dependency-profile.json'
 
 
 def require(condition, message):

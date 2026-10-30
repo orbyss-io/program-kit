@@ -16,7 +16,7 @@ Supported intervals differ from shell budgets; schemas do not replace runtime ad
 Preserve binding/status/schema identities and the recipe's integration limits.
 
 The profile contract version is recorded in `docs/architecture/bootstrap-decisions.json` and
-`eng/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
+`config/program-kit/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
 behavior change requires a new profile version.
 <!-- /program-kit:knowledge-rule -->
 
@@ -81,7 +81,7 @@ Configuration binds to the selected shell's `Foundation:Web` section and is vali
 shell activates. Secret values come from the environment or a secret provider and never from
 committed settings. For the scaffolded `default` shell, the BFF client-secret environment key is
 `CShells__Shells__default__Configuration__Foundation__Web__ClientSecret`. For `spa-pkce-v1`, the
-scaffold-owned `eng/spa-pkce.json` is the typed security input; synchronization validates it
+scaffold-owned `config/program-kit/spa-pkce.json` is the typed security input; synchronization validates it
 and derives the managed shell overlay, Keycloak registration, and browser contract. Consumers
 change that input and resynchronize rather than editing a derived managed file.
 <!-- /program-kit:knowledge-rule -->
@@ -292,7 +292,7 @@ Synchronization composes it with the one client contribution owned by the select
 validates the exact client set before and after the transaction. Profile-neutral documentation and
 validation describe BFF and SPA-PKCE as alternatives; they never prescribe their union. Fixture
 credentials are local-test data and are never reused in deployed environments. SPA redirect and
-post-logout registrations are exact routes derived from `eng/spa-pkce.json`; wildcard
+post-logout registrations are exact routes derived from `config/program-kit/spa-pkce.json`; wildcard
 registrations are rejected before Compose starts.
 <!-- /program-kit:knowledge-rule -->
 
@@ -348,7 +348,7 @@ registrations are rejected before Compose starts.
   are part of the selected profile configuration.
 - Keycloak authoritatively enforces the configured idle and maximum SSO/client-session lifetimes;
   the API authoritatively enforces token `exp`; and the consumer SPA imports the managed
-  `eng/web/spa-session.ts` adapter to enforce local idle expiry and the non-extendable
+  `tools/program-kit/web/spa-session.ts` adapter to enforce local idle expiry and the non-extendable
   `auth_time + absoluteMinutes` deadline. A missing trusted `auth_time` is an authentication failure,
   not a reason to start a new absolute window. Silent renewal retains the original `auth_time` and
   cannot move that deadline.
@@ -356,7 +356,7 @@ registrations are rejected before Compose starts.
   session identifier between tabs. Receipt clears local authentication in the other tab. Logout
   clears local state and broadcasts first, then attempts provider logout; provider failure leaves
   every local tab signed out and produces the documented unavailable outcome.
-- `eng/web/vite.security.mjs` owns browser-response headers for local Vite development
+- `tools/program-kit/web/vite.security.mjs` owns browser-response headers for local Vite development
   and preview. Consumer-owned `vite.config` imports `programKitSpaSecurity` with exact API and
   identity origins. A production static server or edge must translate the checked
   `spa-security.json` contract; the production TLS terminator separately owns HTTPS and HSTS, so
@@ -374,7 +374,7 @@ registrations are rejected before Compose starts.
 
 ## Local preflight ownership
 
-`eng/preflight.py` runs before any host or Compose command. It checks the Docker CLI,
+`scripts/preflight.py` runs before any host or Compose command. It checks the Docker CLI,
 then calls the daemon directly with a bounded five-second Program Kit development default. The
 timeout is configurable through `PROGRAMKIT_PREFLIGHT_TIMEOUT_SECONDS`; it is a tooling hang budget,
 not a product SLO. `PKP001` through `PKP004` stop on the first invalid setting, missing CLI, timeout,
@@ -421,15 +421,15 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 
 | Artifact | Ownership and supported change path |
 | --- | --- |
-| `eng/foundation-composition.json` | Sole active resource/binding/environment input, linked to Accepted architecture. Synchronize it, explicitly prepare prerequisites, then use `eng/composition_run.py`. The initial native adapter qualifies BFF; other profiles require their declared adapter qualification. |
-| `eng/spa-pkce.json` | Retained legacy import/source-qualification input. It does not authorize a second consumer startup composition. Preserve its assigned values during explicit migration. |
+| `config/program-kit/foundation-composition.json` | Sole active resource/binding/environment input, linked to Accepted architecture. Synchronize it, explicitly prepare prerequisites, then use `scripts/composition_run.py`. The initial native adapter qualifies BFF; other profiles require their declared adapter qualification. |
+| `config/program-kit/spa-pkce.json` | Retained legacy import/source-qualification input. It does not authorize a second consumer startup composition. Preserve its assigned values during explicit migration. |
 | `hostsettings.json` | Consumer-owned host infrastructure only, including eager activation. Bundle staging projects the separately owned `nuplane.settings.json` runtime feed/loading settings into this file for the published host. It contains no auth profile configuration. |
 | `deploy/keycloak/<authority>/<realm>-realm.json` | Managed full import generated from one authority and its declared client/resource bindings. Never edit generated registrations. Preserve identity data during subsequent reconciliation. |
 | `artifacts/composition/compose.json` | Generated backend output of the typed model. It is never a consumer authoring input. |
-| `eng/composition_run.py`, `Prepare-Web.ps1` and `Test-Web.ps1` | Managed composition run/update/stop, explicit locked test-dependency/browser preparation, then verification without acquisition. `Dev.ps1` is retired. |
-| `eng/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
+| `scripts/composition_run.py`, `Prepare-Web.ps1` and `Test-Web.ps1` | Managed composition run/update/stop, explicit locked test-dependency/browser preparation, then verification without acquisition. `Dev.ps1` is retired. |
+| `tools/program-kit/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
 | Consumer `vite.config` | Consumer-owned adapter point importing `programKitSpaSecurity` and the SPA session adapter. |
-| `eng/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |
+| `config/program-kit/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |
 | Model-selected `shells.json` | Consumer-owned product policy overlay. Canonical identity, selected features and public/private route bindings remain controlled by the typed model and Accepted selection; conflicting overrides are rejected. |
 
 ## CShells feature composition
@@ -484,7 +484,7 @@ the existing writer and independent cookie-session observation. Register it thro
 real HTTP feature and map its public session page separately; qualify against the selected publisher.
 Preserve final private/no-store/no-index/security policies; no route shadowing or private bootstrap
 for anonymous recovery. Inspect actual session state independently of a callback-error URL.
-For a custom writer, serve `eng/web/authentication-recovery-focus.ts` as a public shell-local
+For a custom writer, serve `tools/program-kit/web/authentication-recovery-focus.ts` as a public shell-local
 module under the selected CSP and pass its served path to the example. It defers heading focus
 until document activation/visibility and respects a chosen control. Dispose its previous
 `focusAuthenticationRecovery` selection before replacing content. Preserve scriptless keyboard

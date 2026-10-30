@@ -142,7 +142,7 @@ writer interface and machine acknowledgement contract when selecting this additi
 
 Recovery focus belongs to the presentation owner. A provider popup can leave the new recovery page
 in the background, where a one-shot `autofocus` or `heading.focus()` may not select its heading.
-Bundle the maintained `eng/web/authentication-recovery-focus.ts` through the owner's public frontend
+Bundle the maintained `tools/program-kit/web/authentication-recovery-focus.ts` through the owner's public frontend
 build and actually serve its external module asset. Supply that shell-relative path to the
 application presentation example; its script URL preserves the captured native shell prefix.
 The module selects the marked recovery heading when the document becomes visible and active,
