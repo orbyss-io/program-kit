@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "default": "p-0885ad8815dc",
+  "default": "p-3bec4dafa1f3",
   "profiles": {
     "foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1": {
       "path": "public-v0.12.5.json",
@@ -1150,6 +1150,85 @@
       "knowledge": {
         "path": "candidates/p-0885ad8815dc/knowledge/index.json",
         "sha256": "2c959296e94aba3e0e4b2eec6837b4d2d3670fe790a48bf8a5615c696d994f57"
+      },
+      "allowedActivations": [
+        "FoundationTasks",
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Management",
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Forms.Storage.FileSystem",
+        "Orbyss.Forms.Storage.InMemory",
+        "Orbyss.Forms.Submissions",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.DownstreamApi",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "Orbyss.Foundation.DomainEvents",
+        "Orbyss.Foundation.Execution",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Access",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Applications",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.AuthenticationFlows",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Enrollment",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.IdentityProviders",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Organizations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.RealmOperations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Scopes",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Sessions",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Users",
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Foundation.Web.Discovery",
+        "Orbyss.Foundation.Web.DynamicPages",
+        "Orbyss.Foundation.Web.HostedPages",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.Presentation",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Management.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime"
+      ]
+    },
+    "p-3bec4dafa1f3": {
+      "path": "candidates/p-3bec4dafa1f3/profile.json",
+      "sha256": "db6389f5a40f1062c4212d7ce8dc2d80bcd54e10958b149b06978cee7f00e81b",
+      "status": "qualified",
+      "evidence": {
+        "path": "candidates/p-3bec4dafa1f3/qualification.json",
+        "sha256": "a2a59eac71d112e838766ffcbe7a4a8bcbfcaf34e805bdc3a6876d695e1b81f6"
+      },
+      "catalogSnapshot": {
+        "path": "catalogs/candidate-1bb9dbf0/target-c6655805b5919d0db75cb2945bc3157e5584d95554707c3eb1283d50bbfb76e6.json",
+        "sha256": "c6655805b5919d0db75cb2945bc3157e5584d95554707c3eb1283d50bbfb76e6",
+        "base": {
+          "path": "catalogs/candidate-1bb9dbf0/base-8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae.json",
+          "sha256": "8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae"
+        }
+      },
+      "qualificationRecipe": {
+        "path": "candidates/p-3bec4dafa1f3/recipe-c504259c.json",
+        "sha256": "023808c9a6c8d4c665fbe90bfaa18a951a14d062e0e35b451d003cfb75a68ae9"
+      },
+      "recipeSha256": "808f9aad7e05a3f08cda3e0964d1f22e02a0e86c878c99c303644d929916572f",
+      "nativeLockSha256": "9502fc5c01500dccf4d5c02306025a60e10d70abba1eb92977d7db95cb41a51a",
+      "knowledge": {
+        "path": "candidates/p-3bec4dafa1f3/knowledge/index.json",
+        "sha256": "3ae215c0504406bf0db3e98e1e974037c9645ba984c2bdd140b2d4e786fbac2c"
       },
       "allowedActivations": [
         "FoundationTasks",
