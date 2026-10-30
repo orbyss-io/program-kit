@@ -1,6 +1,11 @@
 name: Update dependencies
 on:
   workflow_dispatch:
+    inputs:
+      profile_only:
+        description: Qualify public package profiles while retaining active tooling pins and tooling locks.
+        type: boolean
+        default: false
   schedule:
     - cron: '0 6 * * 1'
 permissions:
@@ -27,6 +32,7 @@ jobs:
         run: |
           python -c "import os; missing=[name for name in ('APP_CLIENT_ID','APP_PRIVATE_KEY') if not os.environ.get(name)]; assert not missing, 'Configure DEPENDENCY_UPDATES_APP_CLIENT_ID and DEPENDENCY_UPDATES_APP_PRIVATE_KEY for the repository-scoped maintenance App; see docs/maintenance/dependency-review.md. The built-in GITHUB_TOKEN cannot push workflow updates.'"
       - name: Upgrade active external pins
+        if: ${{ !inputs.profile_only }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/dependency_maintenance.py upgrade
@@ -39,7 +45,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version-file: extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc
-      - name: Select upgraded npm and Spec Kit
+      - name: Select declared npm and Spec Kit
         run: |
           npm install --global "npm@$(cat extensions/program-kit-dotnet/templates/dotnet/files/.npm-version)" --ignore-scripts --no-audit --no-fund
           python -c "import re, subprocess, sys; from pathlib import Path; pins=set(re.findall(r'specify-cli==([0-9.]+)', Path('.github/workflows/qualify-candidate.yml').read_text())); assert len(pins)==1, 'CI must select one exact Spec Kit pin'; subprocess.run([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', 'specify-cli=='+pins.pop()], check=True)"
@@ -58,10 +64,16 @@ jobs:
           --check validate_openapi_export_client
           --check validate_typed_operation_contract
           --reason "Selected public profile JSON schemas and emitted operation/client integration"
-      - name: Refresh locks and validate affected capabilities
+      - name: Validate affected capabilities and refresh tooling locks only for full maintenance
         env:
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
-        run: python scripts/update_dependencies.py --refresh-locks
+          PROFILE_ONLY: ${{ inputs.profile_only }}
+        run: |
+          if [ "$PROFILE_ONLY" = "true" ]; then
+            python scripts/update_dependencies.py
+          else
+            python scripts/update_dependencies.py --refresh-locks
+          fi
       - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567
         with:
           version: v0.76.1
@@ -91,7 +103,7 @@ jobs:
           git add -A
           git commit -m "Update dependencies, qualified profile and versioned publisher knowledge"
           git push origin "$branch"
-          gh pr create --base main --head "$branch" --title "Update dependencies and default profile" --body "Upgraded active tooling and packages, refreshed native locks, qualified and promoted the public profile and its publisher knowledge, validated affected capabilities and scanned both Host platforms. Evidence is attached to this workflow run. The dedicated App triggers normal PR package CI; review its result before merging. This PR grants no release publication authority."
+          gh pr create --base main --head "$branch" --title "Update dependencies and default profile" --body "Qualified and promoted the public profile and its publisher knowledge, validated affected capabilities and scanned both Host platforms. Full maintenance also upgrades active tooling and refreshes tooling locks; profile-only dispatch retains them. Evidence is attached to this workflow run. The dedicated App triggers normal PR package CI; review its result before merging. This PR grants no release publication authority."
       - name: Preserve update evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

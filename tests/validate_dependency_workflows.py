@@ -198,12 +198,12 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("conclusion == 'success'", workflow['jobs']['update']['if'])
         self.assertEqual('main', workflow['jobs']['update']['steps'][0]['with']['ref'])
 
-    def test_update_installs_the_upgraded_ci_pin_and_rejects_ambiguous_pins(self):
+    def test_update_installs_the_declared_ci_pin_and_rejects_ambiguous_pins(self):
         import subprocess
         import yaml
         workflow = yaml.safe_load((ROOT / '.github/workflows/update-dependencies.yml').read_text())
         step = next(step for step in workflow['jobs']['update']['steps']
-                    if step.get('name') == 'Select upgraded npm and Spec Kit')
+                    if step.get('name') == 'Select declared npm and Spec Kit')
         command = shlex.split(step['run'].splitlines()[-1])
         self.assertEqual(['python', '-c'], command[:2])
         with patch.object(Path, 'read_text', return_value='specify-cli==1.1.2\nspecify-cli==1.1.2'), \
@@ -303,6 +303,18 @@ class WorkflowTests(unittest.TestCase):
         qualification = next(i for i, step in enumerate(steps) if 'update_dependency_profiles.py update' in step.get('run', ''))
         contracts = next(i for i, step in enumerate(steps) if '--check validate_typed_operation_contract' in step.get('run', ''))
         validation = next(i for i, step in enumerate(steps) if 'update_dependencies.py --refresh-locks' in step.get('run', ''))
+        # Optional profile scope cannot weaken qualification/security or change scheduled defaults.
+        trigger = update.get('on', update.get(True))
+        profile_scope = trigger['workflow_dispatch']['inputs']['profile_only']
+        self.assertEqual('boolean', profile_scope['type'])
+        self.assertIs(False, profile_scope['default'])
+        upgrade = next(step for step in steps if step.get('run') == 'python scripts/dependency_maintenance.py upgrade')
+        self.assertEqual('${{ !inputs.profile_only }}', upgrade['if'])
+        self.assertEqual('${{ inputs.profile_only }}', steps[validation]['env']['PROFILE_ONLY'])
+        self.assertIn('python scripts/update_dependencies.py\n', steps[validation]['run'])
+        scan = next(i for i, step in enumerate(steps) if 'dependency_maintenance.py scan' in step.get('run', ''))
+        for index in (setup, qualification, contracts, validation, scan):
+            self.assertNotIn('if', steps[index], 'Profile scope must retain qualification and security')
         self.assertLess(upgraded_python, setup)
         self.assertLess(setup, qualification)
         self.assertLess(qualification, validation)
