@@ -18,6 +18,13 @@ The **Update dependencies** workflow runs manually or weekly. It discovers publi
 versions, upgrades active pins, refreshes native locks, qualifies the new dependency
 profile and promotes its exact captured contracts/knowledge together. Existing
 consumer locks and supported historical profile identities remain available.
+A manual dispatch may select `profile_only=true` to adopt public package profiles while retaining
+active tooling pins and tooling locks. This uses the same profile qualifier, public producer/client
+checks, affected validation, both Host scans and native PR package CI. It does not dispose of failed
+full-maintenance evidence or claim qualification of unrelated tooling upgrades. Scheduled and default
+manual runs retain full maintenance. This scope avoids coupling a publisher adoption to device/tooling
+changes; native candidate locks still belong to profile qualification.
+
 New external inputs belong in `maintenance-policy.json`. Foundation publishes
 independently; Program Kit consumes public releases and never republishes an already
 public Foundation artifact.

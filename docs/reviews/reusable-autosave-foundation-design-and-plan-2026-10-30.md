@@ -1,15 +1,16 @@
 # Reusable autosave Foundation design and implementation plan
 
-Date: 30 October 2026. Status: design accepted; F1 implemented and awaiting the first human review.
-Scope: Foundation browser autosave, Program Kit guidance and dezaaglijst adoption.
+Date: 30 October 2026. Status: F1 reviewed, both gaps fixed; Foundation 0.3.12 publicly released.
+Program Kit qualified-default adoption: `p-3bec4dafa1f3` through [PR 66](https://github.com/orbyss-io/program-kit/pull/66).
+Scope: Foundation browser autosave and Program Kit adoption. dezaaglijst remains a deferred proposal.
 The [investigation](browser-recovery-and-autosave-investigation-2026-10-30.md) supplies the consumer comparison.
 
-The requester authorized the controller and two test adapters, with a pause at the first review.
-The [F1 review](../../artifacts/foundation-autosave/docs/autosave-controller-review.md) links actual source
-and focused results. The overall work remains unfinished until new Foundation packages are publicly
-published and Program Kit adopts those exact packages in a qualified dependency profile. dezaaglijst
-adoption below is a future proposal only: the requester will discuss that update after the public
-package/profile milestone. No consumer update is authorized by this implementation step.
+The requester reviewed the controller and two recording adapters, then authorized both repairs,
+public Foundation publication and Program Kit profile adoption. The [F1 review](https://github.com/orbyss-io/dotnet-foundation/blob/v0.3.12/docs/autosave-controller-review.md)
+retains the original observations. [Foundation 0.3.12](https://github.com/orbyss-io/dotnet-foundation/releases/tag/v0.3.12)
+is public, including all 31 runtime NuGets, both Host platforms and release knowledge. Program Kit's
+normal qualified-profile owner supplies the new default; native PR package CI governs its merge.
+dezaaglijst adoption below is a future proposal only. No consumer update is authorized here.
 
 Deliver an optional `autosave.mjs` module in `Orbyss.Foundation.Web.Presentation`, with checked
 TypeScript declarations. It coordinates local edit generations, manual saves, periodic saves and
@@ -455,6 +456,28 @@ syntax 2 seconds. Existing prepared Spec Kit Python supplies the phase checks; n
 installed. Other selected knowledge, scaffold, profile and recovery checks passed. These are local
 execution claims; native package CI and public-profile qualification remain required.
 
-The next actions are Foundation PR CI/merge and public 0.3.12 publication, followed by normal Program
-Kit profile qualification/promotion and package CI. dezaaglijst source, installed toolkit and selected
-dependencies remain untouched. D1/D2 require a later requester discussion.
+## Public release and qualified adoption
+
+[Foundation Release 41041390021](https://github.com/orbyss-io/dotnet-foundation/actions/runs/41041390021)
+succeeded at `dadf5fbe57ca903b16c2fe80f418b6da827a2bdd`; exact-main Windows/Linux CI also passed.
+Actual public autosave module/declaration bytes match their tagged Git blobs exactly. Windows
+checkout line endings are not the comparison authority.
+
+[Program Kit maintenance 41044292564](https://github.com/orbyss-io/program-kit/actions/runs/41044292564)
+qualified and promoted `p-3bec4dafa1f3` for Foundation 0.3.12. Native, browser, public Host,
+producer/client, affected validation and both Host scans passed. [Support PR 65](https://github.com/orbyss-io/program-kit/pull/65)
+is merged; [adoption PR 66](https://github.com/orbyss-io/program-kit/pull/66) carries the qualified default
+and native package/installation CI. Its profile preflight confirms the exact public autosave capture.
+All 17 earlier profile registrations remain intact. Only 31 Foundation runtime NuGet pins and Host
+advance to 0.3.12; independent tools, Forms, Localization and tooling pins remain selected as before.
+
+The existing maintenance workflow offers explicit profile-only dispatch, retaining tooling pins
+and tooling locks while keeping all profile, producer/client, affected and security gates. Default
+and scheduled full maintenance remain unchanged. Failed full-maintenance run 40849036855 remains
+preserved; its unrelated Node/Spec Kit/type upgrades are not claimed qualified by this adoption.
+The workflow's final affected checks passed in 56 seconds after its renamed-step fixture was updated
+and its declared project-local schema dependencies were prepared.
+
+dezaaglijst source, installed toolkit and selected dependencies remain untouched. D1/D2 require a
+later requester discussion. This records Foundation publication and Program Kit main/profile adoption;
+it claims neither a newly published Program Kit toolkit version nor actual consumer acceptance.
