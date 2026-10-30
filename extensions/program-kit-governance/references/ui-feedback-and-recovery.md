@@ -26,11 +26,10 @@ ephemeral toast or replace the entire application for one failed request.
 
 <!-- program-kit:decision-rule ui-outcome-ownership -->
 <!-- program-kit:knowledge-rule principle.ui-state-recovery -->
-Only applicable states belong in the affected feature. No separate state dossier or per-task gate
-is required. Draft retention follows privacy/security and lifetime rules; do not automatically put
-private drafts or tokens in persistent browser storage. Cancellation does not prove server rollback.
-Unknown completion requires reconciliation or safe replay; failed retrieval is never an empty result.
-Generated UI callbacks do not establish backend idempotency or actual provider login/logout behavior.
+Apply only relevant feature states in existing artifacts; no separate dossier or per-task gate.
+Retain drafts under privacy/security and lifetime policy; never persist private drafts or tokens by
+default. Cancellation proves no rollback. Reconcile unknown completion or safely replay; failed
+retrieval is not empty. UI callbacks prove neither backend idempotency nor actual provider login/logout.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.provider-owned-journey -->
 For sign-in or recovery journeys, carry accepted styling/accessibility intent across application
@@ -42,6 +41,13 @@ or deferrals need their established authority and a concrete owning slice. Keep 
 callbacks/session recovery with the frontend and preserve provider credential/MFA/required-action flows.
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
+
+<!-- program-kit:knowledge-rule principle.browser-autosave -->
+When autosave is selected, follow the [native autosave recipe](../../program-kit-dotnet/references/examples/browser-autosave/README.md)
+against the exact public profile. Share manual/automatic coordination, preserve parent order and
+original attempts, and observe drain separately from save outcome. Adapters own authorization,
+receipt admission and recovery. Autosave never implies session renewal or durable browser storage.
+<!-- /program-kit:knowledge-rule -->
 
 ## Complete fields and forms
 
@@ -82,31 +88,29 @@ behavior through their accepted component model; do not replace them to use the 
 ## Progress, errors and recovery
 
 <!-- program-kit:knowledge-rule principle.progress-error-recovery -->
-Choose skeletons when structure is known, inline progress for local actions, and measurable progress
-when actual measurements exist. Avoid fake percentages, forced waiting and indefinite spinners
-after a terminal failure. Give long-running work a defined deadline/recovery route; cancellation
-controls are offered only when supported. Equivalent static feedback remains with reduced motion.
+Use skeletons for known structure, inline progress for local actions, and percentages only from
+actual measurements. Avoid fake percentages, forced waiting and spinners after terminal failure.
+Bound long work with a deadline/recovery route; offer cancellation only when supported. Preserve
+equivalent feedback with reduced motion.
 
-Map stable problem types/codes to presentation and permitted recovery using the existing API
-contract. Field paths and user messages need a defined mapping. Unknown errors use a safe fallback;
-raw exception text, SQL/provider details, tokens or personal data never become public copy. Safe
-trace references may support diagnosis. Problem Details does not by itself specify UI behavior.
+Map existing stable problem types/codes to presentation, field paths/messages and permitted recovery.
+Unknown errors need a safe fallback. Never expose raw exceptions, SQL/provider details, tokens or
+personal data; safe trace references may aid diagnosis. Problem Details alone specifies no UI behavior.
 
-After response loss, distinguish proven rejection from uncertain completion. A retry requires an
-idempotent operation, a same-operation replay guarantee or proof that the operation was not applied.
-Do not generate a new operation identity on every retry or claim a client-side disabled button proves
-one backend effect. Concurrency rejection preserves the draft and offers the agreed review/merge/
-reapply behavior; never silently overwrite newer state. Authentication/expiry/logout follow the
-screen ownership and state rules in ui-design-model.md and the selected secure-web profile.
+After response loss, distinguish proven rejection from uncertain completion. Retry only when
+idempotent, identically replayable or proven not applied; retain the original operation identity.
+A disabled button proves no single backend effect. Conflict preserves the draft and agreed review,
+merge or reapply choice; never silently overwrite newer state. Authentication, expiry and logout
+follow ui-design-model.md and the selected secure-web profile.
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule principle.operation-recovery-outcomes -->
-| Established outcome | Retained state | Explicit permitted recovery |
+| Established outcome | Retained state | Permitted recovery |
 | --- | --- | --- |
-| Server contract confirms validation rejected without effect | Preserve editable values and field focus; clear only the rejected action | Correct input, then explicitly prepare a new action |
-| Server contract confirms admission expired before acceptance | Preserve values; restore editability and hide reconciliation for that expired unaccepted action | Explicitly prepare a new action |
-| Accepted operation, lost response, timeout, or uncertain commit | Retain original server-issued operation identity and values | Reauthorize status lookup or supported safe identical replay; no blind new dispatch |
-| Receipt absent or lookup returns unknown | Keep completion unknown and retain original identity | Reconcile using the supported status contract; absence alone proves neither rejection nor rollback |
+| Server confirms validation rejected without effect | Keep editable values/focus; clear only rejected action | Correct input; explicitly prepare new action |
+| Server confirms admission expired before acceptance | Keep values; restore editing; hide this expired action's reconciliation | Explicitly prepare new action |
+| Accepted action with lost response, timeout or uncertain commit | Keep original contract-bound identity and values | Reauthorize lookup or supported identical replay; no blind new dispatch |
+| Receipt absent or status unknown | Keep identity and unknown completion | Reconcile by server contract; absence proves neither rejection nor rollback |
 <!-- /program-kit:knowledge-rule -->
 
 <!-- program-kit:knowledge-rule principle.status-lookup-disclosure -->

@@ -4160,7 +4160,8 @@
         "scaffolding"
       ],
       "inputs": [
-        "tests/validate_browser_presentation_profile.py"
+        "tests/validate_browser_presentation_profile.py",
+        "extensions/program-kit-dotnet/references/examples/browser-autosave/**"
       ],
       "needs": [],
       "prerequisites": [],
@@ -5824,6 +5825,33 @@
       "suites": [],
       "budgetSeconds": 15,
       "timeoutSeconds": 30
+    },
+    {
+      "id": "validate_operation_recovery",
+      "purpose": "Original contract-bound identity retention and safe recovery transitions, independent of HTTP status or identity issuer.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_operation_recovery.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge"
+      ],
+      "inputs": [
+        "tests/validate_operation_recovery.py",
+        "extensions/program-kit-governance/references/operation-recovery-example.mjs"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
     }
   ]
 }

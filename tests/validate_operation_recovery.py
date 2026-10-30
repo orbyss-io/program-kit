@@ -31,7 +31,11 @@ for (const kind of ['response-lost', 'completion-unknown', 'receipt-unknown']) {
   assert.equal(recovery(unknown, {kind: 'accepted-status', operationId: 'different-owner'}), unknown);
   assert.equal(recovery(unknown, {kind: 'accepted-status', operationId: 'server-original'}).outcome, 'accepted');
 }
-console.log('12 semantic recovery cases passed; no actual server/browser acceptance claimed.');
+const clientPrepared = recovery(initial, {kind: 'prepared', operationId: 'client-original'});
+const clientUnknown = recovery(clientPrepared, {kind: 'response-lost', operationId: 'client-original'});
+assert.equal(clientUnknown.operationId, 'client-original');
+assert.throws(() => recovery(initial, {kind: 'prepared', operationId: ''}));
+console.log('Semantic recovery cases passed for server/client contract identities; no actual server/browser acceptance claimed.');
 '''
 result = subprocess.run([shutil.which('node'), '--input-type=module', '-e', script, example.as_uri()], cwd=ROOT, capture_output=True, text=True, timeout=30)
 if result.returncode: raise AssertionError(result.stdout + result.stderr)

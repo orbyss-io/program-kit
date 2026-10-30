@@ -572,7 +572,8 @@
         "principle.browser-tooling-deployment",
         "principle.ui-quality-evidence",
         "principle.retained-engineering-selections",
-        "principle.ui-generated-asset-ownership"
+        "principle.ui-generated-asset-ownership",
+        "principle.browser-autosave"
       ],
       "operationDecisions": [
         "admission"
@@ -1297,7 +1298,8 @@
         "principle.production-composition-tests",
         "principle.actual-browser-acceptance",
         "principle.untrusted-input-qualification",
-        "principle.provider-owned-journey"
+        "principle.provider-owned-journey",
+        "principle.browser-autosave"
       ],
       "operationDecisions": [
         "cancellation-deadline",
@@ -5566,6 +5568,45 @@
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       },
       "purpose": "Version-specific non-owning CShells 0.0.31 resource admission with executable ownership/failure/cancellation/drain proof; no product security acceptance."
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/browser-autosave/README.md",
+      "phases": [
+        "implementation"
+      ],
+      "enforcement": "Optional native autosave recipe selected by the application; exact public profile capture is verified. Application adapters, provider effects and recovery require actual integration and human review.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-governance/scripts/asset_sources.py",
+          "tests/validate_browser_presentation_profile.py"
+        ],
+        "sections": [
+          "Native browser autosave"
+        ],
+        "requirements": [],
+        "review": "Export the installed recipe through the existing source owner, verify the selected profile, and integrate the native module with application adapters. Registration supplies no backend or consumer acceptance."
+      },
+      "id": "program-kit-dotnet/references/examples/browser-autosave/README.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-dotnet/references/examples/browser-autosave/README.md"
+      },
+      "owner": "program-kit-dotnet",
+      "disposition": "manual",
+      "sections": {
+        "Native browser autosave": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      },
+      "purpose": "Optional native browser autosave recipe with exact selected public capability checks; save semantics and recovery remain application-owned."
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
@@ -7541,7 +7582,8 @@
       "coveredBy": [
         "principle.ui-feedback-state-contract",
         "principle.ui-state-recovery",
-        "principle.provider-owned-journey"
+        "principle.provider-owned-journey",
+        "principle.browser-autosave"
       ],
       "contextDisposition": {
         "kind": "context",
@@ -14115,6 +14157,33 @@
         "checks": [
           "tests/validate_knowledge_sources.py",
           "tests/validate_native_phases.py"
+        ]
+      }
+    },
+    "principle.browser-autosave": {
+      "purpose": "Use optional native browser autosave with application-owned outcomes and independent recovery",
+      "source": "program-kit-governance/references/ui-feedback-and-recovery.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.browser-autosave"
+      },
+      "owner": "program-kit-governance",
+      "family": "browser",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "browser-experience",
+        "browser-effects"
+      ],
+      "applicability": "Application-selected periodic saving; the exact qualified public profile must supply the native capability.",
+      "bindings": {
+        "checks": [
+          "tests/validate_browser_presentation_profile.py",
+          "tests/validate_operation_recovery.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/browser-autosave/README.md"
         ]
       }
     }

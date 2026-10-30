@@ -4,7 +4,7 @@
 export function recovery(state, event) {
   if (event.kind === 'prepared') {
     if (state.operationId) throw new Error('Reconcile the retained operation before new preparation.');
-    if (!event.operationId) throw new Error('A server-issued operation identity is required.');
+    if (!event.operationId) throw new Error('The reviewed contract requires a stable original operation identity.');
     return { ...state, operationId: event.operationId, editable: false, reconcile: false, outcome: 'prepared' };
   }
   // Bind asynchronous outcomes to the exact retained request/operation. A stale
