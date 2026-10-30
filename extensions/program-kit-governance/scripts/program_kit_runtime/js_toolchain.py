@@ -169,7 +169,7 @@ def node_npm_recovery(repository: Path, reason: str, required=None, installed=No
             installed.get(name), executable_path, repository)))
     lines.extend(mismatches or ['The observed active pair matches both pins; the recorded paths still require fresh evidence.'])
     lines.extend(['In a fresh user shell verify node --version, npm --version and npm lifecycle child Node selection together.',
-        'Only after both pins and persistent paths are valid, run eng/toolchain.py with the verified shared Python; then renew/restage affected evidence through its normal owner. No installation or evidence renewal was performed by this diagnosis.'])
+        'Only after both pins and persistent paths are valid, run scripts/toolchain.py with the verified shared Python; then renew/restage affected evidence through its normal owner. No installation or evidence renewal was performed by this diagnosis.'])
     return '\n\n'.join(lines)
 
 
@@ -192,7 +192,7 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
         or resolved.get("npm") != required.get("npm")
     ):
         raise ValueError(
-            "PKT016 exact Node/npm command evidence is missing or stale; run eng/toolchain.py first."
+            "PKT016 exact Node/npm command evidence is missing or stale; run scripts/toolchain.py first."
         )
     if any(not isinstance(item, str) or not item for item in npm):
         raise ValueError("PKT016 recorded npm command is invalid.")
@@ -216,7 +216,7 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
             raise ValueError('PKT018 npm child PATH cannot fit safely; reduce redundant device PATH entries in your terminal. ' + str(error)) from error
     active_npm, actual_npm = resolve_npm(repository, active_node, required.get('npm'), '', child_environment) if active_node else (None, None)
     if active_node is None or [str(active_node)] != node_command or active_npm != npm:
-        raise ValueError(node_npm_recovery(repository, 'PKT017 device selection changed or PATH is stale; re-run eng/toolchain.py. ' + device.REFRESH,
+        raise ValueError(node_npm_recovery(repository, 'PKT017 device selection changed or PATH is stale; re-run scripts/toolchain.py. ' + device.REFRESH,
             required=required, installed={'node': actual_node, 'npm': actual_npm},
             commands={'node': [str(active_node)] if active_node else [], 'npm': active_npm or []}))
     if actual_node != required.get('node') or actual_npm != required.get('npm'):

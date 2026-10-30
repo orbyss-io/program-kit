@@ -1,7 +1,7 @@
 # Owner-backed normalized label validation
 
 Keep the pure consumer Core rule authoritative. A consumer-owned build exporter serializes its
-actual identities, versions, constants and character predicates; `eng/label_validation.py` generates
+actual identities, versions, constants and character predicates; `scripts/label_validation.py` generates
 the browser validator from that descriptor. Core contains C# policy, not JSON artifacts or a browser
 dependency. Program Kit supports this bounded label contract rather than inspecting arbitrary C#
 methods or introducing a rules engine.
@@ -26,21 +26,21 @@ Restore the build tool explicitly through the consumer's selected native depende
 Then run:
 
 ```powershell
-python eng/label_validation.py export --repository . --project tools/PolicyValidation.Export/PolicyValidation.Export.csproj --output contracts/validation/policy-labels.json
-python eng/label_validation.py generate --descriptor contracts/validation/policy-labels.json --output web/src/api/policy-labels.generated.ts
+python scripts/label_validation.py export --repository . --project tools/PolicyValidation.Export/PolicyValidation.Export.csproj --output contracts/validation/policy-labels.json
+python scripts/label_validation.py generate --descriptor contracts/validation/policy-labels.json --output web/src/api/policy-labels.generated.ts
 ```
 
 Export builds the owner tool with `--no-restore` before running it, so a stale executable cannot
 refresh source-backed metadata. The exporter is an ordinary explicitly selected native .NET build
 tool; it does not invoke a coding agent. The descriptor schema ships at
-`eng/label-validation.schema.json`. The Python validator additionally checks normalized bound
+`scripts/label-validation.schema.json`. The Python validator additionally checks normalized bound
 ordering and unique rule identity, which standard JSON Schema cannot establish here by itself.
 
 Both commands support `--check`. Check source-backed export first, then generated TypeScript:
 
 ```powershell
-python eng/label_validation.py export --repository . --project tools/PolicyValidation.Export/PolicyValidation.Export.csproj --output contracts/validation/policy-labels.json --check
-python eng/label_validation.py generate --descriptor contracts/validation/policy-labels.json --output web/src/api/policy-labels.generated.ts --check
+python scripts/label_validation.py export --repository . --project tools/PolicyValidation.Export/PolicyValidation.Export.csproj --output contracts/validation/policy-labels.json --check
+python scripts/label_validation.py generate --descriptor contracts/validation/policy-labels.json --output web/src/api/policy-labels.generated.ts --check
 ```
 
 These fail on missing/stale bytes; neither updates files in check mode. `generate --check` alone

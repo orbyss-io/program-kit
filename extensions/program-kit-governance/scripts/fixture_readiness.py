@@ -266,7 +266,7 @@ def current_files(root, contract):
         files['fixture_readiness.py'] = readiness.read_bytes()
         sources[readiness.relative_to(root).as_posix()] = sha(files['fixture_readiness.py'])
     if 'runtime_probe.py' in files and 'owned_scratch.py' not in files:
-        helper = maintained_support('program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
+        helper = maintained_support('program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py')
         files['owned_scratch.py'] = helper.read_bytes()
         sources[helper.relative_to(root).as_posix()] = sha(files['owned_scratch.py'])
     # A prior consumer-authored import boundary is preserved in its original
@@ -331,7 +331,7 @@ def apply(root, contract_path, identity, digest):
         payload = contained(root, source).read_bytes()
         if sha(payload) != expected:
             raise ValueError('FIXTURE_PICKUP: source changed; original/incomplete record retained')
-        archive = root / '.program-kit/installation/fixture-inputs' / (expected + '.original')
+        archive = root / 'config/program-kit/installation/fixture-inputs' / (expected + '.original')
         archive.parent.mkdir(parents=True, exist_ok=True)
         if archive.exists() and archive.read_bytes() != payload:
             raise ValueError('FIXTURE_PICKUP: original archive changed; stop without rewriting history')

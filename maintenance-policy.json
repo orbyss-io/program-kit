@@ -63,11 +63,11 @@
     "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc",
     "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version",
     "extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version",
-    "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
-    "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/*.props",
-    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/packages.json",
-    "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json",
-    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Packages.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/profiles/persistence/*.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/tools/program-kit/foundation-test-support/packages.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.config/dotnet-tools.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/tools/program-kit/web/package.json",
     "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/package.json",
     "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml",
     "extensions/program-kit-governance/templates/ui-experience/acceptance/package.json",
@@ -90,7 +90,7 @@
     {
       "kind": "nuget",
       "name": "xunit.v3.mtp-v2",
-      "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/packages.json",
+      "path": "extensions/program-kit-dotnet/templates/dotnet/files/tools/program-kit/foundation-test-support/packages.json",
       "pointer": "/xunit.v3.mtp-v2"
     },
     {

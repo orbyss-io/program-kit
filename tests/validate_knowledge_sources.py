@@ -50,7 +50,7 @@ class CanonicalSourcesTests(unittest.TestCase):
         self.assertIn('RUNTIME_PROJECT_ROLES', native['text'])
         # Independent forbidden boundary oracle, not a comparison against a
         # value copied out of the registry or generated from the same source.
-        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
         from repository_architecture import validate_planned
         graph = {'runtimeComposition': {'projects': [
             {'path': 'src/Orders.Core/Orders.Core.csproj', 'role': 'core',
@@ -408,7 +408,7 @@ class CanonicalSourcesTests(unittest.TestCase):
         records = discover(ROOT, self.catalog)
         paths = {row['path'] for row in records}
         for path in ('maintenance-policy.json', 'tests/validate_knowledge_application.py',
-                     'extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py',
+                     'extensions/program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py',
                      'extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig',
                      'docs/decisions/0007-separate-domain-and-integration-events.md'):
             self.assertIn(path, paths)

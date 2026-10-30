@@ -993,12 +993,12 @@ def managed_output_records(lock: dict) -> list[dict]:
                 )
     if central:
         entries = sorted(central.values(), key=lambda item: item["packageId"].casefold())
-        outputs.append(output_record("nuget-central-pins", "eng/ProgramKit.BuildingBlocks.props", entries))
+        outputs.append(output_record("nuget-central-pins", "config/program-kit/build/ProgramKit.BuildingBlocks.props", entries))
     for path, routes in npm_routing.items():
         outputs.append(output_record("npm-registry-routing", path, [routes[key] for key in sorted(routes)]))
     for activation in lock["activations"]:
         shell_parent = PurePosixPath(activation["path"]).parent
-        overlay_path = (shell_parent / "eng/building-blocks.shells.json").as_posix()
+        overlay_path = (shell_parent / "config/program-kit/building-blocks.shells.json").as_posix()
         if overlay_path.startswith("./"):
             overlay_path = overlay_path[2:]
         shell_activations.setdefault(overlay_path, []).append(copy.deepcopy(activation))
@@ -1007,12 +1007,12 @@ def managed_output_records(lock: dict) -> list[dict]:
         outputs.append(output_record("cshell-activations", path, entries))
     if host_entries:
         host_entries.sort(key=lambda item: (item["path"].casefold(), item["targetId"]))
-        outputs.append(output_record("host-images", ".program-kit/building-blocks.hosts.json", host_entries))
+        outputs.append(output_record("host-images", "config/program-kit/building-blocks.hosts.json", host_entries))
     if lock["configurationRequirements"]:
         outputs.append(
             output_record(
                 "configuration-requirements",
-                ".program-kit/building-blocks.configuration.json",
+                "config/program-kit/building-blocks.configuration.json",
                 copy.deepcopy(lock["configurationRequirements"]),
             )
         )
@@ -2038,7 +2038,7 @@ def effective_dependency_context(repository: Path, *, catalog_path: Path | None 
 
 
 def verify_new_project_profile(repository: Path, catalog: dict, activations: list[dict]) -> None:
-    binding = repository / '.program-kit/dependency-profile.json'
+    binding = repository / 'config/program-kit/dependency-profile.json'
     if not binding.is_file(): return
     record = load_json(binding)
     qualification = record.get('newProjectQualification')
@@ -2054,10 +2054,10 @@ def verify_new_project_profile(repository: Path, catalog: dict, activations: lis
 
 
 def draft_qualified_selection(repository: Path, selection_path: Path, catalog: dict, capabilities: list[str], identity: str | None = None) -> None:
-    binding = repository / '.program-kit/dependency-profile.json'
+    binding = repository / 'config/program-kit/dependency-profile.json'
     if binding.exists(): fail('PKB120', 'dependency profile already exists; recover its existing selection instead of creating another Draft')
     directory = profile_registry()
-    managed = repository / '.program-kit/managed.json'
+    managed = repository / 'config/program-kit/managed.json'
     engineering = load_json(managed).get('newProjectDependencyProfile') if managed.is_file() else None
     if identity is None and engineering:
         entry = load_json(directory / 'index.json')['profiles'].get(engineering.get('profile'))
@@ -2069,7 +2069,7 @@ def draft_qualified_selection(repository: Path, selection_path: Path, catalog: d
         fail('PKB611', 'scaffolded dependency profile changed')
     entry = load_json(directory / 'index.json')['profiles'][selected['id']]
     draft_selection(repository, selection_path, qualified, capabilities)
-    snapshot = repository / '.program-kit/dependency-profiles' / (catalog_resolution_sha256(qualified) + '.json')
+    snapshot = repository / 'config/program-kit/dependency-profiles' / (catalog_resolution_sha256(qualified) + '.json')
     content = pretty_json(qualified)
     try:
         if snapshot.exists() and load_json(snapshot) != qualified:
@@ -2087,7 +2087,7 @@ def draft_qualified_selection(repository: Path, selection_path: Path, catalog: d
 
 def consumer_catalog(repository: Path, selection: dict, candidate: Path) -> Path:
     """Resolve retained exact dependencies independently from installed Program Kit."""
-    record_path = repository / '.program-kit/dependency-profile.json'
+    record_path = repository / 'config/program-kit/dependency-profile.json'
     if not record_path.exists(): return candidate
     record = load_json(record_path)
     if record.get('schemaVersion') != 2 or record.get('resolutionSha256') != selection['catalog'].get('resolutionSha256'):
@@ -2108,19 +2108,19 @@ def preserve_dependency_profile(repository: Path, selection: dict, catalog_path:
     catalog = load_json(catalog_path)
     validate_catalog(catalog)
     digest = verify_catalog_binding(selection, catalog)
-    relative = '.program-kit/dependency-profiles/' + digest + '.json'
+    relative = 'config/program-kit/dependency-profiles/' + digest + '.json'
     snapshot = repository_path(repository, relative)
     if snapshot.exists() and load_json(snapshot) != catalog:
         fail('PKB111', 'immutable dependency profile snapshot changed')
     if not snapshot.exists(): atomic_write_bytes(snapshot, catalog_path.read_bytes(), 'profile-capture')
     identity = 'accepted-' + digest[:16]
-    profile_relative = '.program-kit/dependency-profiles/' + digest + '.profile.json'
+    profile_relative = 'config/program-kit/dependency-profiles/' + digest + '.profile.json'
     profile_path = repository_path(repository, profile_relative)
     profile = dependency_profile_value(catalog, identity)
     if profile_path.exists() and load_json(profile_path) != profile:
         fail('PKB111', 'immutable exact dependency profile changed')
     if not profile_path.exists(): atomic_write(profile_path, pretty_json(profile))
-    binding = repository / '.program-kit/dependency-profile.json'
+    binding = repository / 'config/program-kit/dependency-profile.json'
     previous = load_json(binding) if binding.is_file() else {}
     record = {'schemaVersion': 2, 'id': identity,
               'resolutionSha256': digest, 'catalogPath': relative,
@@ -2250,7 +2250,7 @@ def accept_selection(
     architecture = registered_selection(repository, selection_path, selection, architecture)
     selection_text = pretty_json(selection)
     originals = {selection_path: selection_path.read_bytes(), architecture_path: architecture_path.read_bytes()}
-    binding_path = repository / '.program-kit/dependency-profile.json'
+    binding_path = repository / 'config/program-kit/dependency-profile.json'
     original_binding = binding_path.read_bytes() if binding_path.is_file() else None
     try:
         atomic_write(selection_path, selection_text)
@@ -2299,7 +2299,7 @@ def main() -> int:
         command.add_argument("--target", default=".")
         command.add_argument("--selection", default="docs/architecture/building-block-selection.json")
         command.add_argument("--catalog")
-        command.add_argument("--lock", default="eng/building-blocks.lock.json")
+        command.add_argument("--lock", default="config/program-kit/building-blocks.lock.json")
         if name in {"plan", "check", "apply"}:
             command.add_argument("--materialized-only", action="store_true",
                                  help="Reconcile only complete existing composition targets; keep future targets deferred.")

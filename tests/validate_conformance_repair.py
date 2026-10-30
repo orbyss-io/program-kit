@@ -55,7 +55,8 @@ class RepairTests(unittest.TestCase):
         script.write_text('import runpy\nevaluate = runpy.run_path("src/policy.py")["evaluate"]\nassert evaluate(2) == 3\ntry:\n    evaluate(-1)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError("negative value was admitted")\n')
         declaration = {'schemaVersion': 1, 'toolkitChecks': [{'id': 'story-state', 'script': 'checks/story.py',
             'arguments': [], 'inputs': ['checks/story.py', 'src/policy.py'], 'timeoutSeconds': 10}]}
-        (self.root / 'eng/verification.json').write_text(json.dumps(declaration))
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps(declaration))
         # Establish the initial fictional consumer's real Git baseline before
         # registration. Every repair assertion below preserves that exact ID.
         for command in (['git', 'init', '-q'], ['git', 'add', '.'], ['git', '-c', 'commit.gpgsign=false',

@@ -25,7 +25,7 @@ dotnet bin/Release/net10.0/AsyncWorkloadProof.dll
 From the consumer root, use the installed .NET adapter:
 
 ```text
-python .specify/extensions/program-kit-dotnet/scripts/provider_composition.py --input eng/batch-provider-composition.json
+python .specify/extensions/program-kit-dotnet/scripts/provider_composition.py --input config/program-kit/batch-provider-composition.json
 ```
 
 Copy `composition.example.json` to that path to try the synthetic Development example, then replace

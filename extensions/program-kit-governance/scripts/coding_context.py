@@ -171,7 +171,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
     paths = {inside(root, p).relative_to(root).as_posix() for p in affected_paths}
     blockers, gaps = [], []
     changed = []
-    graph = read(root / 'eng/architecture.json', {}).get('runtimeComposition', {})
+    graph = read(root / 'config/program-kit/architecture.json', {}).get('runtimeComposition', {})
     # Known neighboring adopted owners do not become this operation's scope.
     # Unknown ownership stays visible; it is never silently excluded.
     adopted = read(root / 'docs/architecture/building-block-selection.json', {})
@@ -272,7 +272,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
                     for i in data['Items'].get('PackageReference', [])]
         declaration = declarations.get(relative)
         if not declaration:
-            blockers.append({'code': 'PKC009', 'project': relative, 'owner': 'architecture owner', 'repair': 'Declare the actual project role/responsibilities in eng/architecture.json; do not relabel source to evade its duties.'})
+            blockers.append({'code': 'PKC009', 'project': relative, 'owner': 'architecture owner', 'repair': 'Declare the actual project role/responsibilities in config/program-kit/architecture.json; do not relabel source to evade its duties.'})
         else:
             if {p for p, build in refs if not build} != set(declaration.get('projectReferences', [])) or {p for p, build in refs if build} != set(declaration.get('buildProjectReferences', [])):
                 blockers.append({'code': 'PKC010', 'project': relative, 'owner': 'architecture/project owner', 'repair': 'Reconcile evaluated project dependencies with the accepted graph through normal scoped review.'})
@@ -340,7 +340,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
                             and source(root, inside(root, s['path']))['sha256'] == s.get('sha256')]
         if contract.get('owner') in owned_elements and contract.get('status') == 'accepted' and current_evidence:
             contract_owners.append({**contract, 'evidenceSources': current_evidence})
-    verify = root / 'eng/Invoke-RepositoryVerification.ps1'
+    verify = root / 'scripts/Invoke-RepositoryVerification.ps1'
     facts = {'request': (feature / 'spec.md').is_file() and bool((feature / 'spec.md').read_text(encoding='utf-8').strip()),
              'model-owner': any(c.get('element') in owned_elements and c.get('status') == 'accepted' for c in projection.get('strategic_model', {}).get('bounded_contexts', [])),
              'contract-owner': bool(contract_owners), 'effective-projects': bool(selected) and set(evaluated) == selected, 'verification-owner': verify.is_file()}
@@ -388,7 +388,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
             if not source_profile_qualified(properties):
                 blockers.append({'code': 'PKC024', 'project': project['path'], 'owner': 'qualified Foundation analyzer/profile owner',
                     'repair': 'Source-readability-v1 is mandatory. Use the supported profile upgrade to an actually published qualified analyzer/profile with FoundationSourceReadability=true, then restore/build the selected native owner. Preserve retained profile/lock history; a source-built development package cannot substitute for public qualification.'})
-    inputs = [source(root, p) for p in documents + [root / 'eng/architecture.json', root / 'global.json',
+    inputs = [source(root, p) for p in documents + [root / 'config/program-kit/architecture.json', root / 'global.json',
               root / 'Directory.Packages.props',
               root / 'docs/architecture/architecture-map.json', verify]]
     value['coding'] = {'schemaVersion': 1, 'scope': scope, 'inputs': inputs,

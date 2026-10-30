@@ -33,7 +33,7 @@ def toolkit_input(entry):
 def proof_input_archive(root, entry):
     if not re.fullmatch('[a-f0-9]{64}', str(entry.get('sha256'))):
         raise ValueError('Retained compatibility input has an invalid digest')
-    return inside(root, '.program-kit/installation/proof-inputs/' + entry['sha256'] + '.original')
+    return inside(root, 'config/program-kit/installation/proof-inputs/' + entry['sha256'] + '.original')
 
 
 def input_unchanged(root, entry):
@@ -94,8 +94,8 @@ SCOPED_TOOLING_0_12_9 = frozenset({
     'program-kit-building-blocks/scripts/restore_dependencies.py',
     'program-kit-building-blocks/scripts/building_blocks.py',
     'program-kit-dotnet/scripts/dependency_profile.py',
-    'program-kit-dotnet/templates/dotnet/files/eng/toolchain.py',
-    'program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py',
+    'program-kit-dotnet/templates/dotnet/files/scripts/toolchain.py',
+    'program-kit-dotnet/templates/dotnet/files/scripts/js_toolchain.py',
     'program-kit-dotnet/templates/dotnet/files/global.json',
     'program-kit-dotnet/templates/dotnet/files/NuGet.config',
     'program-kit-dotnet/templates/dotnet/files/.nvmrc',
@@ -128,8 +128,8 @@ def evidence_inputs(root):
             'program-kit-governance/scripts/compatibility_scope.py',
             'program-kit-building-blocks/scripts/building_blocks.py',
             'program-kit-dotnet/scripts/dependency_profile.py',
-            'program-kit-dotnet/templates/dotnet/files/eng/toolchain.py',
-            'program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py',
+            'program-kit-dotnet/templates/dotnet/files/scripts/toolchain.py',
+            'program-kit-dotnet/templates/dotnet/files/scripts/js_toolchain.py',
         }
         for item in ledger['prerequisites']:
             if item.get('status') != 'closed': continue
@@ -228,14 +228,14 @@ def reject_active_references(root, evidence, lock):
 
 def engineering_outputs(root, *, inactive_tool_pin=None):
     """Require both the installed template and reconciler's exact ownership receipt."""
-    state = read(root / '.program-kit/managed.json', {})
+    state = read(root / 'config/program-kit/managed.json', {})
     installed = root / '.specify/extensions/program-kit-dotnet'
     # Upgrade admission checks the currently installed ownership before replacing
     # components. A candidate's changed template cannot validate the old bytes.
     template = (installed / 'templates/dotnet/files' if installed.is_dir()
                 else Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files')
     result = set()
-    for relative in ('eng/ProgramKit.Packages.props', 'eng/.config/dotnet-tools.json'):
+    for relative in ('config/program-kit/build/ProgramKit.Packages.props', '.config/dotnet-tools.json'):
         path = root / relative
         if not path.is_file():
             continue
@@ -284,7 +284,7 @@ def composition_dependency_ownership(root):
     Consumer project files remain audited item by item. A graph cannot exempt an
     entire project, and generated pins require the reconciler's exact ownership.
     """
-    if not (root / 'eng/foundation-composition.json').is_file():
+    if not (root / 'config/program-kit/foundation-composition.json').is_file():
         return {}, set()
     from repository_sync import provider
     model = provider('program-kit-dotnet/scripts/composition_model.py')
@@ -296,9 +296,9 @@ def composition_dependency_ownership(root):
         outputs = renderer.materialize(root, graph, template)
     finally:
         sys.path.pop(0)
-    relative = 'eng/ProgramKit.Foundation.props'
+    relative = 'config/program-kit/build/ProgramKit.Foundation.props'
     expected = outputs[relative][0]
-    state = read(root / '.program-kit/managed.json', {})
+    state = read(root / 'config/program-kit/managed.json', {})
     entry = state.get('files', {}).get(relative, {})
     path = root / relative
     digest = hashlib.sha256(expected).hexdigest()
@@ -315,10 +315,10 @@ def composition_dependency_ownership(root):
 
 def inactive_composition_pins(root, catalog):
     """Retained native pins are history when no application graph is admitted."""
-    relative = 'eng/ProgramKit.Foundation.props'
+    relative = 'config/program-kit/build/ProgramKit.Foundation.props'
     path = root / relative
     if not path.is_file(): return set()
-    entry = read(root / '.program-kit/managed.json', {}).get('files', {}).get(relative, {})
+    entry = read(root / 'config/program-kit/managed.json', {}).get('files', {}).get(relative, {})
     actual = sha(path)
     if (entry.get('ownership') != 'managed' or entry.get('contribution') != 'foundation'
             or entry.get('sourceIdentity') != '../../scripts/foundation_composition.py'
@@ -358,7 +358,7 @@ def planned_selection_errors(root, projects):
     catalog_ids = {item['packageId'].casefold() for item in catalog['packages'].values() if item['ecosystem'] == 'nuget'}
     by_path = {target['path']: {item['packageId'].casefold() for item in target['packages']
                               if item['materializationKind'] == 'nuget-project'} for target in lock['targets']}
-    composition_projects = composition_dependency_ownership(root)[0] if (root / 'eng/ProgramKit.Foundation.props').is_file() else {}
+    composition_projects = composition_dependency_ownership(root)[0] if (root / 'config/program-kit/build/ProgramKit.Foundation.props').is_file() else {}
     errors = []
     for project in projects:
         planned = {name.casefold() for name in project['packageReferences']} & catalog_ids

@@ -328,7 +328,7 @@ def validate_utf8() -> None:
 
 
 def validate_feature_activation() -> None:
-    feature = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/feature_metadata.py"
+    feature = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/feature_metadata.py"
     with tempfile.TemporaryDirectory(prefix="program-kit-feature-") as value:
         shells = Path(value) / "shells.json"
         shells.write_text(
@@ -347,7 +347,7 @@ def validate_feature_activation() -> None:
 
 def validate_release_feature_closure() -> None:
     release = module(
-        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py",
+        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/release_bundle.py",
         "runnable_host",
     )
     with tempfile.TemporaryDirectory(prefix="program-kit-bundle-features-") as value:
@@ -450,10 +450,10 @@ def validate_release_feature_closure() -> None:
             '<configuration><packageSources><add key="test" value="https://example.invalid/v3/index.json" /></packageSources></configuration>\n',
             encoding="utf-8",
         )
-        managed = clean_repository / "eng"
+        managed = clean_repository / "scripts"
         managed.mkdir(parents=True)
         (clean_repository / "Directory.Packages.props").write_text(
-            '<Project><Import Project="eng/ProgramKit.Packages.props" /></Project>\n',
+            '<Project><Import Project="config/program-kit/build/ProgramKit.Packages.props" /></Project>\n',
             encoding="utf-8",
         )
         (managed / "ProgramKit.Packages.props").write_text(
@@ -530,8 +530,9 @@ def validate_release_feature_closure() -> None:
         repository = root / "repository"
         repository.mkdir()
         (repository / "VERSION").write_text("1.2.3\n", encoding="utf-8")
-        (repository / "eng").mkdir()
-        (repository / "eng/application-handoff.json").write_text(json.dumps({"schemaVersion": 1, "applicationId": "example.lifecycle"}), encoding="utf-8")
+        (repository / "scripts").mkdir()
+        (repository / "config/program-kit/application-handoff.json").parent.mkdir(parents=True, exist_ok=True)
+        (repository / "config/program-kit/application-handoff.json").write_text(json.dumps({"schemaVersion": 1, "applicationId": "example.lifecycle"}), encoding="utf-8")
         staged = repository / "artifacts/release-bundle"
         staged.mkdir(parents=True)
         hostsettings = {"Nuplane": {"Loading": {"Enabled": True}}}
@@ -651,7 +652,7 @@ def validate_release_feature_closure() -> None:
 
 
 def validate_preflight_seams() -> None:
-    preflight = ROOT / "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/preflight.py"
+    preflight = ROOT / "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/scripts/preflight.py"
     with tempfile.TemporaryDirectory(prefix="program-kit-preflight-") as value:
         tools = Path(value)
         if os.name == "nt":
@@ -692,7 +693,7 @@ def validate_preflight_seams() -> None:
 
 
 def validate_toolchain_workflow() -> None:
-    toolchain = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolchain.py"
+    toolchain = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/toolchain.py"
     with tempfile.TemporaryDirectory(prefix="program-kit-toolchain-") as value:
         repository = Path(value) / "consumer"
         repository.mkdir()
@@ -900,7 +901,7 @@ def validate_managed_sources() -> None:
         if source.suffix in {".props", ".targets"}:
             ElementTree.parse(source)
 
-    targets = (template / "files/eng/ProgramKit.Build.targets").read_text(encoding="utf-8")
+    targets = (template / "files/config/program-kit/build/ProgramKit.Build.targets").read_text(encoding="utf-8")
     for phrase in ("ProgramKitFeatureMetadata", "PKF101", "Orbyss.Foundation.Build", "FoundationEmitFeatureDescriptor"):
         if phrase not in targets:
             raise AssertionError(f"managed build target is missing {phrase}")
@@ -908,7 +909,7 @@ def validate_managed_sources() -> None:
         raise AssertionError('consumer pack must use the Foundation-owned canonical descriptor builder')
     if "ProgramKitApiContracts" in targets or "ProgramKitOpenApiGeneratedDocument" in targets:
         raise AssertionError("legacy consumer-supplied OpenAPI document target remains active")
-    pipeline = (template / "files/eng/openapi_pipeline.py").read_text(encoding="utf-8")
+    pipeline = (template / "files/scripts/openapi_pipeline.py").read_text(encoding="utf-8")
     for phrase in (
         "Orbyss.Foundation.OpenApi.Exporter",
         "artifacts/release-bundle/packages",
@@ -919,7 +920,7 @@ def validate_managed_sources() -> None:
         if phrase not in pipeline:
             raise AssertionError(f"managed OpenAPI pipeline is missing {phrase}")
     pipeline_module = module(
-        template / "files/eng/openapi_pipeline.py", "openapi_pipeline_environment"
+        template / "files/scripts/openapi_pipeline.py", "openapi_pipeline_environment"
     )
     observed_environment: dict[str, str] = {}
 
@@ -941,13 +942,13 @@ def validate_managed_sources() -> None:
     if observed_environment.get("APPDATA") != "consumer-fnm-profile":
         raise AssertionError("OpenAPI toolchain discovery ran after NuGet profile isolation hid fnm")
     tool_manifest = json.loads(
-        (template / "files/eng/.config/dotnet-tools.json").read_text(encoding="utf-8")
+        (template / "files/.config/dotnet-tools.json").read_text(encoding="utf-8")
     )
     exporter = tool_manifest.get("tools", {}).get("orbyss.foundation.openapi.exporter", {})
     if exporter.get("commands") != ["orbyss-foundation-openapi-export"] or not exporter.get("version"):
         raise AssertionError("managed OpenAPI exporter tool pin is incomplete")
     runnable_schema = json.loads(
-        (template / "files/eng/application-bundle.schema.json").read_text(encoding="utf-8")
+        (template / "files/scripts/application-bundle.schema.json").read_text(encoding="utf-8")
     )
     required = set(runnable_schema.get("required", []))
     if required != {"schemaVersion", "application", "hostImage", "runtimeClosure", "configuration", "files"}:
@@ -966,7 +967,7 @@ def validate_managed_sources() -> None:
 
 
 def validate_openapi_contracts() -> None:
-    script = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_contracts.py"
+    script = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/openapi_contracts.py"
     contracts = module(script, "openapi_contracts")
     with tempfile.TemporaryDirectory(prefix="program-kit-openapi-") as value:
         root = Path(value)
@@ -1033,11 +1034,11 @@ def validate_openapi_contracts() -> None:
 
 
 def validate_openapi_initialization() -> None:
-    script = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_init.py"
+    script = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/openapi_init.py"
     with tempfile.TemporaryDirectory(prefix="program-kit-openapi-init-") as value:
         repository = Path(value)
         (repository / ".oasdiff-version").write_text("1.33.0\n", encoding="utf-8")
-        defaults = repository / "eng/openapi-defaults.json"
+        defaults = repository / "scripts/openapi-defaults.json"
         defaults.parent.mkdir(parents=True)
         defaults.write_text(
             json.dumps({
@@ -1050,7 +1051,7 @@ def validate_openapi_initialization() -> None:
             }),
             encoding="utf-8",
         )
-        manifest = repository / "eng/.config/dotnet-tools.json"
+        manifest = repository / ".config/dotnet-tools.json"
         manifest.parent.mkdir(parents=True)
         manifest.write_text(
             json.dumps({
@@ -1058,7 +1059,8 @@ def validate_openapi_initialization() -> None:
             }),
             encoding="utf-8",
         )
-        (repository / "eng/openapi-contracts.json").write_text(
+        (repository / "config/program-kit/openapi-contracts.json").parent.mkdir(parents=True, exist_ok=True)
+        (repository / "config/program-kit/openapi-contracts.json").write_text(
             json.dumps({"schemaVersion": 1, "contracts": []}), encoding="utf-8"
         )
         command = [
@@ -1070,7 +1072,7 @@ def validate_openapi_initialization() -> None:
         initialized = subprocess.run(command, capture_output=True, text=True)
         if initialized.returncode != 0:
             raise AssertionError(f"OpenAPI initializer failed: {initialized.stdout}{initialized.stderr}")
-        registry = json.loads((repository / "eng/openapi-contracts.json").read_text(encoding="utf-8"))
+        registry = json.loads((repository / "config/program-kit/openapi-contracts.json").read_text(encoding="utf-8"))
         contract = json.loads((repository / registry["contracts"][0]).read_text(encoding="utf-8"))
         generator_package = json.loads(
             (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
@@ -1275,7 +1277,7 @@ def validate_sync_preservation() -> None:
             raise AssertionError("scaffold-once consumer MSBuild extension was overwritten or not preserved")
         if unrelated.read_text(encoding="utf-8") != "keep\n":
             raise AssertionError("unrelated consumer file changed during synchronization")
-        state = json.loads((repository / ".program-kit/managed.json").read_text(encoding="utf-8"))
+        state = json.loads((repository / "config/program-kit/managed.json").read_text(encoding="utf-8"))
         if state.get("persistenceProfile") != "ef-postgresql":
             raise AssertionError("selected persistence profile was not recorded")
         root_targets.write_bytes(original.encode("utf-8"))
@@ -1295,14 +1297,14 @@ def validate_artifact_ownership() -> None:
             for path in sorted(ownership.CANONICAL)
         ]
         artifacts.append(
-            {"path": "eng/Build.ps1", "ownership": "managed", "classification": "internal", "lifecycle": "source"}
+            {"path": "scripts/Build.ps1", "ownership": "managed", "classification": "internal", "lifecycle": "source"}
         )
         manifest = {"schemaVersion": 1, "feature": "SPC-001", "profiles": ["program-kit"], "artifacts": artifacts}
         path = root / "artifact-ownership.json"
         path.write_text(json.dumps(manifest), encoding="utf-8")
         loaded = ownership.load_manifest(path)
         tasks = root / "tasks.md"
-        tasks.write_text("- [ ] Update `eng/Build.ps1`\n", encoding="utf-8")
+        tasks.write_text("- [ ] Update `scripts/Build.ps1`\n", encoding="utf-8")
         try:
             ownership.validate_tasks(tasks, loaded, None)
         except ValueError as error:
@@ -1399,7 +1401,7 @@ def validate_artifact_ownership() -> None:
             "- **Vertical-slice path**: request to response\n"
             "- **Artifact ownership manifest**: artifact-ownership.json\n"
             "Pack `src/Catalog/Catalog.csproj` with FoundationFeatureIdentity; activate it in "
-            "`shells.json`, configure `hostsettings.json` and `nuplane.settings.json` for application-bundle.zip, run `eng/release_bundle.py stage` for "
+            "`shells.json`, configure `hostsettings.json` and `nuplane.settings.json` for application-bundle.zip, run `scripts/release_bundle.py stage` for "
             "package-closure staging, and publish digest-pinned Orbyss.Foundation.Host evidence to "
             "`artifacts/program-kit/host-image.json`.\n",
             encoding="utf-8",
@@ -1513,7 +1515,7 @@ def validate_artifact_ownership() -> None:
             "- **Vertical-slice path**: request to response\n"
             "- **Artifact ownership manifest**: artifact-ownership.json\n"
             "Pack projects with FoundationFeatureIdentity; activate them in `shells.json`, configure "
-            "`hostsettings.json` and `nuplane.settings.json` for application-bundle.zip, run `eng/release_bundle.py stage` for package-closure staging, "
+            "`hostsettings.json` and `nuplane.settings.json` for application-bundle.zip, run `scripts/release_bundle.py stage` for package-closure staging, "
             "and publish digest-pinned Orbyss.Foundation.Host evidence to `artifacts/program-kit/host-image.json`.\n",
             encoding="utf-8",
         )
@@ -1729,7 +1731,7 @@ def validate_artifact_ownership() -> None:
             },
         }
         contract_path.write_text(json.dumps(contract), encoding="utf-8")
-        tool_manifest = root / "eng/.config/dotnet-tools.json"
+        tool_manifest = root / ".config/dotnet-tools.json"
         tool_manifest.parent.mkdir(parents=True)
         tool_manifest.write_text(
             json.dumps(
@@ -1747,7 +1749,8 @@ def validate_artifact_ownership() -> None:
             encoding="utf-8",
         )
         (root / ".oasdiff-version").write_text("1.29.1\n", encoding="utf-8")
-        (root / "eng/openapi-contracts.json").write_text(
+        (root / "config/program-kit/openapi-contracts.json").parent.mkdir(parents=True, exist_ok=True)
+        (root / "config/program-kit/openapi-contracts.json").write_text(
             json.dumps(
                 {
                     "schemaVersion": 1,

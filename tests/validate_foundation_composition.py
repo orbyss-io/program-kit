@@ -17,7 +17,7 @@ COMMAND_NUMBER = 0
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / 'extensions/program-kit-dotnet/scripts'
 sys.path.insert(0, str(SCRIPTS))
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import foundation_composition as composition
 
 
@@ -85,7 +85,7 @@ def _retirement_checks(root, value):
               root/'src/Retirement.SourceOnly/ApiFeature.cs', root/extras[2]['path']]
     retained = {path for project in extras[:4]
                 for path in (project['path'], str(Path(project['path']).parent/'ApiFeature.cs').replace('\\','/'))}
-    original_state = composition.read(root/'.program-kit/managed.json')
+    original_state = composition.read(root/'config/program-kit/managed.json')
     for path in custom:
         path.write_bytes(path.read_bytes()+b'\n<!-- consumer edit -->\n' if path.suffix=='.csproj'
                          else path.read_bytes()+b'\n// consumer edit\n')
@@ -94,7 +94,7 @@ def _retirement_checks(root, value):
     custom_bytes = {p.relative_to(root).as_posix():p.read_bytes() for p in custom}
     retained_bytes = {path:(root/path).read_bytes() for path in retained | {added_source}}
     sync(root)
-    customized_state = composition.read(root/'.program-kit/managed.json')
+    customized_state = composition.read(root/'config/program-kit/managed.json')
     for path in custom_bytes:
         # Preserving source does not authenticate a consumer's new bytes.
         assert customized_state['files'][path] == original_state['files'][path]
@@ -106,33 +106,33 @@ def _retirement_checks(root, value):
     assert not any(a['path'] in retained for a in preview['actions'])
     assert all((root/path).read_bytes()==content for path,content in custom_bytes.items())
     sync(root)
-    released = composition.read(root/'.program-kit/managed.json')
+    released = composition.read(root/'config/program-kit/managed.json')
     assert all(path not in released['files'] for path in retained)
     assert all((root/path).read_bytes()==content for path,content in retained_bytes.items())
     assert added_source not in released['files']
     assert not (root/extras[4]['path']).exists()
     assert not (root/'src/Retirement.Untouched/ApiFeature.cs').exists()
     resolved = next(iter(composition.read(root/composition.RESOLVED)['hosts'].values()))
-    graph = composition.read(root/'eng/architecture.json')['runtimeComposition']
-    features = composition.read(root/'eng/web-profile.shells.json')['CShells']['Shells']['default']['Features']
+    graph = composition.read(root/'config/program-kit/architecture.json')['runtimeComposition']
+    features = composition.read(root/'config/program-kit/web-profile.shells.json')['CShells']['Shells']['default']['Features']
     for project in extras:
         assert project['packageId'] not in resolved['rootPackages']
         assert (project['path'] in {p['path'] for p in graph['projects']}) == (project in extras[:4])
         assert project['featureIdentity'] not in features
     sync(root, True)
     import importlib.util
-    sys.path.insert(0, str(root/'eng'))
+    sys.path.insert(0, str(root/'scripts'))
     try:
-        spec = importlib.util.spec_from_file_location('retirement_architecture', root/'eng/repository_architecture.py')
+        spec = importlib.util.spec_from_file_location('retirement_architecture', root/'scripts/repository_architecture.py')
         architecture_checker = importlib.util.module_from_spec(spec); spec.loader.exec_module(architecture_checker)
-        architecture_checker.validate_planned(root, composition.read(root/'eng/architecture.json'))
+        architecture_checker.validate_planned(root, composition.read(root/'config/program-kit/architecture.json'))
     finally:
-        sys.path.remove(str(root/'eng'))
+        sys.path.remove(str(root/'scripts'))
     physical = {p.relative_to(root).as_posix() for p in (root/'src').rglob('*.csproj')}
     assert physical <= {p['path'] for p in graph['projects']}
     # A second apply cannot silently forget the released source classification.
     sync(root); sync(root, True)
-    assert composition.read(root/'eng/architecture.json')['runtimeComposition']['projects'] == graph['projects']
+    assert composition.read(root/'config/program-kit/architecture.json')['runtimeComposition']['projects'] == graph['projects']
     assert all((root/path).read_bytes()==content for path,content in retained_bytes.items())
     if ARTIFACT:
         (ARTIFACT/(value['compositionId']+'-retirement.json')).write_bytes(composition.encoded({
@@ -144,7 +144,7 @@ def _retirement_checks(root, value):
 
     # Counterexamples enter the same real retirement loop: neither a managed or
     # configuration source nor unrelated/engineering scaffolds get this exception.
-    state_path = root/'.program-kit/managed.json'; original = state_path.read_bytes()
+    state_path = root/'config/program-kit/managed.json'; original = state_path.read_bytes()
     producer = '../../scripts/foundation_composition.py'
     controls = [('eng/retired-managed.cs','managed','foundation',producer),
                 ('eng/retired-configuration.cs','configuration','foundation',producer),
@@ -191,7 +191,7 @@ def main():
     # them, and add its new import without replacing the consumer's central file.
     from composition_fixture import two_apps, accept_fixture
     accepted_root = ARTIFACT / 'accepted-ownership/consumer'
-    (accepted_root / 'eng').mkdir(parents=True)
+    (accepted_root / 'scripts').mkdir(parents=True)
     accepted_graph = two_apps(ROOT)
     accept_fixture(accepted_root, accepted_graph, ROOT)
     (accepted_root / composition.INPUT).write_bytes(composition.encoded(accepted_graph))
@@ -201,12 +201,12 @@ def main():
     activation.write_bytes(activation_bytes)
     sync(accepted_root)
     assert activation.read_bytes() == activation_bytes
-    native_path = 'eng/ProgramKit.BuildingBlocks.props'
+    native_path = 'config/program-kit/build/ProgramKit.BuildingBlocks.props'
     native_bytes = b'<Project><!-- existing native selection contribution --></Project>\n'
     (accepted_root / native_path).write_bytes(native_bytes)
-    state_path = accepted_root / '.program-kit/managed.json'
+    state_path = accepted_root / 'config/program-kit/managed.json'
     state = composition.read(state_path)
-    state['files'][native_path] = copy.deepcopy(state['files']['eng/ProgramKit.Foundation.props'])
+    state['files'][native_path] = copy.deepcopy(state['files']['config/program-kit/build/ProgramKit.Foundation.props'])
     state_path.write_bytes(composition.encoded(state))
     central_path = accepted_root / 'Directory.Packages.props'
     central = central_path.read_text()
@@ -218,14 +218,14 @@ def main():
     assert native_path not in composition.read(state_path)['files']
     migrated_central = central_path.read_text()
     assert 'consumer-owned central configuration' in migrated_central
-    assert migrated_central.count('<Import Project="eng/ProgramKit.Foundation.props"') == 1
+    assert migrated_central.count('<Import Project="config/program-kit/build/ProgramKit.Foundation.props"') == 1
     sync(accepted_root, True)
     assert activation.read_bytes() == activation_bytes
     observations = []
     for variant in [args.variant] if args.variant else sorted(composition.VARIANTS):
         legacy = composition.read(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions' / (variant + '.json'))
         legacy['theme']['branding'] = {'displayName': 'Qualified Example', 'accentColor': '#0088aa'}
-        root = ARTIFACT / variant / 'consumer'; (root / 'eng').mkdir(parents=True)
+        root = ARTIFACT / variant / 'consumer'; (root / 'scripts').mkdir(parents=True)
         input_path = root / composition.INPUT
         input_path.write_bytes(composition.encoded(legacy))
         rejected_before = input_path.read_bytes()
@@ -267,7 +267,7 @@ def main():
         graph['resources']['application-client']['callbackPath'] = '/callback/custom'
         input_path.write_bytes(composition.encoded(graph)); sync(root); composition.verify_outputs(root)
         assert any('/callback/custom' in item.get('redirectUris', []) [0] for item in composition.read(realm)['clients'] if item.get('redirectUris'))
-        for protected in (root / 'eng/web-profile.shells.json', realm, theme):
+        for protected in (root / 'config/program-kit/web-profile.shells.json', realm, theme):
             original = protected.read_bytes(); protected.write_bytes(original + b'\n')
             try:
                 if protected.name == 'web-profile.shells.json':

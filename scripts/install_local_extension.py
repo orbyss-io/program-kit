@@ -28,7 +28,7 @@ def install(target, source, identity, force=False):
     if os.name == 'nt':
         # Match invoke_specify's existing Windows filesystem adapter: historical
         # profile trees need extended paths during native replacement/removal.
-        sys.path.insert(0, str(release / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+        sys.path.insert(0, str(release / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
         from owned_scratch import filesystem_path
         target, source = Path(filesystem_path(target)), Path(filesystem_path(source))
         if os.environ.get('SPECIFY_INIT_DIR'):

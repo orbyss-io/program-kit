@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import repository_verification as verification
 
 
@@ -23,9 +23,9 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual({'tests/Notes.Tests/Notes.Tests.csproj', 'tests/Other.Tests/Other.Tests.csproj',
                           'tests/Bridge.Tests/Bridge.Tests.csproj'}, {row['project'] for row in result['nativeTestOwners']})
         self.assertIn({'project': 'tests/Notes.Tests/Notes.Tests.csproj',
-            'command': "./eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects 'tests/Notes.Tests/Notes.Tests.csproj'"}, result['nativeTestOwners'])
+            'command': "./scripts/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects 'tests/Notes.Tests/Notes.Tests.csproj'"}, result['nativeTestOwners'])
         self.assertEqual([{'check': 'preservation',
-            'command': "./eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Checks 'preservation'"}], result['toolkitOwners'])
+            'command': "./scripts/Invoke-RepositoryVerification.ps1 -Scope Focused -Checks 'preservation'"}], result['toolkitOwners'])
         self.assertTrue(result['readOnly']); self.assertFalse(result['acceptanceEstablished'])
         actual = subprocess.run([sys.executable, str(Path(verification.__file__)), '--repository', str(self.root), '--list-owners'],
             capture_output=True, text=True, encoding='utf-8', timeout=30)
@@ -41,7 +41,8 @@ class SelectionTests(unittest.TestCase):
         evidence.write_text('{}')
         row = {'id': 'preservation', 'script': 'checks/preservation.py', 'arguments': [],
                'inputs': ['docs/retained.json'], 'timeoutSeconds': 10}
-        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [row]}))
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [row]}))
         return row
 
     def test_named_toolkit_executes_real_python_without_native_sdk_or_native_test_count(self):
@@ -82,7 +83,7 @@ class SelectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'toolkit check failed'):
             verification.execute(self.root, selection, [])
         self.assertEqual({'preservation'}, verification.toolkit_verification.pending(self.root))
-        (self.root/'eng/verification.json').write_text('{"schemaVersion":1}')
+        (self.root/'config/program-kit/verification.json').write_text('{"schemaVersion":1}')
         with self.assertRaisesRegex(ValueError, 'removed failing toolkit'):
             self.select(['src/Notes/Changed.cs'])
         self.toolkit()
@@ -104,18 +105,18 @@ class SelectionTests(unittest.TestCase):
 
     def test_shipped_powershell_toolkit_entrypoint_does_not_prepare_native_sdk(self):
         self.toolkit()
-        engine = ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+        engine = ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
         for path in engine.glob('*'):
             if path.is_file() and path.suffix in {'.py', '.ps1', '.psm1'}:
-                shutil.copyfile(path, self.root/'eng'/path.name)
-        (self.root/'eng/Restore.ps1').write_text('throw "Native SDK preparation must not run for toolkit-only ownership"')
+                shutil.copyfile(path, self.root/'scripts'/path.name)
+        (self.root/'scripts/Restore.ps1').write_text('throw "Native SDK preparation must not run for toolkit-only ownership"')
         environment = os.environ.copy(); environment['SPECKIT_PYTHON'] = sys.executable
-        result = subprocess.run(['pwsh', '-NoLogo', '-NoProfile', '-File', str(self.root/'eng/Invoke-RepositoryVerification.ps1'),
+        result = subprocess.run(['pwsh', '-NoLogo', '-NoProfile', '-File', str(self.root/'scripts/Invoke-RepositoryVerification.ps1'),
                                  '-Scope', 'Focused', '-Checks', 'preservation'], cwd=self.root,
                                 capture_output=True, text=True, env=environment, timeout=60)
         self.assertEqual(0, result.returncode, result.stdout+result.stderr)
         self.assertIn('Named toolkit checks completed', result.stdout)
-        rejected = subprocess.run(['pwsh', '-NoLogo', '-NoProfile', '-File', str(self.root/'eng/Invoke-RepositoryVerification.ps1'),
+        rejected = subprocess.run(['pwsh', '-NoLogo', '-NoProfile', '-File', str(self.root/'scripts/Invoke-RepositoryVerification.ps1'),
                                    '-Scope', 'Acceptance', '-Checks', 'preservation'], cwd=self.root,
                                   capture_output=True, text=True, env=environment, timeout=60)
         self.assertNotEqual(0, rejected.returncode)
@@ -133,7 +134,8 @@ class SelectionTests(unittest.TestCase):
         entries = [{'path': 'docs/application/build-and-run.md', 'ownership': 'scaffold'},
                    {'path': 'eng/known.py', 'ownership': 'managed'}]
         mapping = dotnet_sync.setup_verification_mappings(self.root, entries)
-        (self.root / 'eng/verification.setup.json').write_bytes(mapping)
+        (self.root / 'config/program-kit/verification.setup.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.setup.json').write_bytes(mapping)
         result = self.select(['docs/application/build-and-run.md', 'docs/architecture/compatibility/probe.inputs.json'])
         self.assertEqual(3, len(result['projects']))
         self.assertEqual(['program-kit-shared-setup'], result['inputMappings'])
@@ -151,7 +153,8 @@ class SelectionTests(unittest.TestCase):
         parent['buildProjectReferences'] = [producer]
         path = self.root / parent['path']
         path.write_text(path.read_text().replace('</ItemGroup>', '<ProjectReference Include="../OwnedTool/OwnedTool.csproj" ReferenceOutputAssembly="false" /></ItemGroup>'))
-        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
         return producer, parent
 
     def test_build_only_sources_select_dependent_tests_and_invalidate_their_fingerprints(self):
@@ -163,7 +166,8 @@ class SelectionTests(unittest.TestCase):
         (self.root / 'src/OwnedTool/Owned.cs').write_text('class ChangedOwnedTool {}')
         self.assertNotEqual(before, verification.input_snapshot(self.root, selected['projects'][0], graph, stable_sources=True))
         parent.pop('buildProjectReferences')
-        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
         with self.assertRaisesRegex(ValueError, 'buildProjectReferences differ'):
             self.select(['src/OwnedTool/Owned.cs'])
 
@@ -177,7 +181,8 @@ class SelectionTests(unittest.TestCase):
         for node in build_output_recipe.recipe(self.root, parent['path'], {row['path']: row for row in self.manifest['runtimeComposition']['projects']}):
             source.append(node)
         path.write_bytes(ET.tostring(source))
-        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
         self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], self.select(['src/OwnedTool/Owned.cs'])['projects'])
         snapshot = verification.input_snapshot(self.root, 'tests/Notes.Tests/Notes.Tests.csproj',
                                                 verification.validate_planned(self.root, self.manifest), stable_sources=True)
@@ -222,9 +227,10 @@ class SelectionTests(unittest.TestCase):
             target.parent.mkdir(parents=True)
             edges = ''.join('<ProjectReference Include="' + str(self.root / ref) + '" />' for ref in references)
             target.write_text('<Project><ItemGroup>' + edges + '</ItemGroup></Project>', encoding='utf-8')
-        (self.root / 'eng').mkdir()
+        (self.root / 'scripts').mkdir()
         self.manifest = {'runtimeComposition': {'projects': rows, 'bindings': []}}
-        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
         (self.root / 'global.json').write_text('{"test":{"runner":"Microsoft.Testing.Platform"}}')
         observed = patch.object(verification, 'toolchain_identity', return_value={'dotnet': 'fixture-sdk'})
         observed.start(); self.addCleanup(observed.stop)
@@ -277,13 +283,15 @@ class SelectionTests(unittest.TestCase):
     def test_non_source_inputs_need_explicit_ownership_not_silent_full_fallback(self):
         with self.assertRaisesRegex(ValueError, 'PKV003'):
             self.select(['contracts/notes.json'])
-        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'testGroups': [
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1, 'testGroups': [
             {'id': 'notes-wire', 'projects': ['tests/Notes.Tests/Notes.Tests.csproj'], 'inputs': ['contracts/notes.json']}]}))
         self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], self.select(['contracts/notes.json'])['projects'])
 
     def test_undeclared_project_and_missing_edges_cannot_narrow_silently(self):
         self.manifest['runtimeComposition']['projects'][0].pop('projectReferences')
-        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
         with self.assertRaisesRegex(ValueError, 'evaluated|projectReferences'):
             self.select(['src/Notes/Rename.cs'])
 
@@ -369,8 +377,8 @@ class SelectionTests(unittest.TestCase):
         old = 'tests/Other.Tests/Other.Tests.csproj'
         (self.root/old).unlink()
         self.manifest['runtimeComposition']['projects'] = [r for r in self.manifest['runtimeComposition']['projects'] if r['path'] != old]
-        (self.root/'eng/architecture.json').write_text(json.dumps(self.manifest))
-        (self.root/'eng/verification.json').write_text(json.dumps({'schemaVersion':1,
+        (self.root/'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root/'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion':1,
             'testOwnershipReplacements':[{'predecessor':old, 'successors':successors}]}))
         return old
 
@@ -399,31 +407,34 @@ class SelectionTests(unittest.TestCase):
             relative = f'tests/{name}/{name}.csproj'
             target = self.root / relative; target.parent.mkdir(parents=True); target.write_text('<Project />')
             self.manifest['runtimeComposition']['projects'].append({'path': relative, 'role': 'test', 'projectReferences': []})
-        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps(self.manifest))
         setup = {'schemaVersion': 1, 'owner': 'program-kit-setup', 'testGroups': [
             {'id': 'old-setup', 'projects': [old, 'tests/Bridge.Tests/Bridge.Tests.csproj'], 'inputs': ['docs/setup/**'], 'reuse': False}]}
-        (self.root / 'eng/verification.setup.json').write_text(json.dumps(setup))
+        (self.root / 'config/program-kit/verification.setup.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.setup.json').write_text(json.dumps(setup))
         inputs = {'schemaVersion': 1, 'rules': [
             {'owner': 'reviewed authored rule', 'projects': [old], 'inputs': ['docs/owned/**'], 'checks': ['tooling']},
             {'owner': 'tooling only', 'projects': [], 'inputs': ['docs/testing/**'], 'checks': ['tooling']}]}
-        (self.root / 'eng/verification-inputs.json').write_text(json.dumps(inputs))
+        (self.root / 'config/program-kit/verification-inputs.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification-inputs.json').write_text(json.dumps(inputs))
         tasks = self.root / 'specs/001/tasks.md'; tasks.parent.mkdir(parents=True)
         tasks.write_bytes(b'- [X] T007 Focused prerequisite\r\n- [ ] T009 Behavior\r\n- [ ] T012 Affected\r\n')
         installed = self.root / '.specify/extensions/program-kit-dotnet/scripts/reconciliation.py'
         installed.parent.mkdir(parents=True)
         shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/scripts/reconciliation.py', installed)
-        helper = installed.parents[1] / 'templates/dotnet/files/eng/owned_scratch.py'
+        helper = installed.parents[1] / 'templates/dotnet/files/scripts/owned_scratch.py'
         helper.parent.mkdir(parents=True)
-        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py', helper)
-        state = self.root / '.program-kit/managed.json'; state.parent.mkdir()
-        state.write_text(json.dumps({'schemaVersion': 2, 'files': {'eng/verification.setup.json': {'ownership': 'managed'}}}))
+        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py', helper)
+        state = self.root / 'config/program-kit/managed.json'; state.parent.mkdir(parents=True, exist_ok=True)
+        state.write_text(json.dumps({'schemaVersion': 2, 'files': {'config/program-kit/verification.setup.json': {'ownership': 'managed'}}}))
         retained = {p: p.read_bytes() for p in (archive, lock, history, tasks)}
         return successor, inputs, retained
 
     def test_stale_setup_and_authored_rules_reconcile_through_reviewed_successors(self):
         successor, inputs, retained = self.retirement_reconciliation_fixture()
         before = {relative: (self.root / relative).read_bytes() for relative in
-                  ('eng/verification.setup.json', 'eng/verification-inputs.json')}
+                  ('config/program-kit/verification.setup.json', 'config/program-kit/verification-inputs.json')}
         selection = self.select(['Directory.Build.props', 'docs/setup/guide.md'])
         self.assertEqual(4, len(selection['projects']))
         self.assertIn(successor, selection['projects'])
@@ -435,7 +446,7 @@ class SelectionTests(unittest.TestCase):
             verification.reconcile_ownership(self.root, 'wrong-digest')
         result = verification.reconcile_ownership(self.root, preview['planDigest'])
         self.assertTrue(result['applied'])
-        actual = json.loads((self.root / 'eng/verification-inputs.json').read_text())
+        actual = json.loads((self.root / 'config/program-kit/verification-inputs.json').read_text())
         expected = json.loads(json.dumps(inputs)); expected['rules'][0]['projects'] = [successor]
         self.assertEqual(expected, actual)
         self.assertEqual(4, len(self.select(['Directory.Build.props'])['projects']))
@@ -458,27 +469,29 @@ class SelectionTests(unittest.TestCase):
 
     def test_unknown_authored_owner_cannot_be_ignored_during_reconciliation(self):
         self.retirement_reconciliation_fixture()
-        (self.root / 'eng/verification-inputs.json').write_text(json.dumps({'schemaVersion': 1,
+        (self.root / 'config/program-kit/verification-inputs.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification-inputs.json').write_text(json.dumps({'schemaVersion': 1,
             'rules': [{'projects': ['tests/Unknown/Unknown.csproj'], 'checks': ['tooling']}]}))
         with self.assertRaisesRegex(ValueError, 'unresolved verification owner'):
             verification.reconcile_ownership(self.root)
 
-    def test_after_tasks_compares_broad_obligations_to_actual_shared_input_selection(self):
-        sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
-        import task_draft
-        tasks = {'T007': {}, 'T009': {}, 'T012': {}}
-        content = '''- [ ] T012 Run Affected regression
-## Verification obligations
-| Task | Scope | Baseline | Owners | Inputs |
-|------|-------|----------|--------|--------|
-| T012 | Affected | initial-commit | tests/Notes.Tests/Notes.Tests.csproj | Directory.Build.props |
-## Test materialization map
-| Owner | Producer | Evidence |
-|-------|----------|----------|
-| tests/Notes.Tests/Notes.Tests.csproj | T009 | none |
-'''
-        with self.assertRaisesRegex(ValueError, 'differ from maintained selection.*Bridge.Tests'):
-            task_draft.validate_verification_obligations(content, tasks, {'T012': {'T007', 'T009'}}, self.root)
+    def test_durable_engineering_owners_select_tests_while_disposable_views_do_not(self):
+        (self.root / 'config/program-kit/engineering.json').write_text('{}')
+        for relative in ('config/program-kit/build/Selected.props', 'scripts/native_check.py', 'tools/Exporter/Program.cs'):
+            with self.subTest(relative=relative):
+                result = self.select([relative, 'eng/inputs.json'])
+                self.assertEqual(3, len(result['projects']))
+                self.assertNotIn('eng/inputs.json', result['changedInputs'])
+        with self.assertRaisesRegex(ValueError, 'no changed durable inputs'):
+            self.select(['eng/inputs.json'])
+        self.successful_run()
+        output = self.root / 'eng/inputs.json'; output.parent.mkdir()
+        output.write_text('first generated view')
+        self.assertEqual([], self.current_plan()['needed'])
+        output.write_text('regenerated view')
+        self.assertEqual([], self.current_plan()['needed'])
+        helper = self.root / 'scripts/native_check.py'; helper.write_text('changed native check')
+        self.assertTrue(self.current_plan()['needed'])
 
     def test_replaced_failure_cannot_be_repaid_by_cached_or_filtered_success(self):
         successor = 'tests/Notes.Tests/Notes.Tests.csproj'
@@ -528,7 +541,7 @@ class SelectionTests(unittest.TestCase):
         self.successful_run(self.focused(notes))
         self.assertEqual([], verification.unresolved_failures(self.root))
         config = {'schemaVersion':1, 'testOwnershipReplacements':[{'predecessor':old,'successors':[notes,bridge]}]}
-        (self.root/'eng/verification.json').write_text(json.dumps(config))
+        (self.root/'config/program-kit/verification.json').write_text(json.dumps(config))
         row = verification.unresolved_failures(self.root)[0]
         self.assertEqual([bridge, notes], row['pendingSuccessors'])
 
@@ -536,7 +549,7 @@ class SelectionTests(unittest.TestCase):
         notes = 'tests/Notes.Tests/Notes.Tests.csproj'
         old = self.replace_test_owner([notes])
         intermediate = 'tests/Previous.Tests/Previous.Tests.csproj'
-        (self.root/'eng/verification.json').write_text(json.dumps({'schemaVersion':1,'testOwnershipReplacements':[
+        (self.root/'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion':1,'testOwnershipReplacements':[
             {'predecessor':old,'successors':[intermediate]}, {'predecessor':intermediate,'successors':[notes]}]}))
         self.failed_history(old)
         self.assertEqual([notes], self.select([old])['projects'])
@@ -557,7 +570,7 @@ class SelectionTests(unittest.TestCase):
         ]
         for replacements in rows:
             with self.subTest(replacements=replacements):
-                (self.root/'eng/verification.json').write_text(json.dumps({'schemaVersion':1,
+                (self.root/'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion':1,
                     'testOwnershipReplacements':replacements}))
                 with self.assertRaisesRegex(ValueError, 'PKV003'):
                     self.focused()
@@ -574,14 +587,25 @@ class SelectionTests(unittest.TestCase):
 
     def test_generated_policy_imports_work_without_ignoring_nested_project_edges(self):
         source = ROOT/'extensions/program-kit-dotnet/templates/dotnet/files'
-        for name in ('Directory.Build.props','Directory.Build.targets','eng/ProgramKit.Build.props','eng/ProgramKit.Build.targets'):
+        for name in ('Directory.Build.props','Directory.Build.targets','config/program-kit/build/ProgramKit.Build.props','config/program-kit/build/ProgramKit.Build.targets'):
+            (self.root/name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source/name, self.root/name)
         result = self.select(['src/Notes/Rename.cs'])
         self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], result['projects'])
-        imported = self.root/'eng/ProgramKit.Build.props'
+        imported = self.root/'config/program-kit/build/ProgramKit.Build.props'
         imported.write_text(imported.read_text().replace('</Project>',
             '<ItemGroup><ProjectReference Include="../src/Other/Other.csproj" /></ItemGroup></Project>'))
         with self.assertRaisesRegex(ValueError, 'evaluated graph'):
+            self.select(['src/Notes/Rename.cs'])
+
+    def test_regeneration_target_is_closed_to_arbitrary_exec_commands(self):
+        source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
+        for name in ('Directory.Build.targets', 'config/program-kit/build/ProgramKit.Build.targets'):
+            (self.root / name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source / name, self.root / name)
+        target = self.root / 'config/program-kit/build/ProgramKit.Build.targets'
+        target.write_text(target.read_text().replace('/scripts/regenerate_eng.py', '/scripts/arbitrary.py'))
+        with self.assertRaisesRegex(ValueError, 'regeneration target differs'):
             self.select(['src/Notes/Rename.cs'])
 
     def test_current_success_is_reused_without_build_or_fabricated_receipt(self):
@@ -626,7 +650,8 @@ class SelectionTests(unittest.TestCase):
         self.assertTrue(self.current_plan()['needed'])
 
     def test_declared_non_source_environment_and_generated_inputs_invalidate(self):
-        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1,
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1,
             'environmentInputs': ['NOTES_PROVIDER_MODE'], 'testGroups': [
             {'projects': ['tests/Notes.Tests/Notes.Tests.csproj'], 'inputs': ['contracts/**', 'artifacts/generated/**']}]}))
         contract = self.root / 'contracts/notes.json'; contract.parent.mkdir(); contract.write_text('one')
@@ -685,10 +710,10 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual([], self.current_plan()['unresolved'])
 
     def test_literal_import_item_inputs_tracked_and_dynamic_build_inputs_fail_closed(self):
-        imported = self.root / 'eng/Shared.props'
+        imported = self.root / 'scripts/Shared.props'
         imported.write_text('<Project><ItemGroup><AdditionalFiles Include="../contracts/input.json"/></ItemGroup></Project>')
         contract = self.root / 'contracts/input.json'; contract.parent.mkdir(); contract.write_text('one')
-        (self.root / 'Directory.Build.props').write_text('<Project><Import Project="eng/Shared.props"/></Project>')
+        (self.root / 'Directory.Build.props').write_text('<Project><Import Project="scripts/Shared.props"/></Project>')
         self.successful_run()
         contract.write_text('two'); self.assertTrue(self.current_plan()['needed'])
         imported.write_text('<Project><ItemGroup><Compile Include="$(Unknown)/input.cs"/></ItemGroup></Project>')
@@ -732,15 +757,18 @@ class SelectionTests(unittest.TestCase):
     def test_optional_literal_missing_import_materialization_invalidates_and_real_template_plans(self):
         source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
         for name in ('Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props',
-                     'eng/ProgramKit.Build.props', 'eng/ProgramKit.Build.targets', 'eng/ProgramKit.Packages.props'):
+                     'config/program-kit/build/ProgramKit.Build.props', 'config/program-kit/build/ProgramKit.Build.targets', 'config/program-kit/build/ProgramKit.Packages.props'):
+            (self.root / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source / name, self.root / name)
         self.successful_run()
         self.assertEqual([], self.current_plan()['needed'])
-        (self.root / 'eng/ProgramKit.Persistence.props').write_text('<Project/>')
+        (self.root / 'config/program-kit/build/ProgramKit.Persistence.props').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/build/ProgramKit.Persistence.props').write_text('<Project/>')
         self.assertTrue(self.current_plan()['needed'])
 
     def test_secret_environment_declarations_are_rejected_without_snapshotting_values(self):
-        (self.root / 'eng/verification.json').write_text('{"schemaVersion":1,"environmentInputs":["API_KEY"]}')
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text('{"schemaVersion":1,"environmentInputs":["API_KEY"]}')
         with patch.dict(os.environ, {'API_KEY': 'should-never-appear'}):
             with self.assertRaisesRegex(ValueError, 'credentials cannot be snapshotted'):
                 self.current_plan()
@@ -758,7 +786,8 @@ class SelectionTests(unittest.TestCase):
             self.current_plan(arguments=['--settings=../outside.runsettings'])
 
     def test_provider_checks_default_to_no_reuse_when_external_state_declared(self):
-        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'testGroups': [
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1, 'testGroups': [
             {'projects': ['tests/Notes.Tests/Notes.Tests.csproj'], 'inputs': ['fixtures/**'], 'externalState': True}]}))
         self.successful_run()
         self.assertIn('mutable external/provider', self.current_plan()['needed'][0]['reason'])
@@ -771,7 +800,8 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(3, len(self.select(['.config/dotnet-tools.json'])['projects']))
         for value in ({'runnerReuse': 'false'}, {'testGroups': [{'reuse': 'false'}]},
                       {'testGroups': [{'externalState': 'false'}]}):
-            (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, **value}))
+            (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+            (self.root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1, **value}))
             with self.assertRaisesRegex(ValueError, 'boolean'):
                 self.current_plan()
 
@@ -852,8 +882,9 @@ class SelectionTests(unittest.TestCase):
             verification.execute(self.root, self.focused(), [], force=True)
 
     def test_runner_adapter_reports_real_count_evidence_and_core_keeps_orchestration(self):
-        (self.root / 'eng/verification.json').write_text('{"schemaVersion":1,"runner":"adapter"}')
-        adapter = self.root / 'eng/verification-runner.py'
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text('{"schemaVersion":1,"runner":"adapter"}')
+        adapter = self.root / 'scripts/verification-runner.py'
         adapter.write_text('import sys,json\nfrom pathlib import Path\n'
             'request=json.loads(Path(sys.argv[sys.argv.index("--request")+1]).read_text())\n'
             'out=Path(request["outputDirectory"])/"provider.log"\nout.write_text("actual fixture test executed")\n'

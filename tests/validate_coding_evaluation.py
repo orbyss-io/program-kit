@@ -35,10 +35,11 @@ class EvaluationTests(unittest.TestCase):
         (self.root / 'review.md').write_text('Scoped fictional review: inspect ownership, effects and source style. No human acceptance claim.')
         (self.root / 'check.py').write_text('print("Independent executed finite check")\n')
         (self.root / 'Owner.cs').write_text('internal sealed class Owner {}\n')
-        (self.root / 'eng').mkdir()
+        (self.root / 'scripts').mkdir()
         self.config = {'schemaVersion': 1, 'toolkitChecks': [{'id': 'proof', 'script': 'check.py', 'arguments': [],
                        'inputs': ['check.py'], 'timeoutSeconds': 5}]}
-        (self.root / 'eng/verification.json').write_text(json.dumps(self.config))
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps(self.config))
         self.rows = toolkit.declarations(self.root, self.config)
         self.execute()
         self.value = {'scope': {'taskIds': ['T001']}, 'inputs': [coding.source(self.root, self.feature / 'tasks.md'), coding.source(self.root, self.root / 'Owner.cs')],
@@ -439,7 +440,8 @@ class EvaluationTests(unittest.TestCase):
             'else: raise AssertionError("identity-invariant-bypass")\n'
             'print("configured-boundary-invalid-default-consumers-and-fixed-invariant-passed")\n')
         self.config['toolkitChecks'][0]['inputs'] = ['check.py', 'caption.py', 'application.py', 'settings.json']
-        (self.root / 'eng/verification.json').write_text(json.dumps(self.config))
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps(self.config))
         self.rows = toolkit.declarations(self.root, self.config)
         self.execute()  # A successful process precedes each intended behavioral negative.
         self.limits_context()

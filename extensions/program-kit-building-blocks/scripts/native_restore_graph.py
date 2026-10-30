@@ -6,6 +6,7 @@ NuGet metadata target; consumer overrides/hooks for restore targets are refused.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -14,8 +15,8 @@ import subprocess
 import uuid
 import xml.etree.ElementTree as ET
 
-CONFIG = 'eng/restore-graph.json'
-IGNORED = {'.git', '.specify', '.program-kit', 'artifacts', 'bin', 'obj', 'node_modules'}
+CONFIG = 'config/program-kit/restore-graph.json'
+IGNORED = {'.git', '.specify', '.program-kit', 'eng', 'artifacts', 'bin', 'obj', 'node_modules'}
 
 
 def require(value, message):
@@ -25,6 +26,30 @@ def require(value, message):
 
 def sha(value):
     return hashlib.sha256(value).hexdigest()
+
+
+def native_lock_document(value):
+    """Admit the native v1/v2 shape; never treat arbitrary JSON as restore output."""
+    if (not isinstance(value, dict) or set(value) != {'version', 'dependencies'}
+            or type(value['version']) is not int or value['version'] not in (1, 2)
+            or not isinstance(value['dependencies'], dict)):
+        return False
+    for framework, packages in value['dependencies'].items():
+        if not isinstance(framework, str) or not framework or not isinstance(packages, dict):
+            return False
+        for name, package in packages.items():
+            if (not isinstance(name, str) or not name or not isinstance(package, dict)
+                    or package.get('type') not in {'Direct', 'Transitive', 'CentralTransitive', 'Project'}
+                    or set(package) - {'type', 'requested', 'resolved', 'contentHash', 'dependencies'}):
+                return False
+            if any(not isinstance(package[key], str) for key in ('requested', 'resolved', 'contentHash') if key in package):
+                return False
+            if package['type'] != 'Project' and (not package.get('resolved') or not re.fullmatch(r'[A-Za-z0-9+/]{86}==', package.get('contentHash', ''))):
+                return False
+            dependencies = package.get('dependencies', {})
+            if not isinstance(dependencies, dict) or not all(isinstance(k, str) and k and isinstance(v, str) and v for k, v in dependencies.items()):
+                return False
+    return True
 
 
 def local(root, value, base=None, project=False):
@@ -75,7 +100,7 @@ def evaluate(root, inventory, environment):
     result = {'status': 'running', 'steps': steps, 'acceptanceEstablished': False}
     try:
         protected, historical_roots = set(), []
-        if (root/'eng/retained-inputs.json').is_file():
+        if (root/'config/program-kit/retained-inputs.json').is_file():
             import dotnet_adapter
             dotnet_adapter.bootstrap()
             import retained_inputs
@@ -91,13 +116,15 @@ def evaluate(root, inventory, environment):
                 continue
             require(len(observed) < 256, 'native project graph exceeds its finite owner budget')
             project = root/relative
-            properties = 'TargetFramework,TargetFrameworks,ProjectAssetsFile,RestoreOutputPath,MSBuildProjectExtensionsPath,NuGetLockFilePath,MSBuildToolsPath'
-            common = ['msbuild', str(project), '-nologo', '-v:quiet', '-p:Configuration='+config['configuration'], '-p:RestorePackagesWithLockFile=true']
+            properties = 'TargetFramework,TargetFrameworks,ProjectAssetsFile,RestoreOutputPath,MSBuildProjectExtensionsPath,NuGetLockFilePath,MSBuildToolsPath,ProgramKitReadOnlyRestoreGraph'
+            common = ['msbuild', str(project), '-nologo', '-v:quiet', '-p:Configuration='+config['configuration'], '-p:RestorePackagesWithLockFile=true', '-p:ProgramKitReadOnlyRestoreGraph=true']
             expanded = directory/f'project-{len(observed)}.xml'
             run([*common, '-preprocess:'+str(expanded)])
             require(expanded.stat().st_size <= 16_777_216, 'native expanded input exceeds its finite budget')
             sources[relative] = sha(expanded.read_bytes())
             value = json.loads(run([*common, '-getProperty:'+properties, '-getItem:ProjectReference']))
+            require(value['Properties']['ProgramKitReadOnlyRestoreGraph'] == 'true',
+                    'native project changed the read-only restore-graph context')
             # Preprocessing and item/property queries execute no MSBuild targets.
             # Inspect actual imported sources before the native metadata target;
             # inactive examples elsewhere in the repository grant no execution.
@@ -121,8 +148,17 @@ def evaluate(root, inventory, environment):
                 raw = path.read_bytes(); source_inputs[path] = sha(raw)
                 require(not re.search(rb'Restore(?:ForceEvaluate|LockedMode)', raw, re.I),
                         'mode-dependent native restore policy needs a separate admitted adapter: ' + str(path))
-                for target in ET.fromstring(raw).iter():
+                tree = ET.fromstring(raw)
+                bootstrap = set()
+                if relative_import.as_posix() == 'config/program-kit/build/ProgramKit.Build.targets':
+                    source = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/scripts/regenerate_eng.py'
+                    spec = importlib.util.spec_from_file_location('restore_graph_bootstrap', source)
+                    helper = importlib.util.module_from_spec(spec); spec.loader.exec_module(helper)
+                    bootstrap = helper.native_bootstrap_nodes(tree)
+                for target in tree.iter():
                     if target.tag.rsplit('}', 1)[-1] == 'Target':
+                        if id(target) in bootstrap:
+                            continue  # Exact maintained hook is disabled by the checked global context.
                         hooks = ' '.join(target.get(field, '') for field in ('Name', 'BeforeTargets', 'AfterTargets'))
                         require('restore' not in hooks.lower(), 'consumer restore-target override/hook needs a separate admitted adapter: ' + str(path))
             variants = [value]
@@ -161,6 +197,7 @@ def evaluate(root, inventory, environment):
         run(['msbuild', str(solution), '-nologo', '-v:quiet', '-t:GenerateRestoreGraphFile',
              '-p:Configuration='+config['configuration'], '-p:RestoreGraphOutputPath='+str(graph_path),
              '-p:RestorePackagesWithLockFile=true',
+             '-p:ProgramKitReadOnlyRestoreGraph=true',
              '-p:RestoreConfigFile='+str(root/'NuGet.config')])
         require(graph_path.stat().st_size <= 16_777_216, 'native restore graph exceeds its finite budget')
         raw = graph_path.read_bytes(); data = json.loads(raw)
@@ -183,7 +220,8 @@ def evaluate(root, inventory, environment):
             for destination in outputs[relative].values():
                 parts = Path(destination).parts
                 require(not {'.git', '.specify', '.program-kit', 'node_modules'} & set(parts)
-                        and parts[0] not in {'docs', 'specs'} and destination not in protected
+                        and parts[0] not in {'docs', 'specs', 'eng'} and destination not in protected
+                        and tuple(part.casefold() for part in parts[:2]) != ('config', 'program-kit')
                         and not any(destination.startswith(prefix+'/') for prefix in historical_roots),
                         'native restore output would overwrite retained/foreign ownership: ' + destination)
             require(Path(outputs[relative]['lock']).suffix.lower() == '.json', 'native lock output must remain a JSON lock file')
@@ -191,7 +229,7 @@ def evaluate(root, inventory, environment):
             if existing_lock.is_file():
                 require(existing_lock.stat().st_size <= 16_777_216, 'native lock input exceeds its finite budget')
                 previous = json.loads(existing_lock.read_text(encoding='utf-8-sig'))
-                require(isinstance(previous, dict) and previous.get('version') == 1 and isinstance(previous.get('dependencies'), dict),
+                require(native_lock_document(previous),
                         'native lock destination is not an existing NuGet lock; preserve foreign bytes: ' + outputs[relative]['lock'])
             expected_lock, expected_output, expected_assets = evaluated_outputs[relative]
             require(outputs[relative] == {'lock': expected_lock, 'assets': expected_assets} and output == expected_output,
@@ -200,7 +238,7 @@ def evaluate(root, inventory, environment):
         for relative in sorted(observed):
             expanded = directory/'after.xml'
             run(['msbuild', str(root/relative), '-nologo', '-v:quiet', '-p:Configuration='+config['configuration'],
-                 '-p:RestorePackagesWithLockFile=true', '-preprocess:'+str(expanded)])
+                 '-p:RestorePackagesWithLockFile=true', '-p:ProgramKitReadOnlyRestoreGraph=true', '-preprocess:'+str(expanded)])
             require(sha(expanded.read_bytes()) == sources[relative], 'evaluated imports changed during native restore ownership inspection')
         require(all(sha(path.read_bytes()) == expected for path, expected in source_inputs.items()),
                 'native build inputs changed during graph inspection')

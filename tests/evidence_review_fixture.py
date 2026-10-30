@@ -38,7 +38,7 @@ def write(path, value):
 def projects(work, catalog):
     foundation = catalog['families']['foundation']['releaseVersion']
     shared = blocks.effective_dependency_context(ROOT)['sharedAbi']['pins']
-    persistence = ET.parse(TEMPLATE / 'eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props')
+    persistence = ET.parse(TEMPLATE / 'config/program-kit/build/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props')
     pins = {row.get('Include'): row.get('Version') for row in persistence.iter('PackageVersion')}
     packages = {
         'Core': {},
@@ -165,8 +165,8 @@ def main():
             result['browserCache'] = environment.get('PLAYWRIGHT_BROWSERS_PATH', 'operator default cache')
             generator = args.client_tools_root / 'generator/node_modules/openapi-typescript'
             compiler = args.client_tools_root / 'compiler/node_modules/typescript'
-            selected_generator = blocks.load_json(TEMPLATE / 'eng/openapi-defaults.json')['typescriptGenerator']
-            selected_compiler = blocks.load_json(TEMPLATE.parent / 'web-profiles/common/eng/web/package.json')['devDependencies']['typescript']
+            selected_generator = blocks.load_json(TEMPLATE / 'scripts/openapi-defaults.json')['typescriptGenerator']
+            selected_compiler = blocks.load_json(TEMPLATE.parent / 'web-profiles/common/tools/program-kit/web/package.json')['devDependencies']['typescript']
             if blocks.load_json(generator / 'package.json')['version'] != selected_generator['version'] or blocks.load_json(compiler / 'package.json')['version'] != selected_compiler:
                 raise ValueError('Prepared native generator/compiler differs from selected inputs')
             result['clientTools'] = {'generator':selected_generator,'typescript':selected_compiler}

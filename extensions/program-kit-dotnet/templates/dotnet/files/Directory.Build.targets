@@ -1,4 +1,4 @@
 <Project>
-  <Import Project="eng/ProgramKit.Build.targets" />
+  <Import Project="config/program-kit/build/ProgramKit.Build.targets" />
   <!-- Consumer-owned targets belong here, after the Program Kit import. -->
 </Project>

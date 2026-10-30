@@ -116,7 +116,7 @@ def main() -> int:
     args = parser.parse_args()
     root = Path(args.target).resolve()
     destination = root / ".specify" / "scripts" / "python" / "sitecustomize.py"
-    record_path = root / '.program-kit/core-utf8-transformation.json'
+    record_path = root / 'config/program-kit/core-utf8-transformation.json'
     desired = CONTENT.replace("\r\n", "\n")
     current = destination.read_text(encoding="utf-8") if destination.is_file() else None
     try:

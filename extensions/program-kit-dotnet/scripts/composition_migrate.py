@@ -27,8 +27,8 @@ def preview(root, proposal=None):
         converted = model.from_legacy(value, root)
         source_hash = hashlib.sha256(original).hexdigest()
     observations = {}
-    for relative in ('docs/architecture/building-block-selection.json', 'eng/architecture.json', '.program-kit/managed.json',
-                     '.program-kit/dependency-profile.json', '.program-kit/sync/receipt.json'):
+    for relative in ('docs/architecture/building-block-selection.json', 'config/program-kit/architecture.json', 'config/program-kit/managed.json',
+                     'config/program-kit/dependency-profile.json', '.program-kit/sync/receipt.json'):
         path = root / relative
         if path.is_file():
             observations[relative] = hashlib.sha256(path.read_bytes()).hexdigest()

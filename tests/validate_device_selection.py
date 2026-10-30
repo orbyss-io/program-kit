@@ -10,7 +10,7 @@ from unittest.mock import patch
 from owned_fixture import FixtureDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import device_toolchain as policy
 
 

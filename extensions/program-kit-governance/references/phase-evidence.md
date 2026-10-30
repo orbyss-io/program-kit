@@ -35,7 +35,7 @@ failure. Report native Analyze findings before a separate authorized correction;
 read-only.
 
 Use normal compiler, analyzer, architecture, security and behavior checks for selected work. For a
-chosen .NET route, optional `eng/Invoke-RepositoryVerification.ps1 -Scope Focused` and `-Scope Affected`
+chosen .NET route, optional `scripts/Invoke-RepositoryVerification.ps1 -Scope Focused` and `-Scope Affected`
 retain their real scope, prerequisites and failure behavior. Document actual project/filter/commands;
 a bare wrapper cannot establish coverage. The native commands remain runnable without extensions
 or governance history. Do not replace supported framework, SDK or dependency contracts with prose.

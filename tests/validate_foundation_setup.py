@@ -19,7 +19,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
 sys.path.insert(0, str(ENG))
 from owned_scratch import filesystem_path
 EVIDENCE = Path(filesystem_path(ROOT / 'artifacts/tests/foundation-setup-validator' / os.urandom(8).hex()))
@@ -46,7 +46,7 @@ class Readiness(unittest.TestCase):
     def setUp(self):
         self.root = EVIDENCE / self.id().rsplit('.', 1)[-1]
         self.root.mkdir(parents=True)
-        (self.root / 'eng').mkdir()
+        (self.root / 'scripts').mkdir()
         (self.root / 'src').mkdir()
         (self.root / 'src/product.cs').write_text('// App owns semantic cases\n', encoding='utf-8')
         (self.root / 'eng/selected-profile.json').write_text('{"profile":"exact-candidate"}', encoding='utf-8')
@@ -119,7 +119,7 @@ class Readiness(unittest.TestCase):
         self.assertEqual(hashlib.sha256(packed).hexdigest(),row['sha256'])
         metadata=json.loads(json.loads(packed)['facts']['orbyss-foundation/settings.json'])
         contract={'contracts':[{'packageId':row['id'],'version':row['version'],'metadata':metadata}]}
-        path=self.root/'eng/foundation-settings.contract.json'
+        path=self.root/'config/program-kit/foundation-settings.contract.json'
         path.write_text(json.dumps(contract),encoding='utf-8')
         return {'contractSha256':hashlib.sha256(path.read_bytes()).hexdigest(),'packages':{row['id']:row['version']}},contract
 
@@ -132,7 +132,7 @@ class Readiness(unittest.TestCase):
             for owner in contract['contracts'][0]['metadata']['contracts']:
                 for setting in owner['settings']:
                     if setting['path'].endswith(':AllowFollowing'): setting['default']=default
-            path=self.root/'eng/foundation-settings.contract.json'; path.write_text(json.dumps(contract))
+            path=self.root/'config/program-kit/foundation-settings.contract.json'; path.write_text(json.dumps(contract))
             selected['contractSha256']=hashlib.sha256(path.read_bytes()).hexdigest()
             self.assertTrue(qualification.crawler_following_support(self.root,selected)['supported'])
         selected['packages']['Orbyss.Foundation.WebDefaults']='0.3.1'
@@ -140,7 +140,7 @@ class Readiness(unittest.TestCase):
         selected,contract=self.selected_response_contract('0.3.1')
         selected['developmentCandidate']={'status':'development-candidate'}
         self.assertFalse(qualification.crawler_following_support(self.root,selected)['supported'])
-        (self.root/'eng/foundation-settings.contract.json').write_text(json.dumps(contract)+' ')
+        (self.root/'config/program-kit/foundation-settings.contract.json').write_text(json.dumps(contract)+' ')
         with self.assertRaisesRegex(ValueError,'contract bytes changed'): qualification.crawler_following_support(self.root,selected)
 
     def test_private_resource_adapter_rejects_missing_headers_on_retained_read(self):
@@ -644,8 +644,8 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
                     'identity-configure', 'identity-create', 'identity-import', 'identity-copy-verify', 'identity-start', 'completed')
         observed = []
         for failure in failures:
-            root = self.root/failure; root.mkdir(); (root/'eng/foundation-qualification-support').mkdir(parents=True)
-            (root/'eng/foundation-qualification-support/QualificationFeature.cs').write_text('__DEPENDENCIES__')
+            root = self.root/failure; root.mkdir(); (root/'tools/program-kit/foundation-qualification-support').mkdir(parents=True)
+            (root/'tools/program-kit/foundation-qualification-support/QualificationFeature.cs').write_text('__DEPENDENCIES__')
             (root/'runtime/packages').mkdir(parents=True)
             (root/'runtime/shells.json').write_text(json.dumps({'CShells': {'Shells': {'default': {'Features': {}, 'Configuration': {'Foundation': {'Web': {}}}}}}}))
             (root/'deploy/keycloak/owned-authority/themes').mkdir(parents=True)

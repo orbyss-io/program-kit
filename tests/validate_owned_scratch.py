@@ -13,7 +13,7 @@ import subprocess
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import owned_scratch as scratch
@@ -64,7 +64,7 @@ class OwnedScratchTests(unittest.TestCase):
         blocks.atomic_write_bytes(ordinary, b'current profile', 'profile-capture')
         self.assertEqual(b'current profile', target.read_bytes())
         self.assertFalse(list(target.parent.glob('.pkb-*.tmp')))
-        lock = Path(scratch.native_path(deep / '.program-kit/dependency-lock.json'))
+        lock = Path(scratch.native_path(deep / 'config/program-kit/dependency-lock.json'))
         original_lock = {'schemaVersion': 1, 'fixture': 'original'}
         blocks.commit_transaction(Path(scratch.native_path(deep)), [(ordinary, 'current profile')], lock, original_lock)
         with patch.dict(os.environ, {'PROGRAMKIT_TEST_BUILDING_BLOCK_FAIL_AFTER_ACTION': '1'}):
@@ -273,7 +273,7 @@ class OwnedScratchTests(unittest.TestCase):
             with self.assertRaisesRegex(OSError, 'Injected reconciliation interruption'):
                 reconciliation.apply_plan(self.root, [{**actions[0], 'content': b'changed bytes'}], b'{"version":2}')
         self.assertEqual(b'original desired bytes', output.read_bytes())
-        self.assertEqual(b'{"version":1}', (self.root / '.program-kit/managed.json').read_bytes())
+        self.assertEqual(b'{"version":1}', (self.root / 'config/program-kit/managed.json').read_bytes())
         # Tempfile's outer cleanup must use extended paths for this deliberate
         # deep fixture too; production cleanup stays transaction-owned.
         shutil.rmtree(scratch.filesystem_path(self.root / 'deploy'))

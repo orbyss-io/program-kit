@@ -15,7 +15,7 @@ import uuid
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 sys.modules.setdefault('foundation_process', importlib.import_module('compatibility_process'))
 import foundation_fixture
@@ -46,9 +46,9 @@ def main():
         step('Select managed npm')
         preparation = shlex.split(step('Prepare selected typed frontends')['run'])
         verification = shlex.split(step('Run repository verification gate')['run'])
-        if preparation != ['python', 'eng/prepare_hosted_pages.py', '--repository', '.', '--restore']:
+        if preparation != ['python', 'scripts/prepare_hosted_pages.py', '--repository', '.', '--restore']:
             raise ValueError('Unknown emitted frontend preparation command')
-        if verification != ['./eng/Invoke-RepositoryVerification.ps1', '-Mode', 'CI']:
+        if verification != ['./scripts/Invoke-RepositoryVerification.ps1', '-Mode', 'CI']:
             raise ValueError('Unknown emitted CI verification command')
         device_python = os.environ.get('PROGRAMKIT_DEVICE_PYTHON') or sys.executable
         commands = [([device_python, *preparation[1:]], 'frontend'),

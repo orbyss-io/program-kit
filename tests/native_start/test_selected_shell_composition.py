@@ -5,7 +5,7 @@ import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import shell_composition
 import runtime_closure
 import release_bundle
@@ -23,11 +23,11 @@ class SelectedShellCompositionTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.write('shells.json', shell('default', {}))
-        self.write('eng/web-profile.shells.json', shell('default', {'Authentication.BffCookie': {}}, {'Web': {'ClientId': 'selected-client'}}))
+        self.write('config/program-kit/web-profile.shells.json', shell('default', {'Authentication.BffCookie': {}}, {'Web': {'ClientId': 'selected-client'}}))
         self.write('docs/architecture/building-block-selection.json', {
             'status': 'Accepted', 'targets': [{'kind': 'cshell-shell', 'path': 'runtime/app/shells.json', 'shell': 'app'}]})
         self.write('runtime/app/shells.json', shell('app', {'Policies.Api': {}}, {'Web': {'ClientId': 'consumer-client'}}))
-        self.write('runtime/app/eng/building-blocks.shells.json', shell('app', {'HostedPages': {}}))
+        self.write('runtime/app/config/program-kit/building-blocks.shells.json', shell('app', {'HostedPages': {}}))
 
     def write(self, path, value):
         target = self.root / path
@@ -76,7 +76,7 @@ class SelectedShellCompositionTests(unittest.TestCase):
     def test_native_freshness_tracks_nested_consumer_and_generated_source(self):
         paths = {item['file'] for item in runtime_closure.source_configuration(self.root)}
         self.assertIn('runtime/app/shells.json', paths)
-        self.assertIn('runtime/app/eng/building-blocks.shells.json', paths)
+        self.assertIn('runtime/app/config/program-kit/building-blocks.shells.json', paths)
         self.assertIn('docs/architecture/building-block-selection.json', paths)
 
     def test_composed_stage_is_not_recomposed_with_raw_default_profile(self):
@@ -84,9 +84,9 @@ class SelectedShellCompositionTests(unittest.TestCase):
         # that raw profile activates an absent BFF package and must stay dormant.
         stage = self.root / 'artifacts/stage'
         stage.mkdir(parents=True)
-        (stage / 'eng').mkdir()
+        (stage / 'config/program-kit').mkdir(parents=True)
         (stage / 'shells.json').write_text(json.dumps(shell('app', {})), encoding='utf-8')
-        (stage / 'eng/web-profile.shells.json').write_text(json.dumps(shell('default', {'Authentication.BffCookie': {}})), encoding='utf-8')
+        (stage / 'config/program-kit/web-profile.shells.json').write_text(json.dumps(shell('default', {'Authentication.BffCookie': {}})), encoding='utf-8')
         release_bundle.validate_feature_closure(stage / 'shells.json', {}, composed=True)
 
     def test_composed_stage_still_rejects_missing_actual_feature(self):

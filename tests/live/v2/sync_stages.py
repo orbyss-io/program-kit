@@ -162,11 +162,11 @@ def issue(args: argparse.Namespace) -> int:
 def prompt(root: Path, phase: str) -> str:
     tasks = {
         'feature-intake': 'Invoke the installed feature-intake/grilling command for RM01. Prepare the review from PROJECT_REQUEST.md. Record unresolved questions honestly. Stop for the human; never create confirmation.json, a spec or a feature branch.',
-        'feature-planning': 'Invoke installed speckit specify for the confirmed RM01 brief, including its required hooks and clarification. Start speckit plan and its before_plan hook. Prepare the exact npm candidate manifest. For package network needs write .program-kit/sync/package-requests.json with candidateManifest (repository-relative path) and metadata (array of package/version exact pins). Stop before network resolution and plan acceptance. The supervisor will execute the installed tools.',
+        'feature-planning': 'Invoke installed speckit specify for the confirmed RM01 brief, including its required hooks and clarification. Start speckit plan and its before_plan hook. Prepare the exact npm candidate manifest. For package network needs write config/program-kit/sync/package-requests.json with candidateManifest (repository-relative path) and metadata (array of package/version exact pins). Stop before network resolution and plan acceptance. The supervisor will execute the installed tools.',
         'feature-plan-tasks': 'Continue the actual installed speckit plan flow using the supervisor package evidence; run all after_plan hooks. Run speckit tasks including analyze and mandatory after_tasks hooks. Do not implement application code. Finish with current implementation preflight evidence.',
-        'feature-setup': 'Start the actual installed speckit implement flow through its preflight. Create only RM01 plan-owned package/project skeletons. Invoke governance sync implementation-setup, or the installed baseline mechanism if that coordinator is absent. Emit request-renew for .program-kit/sync/dependencies.json (or the baseline building-block lock). Stop before restore; the supervisor owns package access. Do not implement application logic yet.',
+        'feature-setup': 'Start the actual installed speckit implement flow through its preflight. Create only RM01 plan-owned package/project skeletons. Invoke governance sync implementation-setup, or the installed baseline mechanism if that coordinator is absent. Emit request-renew for config/program-kit/sync/dependencies.json (or the baseline building-block lock). Stop before restore; the supervisor owns package access. Do not implement application logic yet.',
         'feature-delivery': 'Continue actual installed speckit implement from the restored setup checkpoint. Complete RM01, its tests and all lifecycle hooks. Use exact installed runtimes. Do not broaden scope to RM02. Report the implementation and available functional evidence; do not claim that your own final message is independent acceptance.',
-        'upgrade-consumer': 'The supervisor has upgraded this baseline consumer with the candidate release. Read the upgrade report, use the public repository sync mechanism, and check continuation readiness for the existing RM01. If graph or metadata evidence is stale, prepare .program-kit/sync/package-requests.json with candidateManifest and exact metadata package/version entries for supervisor resolution. Emit a renew restore request only if package verification is stale. Preserve consumer source/configuration edits and RM02 deferrals. Do not create another feature or publish anything.',
+        'upgrade-consumer': 'The supervisor has upgraded this baseline consumer with the candidate release. Read the upgrade report, use the public repository sync mechanism, and check continuation readiness for the existing RM01. If graph or metadata evidence is stale, prepare config/program-kit/sync/package-requests.json with candidateManifest and exact metadata package/version entries for supervisor resolution. Emit a renew restore request only if package verification is stale. Preserve consumer source/configuration edits and RM02 deferrals. Do not create another feature or publish anything.',
         'upgrade-continuation': 'Continue the existing RM01 after its real human-reviewed governance handoff. Use installed phase-context, plan/tasks and implementation hooks to resolve the reported affected obligations. Preserve the specification/canonical identities, consumer edits and V1 behavior. Run the required independent verification and delivery gates. Do not recreate the feature, invent approvals, or publish anything.',
     }
     return (tasks[phase] + '\n\nThis is one disposable live acceptance stage. Never start another coding agent, '
@@ -278,7 +278,7 @@ def run(args: argparse.Namespace) -> int:
         atomic_write_json(toolchain_path, toolchain)
     if phase in {'feature-delivery', 'upgrade-continuation'}:
         restore = project / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
-        lock = '.program-kit/sync/dependencies.json' if (project / '.program-kit/sync/dependencies.json').is_file() else 'eng/building-blocks.lock.json'
+        lock = 'config/program-kit/sync/dependencies.json' if (project / 'config/program-kit/sync/dependencies.json').is_file() else 'config/program-kit/building-blocks.lock.json'
         operation([sys.executable, str(restore), 'request-locked', '--target', str(project), '--lock', lock], 'checkpoint-request-locked')
         operation([sys.executable, str(restore), 'locked', '--target', str(project), '--lock', lock, '--approved'], 'checkpoint-restore-locked', registry=True)
     preserved = {}
@@ -301,7 +301,7 @@ def run(args: argparse.Namespace) -> int:
     protected = {relative:sha256_file(project / relative) for relative in (
         'docs/architecture/bootstrap-decisions.json', '.specify/governance/bootstrap-approval.json',
         '.specify/governance/bootstrap-assessment-approval.json', '.specify/memory/constitution-ratification.json',
-        '.program-kit/specification-intake/RM01/confirmation.json') if (project / relative).is_file()}
+        'config/program-kit/specification-intake/RM01/confirmation.json') if (project / relative).is_file()}
     reference = parent.get('kind') == reference_baseline.KIND
     reference_approvals = approval_inventory(project) if reference else None
     consumption = consume_authorization(authorization_path, authorization, store.authorizations / 'consumed')
@@ -371,7 +371,7 @@ def run(args: argparse.Namespace) -> int:
 def approval_inventory(project: Path):
     names = ['.specify/memory/constitution-ratification.json',
              '.specify/governance/bootstrap-approval.json', '.specify/governance/bootstrap-assessment-approval.json']
-    names += [p.relative_to(project).as_posix() for p in (project / '.program-kit/specification-intake').glob('*/confirmation.json')]
+    names += [p.relative_to(project).as_posix() for p in (project / 'config/program-kit/specification-intake').glob('*/confirmation.json')]
     return {name: sha256_file(project / name) for name in names if (project / name).is_file()}
 
 
@@ -380,7 +380,7 @@ def reference_stage_checks(root, project, run_root, operation, environment):
     from .lending_host import verify
     governance = project / '.specify/extensions/program-kit-governance/scripts'
     restore = project / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
-    lock = '.program-kit/sync/dependencies.json'
+    lock = 'config/program-kit/sync/dependencies.json'
     request_path = project / 'artifacts/program-kit/building-block-restore-request.json'
     request = load_object(request_path) if request_path.is_file() else {}
     module = cli._load_restore_module(restore)
@@ -413,7 +413,7 @@ def reference_stage_checks(root, project, run_root, operation, environment):
 
 def independent_stage_checks(project: Path, phase: str, case: str, operation) -> None:
     governance = project / '.specify/extensions/program-kit-governance/scripts'
-    intake = project / '.program-kit/specification-intake/RM01'
+    intake = project / 'config/program-kit/specification-intake/RM01'
     if phase == 'feature-intake':
         if (intake / 'confirmation.json').exists():
             raise LiveContractError('LIVE_SYNC_WORKER_FABRICATED_HUMAN_CONFIRMATION')
@@ -422,7 +422,7 @@ def independent_stage_checks(project: Path, phase: str, case: str, operation) ->
     pointer = load_object(project / '.specify/feature.json')
     feature = project / safe_relative(pointer['feature_directory'])
     operation([sys.executable, str(governance / 'specification_intake.py'), '--repository', str(project), 'check-spec', '--spec', str(feature / 'spec.md')], 'check-confirmed-spec')
-    package_request = project / '.program-kit/sync/package-requests.json'
+    package_request = project / 'config/program-kit/sync/package-requests.json'
     if phase == 'feature-planning' or (phase == 'upgrade-consumer' and package_request.is_file()):
         request = load_object(package_request)
         candidate = project / safe_relative(request['candidateManifest'])
@@ -448,7 +448,7 @@ def independent_stage_checks(project: Path, phase: str, case: str, operation) ->
         restore = project / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
         request_path = project / 'artifacts/program-kit/building-block-restore-request.json'
         request = load_object(request_path) if request_path.is_file() else {}
-        lock = str(safe_relative(request['lock'])) if request else '.program-kit/sync/dependencies.json'
+        lock = str(safe_relative(request['lock'])) if request else 'config/program-kit/sync/dependencies.json'
         request_arguments = ['--request', str(request_path.relative_to(project))] if '--request' in restore.read_text(encoding='utf-8') else []
         if phase == 'feature-setup' or request.get('mode') == 'renew':
             from . import cli
@@ -466,7 +466,7 @@ def independent_stage_checks(project: Path, phase: str, case: str, operation) ->
                    '--phase', 'implementation', '--feature-dir', str(feature)], 'implementation-readiness')
     if phase in {'feature-delivery','upgrade-consumer'}:
         from . import cli
-        runtime_path = project / 'eng/js_toolchain.py'
+        runtime_path = project / 'scripts/js_toolchain.py'
         runtime = cli._load_restore_module(runtime_path)
         toolchain = load_object(project / 'artifacts/program-kit/toolchain.json')
         dotnet = toolchain.get('commands', {}).get('dotnet')
@@ -536,7 +536,7 @@ def confirm_intake(args: argparse.Namespace) -> int:
     project = root / safe_relative(manifest['workspace'])
     if file_inventory(project) != parent['files']:
         raise LiveContractError('LIVE_SYNC_INTAKE_WORKSPACE_CHANGED: regenerate a reviewed checkpoint before confirming')
-    review = load_object(project / '.program-kit/specification-intake/RM01/review-basis.json')
+    review = load_object(project / 'config/program-kit/specification-intake/RM01/review-basis.json')
     if args.review_sha256 != review['reviewHash']:
         raise LiveContractError('LIVE_SYNC_INTAKE_REVIEW_MISMATCH')
     tool = project / '.specify/extensions/program-kit-governance/scripts/specification_intake.py'

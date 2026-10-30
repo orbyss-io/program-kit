@@ -295,7 +295,7 @@ def retain_attempt_inputs(root, paths, attempt):
               'files': files, 'originalAliases': attempt['originals'],
               'scope': 'Exact original canonical updater inputs and absences; no application acceptance, local repair or public origin is established.'}
     raw = encoded(record); address = sha(raw)
-    relative_record = '.program-kit/installation/attempt-inputs/sha256/' + address + '/record.json'
+    relative_record = 'config/program-kit/installation/attempt-inputs/sha256/' + address + '/record.json'
     path = contained(root, relative_record)
     binding = {'record': relative_record, 'sha256': address}
     if path.parent.exists():
@@ -325,7 +325,7 @@ def verify_attempt_inputs(root, binding, original_aliases=None):
     require(isinstance(binding, dict) and set(binding) == {'record', 'sha256'}
             and isinstance(binding['sha256'], str) and re.fullmatch('[a-f0-9]{64}', binding['sha256']),
             'original canonical attempt input binding is required; do not backfill legacy history')
-    require(binding['record'] == '.program-kit/installation/attempt-inputs/sha256/' + binding['sha256'] + '/record.json',
+    require(binding['record'] == 'config/program-kit/installation/attempt-inputs/sha256/' + binding['sha256'] + '/record.json',
             'canonical attempt input record must use its original exact address')
     path = contained(root, binding['record'])
     require(path.is_file() and path.stat().st_size <= 8 * 1_048_576 and sha(path.read_bytes()) == binding['sha256'],

@@ -64,17 +64,18 @@ def validate(instance: object, schema: dict, path: str = "$") -> None:
 
 
 def main() -> int:
-    producer = load_module(TEMPLATE / "eng/release_bundle.py")
+    producer = load_module(TEMPLATE / "scripts/release_bundle.py")
     schema = json.loads(
-        (TEMPLATE / "eng/application-bundle.schema.json").read_text(encoding="utf-8")
+        (TEMPLATE / "scripts/application-bundle.schema.json").read_text(encoding="utf-8")
     )
     with tempfile.TemporaryDirectory(prefix="program-kit-runnable-schema-") as value:
         root = Path(value)
         repository = root / "consumer"
         staged = repository / "artifacts/staged"
         repository.mkdir()
-        (repository / "eng").mkdir()
-        (repository / "eng/application-handoff.json").write_text(json.dumps({"schemaVersion": 1, "applicationId": "example.schema"}), encoding="utf-8")
+        (repository / "scripts").mkdir()
+        (repository / "config/program-kit/application-handoff.json").parent.mkdir(parents=True, exist_ok=True)
+        (repository / "config/program-kit/application-handoff.json").write_text(json.dumps({"schemaVersion": 1, "applicationId": "example.schema"}), encoding="utf-8")
         staged.mkdir(parents=True)
         (repository / "VERSION").write_text("1.0.0\n", encoding="utf-8")
         (staged / "hostsettings.json").write_text('{"Nuplane": {}}\n', encoding="utf-8")
@@ -100,7 +101,7 @@ def main() -> int:
         os.environ["GITHUB_SHA"] = "a" * 40
         try:
             for profile_shells in (None, {"CShells": {"Shells": {"default": {"Features": {}}}}}):
-                profile_path = staged / "eng/web-profile.shells.json"
+                profile_path = staged / "config/program-kit/web-profile.shells.json"
                 if profile_shells is None:
                     profile_path.unlink(missing_ok=True)
                 else:
@@ -123,7 +124,7 @@ def main() -> int:
                 )
                 validate(json.loads(output.read_text(encoding="utf-8")), schema)
                 closure_schema = json.loads(
-                    (TEMPLATE / "eng/runtime-closure.schema.json").read_text(encoding="utf-8")
+                    (TEMPLATE / "scripts/runtime-closure.schema.json").read_text(encoding="utf-8")
                 )
                 validate(json.loads(closure_path.read_text(encoding="utf-8")), closure_schema)
         finally:

@@ -32,7 +32,7 @@ def main():
     evidence = ROOT/'artifacts/application-lifecycle'/uuid.uuid4().hex
     evidence.mkdir(parents=True)
     catalog = blocks.new_project_catalog()
-    shared = ET.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props')
+    shared = ET.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Packages.props')
     shared_pins = {row.get('Include'): row.get('Version') for row in shared.iter('PackageVersion')}
     versions = {name: catalog['packages']['nuget:' + name]['version'] for name in
                 ('Orbyss.Foundation.Tasks', 'Orbyss.Foundation.DomainEvents')}

@@ -45,7 +45,7 @@ class PersistenceTests(unittest.TestCase):
         run()
         central = self.root / 'Directory.Packages.props'
         old = b'<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup></Project>\n'
-        managed = self.root / '.program-kit/managed.json'
+        managed = self.root / 'config/program-kit/managed.json'
         original_state = json.loads(managed.read_text())
         for customized in (False, True):
             state = copy.deepcopy(original_state)
@@ -71,7 +71,7 @@ class PersistenceTests(unittest.TestCase):
                    '--building-block-sources-approved', '--web-profile', 'none']
         result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-        tools = json.loads((self.root / 'eng/.config/dotnet-tools.json').read_text())['tools']
+        tools = json.loads((self.root / '.config/dotnet-tools.json').read_text())['tools']
         self.assertEqual(persistence.pins(selection, TEMPLATE)['Microsoft.EntityFrameworkCore.Design'], tools['dotnet-ef']['version'])
 
     def setUp(self):
@@ -111,7 +111,7 @@ class PersistenceTests(unittest.TestCase):
             for phase in ('bootstrap', 'planning', 'implementation-setup'):
                 context = sync.context(self.root, phase, None)
                 self.assertEqual('ef-postgresql', context['persistenceProfile'])
-                self.assertFalse((self.root / '.program-kit').exists())
+                self.assertFalse((self.root / 'config/program-kit').exists())
 
     def test_unassigned_legacy_intent_remains_proposed_and_blocks_admission(self):
         self.write('docs/architecture/bootstrap-decisions.json', {'selected_profiles': ['dotnet', 'ef-postgresql']})
@@ -139,12 +139,12 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(26, sum(len(item['blockers']) for item in report['deferredPersistenceAdmissions']))
         self.assertTrue(sync.readiness(self.root, 'implementation')['blockers'])
         self.assertEqual(before, (self.root / 'docs/architecture/bootstrap-decisions.json').read_bytes())
-        self.assertFalse((self.root / '.program-kit/managed.json').exists())
+        self.assertFalse((self.root / 'config/program-kit/managed.json').exists())
 
     def test_upgrade_validates_installed_admission_even_with_an_unrelated_active_feature(self):
         owner = self.owner()
         selected = self.select(owner)
-        self.write('.program-kit/managed.json', {'persistenceOwners': selected['owners'], 'persistenceProfile': 'ef-postgresql'})
+        self.write('config/program-kit/managed.json', {'persistenceOwners': selected['owners'], 'persistenceProfile': 'ef-postgresql'})
         self.write('.specify/feature.json', {'feature_directory': 'specs/unrelated'})
         self.write('specs/unrelated/artifact-ownership.json', {'persistenceOwners': []})
         # The proof disappeared after installation. Active-feature scoping must not hide it.
@@ -167,7 +167,7 @@ class PersistenceTests(unittest.TestCase):
         owner['admission']['atomicity'] = ['missing.md']
         self.assertTrue(persistence.upgrade_scope(self.root, self.select(owner))['blockers'])
         previous = self.owner()
-        self.write('.program-kit/managed.json', {'persistenceOwners': [previous], 'persistenceProfile': 'ef-postgresql'})
+        self.write('config/program-kit/managed.json', {'persistenceOwners': [previous], 'persistenceProfile': 'ef-postgresql'})
         owner = self.owner(profile='ef-sqlite', admitted=False)
         selection = persistence.upgrade_scope(self.root, self.select(owner))
         self.assertTrue(any('migration authority' in error for error in selection['blockers']))
@@ -206,9 +206,9 @@ class PersistenceTests(unittest.TestCase):
         self.assertTrue(persistence.resolve(self.root)['blockers'])
         self.select(first, self.owner('FutureReporting'))
         selection = persistence.resolve(self.root, 'specs/001-reserve')
-        shutil.copytree(TEMPLATE / 'eng', self.root / 'eng')
+        shutil.copytree(TEMPLATE / 'scripts', self.root / 'scripts')
         (self.root / persistence.AGGREGATE).write_bytes(persistence.render(selection, TEMPLATE))
-        (self.root / 'Directory.Packages.props').write_text('<Project><Import Project="eng/ProgramKit.Persistence.props" /></Project>')
+        (self.root / 'Directory.Packages.props').write_text('<Project><Import Project="config/program-kit/build/ProgramKit.Persistence.props" /></Project>')
         errors = persistence.coherence(self.root, selection, TEMPLATE, materialized=True)
         self.assertTrue(any('Reservations' in error for error in errors))
         self.assertFalse(any('FutureReporting' in error for error in errors))
@@ -223,7 +223,7 @@ class PersistenceTests(unittest.TestCase):
         selection = persistence.resolve(self.root, 'specs/002-change')
         self.assertEqual([], selection['blockers'])
         self.assertEqual('ef-sqlite', selection['summary'])
-        self.write('.program-kit/managed.json', {'persistenceProfile': 'ef-sqlite', 'persistenceOwners': selection['owners']})
+        self.write('config/program-kit/managed.json', {'persistenceProfile': 'ef-sqlite', 'persistenceOwners': selection['owners']})
         self.assertEqual('ef-sqlite', persistence.resolve(self.root)['summary'])
         self.assertEqual(before, (self.root / 'docs/architecture/bootstrap-decisions.json').read_bytes())
         (self.root / 'docs/architecture/persistence.md').write_text('Status: Proposed\nUnaccepted transition')
@@ -267,13 +267,13 @@ class PersistenceTests(unittest.TestCase):
 
     def test_upgrade_preserves_installed_owner_without_new_choice(self):
         selection = self.select(self.owner(profile='ef-sqlite'))
-        self.write('.program-kit/managed.json', {'persistenceProfile': 'ef-sqlite', 'persistenceOwners': selection['owners']})
+        self.write('config/program-kit/managed.json', {'persistenceProfile': 'ef-sqlite', 'persistenceOwners': selection['owners']})
         self.write('docs/architecture/bootstrap-decisions.json', {'selected_profiles': ['dotnet']})
         self.assertEqual('ef-sqlite', sync.context(self.root, 'upgrade', None)['persistenceProfile'])
 
     def test_unapproved_switch_or_removal_keeps_installed_pins(self):
         original = self.select(self.owner(profile='ef-sqlite'))
-        self.write('.program-kit/managed.json', {'persistenceProfile': 'ef-sqlite', 'persistenceOwners': original['owners']})
+        self.write('config/program-kit/managed.json', {'persistenceProfile': 'ef-sqlite', 'persistenceOwners': original['owners']})
         for owners in ([self.owner()], []):
             changed = self.select(*owners)
             self.assertTrue(changed['blockers'])
@@ -283,12 +283,12 @@ class PersistenceTests(unittest.TestCase):
 
     def test_coherence_rejects_missing_import_duplicate_pin_and_unowned_override(self):
         selection = self.select(self.owner())
-        shutil.copytree(TEMPLATE / 'eng', self.root / 'eng')
+        shutil.copytree(TEMPLATE / 'scripts', self.root / 'scripts')
         (self.root / persistence.AGGREGATE).write_bytes(persistence.render(selection, TEMPLATE))
         central = self.root / 'Directory.Packages.props'
         central.write_text('<Project />')
         self.assertTrue(any('central pin' in e for e in persistence.coherence(self.root, selection, TEMPLATE)))
-        central.write_text('<Project><Import Project="eng/ProgramKit.Persistence.props" /></Project>')
+        central.write_text('<Project><Import Project="config/program-kit/build/ProgramKit.Persistence.props" /></Project>')
         self.assertEqual([], persistence.coherence(self.root, selection, TEMPLATE))
         self.assertTrue(any('create owned' in e for e in persistence.coherence(self.root, selection, TEMPLATE, materialized=True)))
         owner = selection['owners'][0]

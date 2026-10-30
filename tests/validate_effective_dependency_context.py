@@ -140,7 +140,7 @@ class EffectiveContextTests(unittest.TestCase):
         record = pickup.apply(self.root, contract_path.relative_to(self.root).as_posix(), 'host-current', plan['planDigest'])
         self.assertTrue(all(path.read_bytes() == payload for path, payload in before.items()))
         current = json.loads((self.root / plan['newRecipe']).with_suffix('.contract.json').read_text())
-        self.assertEqual((self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py').read_bytes(),
+        self.assertEqual((self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py').read_bytes(),
                          (self.root / current['fixtures']['owned_scratch.py']).read_bytes())
         self.assertEqual([], pickup.stale_inputs(self.root, current))
         parameters = json.loads((self.root / current['fixtures']['runtime-inputs.json']).read_text())
@@ -179,7 +179,7 @@ class EffectiveContextTests(unittest.TestCase):
         catalog = blocks.new_project_catalog(identity)
         entry = blocks.load_json(blocks.profile_registry() / 'index.json')['profiles'][identity]
         record = {'profile': identity, 'catalogResolutionSha256': blocks.catalog_resolution_sha256(catalog), 'entrySha256': blocks.canonical_sha256(entry)}
-        write_json(self.root / '.program-kit/managed.json', {'newProjectDependencyProfile': record})
+        write_json(self.root / 'config/program-kit/managed.json', {'newProjectDependencyProfile': record})
         value = providers.project(self.root, self.decisions, require_selection=False)
         self.assertEqual('0.2.4', value['managed_baseline_evidence']['releaseVersion'])
         engineering = load_module(ROOT / 'extensions/program-kit-dotnet/scripts/dependency_profile.py')
@@ -193,7 +193,7 @@ class EffectiveContextTests(unittest.TestCase):
         self.assertEqual(runtime['managed_host']['version'], pin_authority['artifacts'][HOST])
         self.assertEqual('qualified-exact-profile', runtime['managed_host']['catalogKind'])
         record['entrySha256'] = 'f' * 64
-        write_json(self.root / '.program-kit/managed.json', {'newProjectDependencyProfile': record})
+        write_json(self.root / 'config/program-kit/managed.json', {'newProjectDependencyProfile': record})
         with self.assertRaisesRegex(ValueError, 'scaffold authority changed'):
             blocks.effective_dependency_context(self.root)
 
@@ -205,12 +205,12 @@ class EffectiveContextTests(unittest.TestCase):
         accepted = self.blocks.effective_dependency_context(self.root)
         for key in ('catalog', 'profile', 'sharedAbi', 'resolutionSha256'):
             self.assertEqual(draft[key], accepted[key])
-        tool_manifest = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json').read_text())
+        tool_manifest = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.config/dotnet-tools.json').read_text())
         self.assertEqual(tool_manifest['tools']['orbyss.foundation.openapi.exporter']['version'],
                          catalog['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'])
         self.assertEqual('0.2.1', catalog['families']['forms']['releaseVersion'])
         # An upgraded installation with an uncaptured historical selection keeps its exact base.
-        (self.root / '.program-kit/dependency-profile.json').unlink()
+        (self.root / 'config/program-kit/dependency-profile.json').unlink()
         selected['catalog'] = self.blocks.catalog_binding(self.blocks.load_json(CATALOG))
         write_json(self.selection, selected)
         self.assertEqual('0.2.2', self.blocks.effective_dependency_context(self.root)['catalog']['packages'][HOST]['version'])
@@ -264,12 +264,12 @@ class EffectiveContextTests(unittest.TestCase):
             'reading_policy': {'allowed_sources': []}, 'evidence_index': {}}
         evidence = {'artifacts': []}
         paths = bootstrap_context.bind_projected_sources(self.root, payload, evidence)
-        self.assertIn('.program-kit/dependency-profile.json', paths)
+        self.assertIn('config/program-kit/dependency-profile.json', paths)
         self.assertTrue(any(path.endswith('engineering-contracts.json') for path in paths))
 
     def test_corrupt_or_mixed_authority_never_falls_back(self):
         self.selected()
-        record_path = self.root / '.program-kit/dependency-profile.json'
+        record_path = self.root / 'config/program-kit/dependency-profile.json'
         record = json.loads(record_path.read_text())
         record['resolutionSha256'] = 'f' * 64; write_json(record_path, record)
         with self.assertRaisesRegex(ValueError, 'PKB111'):
@@ -281,7 +281,7 @@ class EffectiveContextTests(unittest.TestCase):
         registry = self.blocks.profile_registry()
         index = self.blocks.load_json(registry / 'index.json')
         entry = index['profiles'][identity]
-        record_path = self.root / '.program-kit/dependency-profile.json'
+        record_path = self.root / 'config/program-kit/dependency-profile.json'
         record = self.blocks.load_json(record_path)
         record['newProjectQualification'] = {'profile': identity, 'entrySha256': self.blocks.canonical_sha256(entry)}
         write_json(record_path, record)
@@ -310,7 +310,7 @@ class EffectiveContextTests(unittest.TestCase):
         release, registry, entry, record, _ = self.upgrade_context_fixture()
         paths = [registry / 'index.json', registry / entry['path'], registry / entry['evidence']['path'],
                  self.root / record['catalogPath'], self.root / record['profilePath'],
-                 self.root / '.program-kit/dependency-profile.json']
+                 self.root / 'config/program-kit/dependency-profile.json']
         for path in paths:
             original = path.read_bytes()
             for corrupt in (None, b'{}'):
@@ -345,7 +345,7 @@ class EffectiveContextTests(unittest.TestCase):
 
     def test_qualification_and_shared_abi_conflicts_are_not_other_profiles(self):
         catalog = self.selected()
-        record_path = self.root / '.program-kit/dependency-profile.json'
+        record_path = self.root / 'config/program-kit/dependency-profile.json'
         record = json.loads(record_path.read_text())
         identity = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
         entry = self.blocks.load_json(self.blocks.profile_registry() / 'index.json')['profiles'][identity]
@@ -412,7 +412,7 @@ class EffectiveContextTests(unittest.TestCase):
                     if expected: self.assertEqual(expected, ref.get('Version'))
                 self.assertEqual('false', next(ET.parse(project).iter('RestoreEnablePackagePruning')).text)
             helper = scratch / 'owned_scratch.py'
-            self.assertEqual((self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py').read_bytes(), helper.read_bytes())
+            self.assertEqual((self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files/scripts/owned_scratch.py').read_bytes(), helper.read_bytes())
             loaded = subprocess.run([sys.executable, '-c',
                 'from pathlib import Path; import runtime_probe; assert runtime_probe.io_path(Path.cwd()).is_dir()'],
                 cwd=native_path(scratch), capture_output=True, text=True, timeout=20)

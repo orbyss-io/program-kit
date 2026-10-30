@@ -280,7 +280,7 @@ identity in the existing plan/tasks and the engineering composition configuratio
 No artifact-ownership runtimeComposition dossier is required. Endpoint implementations never reference
 persistence providers merely to make the external host aware of both packages. List every active owned
 capability binding; its Core and implementation projects are distinct, and composition is not an
-implementation role. Validate `eng/architecture.json` with `repository_architecture.py --planned`
+implementation role. Validate `config/program-kit/architecture.json` with `repository_architecture.py --planned`
 after-plan/after-tasks and before affected implementation. Real shell activation/resolution/lifetime
 tests must prove registration behavior; method existence alone cannot prove correct DI wiring.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
@@ -289,12 +289,12 @@ and dynamic endpoint refresh when those CShells capabilities are used.
 
 <!-- program-kit:knowledge-rule principle.openapi-producer-client-closure -->
 For an externally consumed OpenAPI surface, register a consumer-owned contract in
-`eng/openapi-contracts.json` before implementation readiness. The contract names the shell and
+`config/program-kit/openapi-contracts.json` before implementation readiness. The contract names the shell and
 every route-contributing feature, uses its shell's unique declared host `runtimeStage` plus `/packages`
 as its package closure (legacy consumers use `artifacts/release-bundle/packages`), and pins
 the managed `Orbyss.Foundation.OpenApi.Exporter` and oasdiff versions. Start an empty registry with
-`eng/openapi_init.py`; these managed tools are adopted baseline choices, not a new consumer
-ADR. `eng/Build.ps1` then composes those feature packages
+`scripts/openapi_init.py`; these managed tools are adopted baseline choices, not a new consumer
+ADR. `scripts/Build.ps1` then composes those feature packages
 without opening a listener or running shell initializers, normalizes and compatibility-checks the result,
 runs the separately locked client generator, and finally compiles the application's own TypeScript graph.
 The exporter tool is restored only when the registry is non-empty; its dependencies are not added to feature

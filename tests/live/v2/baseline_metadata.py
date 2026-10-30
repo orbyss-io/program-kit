@@ -24,7 +24,7 @@ def main():
     evidence = (repository / args.evidence).resolve()
     if not evidence.is_relative_to(repository):
         raise ValueError('Metadata evidence must stay inside the disposable consumer')
-    source = repository / 'eng/js_toolchain.py'
+    source = repository / 'scripts/js_toolchain.py'
     spec = importlib.util.spec_from_file_location('baseline_installed_runtime', source)
     runtime = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runtime)

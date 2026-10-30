@@ -22,7 +22,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
-TOOL = TEMPLATE / 'files/eng/label_validation.py'
+TOOL = TEMPLATE / 'files/scripts/label_validation.py'
 spec = importlib.util.spec_from_file_location('label_validation', TOOL)
 labels = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(labels)
@@ -106,18 +106,18 @@ def unit_checks():
             assert 'duplicate JSON property' in str(error)
         else:
             raise AssertionError('Duplicate artifact property accepted')
-    schema = json.loads((TEMPLATE / 'files/eng/label-validation.schema.json').read_text())
+    schema = json.loads((TEMPLATE / 'files/scripts/label-validation.schema.json').read_text())
     assert schema['$defs']['rule']['properties']['trimCodeUnits']['const'] == labels.TRIM_CODE_UNITS
     assert schema['$defs']['rule']['properties']['normalizationOrder']['const'] == labels.ORDER
     manifest = json.loads((TEMPLATE / 'managed-files.json').read_text())
-    assert {'eng/label_validation.py', 'eng/label-validation.schema.json'} <= {row['path'] for row in manifest['files']}
+    assert {'scripts/label_validation.py', 'scripts/label-validation.schema.json'} <= {row['path'] for row in manifest['files']}
     return {'invalidDescriptorCases': len(mutations), 'duplicateArtifactCases': len(duplicate_artifacts),
         'generatedStalenessRejected': True, 'ownedIdentityPreservation': True, 'ownConstructorSupported': True,
         'managedMaterialization': True}
 
 
 def toolchain(workspace: Path, prepared: Path | None, engines: list[str]) -> Path:
-    package = json.loads((TEMPLATE / 'web-profiles/common/eng/web/package.json').read_text())
+    package = json.loads((TEMPLATE / 'web-profiles/common/tools/program-kit/web/package.json').read_text())
     pins = {name: package['devDependencies'][name] for name in ('@playwright/test', 'typescript')}
     expected_node = (TEMPLATE / 'files/.nvmrc').read_text().strip().removeprefix('v')
     assert run(['node', '--version']).strip().removeprefix('v') == expected_node, 'Node differs from the selected native pin'

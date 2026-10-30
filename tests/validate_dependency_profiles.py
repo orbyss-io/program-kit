@@ -307,18 +307,18 @@ class ProfileTests(unittest.TestCase):
                         fixture.select(fixture.owner(profile=persistence))
                     result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
                     self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-                    managed_path = root / '.program-kit/managed.json'
+                    managed_path = root / 'config/program-kit/managed.json'
                     managed = blocks.load_json(managed_path)
                     registry=blocks.profile_registry()
                     default=blocks.load_json(registry/'index.json')['default']
                     self.assertEqual(default, managed['newProjectDependencyProfile']['profile'])
-                    manifest = root / 'eng/.config/dotnet-tools.json'
+                    manifest = root / '.config/dotnet-tools.json'
                     _,selected=blocks.qualified_dependency_profile(registry,default,blocks.load_json(fixtures.CATALOG))
                     self.assertEqual(selected['artifacts']['nuget:Orbyss.Foundation.OpenApi.Exporter'], blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
                     from xml.etree import ElementTree as ET
                     contracts=blocks.load_json(registry/'engineering-contracts.json')['releases']
                     shared=contracts[selected['families']['foundation']['releaseVersion']]['pins']
-                    props=root/'eng/ProgramKit.Packages.props'
+                    props=root/'config/program-kit/build/ProgramKit.Packages.props'
                     pins={node.get('Include'):node.get('Version') for node in ET.parse(props).iter('PackageVersion')}
                     self.assertTrue(all(pins[name]==value for name,value in shared.items()))
                     # Model the same scaffold captured by 0.12.6. Sync must use its
@@ -436,7 +436,7 @@ class ProfileTests(unittest.TestCase):
             for check in (False, True):
                 result = subprocess.run(command + (['--check'] if check else []), capture_output=True, text=True, encoding='utf-8')
                 self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-            managed = blocks.load_json(root / '.program-kit/managed.json')
+            managed = blocks.load_json(root / 'config/program-kit/managed.json')
             captured = managed['newProjectDependencyProfile']
             from validate_local_upgrade import load_updater
             upgrade_pins = load_updater().building_block_versions(ROOT, root)
@@ -451,11 +451,11 @@ class ProfileTests(unittest.TestCase):
             with patch.object(blocks, 'profile_registry', return_value=registry):
                 blocks.draft_qualified_selection(root, selection, blocks.load_json(fixtures.CATALOG), [])
             self.assertEqual(captured['catalogResolutionSha256'], blocks.load_json(selection)['catalog']['resolutionSha256'])
-            self.assertEqual(captured['profile'], blocks.load_json(root / '.program-kit/dependency-profile.json')['newProjectQualification']['profile'])
+            self.assertEqual(captured['profile'], blocks.load_json(root / 'config/program-kit/dependency-profile.json')['newProjectQualification']['profile'])
 
     def producer_fixture(self, root, catalog):
         relative = 'contracts/openapi/catalog.contract.json'
-        fixtures.write_json(root / 'eng/openapi-contracts.json', {'schemaVersion': 1, 'contracts': [relative]})
+        fixtures.write_json(root / 'config/program-kit/openapi-contracts.json', {'schemaVersion': 1, 'contracts': [relative]})
         fixtures.write_json(root / relative, {'producer': {'kind': profiles.producers.PRODUCER_KIND,
             'version': catalog['packages'][profiles.producers.EXPORTER_KEY]['version']}})
         fixtures.write_json(root / 'specs/SPC-001/artifact-ownership.json', {'artifacts': [{'path': relative}]})
@@ -579,7 +579,7 @@ class ProfileTests(unittest.TestCase):
                 profiles.accept(root, destination, registry, 'profile-review', 'Reviewed qualified profile')
             for target, data in before.items(): self.assertEqual(data, target.read_bytes())
             self.assertEqual(original, (root / relative).read_bytes())
-            self.assertFalse((root / '.program-kit/dependency-profile.json').exists())
+            self.assertFalse((root / 'config/program-kit/dependency-profile.json').exists())
             profiles.accept(root, destination, registry, 'profile-review', 'Reviewed qualified profile')
 
     def test_new_project_scaffolding_and_draft_share_qualified_default(self):
@@ -598,7 +598,7 @@ class ProfileTests(unittest.TestCase):
                     'm=importlib.util.module_from_spec(s);s.loader.exec_module(m); '
                     'print(m.render(pathlib.Path(sys.argv[2]),sys.argv[3],sys.argv[4].encode()).decode())')
             manifest = json.dumps({'tools': {'orbyss.foundation.openapi.exporter': {'version': '0.2.4'}}})
-            relative = 'eng/.config/dotnet-tools.json'
+            relative = '.config/dotnet-tools.json'
             for drafted in (False, True):
                 if drafted:
                     result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
@@ -613,8 +613,8 @@ class ProfileTests(unittest.TestCase):
             draft = blocks.load_json(selection)
             self.assertEqual('Draft', draft['status'])
             self.assertEqual(blocks.catalog_binding(expected), draft['catalog'])
-            self.assertFalse((root / 'eng/building-blocks.lock.json').exists())
-            binding = blocks.load_json(root / '.program-kit/dependency-profile.json')
+            self.assertFalse((root / 'config/program-kit/building-blocks.lock.json').exists())
+            binding = blocks.load_json(root / 'config/program-kit/dependency-profile.json')
             self.assertIn('no acceptance', binding['authority'])
             # Complete real assignments using the existing architecture fixture; promote
             # against the newer bundled catalog without changing reviewed Draft pins.
@@ -627,7 +627,7 @@ class ProfileTests(unittest.TestCase):
                 draft['authority']['rationale'], '0.12.6')
             self.assertEqual(exact['catalogResolutionSha256'], lock['inputs']['catalog']['resolutionSha256'])
             self.assertEqual(expected, blocks.load_json(blocks.consumer_catalog(root, blocks.load_json(selection), fixtures.CATALOG)))
-            self.assertIn('newProjectQualification', blocks.load_json(root / '.program-kit/dependency-profile.json'))
+            self.assertIn('newProjectQualification', blocks.load_json(root / 'config/program-kit/dependency-profile.json'))
 
     def test_new_default_requires_qualification_and_rejects_excluded_activations(self):
         with FixtureDirectory() as directory:
@@ -647,7 +647,7 @@ class ProfileTests(unittest.TestCase):
                 draft = blocks.load_json(selection)
                 draft['status'] = 'Draft'
                 fixtures.write_json(selection, draft)
-                preserved = {p: p.read_bytes() for p in (selection, architecture, root / '.program-kit/dependency-profile.json')}
+                preserved = {p: p.read_bytes() for p in (selection, architecture, root / 'config/program-kit/dependency-profile.json')}
                 with self.assertRaisesRegex(ValueError, 'qualification scope'):
                     blocks.accept_selection(root, selection, fixtures.CATALOG,
                         'docs/architecture/architecture-map.json', draft['authority']['decisionIds'],
@@ -804,7 +804,7 @@ class ProfileTests(unittest.TestCase):
                 version.parent.mkdir(parents=True, exist_ok=True)
                 version.write_text('extension:\n  version: "0.12.5"\n')
                 target = blocks.load_json(selection)['targets'][0]['path']
-                fixtures.write_json(root / 'eng/building-blocks.lock.json', {'targets': [{'path': target, 'packages': [{'packageId': 'Orbyss.Foundation.DomainEvents'}]}]})
+                fixtures.write_json(root / 'config/program-kit/building-blocks.lock.json', {'targets': [{'path': target, 'packages': [{'packageId': 'Orbyss.Foundation.DomainEvents'}]}]})
                 for feature, project in [('SPC-001', target), ('SPC-002', 'src/Unrelated.csproj')]:
                     fixtures.write_json(root / 'specs' / feature / 'artifact-ownership.json', {'runtimeComposition': {'projects': [{'path': project}]}})
                     fixtures.write_json(root / '.program-kit/lifecycle' / (feature + '.json'), {'phases': {'afterTasksAnalysis': {'report': 'historical-report'}}})

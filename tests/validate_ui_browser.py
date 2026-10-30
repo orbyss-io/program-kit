@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "extensions/program-kit-governance/scripts"))
-sys.path.insert(0, str(ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng"))
+sys.path.insert(0, str(ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/scripts"))
 import ui_profile
 import js_toolchain
 
@@ -25,9 +25,9 @@ def main() -> int:
     args = parser.parse_args()
     fixture = ROOT / "artifacts/ui-browser"
     fixture.mkdir(parents=True, exist_ok=True)
-    if not (fixture / ".program-kit/ui/profile.json").exists():
+    if not (fixture / "config/program-kit/ui/profile.json").exists():
         ui_profile.execute(fixture, "init")
-    profile_path = fixture / '.program-kit/ui/profile.json'
+    profile_path = fixture / 'config/program-kit/ui/profile.json'
     profile = json.loads(profile_path.read_text(encoding='utf-8'))
     profile['presentation'] = args.presentation
     profile_path.write_bytes(ui_profile.encoded(profile))

@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
-sys.path.insert(0, str(TEMPLATE / 'files/eng'))
+sys.path.insert(0, str(TEMPLATE / 'files/scripts'))
 import python_runtime_contract as runtime
 
 
@@ -21,12 +21,12 @@ class WebRuntimeTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix='pk web runtime ')
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        self.eng = self.root / 'eng'
+        self.eng = self.root / 'scripts'
         (self.eng / 'web').mkdir(parents=True)
         for filename in ('Test-Web.ps1', 'Prepare-Web.ps1'):
             shutil.copyfile(TEMPLATE / 'web-profiles/common/eng' / filename, self.eng / filename)
-        shutil.copyfile(TEMPLATE / 'files/eng/ProgramKitPython.psm1', self.eng / 'ProgramKitPython.psm1')
-        shutil.copyfile(TEMPLATE / 'files/eng/python_runtime_contract.py', self.eng / 'python_runtime_contract.py')
+        shutil.copyfile(TEMPLATE / 'files/scripts/ProgramKitPython.psm1', self.eng / 'ProgramKitPython.psm1')
+        shutil.copyfile(TEMPLATE / 'files/scripts/python_runtime_contract.py', self.eng / 'python_runtime_contract.py')
         (self.root / '.specify').mkdir()
         (self.root / '.specify/python-runtime.json').write_text(json.dumps({'contractVersion': 1, 'executable': sys.executable}))
         (self.root / '.python-version').write_text('.'.join(map(str, sys.version_info[:3])))

@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
 import foundation_composition
 import composition_model
 import composition_migrate
-sys.path.insert(0, str(TEMPLATE / 'files/eng'))
+sys.path.insert(0, str(TEMPLATE / 'files/scripts'))
 
 CONTRACTS = ('CShells.Abstractions', 'CShells.AspNetCore.Abstractions')
 
@@ -68,8 +68,8 @@ def main():
 </PropertyGroup></Project>''', encoding='utf-8')
         # Use only the existing production contract pins and maintained test pin.
         pins = {item.get('Include'): item.get('Version') for item in
-                ET.parse(TEMPLATE / 'files/eng/ProgramKit.Packages.props').iter('PackageVersion')}
-        test_pins = json.loads((TEMPLATE / 'files/eng/foundation-test-support/packages.json').read_text())
+                ET.parse(TEMPLATE / 'files/config/program-kit/build/ProgramKit.Packages.props').iter('PackageVersion')}
+        test_pins = json.loads((TEMPLATE / 'files/tools/program-kit/foundation-test-support/packages.json').read_text())
         packages = ET.Element('Project')
         ET.SubElement(ET.SubElement(packages, 'PropertyGroup'), 'ManagePackageVersionsCentrally').text = 'true'
         group = ET.SubElement(packages, 'ItemGroup')
@@ -84,7 +84,7 @@ def main():
         legacy = json.loads((TEMPLATE / 'compositions/foundation-bff-keycloak.json').read_text())
         legacy['projects'] = [project]
         legacy['runtime']['rootPackages'] = [project['packageId']]
-        (root / 'eng').mkdir()
+        (root / 'scripts').mkdir()
         (root / composition_model.INPUT).write_text(json.dumps(legacy), encoding='utf-8')
         migration = composition_migrate.preview(root)
         composition_migrate.apply(root, migration['planDigest'])

@@ -347,7 +347,7 @@ def main():
                 governance.write_review('bootstrap')
                 reviewed_hashes = governance._artifact_hashes(governance.bootstrap_artifacts())
                 original_run = subprocess.run
-                profile = root / '.program-kit/dependency-profile.json'
+                profile = root / 'config/program-kit/dependency-profile.json'
                 profile_before = profile.read_bytes() if profile.is_file() else None
                 def fail_selection(command, **kwargs):
                     if len(command) > 2 and str(command[1]).endswith('building_blocks.py') and command[2] == 'accept':

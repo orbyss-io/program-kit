@@ -4,7 +4,7 @@ import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
 sys.path.insert(0, str(ROOT / 'tests/native_start'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))

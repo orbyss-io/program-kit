@@ -18,7 +18,7 @@ def _resolved_packages(lock: dict[str, Any]) -> set[str]:
 
 def validate_consumer(project: Path, expectation: dict[str, Any]) -> dict[str, object]:
     selection = load_object(project / "docs/architecture/building-block-selection.json")
-    lock = load_object(project / "eng/building-blocks.lock.json")
+    lock = load_object(project / "config/program-kit/building-blocks.lock.json")
     actual_compositions = {item["composition"] for item in selection.get("instances", [])}
     expected_compositions = set(expectation["compositions"])
     if actual_compositions != expected_compositions:
@@ -46,19 +46,19 @@ def validate_consumer(project: Path, expectation: dict[str, Any]) -> dict[str, o
         package_and_version = entry.removeprefix("npm:").rsplit("@", 1)
         if len(package_and_version) != 2 or combined.get(package_and_version[0]) != package_and_version[1]:
             raise LiveContractError(f"LIVE_VALIDATION_CONSUMER_NPM_DEPENDENCY_LOST: {entry}")
-    overlay = load_object(project / "eng/building-blocks.shells.json")
+    overlay = load_object(project / "config/program-kit/building-blocks.shells.json")
     shells = overlay.get("CShells", {}).get("Shells", {})
     activation_count = sum(len(value.get("Features", {})) for value in shells.values() if isinstance(value, dict))
     if activation_count < expectation["minimumActivations"]:
         raise LiveContractError(f"LIVE_VALIDATION_ACTIVATION_COUNT: {activation_count}")
-    configuration = load_object(project / ".program-kit/building-blocks.configuration.json")
+    configuration = load_object(project / "config/program-kit/building-blocks.configuration.json")
     requirements = configuration.get("requirements", [])
     paths = {item.get("path") for item in requirements if isinstance(item, dict)}
     if paths != set(expectation["configurationKnowledge"]):
         raise LiveContractError(f"LIVE_VALIDATION_CONFIGURATION_KNOWLEDGE_MISMATCH: {sorted(paths)}")
     if any("value" in item for item in requirements if isinstance(item, dict)):
         raise LiveContractError("LIVE_VALIDATION_CONFIGURATION_VALUE_PRESENT")
-    hosts = load_object(project / ".program-kit/building-blocks.hosts.json").get("hosts", [])
+    hosts = load_object(project / "config/program-kit/building-blocks.hosts.json").get("hosts", [])
     expected_hosts = {entry.removeprefix('oci:').rsplit('@', 1)[0] + ':v' + entry.rsplit('@', 1)[1]
                       for entry in expected_packages if entry.startswith('oci:')}
     if {host.get('reference') for host in hosts} != expected_hosts or len(hosts) != len(expected_hosts):

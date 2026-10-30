@@ -19,7 +19,7 @@ import uuid
 from live.v2.supervisor import run_supervised
 
 ROOT = Path(__file__).resolve().parents[1]
-ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
 sys.path.insert(0, str(ENG))
 import openapi_contracts as contracts
 

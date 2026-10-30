@@ -91,12 +91,12 @@ def fixture(directory, package):
     with zipfile.ZipFile(package) as archive:
         nuspec = ET.fromstring(archive.read(next(p for p in archive.namelist() if p.endswith('.nuspec'))))
         version = next(n.text for n in nuspec.iter() if n.tag.rsplit('}', 1)[-1] == 'version')
-    eng = directory / 'eng'; eng.mkdir()
+    eng = directory / 'scripts'; eng.mkdir()
     for name in ('ProgramKit.Build.props', 'ProgramKit.Build.targets'):
-        shutil.copy2(FILES / 'eng' / name, eng / name)
-    (directory / 'Sample.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><Import Project="eng/ProgramKit.Build.props"/>'
+        shutil.copy2(FILES / 'scripts' / name, eng / name)
+    (directory / 'Sample.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><Import Project="config/program-kit/build/ProgramKit.Build.props"/>'
         '<PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>'
-        '<Import Project="eng/ProgramKit.Build.targets"/></Project>', encoding='utf-8')
+        '<Import Project="config/program-kit/build/ProgramKit.Build.targets"/></Project>', encoding='utf-8')
     (directory / 'Directory.Packages.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>'
         '<ItemGroup><PackageVersion Include="Orbyss.Foundation.Analyzers" Version="' + version + '"/></ItemGroup></Project>', encoding='utf-8')
     (directory / 'NuGet.Config').write_text('<configuration><packageSources><clear/><add key="exact-local" value="' + feed.as_posix()
@@ -271,7 +271,7 @@ def main():
         (directory / 'result.json').write_text(json.dumps({'claim': 'Development-only generated policy/native analyzer and compiler suppression-guard integration; no publication/profile qualification',
             'candidateSha256': hashlib.sha256(args.analyzer_package.read_bytes()).hexdigest(), 'results': results,
             'elapsedSeconds': round(time.monotonic() - started, 3), 'contract': marker,
-            'generatedPolicySha256': {name: hashlib.sha256((owner / 'eng' / name).read_bytes()).hexdigest()
+            'generatedPolicySha256': {name: hashlib.sha256((owner / 'scripts' / name).read_bytes()).hexdigest()
                                       for name in ('ProgramKit.Build.props', 'ProgramKit.Build.targets')},
             'oldPublishedPackageControl': 'executed' if args.released_package else 'not supplied; no current-public-package build claim'}, indent=2), encoding='utf-8')
         print('Generated source-readability policy rejected manual violations/disabled enforcement and accepted corrected native source: ' + str(directory))

@@ -15,9 +15,9 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 from xml.etree import ElementTree as ET
 
-INPUT = 'eng/foundation-composition.json'
+INPUT = 'config/program-kit/foundation-composition.json'
 RESOLVED = 'eng/foundation-composition.resolved.json'
-CONTRACT = 'eng/foundation-settings.contract.json'
+CONTRACT = 'config/program-kit/foundation-settings.contract.json'
 VARIANTS = {'foundation-bff-keycloak', 'foundation-bff-keycloak-postgresql'}
 BASE_PACKAGES = ['Orbyss.Foundation.Authentication', 'Orbyss.Foundation.Authentication.BffCookie',
                  'Orbyss.Foundation.WebDefaults', 'Orbyss.Foundation.Web.OpenApi',
@@ -409,7 +409,7 @@ def resolve(repository, configuration=None, contract=None, setup_adapter=None):
     contract = contract or read(repository / CONTRACT)
     web = web_settings(configuration, contract)
     import importlib.util
-    adapter_path = setup_adapter or repository/'eng/foundation_qualification.py'
+    adapter_path = setup_adapter or repository/'scripts/foundation_qualification.py'
     require(adapter_path.is_file() and digest(adapter_path.read_bytes())==contract['setupAdapterSha256'],
             'maintained setup adapter bytes changed; review and synchronize its managed contribution')
     sys.path.insert(0,str(adapter_path.parent))
@@ -612,7 +612,7 @@ def validate_materialized(repository, configuration, contract, profile, realm):
     import shell_composition
     import identity_fixture
     effective = json.loads(profile)
-    for path in ('shells.json', 'eng/building-blocks.shells.json'):
+    for path in ('shells.json', 'config/program-kit/building-blocks.shells.json'):
         if (repository/path).is_file():
             effective = shell_composition.merge_value(effective, shell_composition.load(repository/path, required=True))
     shell = effective['CShells']['Shells']['default']
@@ -650,7 +650,7 @@ def materialize(repository, configuration, template_root):
     import identity_fixture
     contract = publisher_contracts(repository, configuration)
     contract['toolchains'] = {}
-    contract['setupAdapterSha256'] = digest((template_root/'files/eng/foundation_qualification.py').read_bytes())
+    contract['setupAdapterSha256'] = digest((template_root/'files/scripts/foundation_qualification.py').read_bytes())
     for name in ('global.json', '.nvmrc', '.npm-version', '.oasdiff-version'):
         selected = repository/name if (repository/name).is_file() else template_root/'files'/name
         contract['toolchains'][name] = {'value':read(selected) if name.endswith('.json') else selected.read_text(encoding='utf-8').strip(), 'sha256':digest(selected.read_bytes())}
@@ -675,8 +675,8 @@ def materialize(repository, configuration, template_root):
         provider = read(provider_source)['profiles']['ef-postgresql']
         contract['serviceImages']['postgresql'] = provider['image']
         contract['serviceImageSources']['postgresql'] = {'path':'references/persistence-runtimes.json','sha256':digest(provider_source.read_bytes())}
-    resolved = resolve(repository, configuration, contract, setup_adapter=template_root/'files/eng/foundation_qualification.py')
-    shell = read(template_root / 'web-profiles/bff-cookie/eng/web-profile.shells.json')
+    resolved = resolve(repository, configuration, contract, setup_adapter=template_root/'files/scripts/foundation_qualification.py')
+    shell = read(template_root / 'web-profiles/bff-cookie/config/program-kit/web-profile.shells.json')
     shell['CShells']['Shells']['default']['Configuration']['Foundation']['Web'] = web_settings(configuration, contract)
     shell['CShells']['Shells']['default']['Features'] = {identity:{} for identity in contract['activations']}
     shell['CShells']['Shells']['default']['Features'].update({p['featureIdentity']: {} for p in configuration['projects']})
@@ -690,9 +690,9 @@ def materialize(repository, configuration, template_root):
     ET.indent(props, space='  ')
     outputs = {'deploy/compose.identity.yml': (identity_compose, 'managed'),
                CONTRACT: (encoded(contract), 'managed'), RESOLVED: (encoded(resolved), 'managed'),
-               'eng/web-profile.shells.json': (encoded(shell), 'managed'),
-               'eng/ProgramKit.BuildingBlocks.props': (ET.tostring(props) + b'\n', 'managed')}
-    web_contract = read(template_root/'web-profiles/bff-cookie/eng/web/web-contract.json')
+               'config/program-kit/web-profile.shells.json': (encoded(shell), 'managed'),
+               'config/program-kit/build/ProgramKit.BuildingBlocks.props': (ET.tostring(props) + b'\n', 'managed')}
+    web_contract = read(template_root/'web-profiles/bff-cookie/tools/program-kit/web/web-contract.json')
     web_contract['origins'] = {'application':configuration['application']['publicOrigin'], 'identity':configuration['identity']['publicOrigin']}
     web = web_settings(configuration,contract)
     for route,key in (('oidcCallback','CallbackPath'),('signedOutCallback','SignedOutCallbackPath')):
@@ -702,10 +702,10 @@ def materialize(repository, configuration, template_root):
     web_contract['budgetsSeconds']['identityDiscovery'] = web['DiscoveryTimeoutSeconds']
     web_contract['budgetsSeconds']['remoteAuthentication'] = web['RemoteAuthenticationTimeoutSeconds']
     web_contract['configuredSession'] = {key:web[key] for key in ('SessionIdleMinutes','SessionAbsoluteMinutes')}
-    outputs['eng/web/web-contract.json'] = (encoded(web_contract),'managed')
-    profile = read(template_root/'web-profiles/bff-cookie/eng/web-profile.json')
+    outputs['tools/program-kit/web/web-contract.json'] = (encoded(web_contract),'managed')
+    profile = read(template_root/'web-profiles/bff-cookie/config/program-kit/web-profile.json')
     profile['configuration'] = INPUT
-    outputs['eng/web-profile.json'] = (identity_fixture.render_provider_profile(encoded(profile),
+    outputs['config/program-kit/web-profile.json'] = (identity_fixture.render_provider_profile(encoded(profile),
         contract['serviceImages']['keycloak']), 'managed')
     if contract.get('developmentCandidate'):
         nuget = ET.parse(template_root/'files/NuGet.config').getroot()
@@ -735,14 +735,14 @@ def materialize(repository, configuration, template_root):
           'responsibilities':[{'name':p['featureIdentity'], 'kind':'http' if p['role']=='implementation' else 'persistence',
                                'effects':['application endpoint adapters'] if p['role']=='implementation' else ['provider connectivity and explicit migration admission']}]} for p in configuration['projects']],
         'coreReferences':[], 'bindings':[]}}
-    outputs['eng/architecture.json'] = (encoded(architecture), 'scaffold')
+    outputs['config/program-kit/architecture.json'] = (encoded(architecture), 'scaffold')
     return outputs
 
 
 def reference(configuration, contract):
     lines = ['# Foundation configuration', '', 'Generated from exact selected publisher settings and composition inputs.', '',
              'Profile: `' + contract['profile'] + '`. Shell options are validated at activation and fixed for that shell generation.', '',
-             'Edit `eng/foundation-composition.json`, preview sync, then apply the reviewed plan. Consumer `shells.json` overlays the managed profile; admitted building-block settings merge last. Deployment providers override the runtime configuration according to the host provider order. This source view cannot observe additional registered options delegates.', '',
+             'Edit `config/program-kit/foundation-composition.json`, preview sync, then apply the reviewed plan. Consumer `shells.json` overlays the managed profile; admitted building-block settings merge last. Deployment providers override the runtime configuration according to the host provider order. This source view cannot observe additional registered options delegates.', '',
              '```mermaid', 'flowchart LR', '  P[Publisher typed defaults] --> C[Composition inputs]', '  C --> W[Managed shell profile]',
              '  W --> S[Consumer shells]', '  S --> B[Admitted building blocks]', '  B --> D[Deployment providers and secret references]',
              '  D --> V[Shell activation validation]', '  V --> A[Authentication and response policy]', '  V --> R[Provider Prepare lifecycle]',
@@ -757,7 +757,7 @@ def reference(configuration, contract):
               'Identity deployment projection: `'+contract['identityProjection']['scope']+'`. The generated identity Compose file derives the local public loopback port, private aliases and selected realm import filename from these inputs. External TLS/nonlocal inputs generate an inert file with no services and require actual deployment qualification.', '',
               'The local realm is a synthetic fixture. A realm import does not update an existing production realm. Adoption must reconcile its exact confidential client/redirect registrations through the identity owner, configure TLS and trusted proxy forwarding, and supply secrets through deployment references.', '',
               'Custom provider templates, JavaScript, authentication flows or changed maintained theme bytes invalidate inherited theme assurance and require targeted qualification.', '',
-              'Run `python eng/foundation_composition.py --repository . --effective` for a redacted source/provenance view. Supply deployment overrides explicitly with `--overrides <json>`; the command does not read or log process secrets. Runtime readiness remains the maintained setup check.', '']
+              'Run `python scripts/foundation_composition.py --repository . --effective` for a redacted source/provenance view. Supply deployment overrides explicitly with `--overrides <json>`; the command does not read or log process secrets. Runtime readiness remains the maintained setup check.', '']
     return '\n'.join(lines)
 
 
@@ -787,7 +787,7 @@ def effective_settings(repository, overrides=None):
         present, selected = find(effective, actual_path)
         value = selected if present else setting.get('default'); provenance = 'publisher typed default'
         contributors = []
-        for path in ('eng/web-profile.shells.json', 'shells.json', 'eng/building-blocks.shells.json'):
+        for path in ('config/program-kit/web-profile.shells.json', 'shells.json', 'config/program-kit/building-blocks.shells.json'):
             if not (repository/path).is_file(): continue
             current = read(repository/path).get('CShells',{}).get('Shells',{}).get('default',{}).get('Configuration',{})
             if find(current, actual_path)[0]: contributors.append(path)
@@ -813,7 +813,7 @@ def verify_outputs(repository):
     require((repository/identity_source['path']).is_file() and
             digest((repository/identity_source['path']).read_bytes()) == identity_source['sha256'],
             'identity deployment bytes differ from the admitted composition; preview and synchronize managed configuration')
-    validate_materialized(repository,configuration,contract,(repository/'eng/web-profile.shells.json').read_bytes(),
+    validate_materialized(repository,configuration,contract,(repository/'config/program-kit/web-profile.shells.json').read_bytes(),
                           (repository/'deploy/keycloak/program-kit-realm.json').read_bytes())
     for path,sha in contract['themeArtifacts'].items():
         require((repository/path).is_file() and digest((repository/path).read_bytes())==sha,

@@ -43,7 +43,8 @@ class CodingContextTests(unittest.TestCase):
                 project.with_name('Policy.cs').write_text('namespace Fixture; public sealed class Policy { public int Evaluate() => 1; }')
                 declarations.append({'path': project.relative_to(root).as_posix(), 'role': role, 'projectReferences': [],
                     'responsibilities': [{'name': owner, 'kind': kind, 'effects': []}]})
-            (root / 'eng').mkdir(); (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': declarations, 'bindings': []}}))
+            (root / 'scripts').mkdir(exist_ok=True); (root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'scripts').mkdir(exist_ok=True); (root / 'config/program-kit/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': declarations, 'bindings': []}}))
             value = prepare(root, feature, task_ids=['T001'])
             self.assertEqual([('src/Core/Core.csproj', 'evaluated', 'core')],
                 [(p['path'], p['status'], p['role']) for p in value['coding']['projects']])
@@ -92,7 +93,7 @@ class CodingContextTests(unittest.TestCase):
                 project.with_name('Policy.cs').write_text('namespace Fixture; public sealed class Policy { public int Evaluate() => 1; }')
                 declarations.append({'path': project.relative_to(root).as_posix(), 'role': role, 'projectReferences': [],
                     'responsibilities': [{'name': owner, 'kind': kind, 'effects': []}]})
-            graph = root / 'eng/architecture.json'; graph.parent.mkdir()
+            graph = root / 'config/program-kit/architecture.json'; graph.parent.mkdir()
             def save_graph():
                 graph.write_text(json.dumps({'runtimeComposition': {'projects': declarations, 'bindings': []}}))
             save_graph()
@@ -123,7 +124,7 @@ class CodingContextTests(unittest.TestCase):
             finding = next(row for row in malformed['lifecycleFindings'] if row['id'] == 'invalid-project-role')
             self.assertEqual('src/Core/Core.csproj', finding['project'])
             self.assertIn('architecture owner', finding['message'])
-            self.assertIn('eng/architecture.json', finding['message'])
+            self.assertIn('config/program-kit/architecture.json', finding['message'])
             for invalid_role in ([], {}):
                 declarations[0]['role'] = invalid_role; save_graph()
                 invalid, codes = snapshot('T001')
@@ -263,8 +264,9 @@ class CodingContextTests(unittest.TestCase):
             (feature / 'spec.md').write_text('C# policy with owned invariants.')
             (feature / 'plan.md').write_text('Use src/Example.Core/Example.Core.csproj.')
             (feature / 'tasks.md').write_text('- [ ] T001 Materialize src/Example.Core/Example.Core.csproj and implement src/Example.Core/Policy.cs.\n')
-            (root / 'eng').mkdir()
-            (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
+            (root / 'scripts').mkdir()
+            (root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
                 {'path': 'src/Example.Core/Example.Core.csproj', 'role': 'core', 'projectReferences': [],
                  'responsibilities': [{'name': 'Policy', 'kind': 'pure-policy', 'effects': []}]}], 'bindings': []}}))
             source = prepare(root, feature)

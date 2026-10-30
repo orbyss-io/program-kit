@@ -11,7 +11,7 @@ TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
 sys.path.insert(0, str(ROOT / 'tests'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
-sys.path.insert(0, str(TEMPLATE / 'files/eng'))
+sys.path.insert(0, str(TEMPLATE / 'files/scripts'))
 from composition_fixture import two_apps
 from owned_fixture import FixtureDirectory, native_path
 import composition_render
@@ -47,11 +47,11 @@ class HostedFrontendUpdateTests(unittest.TestCase):
             for name in ('global.json', '.nvmrc', '.npm-version'):
                 shutil.copyfile(TEMPLATE / 'files' / name, root / name)
             shutil.copyfile(ROOT / '.python-version', root / '.python-version')
-            builder = root / 'eng/vendor/foundation-0.3.3/create_hosted_manifest.py'
+            builder = root / 'tools/program-kit/vendor/foundation-0.3.3/create_hosted_manifest.py'
             builder.parent.mkdir(parents=True)
-            shutil.copyfile(TEMPLATE / 'files/eng/vendor/foundation-0.3.3/create_hosted_manifest.py', builder)
+            shutil.copyfile(TEMPLATE / 'files/tools/program-kit/vendor/foundation-0.3.3/create_hosted_manifest.py', builder)
             commands = BuildCommands(root)
-            commands.run([sys.executable, str(TEMPLATE / 'files/eng/toolchain.py'), '--repository', str(root)])
+            commands.run([sys.executable, str(TEMPLATE / 'files/scripts/toolchain.py'), '--repository', str(root)])
             prepare_hosted_pages.build(root, graph, commands, restore=True, selected_hosts=['application-host'])
             source = root / frontend['directory'] / frontend['entry']
             source.write_text(source.read_text().replace('Application foundation', 'Edited mutable application'), encoding='utf-8')
@@ -72,11 +72,11 @@ class HostedFrontendUpdateTests(unittest.TestCase):
             for name in ('global.json', '.nvmrc', '.npm-version'):
                 shutil.copyfile(TEMPLATE / 'files' / name, root / name)
             shutil.copyfile(ROOT / '.python-version', root / '.python-version')
-            builder = 'eng/vendor/foundation-0.3.3/create_hosted_manifest.py'
+            builder = 'tools/program-kit/vendor/foundation-0.3.3/create_hosted_manifest.py'
             (root / builder).parent.mkdir(parents=True)
             shutil.copyfile(TEMPLATE / 'files' / builder, root / builder)
             commands = BuildCommands(root)
-            commands.run([sys.executable, str(TEMPLATE / 'files/eng/toolchain.py'), '--repository', str(root)])
+            commands.run([sys.executable, str(TEMPLATE / 'files/scripts/toolchain.py'), '--repository', str(root)])
             hosts = ['application-host']
             prepare_hosted_pages.build(root, graph, commands, restore=True, selected_hosts=hosts)
             output = root / frontend['directory'] / 'dist'

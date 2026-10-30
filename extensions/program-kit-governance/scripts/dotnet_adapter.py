@@ -10,7 +10,7 @@ import sys
 def bootstrap():
     extension = Path(__file__).resolve().parents[2] / 'program-kit-dotnet'
     scripts = extension / 'scripts'
-    engineering = extension / 'templates/dotnet/files/eng'
+    engineering = extension / 'templates/dotnet/files/scripts'
     for directory in (scripts, engineering):
         if not directory.is_dir():
             raise ValueError('Program Kit .NET adapter is incomplete: ' + str(directory))

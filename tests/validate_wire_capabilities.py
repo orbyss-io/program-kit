@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 import openapi_capabilities as admission
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
 import building_blocks as blocks
@@ -140,8 +140,9 @@ class WireCapabilities(unittest.TestCase):
     def test_no_prose_or_empty_schema_pass(self):
         self.assertFalse(admission.validate({'paths': {}}, self.capabilities)['admitted'])
         with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as name:
-            root = Path(name); (root / 'eng').mkdir()
-            (root / 'eng/openapi-contracts.json').write_text(json.dumps({'contracts': []}))
+            root = Path(name); (root / 'scripts').mkdir()
+            (root / 'config/program-kit/openapi-contracts.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/openapi-contracts.json').write_text(json.dumps({'contracts': []}))
             with self.assertRaisesRegex(ValueError, 'no scoped registered'):
                 admission.check_registered(root)
 
@@ -149,9 +150,10 @@ class WireCapabilities(unittest.TestCase):
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
         import phase_obligations
         with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as name:
-            root = Path(name); (root / 'eng').mkdir(); feature = root / 'specs/001-api'; feature.mkdir(parents=True)
+            root = Path(name); (root / 'scripts').mkdir(); feature = root / 'specs/001-api'; feature.mkdir(parents=True)
             (feature / 'plan.md').write_text('Numeric.Contract existing accepted intent; T007 and T012 retained.')
-            (root / 'eng/openapi-contracts.json').write_text(json.dumps({'contracts': ['contract.json']}))
+            (root / 'config/program-kit/openapi-contracts.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/openapi-contracts.json').write_text(json.dumps({'contracts': ['contract.json']}))
             (root / 'contract.json').write_text(json.dumps({'identity': 'numeric', 'features': ['Numeric.Contract'], 'artifact': 'openapi.json', 'shell': 'default'}))
             (root / 'shells.json').write_text(json.dumps({'CShells': {'Shells': {'default': {'Features': {}, 'Configuration': {}}}}}))
             (root / 'baseline.json').write_bytes(b'original immutable compatibility history')
@@ -188,10 +190,12 @@ class WireCapabilities(unittest.TestCase):
         import composition_model
         with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as name:
             root = Path(name)
-            (root / 'eng').mkdir()
+            (root / 'scripts').mkdir()
             graph = composition_model.from_legacy(json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json').read_text()))
-            (root / 'eng/foundation-composition.json').write_text(json.dumps(graph))
-            (root / 'eng/openapi-contracts.json').write_text(json.dumps({'contracts': ['contract.json']}))
+            (root / 'config/program-kit/foundation-composition.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/foundation-composition.json').write_text(json.dumps(graph))
+            (root / 'config/program-kit/openapi-contracts.json').parent.mkdir(parents=True, exist_ok=True)
+            (root / 'config/program-kit/openapi-contracts.json').write_text(json.dumps({'contracts': ['contract.json']}))
             (root / 'contract.json').write_text(json.dumps({'identity': 'catalog', 'features': [], 'artifact': 'proposed.json', 'shell': 'default'}))
             document = self.document()
             (root / 'proposed.json').write_text(json.dumps(document))

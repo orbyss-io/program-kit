@@ -215,7 +215,7 @@ class GuidanceTests(unittest.TestCase):
             path = root / '.specify/governance/migration-completion.json'
             path.parent.mkdir(parents=True)
             path.write_text(json.dumps(noop), encoding='utf-8')
-            original = root / '.program-kit/history/original-extension.yml'
+            original = root / 'config/program-kit/history/original-extension.yml'
             original.parent.mkdir(parents=True)
             original.write_text('extension:\n  version: "0.12.5"\n', encoding='utf-8')
             attempt = {'status': 'completed', 'targetVersion': '0.12.6', 'previousInstalledVersion': '0.12.5',
@@ -244,7 +244,7 @@ class GuidanceTests(unittest.TestCase):
             prior_plan = plan(directory, '0.12.5', '0.12.6')
             receipt = completion(prior_plan, {check: True for entry in prior_plan['migrations'] for check in entry['verificationChecks']})
             self.assertTrue(receipt['migrationCompletionEstablished'])
-            path = root / '.program-kit/installation/migration.json'
+            path = root / 'config/program-kit/installation/migration.json'
             path.parent.mkdir(parents=True)
             path.write_text(json.dumps(receipt))
             payload = path.read_bytes()

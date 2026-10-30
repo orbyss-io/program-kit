@@ -7,7 +7,7 @@ import sys
 
 
 def exercise(shell, repository, wrapper, environment):
-    eng = repository / 'eng'
+    eng = repository / 'scripts'
     config = eng / 'verification.json'
     config.write_text(json.dumps({'schemaVersion': 1, 'testGroups': [], 'providerIsolation': {'required': True}}))
     marker = repository / 'isolation-child.marker'
@@ -53,7 +53,7 @@ $env:PROGRAMKIT_SYNTHETIC_PROVIDER_MODE='live-synthetic'
 $failed=$false
 $extra=@{}
 if ($env:PROGRAMKIT_ISOLATION_SCOPE) { $extra.Scope='Focused'; $extra.Projects=@('tests/Synthetic.Tests.csproj') }
-try { & (Join-Path $PSScriptRoot 'eng/Invoke-RepositoryVerification.ps1') @extra } catch { $failed=$true }
+try { & (Join-Path $PSScriptRoot 'scripts/Invoke-RepositoryVerification.ps1') @extra } catch { $failed=$true }
 if ($env:PROGRAMKIT_SYNTHETIC_PROVIDER_KEY -ne 'synthetic-parent-value' -or
     $env:PROGRAMKIT_SYNTHETIC_PROVIDER_MODE -ne 'live-synthetic') { throw 'Parent environment was not restored' }
 if ($failed -ne [bool]$env:PROGRAMKIT_ISOLATION_FAIL) { throw 'Wrong verification outcome' }

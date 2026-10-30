@@ -1,0 +1,85 @@
+[CmdletBinding()]
+param(
+    [string]$BaseUrl = 'http://localhost:5000',
+    [string]$PermissionProbePath = $env:PROGRAMKIT_PERMISSION_PROBE_PATH,
+    [string]$SpaUrl = $env:PROGRAMKIT_SPA_URL,
+    [string]$SpaLoginPath = $env:PROGRAMKIT_SPA_LOGIN_PATH,
+    [string]$ViteConfig = $env:PROGRAMKIT_VITE_CONFIG,
+    [string]$Shell
+)
+
+$ErrorActionPreference = 'Stop'
+$repository = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$suite = Join-Path $repository 'tools/program-kit/web'
+Import-Module (Join-Path $PSScriptRoot 'ProgramKitPython.psm1') -Force
+$python = Resolve-ProgramKitPython -Repository $repository
+$environmentNames = @('SPECKIT_PYTHON', 'PLAYWRIGHT_BROWSERS_PATH', 'PROGRAMKIT_IDENTITY_REALM_FILE',
+    'PROGRAMKIT_IDENTITY_AUTHORITY', 'PROGRAMKIT_BASE_URL', 'PROGRAMKIT_PERMISSION_PROBE_PATH',
+    'PROGRAMKIT_SPA_URL', 'PROGRAMKIT_SPA_LOGIN_PATH', 'PROGRAMKIT_VITE_CONFIG')
+$previousEnvironment = @{}
+foreach ($name in $environmentNames) { $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
+try {
+$env:SPECKIT_PYTHON = $python
+$env:PLAYWRIGHT_BROWSERS_PATH = Join-Path $repository 'artifacts/cache/playwright-browsers'
+
+$evidence = Join-Path $repository 'artifacts/program-kit/toolchain.json'
+$profileRecord = Join-Path $repository 'config/program-kit/web-profile.json'
+if (-not (Test-Path -LiteralPath $profileRecord -PathType Leaf)) {
+    throw 'The synchronized web-profile record is missing.'
+}
+$selectionArguments = @('--repository', $repository)
+if ($Shell) { $selectionArguments += @('--shell', $Shell) }
+$identityJson = & $python (Join-Path $PSScriptRoot 'web_identity.py') @selectionArguments
+if ($LASTEXITCODE -ne 0) { throw 'The composition-selected browser identity fixture is unavailable.' }
+$identity = $identityJson | ConvertFrom-Json
+$selectedWebProfile = (Get-Content -LiteralPath $profileRecord -Raw | ConvertFrom-Json).profile
+if ($identity.realmFile) {
+    $selectedWebProfile = $identity.profile
+    $env:PROGRAMKIT_IDENTITY_REALM_FILE = $identity.realmFile
+    $env:PROGRAMKIT_IDENTITY_AUTHORITY = $identity.authority
+}
+if ($selectedWebProfile -notin @('bff-cookie-v1', 'spa-pkce-v1')) {
+    throw "The synchronized web profile '$selectedWebProfile' is unsupported by Test-Web.ps1."
+}
+if ($selectedWebProfile -eq 'bff-cookie-v1' -and $ViteConfig) {
+    throw 'ViteConfig applies only to spa-pkce-v1; BFF responses use the Program Kit host security-header middleware.'
+}
+& $python (Join-Path $PSScriptRoot 'toolchain.py') --repository $repository --evidence $evidence
+if ($LASTEXITCODE -ne 0) { throw 'Exact managed Node/npm commands are unavailable.' }
+$npmRunner = Join-Path $PSScriptRoot 'js_toolchain.py'
+Push-Location $suite
+try {
+    & $python (Join-Path $PSScriptRoot 'web_readiness.py') --repository $repository --evidence $evidence
+    if ($LASTEXITCODE -ne 0) { throw 'Web test prerequisites are unprepared; run ./scripts/Prepare-Web.ps1 explicitly.' }
+    & $python $npmRunner --repository $repository --evidence $evidence --timeout-seconds 300 npm -- run typecheck
+    if ($LASTEXITCODE -ne 0) { throw 'Managed web adapters or contract tests did not type-check.' }
+    & $python $npmRunner --repository $repository --evidence $evidence --timeout-seconds 30 npm -- run test:fixture
+    if ($LASTEXITCODE -ne 0) { throw 'The managed browser personas cannot be loaded from the local identity fixture.' }
+    $env:PROGRAMKIT_BASE_URL = $BaseUrl
+    $env:PROGRAMKIT_PERMISSION_PROBE_PATH = $PermissionProbePath
+    $env:PROGRAMKIT_SPA_URL = $SpaUrl
+    $env:PROGRAMKIT_SPA_LOGIN_PATH = $SpaLoginPath
+    $env:PROGRAMKIT_VITE_CONFIG = $ViteConfig
+    if ($selectedWebProfile -eq 'spa-pkce-v1') {
+        $spaVerifier = Join-Path $PSScriptRoot 'verify_spa_profile.py'
+        if (-not (Test-Path -LiteralPath $spaVerifier -PathType Leaf)) {
+            throw 'The selected SPA-PKCE profile verifier is missing.'
+        }
+        & $python $spaVerifier --repository $repository
+        if ($LASTEXITCODE -ne 0) { throw 'The synchronized SPA-PKCE profile is invalid.' }
+        if ($ViteConfig) {
+            & $python (Join-Path $suite 'verify_spa_security.py') --vite-config $ViteConfig
+            if ($LASTEXITCODE -ne 0) { throw 'WEB-V1 SPA serving-security configuration failed.' }
+        }
+    }
+    & $python $npmRunner --repository $repository --evidence $evidence --timeout-seconds 300 npm -- test
+    if ($LASTEXITCODE -ne 0) { throw 'The secure web profile contract failed.' }
+}
+finally {
+    Pop-Location
+}
+
+}
+finally {
+    foreach ($name in $environmentNames) { [Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name], 'Process') }
+}

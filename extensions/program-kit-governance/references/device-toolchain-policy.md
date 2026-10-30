@@ -6,11 +6,11 @@ installation commands, including with approval, escalation, a supplied installer
 legacy `--remediate --approve` flag. This applies to contributor validation, dependency
 maintenance, bootstrap/setup, consumer upgrades and ordinary engineering.
 
-Use the shared `eng/device_toolchain.py` provider shipped by the .NET extension (governance
+Use the shared `scripts/device_toolchain.py` provider shipped by the .NET extension (governance
 loads it through `package_execution.javascript_runtime().device`). `PKT030` diagnostics
 contain the tool, required version, authoritative pin, detected version, executable path,
 user commands, verification commands, privilege/persistence notes and official sources.
-`eng/toolchain.py` records the same contract under `devicePolicy` in its evidence. Existing
+`scripts/toolchain.py` records the same contract under `devicePolicy` in its evidence. Existing
 satisfied evidence is preserved when renewal fails; it cannot grant current readiness.
 
 Exact SDK, Node and npm authority comes from the selected profile/approved decision and

@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (
     ROOT
-    / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1"
+    / "extensions/program-kit-dotnet/templates/dotnet/files/scripts/Invoke-RepositoryVerification.ps1"
 )
 RESTORE_SOURCE = SOURCE.with_name("Restore.ps1")
 
@@ -46,11 +46,11 @@ def main() -> int:
         raise AssertionError("PowerShell is required to validate the repository verification hook")
     source_text = SOURCE.read_text(encoding="utf-8")
     if "Invoke-Expression" in source_text or "ConsumerVerificationPath" in source_text:
-        raise AssertionError("consumer verification must use the fixed literal eng/verify.ps1 path")
+        raise AssertionError("consumer verification must use the fixed literal scripts/verify.ps1 path")
 
     with tempfile.TemporaryDirectory(prefix="program-kit-verification-hook-") as value:
         repository = Path(value) / "consumer"
-        managed = repository / "eng"
+        managed = repository / "scripts"
         managed.mkdir(parents=True)
         wrapper = managed / SOURCE.name
         shutil.copyfile(SOURCE, wrapper)
@@ -88,7 +88,7 @@ def main() -> int:
         if absent.returncode != 0 or marker.read_text(encoding="utf-8").strip() != "fallback":
             raise AssertionError(f"absent consumer hook did not use managed fallback: {absent.stdout}{absent.stderr}")
 
-        consumer = repository / "eng/verify.ps1"
+        consumer = repository / "scripts/verify.ps1"
         consumer.parent.mkdir(parents=True, exist_ok=True)
         consumer.write_text(
             "Set-Content -LiteralPath $env:PROGRAMKIT_TEST_VERIFICATION_MARKER -Value 'consumer'\n",

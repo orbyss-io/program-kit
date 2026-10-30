@@ -41,14 +41,14 @@ def inactive_setup(project, previous):
                 shutil.copyfile(path, target)
         selection = inactive.blocks.load_json(project / inactive.history.SELECTION)
         inactive.blocks.preserve_dependency_profile(project, selection, inactive.fixture.CATALOG)
-        managed = inactive.blocks.load_json(project / '.program-kit/managed.json')
+        managed = inactive.blocks.load_json(project / 'config/program-kit/managed.json')
         managed['programKitVersion'] = PREVIOUS
-        inactive.write(project, '.program-kit/managed.json', managed)
+        inactive.write(project, 'config/program-kit/managed.json', managed)
         contract = seed.contract
     finally:
         inactive.fixture.CATALOG = original_catalog
         seed.doCleanups()
-    for path in (project / '.program-kit/dependency-profiles').rglob('*'):
+    for path in (project / 'config/program-kit/dependency-profiles').rglob('*'):
         if path.is_file(): contract['inputs'][path.relative_to(project).as_posix()] = inactive.history.sha(path)
     contract['inputs'][inactive.history.PROFILE] = inactive.history.sha(project / inactive.history.PROFILE)
     declaration = inactive.write(project, 'artifacts/review/history.json', contract)
@@ -71,14 +71,14 @@ def inactive_setup(project, previous):
         'contract': cases.relative_to(project).as_posix(), 'contractSha256': inactive.history.sha(cases),
         'repairs': [{'path': source_relative, 'beforeSha256': before, 'afterSha256': inactive.history.sha(source),
                     'requiredCases': [case], 'rationale': 'Fictional source annotation; execute actual hash behavior before replacement.'}]})
-    engineering = previous / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1'
+    engineering = previous / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts/Build.ps1'
     original = engineering.read_bytes()
-    managed = inactive.blocks.load_json(project / '.program-kit/managed.json')
+    managed = inactive.blocks.load_json(project / 'config/program-kit/managed.json')
     digest = hashlib.sha256(original).hexdigest()
-    managed['files']['eng/Build.ps1'] = {'ownership': 'managed', 'sourceIdentity': 'files/eng/Build.ps1',
+    managed['files']['scripts/Build.ps1'] = {'ownership': 'managed', 'sourceIdentity': 'files/scripts/Build.ps1',
         'templateHash': digest, 'lastWrittenHash': digest}
-    inactive.write(project, '.program-kit/managed.json', managed)
-    inactive.write(project, 'eng/Build.ps1', original + b'\n# Fictional consumer conflict must reject.\n')
+    inactive.write(project, 'config/program-kit/managed.json', managed)
+    inactive.write(project, 'scripts/Build.ps1', original + b'\n# Fictional consumer conflict must reject.\n')
     preserved = {name: inactive.history.sha(project / name) for name in contract['inputs']}
     return (['--inactive-history', declaration.relative_to(project).as_posix(), '--inactive-history-sha256', inactive.history.sha(declaration),
              '--local-repairs', repairs.relative_to(project).as_posix(), '--local-repairs-sha256', inactive.history.sha(repairs)], preserved, original)
@@ -177,7 +177,7 @@ def scenario(*, inactive=False, assets_dir="artifacts"):
             assert 'conflict' in (failed.stdout + failed.stderr).lower()
             attempts = list((project / 'artifacts/program-kit/runs').glob('*/upgrade-attempt.json'))
             assert any(json.loads(path.read_text())['status'] == 'incomplete' for path in attempts)
-            (project / 'eng/Build.ps1').write_bytes(original_engineering)
+            (project / 'scripts/Build.ps1').write_bytes(original_engineering)
         run('packaged-updater', command)
         for relative, payload in authored.items():
             assert (project / relative).read_bytes() == payload, 'Updater changed authored input: ' + relative
@@ -198,7 +198,7 @@ def scenario(*, inactive=False, assets_dir="artifacts"):
                 ('presets', 'program-kit-governance-preset', 'preset', 'preset.yml')]:
             actual = yaml.safe_load((project / '.specify' / kind / name / filename).read_text())
             assert actual[key]['version'] == version, 'Component did not advance: ' + name
-        migration = json.loads((project / '.program-kit/installation/migration.json').read_text())
+        migration = json.loads((project / 'config/program-kit/installation/migration.json').read_text())
         assert migration['fromVersion'] == PREVIOUS and migration['toVersion'] == version
         assert migration['checks']['installation-coherence'] is True
         assert migration['migrationCompletionEstablished'] is True

@@ -56,15 +56,15 @@ def main():
         run([sys.executable,str(ROOT/'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
              '--target',str(root),'--profile-selected','--foundation-host-accepted',
              '--building-block-sources-approved','--web-profile','none'])
-        run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'])
-        write('eng/architecture.json', json.dumps({'runtimeComposition': {'projects': [
+        run([sys.executable, 'scripts/repository_architecture.py', '--manifest', 'config/program-kit/architecture.json', '--planned'])
+        write('config/program-kit/architecture.json', json.dumps({'runtimeComposition': {'projects': [
             {'path': 'src/Slots.Core/Slots.Core.csproj', 'role': 'provider'}]}}))
-        invalid = run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'], expected=2)
+        invalid = run([sys.executable, 'scripts/repository_architecture.py', '--manifest', 'config/program-kit/architecture.json', '--planned'], expected=2)
         assert 'Core project role cannot be relabeled' in invalid.stderr
-        write('eng/architecture.json', json.dumps({'runtimeComposition': {'projects': [
+        write('config/program-kit/architecture.json', json.dumps({'runtimeComposition': {'projects': [
             {'path': 'src/Slots/Slots.csproj', 'role': 'implementation',
              'persistenceOwnerNamespaces': ['Slots.Persistence']}], 'bindings': []}}))
-        invalid = run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'], expected=2)
+        invalid = run([sys.executable, 'scripts/repository_architecture.py', '--manifest', 'config/program-kit/architecture.json', '--planned'], expected=2)
         assert 'namespace waiver' in invalid.stderr
         write('App.slnx','<Solution><Project Path="src/Slots.Core/Slots.Core.csproj" /><Project Path="tests/Slots.Tests/Slots.Tests.csproj" /></Solution>')
         write('src/Slots.Core/Slots.Core.csproj','<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><PackageId>Slots.Core</PackageId></PropertyGroup></Project>')
@@ -86,10 +86,10 @@ System.IO.Directory.CreateDirectory("artifacts/tests");
 System.IO.File.WriteAllText("artifacts/tests/domain.xml", "<testsuite><testcase classname='Slots' name='capacity_admission'/></testsuite>");
 return 0;
 ''')
-        write('eng/architecture.json',json.dumps({'schemaVersion':1,'runtimeComposition':{'projects':[
+        write('config/program-kit/architecture.json',json.dumps({'schemaVersion':1,'runtimeComposition':{'projects':[
             {'path':'src/Slots.Core/Slots.Core.csproj','role':'core'},
             {'path':'tests/Slots.Tests/Slots.Tests.csproj','role':'test'}]}}))
-        write('eng/verify.ps1','''$ErrorActionPreference = 'Stop'
+        write('scripts/verify.ps1','''$ErrorActionPreference = 'Stop'
 & (Join-Path $PSScriptRoot 'Build.ps1') -SkipReleaseBundle -LockedMode
 if (-not $?) { throw 'Build failed' }
 dotnet run --project tests/Slots.Tests/Slots.Tests.csproj -c Release --no-build
@@ -98,7 +98,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
         # Use a normal package source, optionally the already restored exact package.
         feed = ROOT/'artifacts/dotnet-engineering/packages'
         import xml.etree.ElementTree as ET
-        analyzer = next(node.get('Version') for node in ET.parse(root/'eng/ProgramKit.Packages.props').iter('PackageVersion') if node.get('Include')=='Orbyss.Foundation.Analyzers')
+        analyzer = next(node.get('Version') for node in ET.parse(root/'config/program-kit/build/ProgramKit.Packages.props').iter('PackageVersion') if node.get('Include')=='Orbyss.Foundation.Analyzers')
         if list((feed/'orbyss.foundation.analyzers'/analyzer).glob('*.nupkg')):
             from xml.sax.saxutils import escape
             write('NuGet.config','<configuration><packageSources><clear/><add key="cached-package" value="'+escape(str(feed))+'"/></packageSources></configuration>')
@@ -106,14 +106,14 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
         write('.specify/governance/bootstrap-completion.json','{"status":"Completed"}')
         write('specs/001-slots/spec.md','Reserve slots; active unfinished feature.')
         write('specs/001-slots/obligation-review.json','{"basis":"obsolete"}')
-        write('.program-kit/evidence/old-proof.json','{"exit_code":0,"old":true}')
+        write('config/program-kit/evidence/old-proof.json','{"exit_code":0,"old":true}')
         # Remove only these explicitly resolved disposable directories.
-        for relative in ('.specify','.program-kit','docs/architecture','specs'):
+        for relative in ('.specify','config/program-kit','docs/architecture','specs'):
             path=(root/relative).resolve()
             assert path.is_relative_to(root.resolve()) and path != root.resolve()
             shutil.rmtree(path)
         run(['dotnet','restore','App.slnx','--configfile','NuGet.config','--force-evaluate','--verbosity','quiet'])
-        run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','eng/Invoke-RepositoryVerification.ps1'])
+        run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','scripts/Invoke-RepositoryVerification.ps1'])
         previous_pack_inventories = set((root/'artifacts/packages').rglob('program-kit-pack.json'))
         assert len(previous_pack_inventories) == 1
         assert list(next(iter(previous_pack_inventories)).parent.glob('Slots.Core.*.nupkg'))
@@ -121,7 +121,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
         assert (root/'artifacts/tests/architecture.xml').is_file()
         # Native contract/package/receiver production also works after toolkit removal.
         import hashlib
-        handoff = json.loads((root/'eng/application-handoff.json').read_text())
+        handoff = json.loads((root/'config/program-kit/application-handoff.json').read_text())
         handoff['applicationId'] = 'slots.example'
         handoff['components'] = [{'id':'domain-library','packages':['Slots.Core'],'contracts':[]}]
         for category, names in {
@@ -134,37 +134,37 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
             'files':['contracts/settings.json']}
         for name in ('assets','migrations'):
             handoff['categories'][name] = {'status':'not-applicable','reason':'No frontend/image or persistent data.','files':[]}
-        write('eng/application-handoff.json',json.dumps(handoff))
+        write('config/program-kit/application-handoff.json',json.dumps(handoff))
         write('docs/application/application.md','Slots.Policy.Admit accepts only positive capacity; a pure library, no HTTP APIs or roles.')
-        write('docs/application/build-and-run.md','./eng/Restore.ps1 -LockedMode; ./eng/Invoke-RepositoryVerification.ps1; dotnet run --project tests/Slots.Tests/Slots.Tests.csproj -c Release --no-build')
+        write('docs/application/build-and-run.md','./scripts/Restore.ps1 -LockedMode; ./scripts/Invoke-RepositoryVerification.ps1; dotnet run --project tests/Slots.Tests/Slots.Tests.csproj -c Release --no-build')
         write('docs/application/review-scenarios.md','Capacity 1 admits; 0 and -1 deny. The executable tests/Slots.Tests/Program.cs exercises each outcome.')
         write('docs/application/runtime-requirements.md','Pure library; no storage, network, listening port, application startup, health route or writable runtime paths. Test output belongs under artifacts/tests/.')
         write('contracts/settings.json',json.dumps({'schemaVersion':1,'owner':'application','scope':'library',
             'complete':True,'sources':{'src/Slots.Core/Slots.cs':hashlib.sha256((root/'src/Slots.Core/Slots.cs').read_bytes()).hexdigest()},
             'settings':[],'semanticConstraints':['This pure library accepts method parameters and has no runtime configuration.']}))
-        run([sys.executable,'eng/openapi_pipeline.py','--repository','.'])
+        run([sys.executable,'scripts/openapi_pipeline.py','--repository','.'])
         # The opaque verification hook is followed by an independent architecture
         # build, which can change restore inputs. Produce a fresh pack after that
         # verification rather than claim its earlier same-version output is current.
-        run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','eng/Build.ps1',
+        run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','scripts/Build.ps1',
              '-LockedMode','-SkipTests','-RootPackage','Slots.Core'])
         new_pack_inventories = set((root/'artifacts/packages').rglob('program-kit-pack.json')) - previous_pack_inventories
         assert len(new_pack_inventories) == 1, 'Expected exactly one fresh build/pack inventory'
         pack_inventory = new_pack_inventories.pop()
         package_output = pack_inventory.parent
-        run([sys.executable,'eng/release_bundle.py','stage','--repository','.',
+        run([sys.executable,'scripts/release_bundle.py','stage','--repository','.',
              '--packages',str(package_output),'--inventory',str(pack_inventory),
              '--root-package','Slots.Core','--output','artifacts/release-bundle'])
         env['GITHUB_SHA']='a'*40
-        run([sys.executable,'eng/release_bundle.py','describe','--repository','.',
+        run([sys.executable,'scripts/release_bundle.py','describe','--repository','.',
             '--staged','artifacts/release-bundle','--image','ghcr.io/orbyss-io/foundation-host',
             '--tag','v0.2.4','--digest','sha256:'+'b'*64,'--output','artifacts/application-bundle.json'])
-        run([sys.executable,'eng/application_handoff.py','--repository','.','--draft'])
-        run([sys.executable,'eng/verify_handoff.py','artifacts/handoff/application-handoff.zip','--allow-draft'])
+        run([sys.executable,'scripts/application_handoff.py','--repository','.','--draft'])
+        run([sys.executable,'scripts/verify_handoff.py','artifacts/handoff/application-handoff.zip','--allow-draft'])
         index=json.loads((root/'artifacts/handoff/index.json').read_text())
         assert set(index['packages']) == {'Slots.Core'}, 'Native handoff must retain its selected pure library package'
         assert index['status']=='incomplete' and any('foundation/' in x for x in index['missing'])
-        assert not (root/'.specify').exists() and not (root/'.program-kit').exists()
+        assert not (root/'.specify').exists() and not (root/'config/program-kit').exists()
         # Current wrong code, not a receipt, must prevent acceptance.
         write('src/Slots.Core/Slots.cs','''namespace Slots;
 /// <summary>Defines a deliberately wrong admission policy.</summary>
@@ -174,7 +174,7 @@ public static class Policy
     public static bool Admit(int capacity) => capacity >= 0;
 }
 ''')
-        failed=run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','eng/Invoke-RepositoryVerification.ps1'],expected=None)
+        failed=run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','scripts/Invoke-RepositoryVerification.ps1'],expected=None)
         assert failed.returncode != 0, 'Wrong application behavior was accepted'
         assert 'Domain admission behavior failed' in failed.stderr, 'Expected domain rejection diagnostic was missing'
         result={'governanceDeleted':True,'codingAgentsStarted':False,'commands':commands,

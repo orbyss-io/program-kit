@@ -18,7 +18,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'
 sys.path[:0] = [str(ENG), str(ROOT / 'extensions/program-kit-governance/scripts')]
 sys.modules.setdefault('foundation_process', importlib.import_module('compatibility_process'))
 import foundation_fixture

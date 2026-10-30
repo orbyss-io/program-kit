@@ -16,7 +16,7 @@ from ui_svg import icons, sanitize_svg
 from ui_patterns import AUTH_STATES, auth_contract, auth_document, feedback_patterns, form_pattern, list_detail
 
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates/ui-experience"
-SOURCE = ".program-kit/ui"
+SOURCE = "config/program-kit/ui"
 OUTPUT = "web/generated/program-kit"
 STATE = f"{SOURCE}/outputs.json"
 
@@ -219,6 +219,9 @@ def synchronize(root: Path, expected: dict[str, bytes], check: bool) -> dict:
 
 
 def execute(root: Path, command: str) -> dict:
+    if any((root / '.program-kit/ui' / (name + '.json')).is_file()
+           and not (root / SOURCE / (name + '.json')).is_file() for name in ('profile', 'content')):
+        raise ValueError('Legacy UI inputs exist under .program-kit/ui; preserve selected branding/content and explicitly migrate them before using config/program-kit/ui. No defaults or generated files were written')
     if command == "init":
         targets = {name: safe_path(root, f"{SOURCE}/{name}.json") for name in ("profile", "content")}
         # Preflight every target before creating anything.

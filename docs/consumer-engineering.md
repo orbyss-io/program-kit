@@ -54,11 +54,13 @@ preserving IDs, completed work and history. Keep concise current status and link
 in the existing documents. Continue authorized ready work until an agreed review, genuine blocker or
 completion; saving progress alone adds no pause. Test counts and task counts do not measure delivery.
 
-Source, tests, native project/package files and locks, selected eng/deployment inputs
+Source, tests, native project/package files and locks, selected configuration/deployment inputs
 and CI enforce the software. Compiler/analyzer diagnostics, meaningful architecture,
 security and behavioral checks retain their actual authority. A structural graph check
 does not prove semantic ownership; tests do not supply human product acceptance.
 Program Kit need not be installed to build or deploy the resulting application.
+Keep authored scripts, tools and selected configuration outside disposable `eng/`;
+see [engineering layout and deterministic regeneration](disposable-engineering.md).
 
 Review the first coherent source before replicating its pattern: method abstraction, typed state
 ownership, pure policy/provider separation, effective configuration and admitted snapshots, complete

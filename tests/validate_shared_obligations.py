@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-governance/scripts'),
-               str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng')]
+               str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts')]
 from owned_fixture import FixtureDirectory
 from validate_story_delivery import seed
 import task_draft as draft
@@ -137,20 +137,21 @@ class PackSourceInputTests(unittest.TestCase):
 class VerificationCommandTests(unittest.TestCase):
     def setUp(self):
         self.scratch = FixtureDirectory(prefix='typed-wrapper-', native=True); self.addCleanup(self.scratch.cleanup)
-        self.root = Path(self.scratch.name); (self.root / 'eng').mkdir()
+        self.root = Path(self.scratch.name); (self.root / 'scripts').mkdir()
         source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
-        for path in (source / 'eng').iterdir():
+        for path in (source / 'scripts').iterdir():
             if path.is_file() and path.suffix in ('.py', '.ps1', '.psm1', '.json'):
-                shutil.copyfile(path, self.root / 'eng' / path.name)
+                shutil.copyfile(path, self.root / 'scripts' / path.name)
         for name in ('.nvmrc', '.npm-version', 'global.json'): shutil.copyfile(source / name, self.root / name)
         shutil.copyfile(ROOT / '.python-version', self.root / '.python-version')
-        (self.root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [], 'bindings': []}}))
+        (self.root / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [], 'bindings': []}}))
         self.shell = os.environ.get('PROGRAM_KIT_POWERSHELL_EXECUTABLE') or shutil.which('pwsh')
         self.assertTrue(self.shell, 'Prepare the selected PowerShell before the emitted command contract')
         self.environment = dict(os.environ, SPECKIT_PYTHON=sys.executable, PYTHONUTF8='1')
 
     def invoke(self, *arguments):
-        return subprocess.run([self.shell, '-NoProfile', '-File', str(self.root / 'eng/Invoke-RepositoryVerification.ps1'),
+        return subprocess.run([self.shell, '-NoProfile', '-File', str(self.root / 'scripts/Invoke-RepositoryVerification.ps1'),
             *arguments], cwd=self.root, env=self.environment, capture_output=True, text=True, encoding='utf-8', timeout=30)
 
     def test_formal_boundaries_refuse_development_narrowing(self):
@@ -169,7 +170,8 @@ class VerificationCommandTests(unittest.TestCase):
         (self.root / 'eng/required.py').write_text('raise AssertionError("Plan must not execute a test")\n')
         declaration = {'id': 'required-current', 'script': 'eng/required.py', 'arguments': [],
                        'inputs': ['docs/input.json'], 'timeoutSeconds': 10}
-        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [declaration]}))
+        (self.root / 'config/program-kit/verification.json').parent.mkdir(parents=True, exist_ok=True)
+        (self.root / 'config/program-kit/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [declaration]}))
         result = self.invoke('-Scope', 'Focused', '-Checks', 'required-current', '-Plan')
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         value = json.loads(result.stdout); self.assertEqual(['required-current'], value['toolkitChecks'])

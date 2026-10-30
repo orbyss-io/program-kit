@@ -27,7 +27,7 @@ consumer-owned `shells.json`. Add a reviewed selection deterministically with:
 
 <!-- program-kit:knowledge-rule context.feature-activation-command -->
 ```text
-python eng/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
+python scripts/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
 ```
 <!-- /program-kit:knowledge-rule -->
 
@@ -44,7 +44,7 @@ Previously packed identical descriptor aliases remain readable; newly packed pac
 canonical path. Consumer activation remains Program Kit's responsibility.
 
 Tasks cover the project, solution inclusion, explicit identity, `shells.json` activation, release-bundle
-inclusion, and missing/duplicate/dependency/route/dormancy tests. `eng/release_bundle.py stage`
+inclusion, and missing/duplicate/dependency/route/dormancy tests. `scripts/release_bundle.py stage`
 enforces those constraints while assembling image inputs. The host does not know or repeat this policy.
 
 Activated built-in features obtain their exact package versions from the repository-root
@@ -78,8 +78,8 @@ maintained `assembly_graph` reader; do not `Assembly.Load` private executable de
 architecture test. Existing runtime-closure staging exclusions for build-only references remain.
 
 When an owner must carry an owned producer's derived files, declare `buildOutputCopies` on that
-owner in `eng/architecture.json`, with exact `project` and `directory: tools/<owned-subdirectory>`.
-Preview the closed XML with `python eng/build_output_recipe.py --project <owner.csproj>` and
+owner in `config/program-kit/architecture.json`, with exact `project` and `directory: tools/<owned-subdirectory>`.
+Preview the closed XML with `python scripts/build_output_recipe.py --project <owner.csproj>` and
 reconcile it through normal project editing. It publishes the declared build-only producer into
 an owner-private intermediate directory before SDK content enumeration, replaces only its owned
 output subtree, preserves nested payload/notices, exposes transitive content and includes the
@@ -87,7 +87,7 @@ same bytes in the package. No extra task/property/item is exempt merely because 
 Custom output/RID layouts require a separately qualified evaluated adapter; do not broaden globs
 or waive unknown build tasks. Clean/incremental builds, source changes, renamed/removed files,
 transitive test output, package layout and compiled references require actual SDK evidence.
-The installed `eng/README.md` section **Owned SDK build outputs** gives the declaration and
+The installed `scripts/README.md` section **Owned SDK build outputs** gives the declaration and
 preview command at the point of use. PKV003 identifies this bounded alternative for the
 owned-output-copy case while retaining the evaluated-adapter requirement for other custom
 behavior. Treat the suggestion as applicability guidance, not automatic conversion authority.
@@ -178,9 +178,9 @@ This writes a new artifact directory and starts no provider, build or coding age
 - Central package management, locked restore, deterministic pack, and package-source mapping are mandatory.
 - `shells.json`, `hostsettings.json` and `nuplane.settings.json` remain scaffold-once consumer-owned inputs.
 - Managed OpenAPI production runs after package-closure staging through
-  `eng/openapi_pipeline.py`. Consumers register complete producer, compatibility,
+  `scripts/openapi_pipeline.py`. Consumers register complete producer, compatibility,
   isolated client-generation, and application-compile contracts in
-  `eng/openapi-contracts.json`; the external host remains application-neutral.
+  `config/program-kit/openapi-contracts.json`; the external host remains application-neutral.
 - Core and persistence guidance remains context-owned. No provider-private model, shared `DbContext`,
   generic repository/store/unit-of-work contract, provider, or readiness probe belongs in the host.
 <!-- /program-kit:knowledge-rule -->

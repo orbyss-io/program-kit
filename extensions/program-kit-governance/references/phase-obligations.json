@@ -280,7 +280,7 @@
       ],
       "enforcement": {
         "kind": "architecture-and-runtime",
-        "command": "python eng/repository_architecture.py --repository . --manifest eng/architecture.json --output artifacts/tests/architecture.xml",
+        "command": "python scripts/repository_architecture.py --repository . --manifest config/program-kit/architecture.json --output artifacts/tests/architecture.xml",
         "coverage": [
           "tests/validate_architecture_recipe.py",
           "tests/validate_standalone_engineering.py"
@@ -1390,7 +1390,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "87bb8ea2541df61f6bec02332825844a18bfc4e41629e6a86367d2879c6dd7ec",
+          "sha256": "cbf7f4424a6bbf0fe5f75a1f01da747dbfac11402bd07e0a35c458bea100a45f",
           "kind": "context",
           "owner": "program-kit-governance",
           "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
@@ -1503,7 +1503,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "0e9a48f315e5dc721ef076376fbdf90d0f3a8667620d49ff36d5f2934a7af2fa",
+          "sha256": "f9d0bfc14bc8499db7c151b6ab12aa5acee93cdfdc3dbb89cadf94f84da44b12",
           "kind": "context",
           "owner": "program-kit-building-blocks",
           "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
@@ -1582,7 +1582,7 @@
         "kind": "routing",
         "via": [
           "extensions/program-kit-dotnet/references/dotnet-engineering.md",
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/label_validation.py"
         ],
         "sections": [
           "Export and generation",
@@ -1813,7 +1813,7 @@
       "route": {
         "kind": "phase",
         "via": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/release_bundle.py"
         ],
         "sections": [
           "Host boundary",
@@ -2080,7 +2080,7 @@
           "extensions/program-kit-dotnet/scripts/composition_render.py",
           "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
           "extensions/program-kit-governance/scripts/phase_obligations.py",
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/composition_run.py"
         ],
         "sections": [
           "Choose the active route before custom setup",
@@ -2204,7 +2204,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "770c67e6001827cfef7e1c1da861b15c11a85ee01c71d18a034330ceea843cbb",
+          "sha256": "892654df003cb5f7aa2fd4a6de6443576c2ec009bf06e60604e0e4de08c6139b",
           "kind": "context",
           "owner": "program-kit-dotnet",
           "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
@@ -2286,7 +2286,7 @@
           "codingDisposition": {
             "kind": "native",
             "owner": "program-kit-dotnet",
-            "reason": "eng/preflight.py owns bounded Docker availability before host/Compose; configurable five-second hang budget is expressly not product SLO. No universal product timeout atom."
+            "reason": "scripts/preflight.py owns bounded Docker availability before host/Compose; configurable five-second hang budget is expressly not product SLO. No universal product timeout atom."
           }
         },
         "Mandatory verification": {
@@ -2398,7 +2398,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "6c736d45284e8fd8732de9727c56d401f54ddd2bf489c2718ae1ee52aeba4ce9",
+          "sha256": "c2693a54cc6111545b923aa24edb8a935455900383109c1d3ebac792a8d36735",
           "kind": "context",
           "owner": "program-kit-dotnet",
           "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
@@ -2417,7 +2417,7 @@
       "route": {
         "kind": "phase",
         "via": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py"
         ],
         "sections": [
           "Baseline",
@@ -2886,7 +2886,7 @@
       "route": {
         "kind": "setup",
         "via": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py",
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/device_toolchain.py",
           "extensions/program-kit-governance/scripts/repository_sync.py",
           "extensions/program-kit-governance/scripts/python_runtime.py",
           "extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md",
@@ -3506,7 +3506,7 @@
       "route": {
         "kind": "phase",
         "via": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py"
         ],
         "sections": [
           "Vocabulary",
@@ -3788,7 +3788,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "d1471e3c4124558b19574ea1409c6901ec143dfeeefeab889000c0ab1b71c6f7",
+          "sha256": "791a70536bb23809492e7edaee3efc35ee85da9f52dad24a21c504bcae4a1b82",
           "kind": "context",
           "owner": "program-kit-governance",
           "reason": "Current native phase guidance and shared feedback link. Actual project checks, semantic review and agreed human decisions remain separate; this source partition grants no consumer acceptance."
@@ -4241,7 +4241,7 @@
           "kind": "manual",
           "owner": "program-kit-governance",
           "reason": "Candidate research and operation-specific technical context; the selected .NET host default is separately attributed and never establishes human consent.",
-          "sha256": "548ec580ad4d5903c885deee2312ddb5150f72af49fd43b65a45afd2b36abfc6"
+          "sha256": "ea6b0637fd423db7a4041c56c4699ed0a8b78044a760c22c0ff3851f7108e8e8"
         },
         "headings": [
           [
@@ -4376,7 +4376,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "0993fc5006473bbf3dc3654834d0fa43311c0970c4b3648efcc0bfb320120a8f",
+          "sha256": "f5924a0f8594f2e54bb4a8fb53206eb98d7138b3dd716e8bc4cc8f959962957e",
           "kind": "context",
           "owner": "program-kit-governance",
           "reason": "Exact remaining source is lifecycle/setup/native procedure, illustrative context, bibliography or already covered source qualification under this existing owner. Changes to this reviewed partition require reclassification; registration establishes no consumer application or semantic acceptance."
@@ -4630,7 +4630,7 @@
       "route": {
         "kind": "routing",
         "via": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_inputs.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/retained_inputs.py"
         ],
         "sections": [
           "Document outputs"
@@ -4666,7 +4666,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "f974f10f3353fe999218be728183ef6da1796fecd82c93d69c43945bad889425",
+          "sha256": "b1ea39a8c3cab6122e9d213f4f38e9eaa20535101a97f048713ce4450078b5de",
           "kind": "context",
           "owner": "program-kit-dotnet",
           "reason": "Current authored content/reference and selected engineering procedure. Normal project choices, real operation checks and agreed human review replace retired workflow state; this partition grants no consumer acceptance."
@@ -4853,11 +4853,11 @@
       "purpose": "Optional reporter/guardian data contracts and explicit human publication review; no ordinary implementation hook or consumer acceptance authority."
     },
     {
-      "id": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
-      "path": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+      "id": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
+      "path": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
       "locator": {
         "kind": "extension",
-        "path": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py"
+        "path": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py"
       },
       "owner": "program-kit-dotnet native engineering",
       "disposition": "active",
@@ -4887,11 +4887,11 @@
       }
     },
     {
-      "id": "program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
-      "path": "program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
+      "id": "program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props",
+      "path": "program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props",
       "locator": {
         "kind": "extension",
-        "path": "program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props"
+        "path": "program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props"
       },
       "owner": "program-kit-dotnet native engineering",
       "disposition": "active",
@@ -4904,11 +4904,11 @@
       }
     },
     {
-      "id": "program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
-      "path": "program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
+      "id": "program-kit-dotnet/templates/dotnet/files/scripts/label-validation.schema.json",
+      "path": "program-kit-dotnet/templates/dotnet/files/scripts/label-validation.schema.json",
       "locator": {
         "kind": "extension",
-        "path": "program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json"
+        "path": "program-kit-dotnet/templates/dotnet/files/scripts/label-validation.schema.json"
       },
       "owner": "program-kit-dotnet native engineering",
       "disposition": "conditional",
@@ -5299,7 +5299,7 @@
           ]
         ],
         "remaining": {
-          "sha256": "421e2c2ecdd3f292c0d8fa9df283e8cef14752cc44a7c7322eeaa87d8894ea19",
+          "sha256": "4c6301ee3ceeec77f2b423a4f046e076291ad0f6585941b313ac748c1fadba5a",
           "kind": "context",
           "owner": "program-kit-governance",
           "reason": "Current intake review preparation: generate the authored map projection, offer local C4 viewing, present drafts and request separately scoped product/constitution/named ADR decisions. Helpers remain read-only and registration grants no human acceptance."
@@ -8415,7 +8415,7 @@
     },
     "native.allowed-role-references": {
       "purpose": "Allowed role references",
-      "source": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+      "source": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
       "selector": {
         "kind": "python-symbol",
         "name": "ALLOWED_ROLE_REFERENCES"
@@ -8430,7 +8430,7 @@
       "applicability": "Existing responsibility selection: dotnet-boundaries",
       "bindings": {
         "recipes": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py"
         ],
         "checks": [
           "tests/validate_architecture_recipe.py"
@@ -8439,7 +8439,7 @@
     },
     "native.core-package-exclusions": {
       "purpose": "Core package exclusions",
-      "source": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+      "source": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
       "selector": {
         "kind": "python-symbol",
         "name": "FORBIDDEN_CORE_PACKAGE_PREFIXES"
@@ -8454,7 +8454,7 @@
       "applicability": "Existing responsibility selection: dotnet-boundaries",
       "bindings": {
         "recipes": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py"
         ],
         "checks": [
           "tests/validate_architecture_recipe.py"
@@ -8463,7 +8463,7 @@
     },
     "native.activatable-roles": {
       "purpose": "Activatable roles",
-      "source": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+      "source": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
       "selector": {
         "kind": "python-symbol",
         "name": "ACTIVATABLE_PROJECT_ROLES"
@@ -8478,7 +8478,7 @@
       "applicability": "Existing responsibility selection: dotnet-boundaries",
       "bindings": {
         "recipes": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py"
         ],
         "checks": [
           "tests/validate_architecture_recipe.py"
@@ -8487,7 +8487,7 @@
     },
     "native.capability-roles": {
       "purpose": "Capability roles",
-      "source": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+      "source": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
       "selector": {
         "kind": "python-symbol",
         "name": "CAPABILITY_IMPLEMENTATION_ROLES"
@@ -8502,7 +8502,7 @@
       "applicability": "Existing responsibility selection: dotnet-boundaries",
       "bindings": {
         "recipes": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py"
         ],
         "checks": [
           "tests/validate_architecture_recipe.py"
@@ -8533,7 +8533,7 @@
     },
     "native.build-warnings": {
       "purpose": "Build warnings",
-      "source": "program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
+      "source": "program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props",
       "selector": {
         "kind": "xml-elements",
         "element": "TreatWarningsAsErrors"
@@ -8554,7 +8554,7 @@
     },
     "native.label-rule-schema": {
       "purpose": "Label rule schema",
-      "source": "program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
+      "source": "program-kit-dotnet/templates/dotnet/files/scripts/label-validation.schema.json",
       "selector": {
         "kind": "json-pointer",
         "pointer": "/$defs/rule"
@@ -8884,7 +8884,7 @@
     },
     "native.project-role-admission": {
       "purpose": "C# project role admission and retained composition-preset retirement",
-      "source": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+      "source": "program-kit-dotnet/templates/dotnet/files/scripts/architecture_rules.py",
       "selector": {
         "kind": "python-symbol",
         "name": "validate_project_role"
@@ -8899,7 +8899,7 @@
       "applicability": "Existing responsibility selection: dotnet-boundaries",
       "bindings": {
         "recipes": [
-          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+          "extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py"
         ],
         "checks": [
           "tests/validate_architecture_recipe.py"
@@ -14727,7 +14727,7 @@
       "currentUse": "Prior source-to-canonical mapping and its original review evidence; not current phase eligibility or execution acceptance."
     },
     {
-      "oldLocation": "eng/source_quality.py:guidance",
+      "oldLocation": "scripts/source_quality.py:guidance",
       "canonicalRules": [
         "guidance.dotnet-engineering.method-bodies-and-extraction",
         "guidance.dotnet-engineering.source-files-and-documentation",

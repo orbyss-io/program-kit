@@ -176,7 +176,7 @@ class DocumentOwnershipTests(unittest.TestCase):
         import upgrade_program_kit as upgrade
         lock, owners = self.retire_lock()
         for name in ('retained_inputs.py', 'retained_archives.py', 'retained_locks.py', 'owned_scratch.py'):
-            shutil.copyfile(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'/name, self.root/'eng'/name)
+            shutil.copyfile(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/scripts'/name, self.root/'scripts'/name)
         versions = {'Orbyss.Foundation.Authentication': '1.0.0'}
         self.assertEqual([], upgrade.stale_program_kit_locks(self.root, versions))
         orphan = self.root/'src/Unknown/packages.lock.json'; orphan.parent.mkdir(); orphan.write_bytes(lock.read_bytes())

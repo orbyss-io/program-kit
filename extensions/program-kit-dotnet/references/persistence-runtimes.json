@@ -7,7 +7,7 @@
       "version": "18.6",
       "image": "postgres@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4",
       "scope": "disposable local compatibility; not a production topology or automatic service installation",
-      "packagePins": "templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props",
+      "packagePins": "templates/dotnet/files/config/program-kit/build/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props",
       "sources": [
         "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4",
         "https://github.com/docker-library/postgres",

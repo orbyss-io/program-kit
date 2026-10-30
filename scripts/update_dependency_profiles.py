@@ -51,7 +51,7 @@ def sync_publisher_engineering(profile):
     contracts['releases'][version]={'sourceCommit':commit,'url':url,
         'pins':{name:pins[name] for name in ('CShells.Abstractions','CShells.AspNetCore.Abstractions')}}
     write(contracts_path,contracts)
-    path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props'
+    path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Packages.props'
     text=path.read_text(encoding='utf-8')
     import re
     for identity in ('CShells.Abstractions','CShells.AspNetCore.Abstractions'):

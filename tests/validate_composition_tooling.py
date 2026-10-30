@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
-sys.path[:0] = [str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(TEMPLATE / 'files/eng')]
+sys.path[:0] = [str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(TEMPLATE / 'files/scripts')]
 import composition_model as model
 import composition_migrate as migrate
 import composition_render as render
@@ -24,6 +24,16 @@ from composition_fixture import two_apps
 
 
 class MigratedTooling(unittest.TestCase):
+    def test_browser_preparation_uses_durable_helper_owner(self):
+        import composition_run as runner
+        from unittest.mock import Mock
+        command = Mock()
+        with patch.object(runner.qualification, 'npm_command', return_value=(['npm', 'ci'], {})), \
+             patch.object(runner.qualification, 'playwright_command', return_value=['node', 'fixture-playwright']), \
+             patch.object(runner, 'browser_check'):
+            runner.prepare_browsers(self.root, self.graph, {}, command, self.root / 'artifacts/browser')
+        self.assertEqual(self.root / 'tools/program-kit/web', command.run.call_args_list[0].kwargs['cwd'])
+
     def test_configuration_environment_projection_is_ephemeral_and_preflights_before_native_effects(self):
         import composition_run as run
         from collections import defaultdict
@@ -198,8 +208,11 @@ class MigratedTooling(unittest.TestCase):
             loadingText='Loading claims.', failureText='Claims could not be loaded.')
         self.graph['resources']['policy-web']['branding'] = branding
         (self.root / 'proposal.json').write_text(json.dumps(self.graph))
-        (self.root / 'eng').mkdir()
-        shutil.copytree(TEMPLATE / 'files/eng', self.root / 'eng', dirs_exist_ok=True)
+        (self.root / 'scripts').mkdir()
+        shutil.copytree(TEMPLATE / 'files/scripts', self.root / 'scripts', dirs_exist_ok=True)
+        shutil.copytree(TEMPLATE / 'files/tools', self.root / 'tools', dirs_exist_ok=True)
+        shutil.copytree(TEMPLATE / 'files/.config', self.root / '.config', dirs_exist_ok=True)
+        shutil.copytree(TEMPLATE / 'files/config', self.root / 'config', dirs_exist_ok=True)
         self.retained = {
             'src/Existing/Custom.cs': b'// Existing owned implementation stays intact.\n',
             'src/Existing/packages.lock.json': b'{"historical-lock":"exact-retained-bytes"}\n',
@@ -232,9 +245,9 @@ class MigratedTooling(unittest.TestCase):
         for name, (payload, _) in render.materialize(self.root, graph, TEMPLATE).items():
             target = self.root / name; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(payload)
         (self.root / '.oasdiff-version').write_text('1.33.0\n')
-        defaults = json.loads((self.root / 'eng/openapi-defaults.json').read_text())
+        defaults = json.loads((self.root / 'scripts/openapi-defaults.json').read_text())
         defaults['compatibility']['version'] = '1.29.1'
-        (self.root / 'eng/openapi-defaults.json').write_text(json.dumps(defaults))
+        (self.root / 'scripts/openapi-defaults.json').write_text(json.dumps(defaults))
         with patch.object(sys, 'argv', ['openapi_init', '--repository', str(self.root), '--identity', 'only',
                 '--document-name', 'v1', '--shell', 'default', '--feature', 'Application.Api',
                 '--application-directory', 'web', '--application-tsconfig', 'web/tsconfig.json']):
@@ -242,8 +255,8 @@ class MigratedTooling(unittest.TestCase):
         contract = json.loads((self.root / 'contracts/openapi/only.contract.json').read_text())
         self.assertEqual('1.33.0', contract['compatibility']['oasdiffVersion'])
         self.assertEqual('artifacts/runtime/only/packages', contract['packageClosure'])
-        self.assertEqual('1.29.1', json.loads((self.root / 'eng/openapi-defaults.json').read_text())['compatibility']['version'])
-        manifest = json.loads((self.root / 'eng/.config/dotnet-tools.json').read_text())
+        self.assertEqual('1.29.1', json.loads((self.root / 'scripts/openapi-defaults.json').read_text())['compatibility']['version'])
+        manifest = json.loads((self.root / '.config/dotnet-tools.json').read_text())
         exporter = manifest['tools']['orbyss.foundation.openapi.exporter']['version']
         contract_path = self.root / 'contracts/openapi/only.contract.json'
         validated, paths = pipeline.validate_contract(self.root, contract_path, exporter, '1.33.0')
@@ -259,9 +272,9 @@ class MigratedTooling(unittest.TestCase):
             self.assertEqual(payload, (self.root / name).read_bytes())
 
     def test_typed_persona_script_loads_migrated_realm_and_rejects_extra_users(self):
-        suite = self.root / 'eng/web'
-        shutil.copyfile(TEMPLATE / 'web-profiles/common/eng/web/persona-fixture.ts', suite / 'persona-fixture.ts')
-        package = json.loads((TEMPLATE / 'web-profiles/common/eng/web/package.json').read_text())
+        suite = self.root / 'tools/program-kit/web'
+        shutil.copyfile(TEMPLATE / 'web-profiles/common/tools/program-kit/web/persona-fixture.ts', suite / 'persona-fixture.ts')
+        package = json.loads((TEMPLATE / 'web-profiles/common/tools/program-kit/web/package.json').read_text())
         self.assertIn("import('./persona-fixture.ts')", package['scripts']['test:fixture'])
         realm = self.root / 'deploy/keycloak/product-identity/program-kit-realm.json'
         document = json.loads(realm.read_text())
@@ -282,7 +295,7 @@ class MigratedTooling(unittest.TestCase):
 
     def test_initializer_rejects_missing_or_malformed_pin_without_partial_writes(self):
         import openapi_init
-        registry = self.root / 'eng/openapi-contracts.json'
+        registry = self.root / 'config/program-kit/openapi-contracts.json'
         original_registry = registry.read_bytes()
         arguments = ['openapi_init', '--repository', str(self.root), '--identity', 'invalid-pin',
                      '--document-name', 'v1', '--shell', 'policies', '--feature', 'Application.Api',

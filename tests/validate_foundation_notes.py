@@ -31,7 +31,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'tests/fixtures/foundation-consumer-contracts/notes/v1'
 SCENARIO = ROOT / 'tests/live/scenarios/foundation-notes/v1'
-RECIPE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py'
+RECIPE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts/repository_architecture.py'
 ORACLE_SCENARIO = 'foundation-notes-v1'
 PROJECTS = ('Notes.Core', 'Notes', 'Notes.Api', 'Notes.PostgreSql')
 FIXTURE_VERSION = '1.0.0-fixture.1'
@@ -75,8 +75,8 @@ def seed_cases():
         return text.replace('await using var unit = await units.BeginUnitAsync(cancellationToken);\n            await using var db = await unit.Factory.CreateDbContextAsync(unit.Deadline.Token);',
             'var cached = await shared.Value;\n            var unit = cached.Unit;\n            var db = cached.Db;\n            await db.Database.ExecuteSqlRawAsync("SELECT pg_sleep(0.15)", unit.Deadline.Token);', 1)
     return {
-        'merged-roles': ('eng/architecture.json', lambda text: text.replace('"role":"core"', '"role":"provider"')),
-        'missing-bindings': ('eng/architecture.json', lambda text: json.dumps({**json.loads(text), 'runtimeComposition': {
+        'merged-roles': ('config/program-kit/architecture.json', lambda text: text.replace('"role":"core"', '"role":"provider"')),
+        'missing-bindings': ('config/program-kit/architecture.json', lambda text: json.dumps({**json.loads(text), 'runtimeComposition': {
             **json.loads(text)['runtimeComposition'], 'bindings': json.loads(text)['runtimeComposition']['bindings'][1:]}})),
         'private-claim-parsing': ('src/Notes.Api/NoteOwnerAdapter.cs', lambda text: text.replace('return new(identity.Issuer, identity.Subject);',
             'return new(http.User.FindFirst("iss")!.Value, http.User.FindFirst("sub")!.Value);')),
@@ -542,7 +542,7 @@ def recipe():
 
 
 def validate_source(source: Path) -> None:
-    manifest = json.loads((source / 'eng/architecture.json').read_text(encoding='utf-8'))
+    manifest = json.loads((source / 'config/program-kit/architecture.json').read_text(encoding='utf-8'))
     recipe().validate_planned(source, manifest)
     bindings = manifest['runtimeComposition']['bindings']
     require({row['capability'] for row in bindings} == {'Notes.Core.INoteAuthoring', 'Notes.Core.INoteRevisionLifecycle', 'Notes.Core.INoteQueries'},
@@ -691,7 +691,7 @@ def prepare(args) -> tuple[Path, Path]:
     architecture_environment = environment.copy()
     architecture_environment['PATH'] = str(Path(args.dotnet).resolve().parent) + os.pathsep + architecture_environment.get('PATH', '') if Path(args.dotnet).is_file() else architecture_environment.get('PATH', '')
     architecture_environment['FoundationCandidateVersion'] = args.version
-    architecture_command = [sys.executable, str(RECIPE), '--manifest', 'eng/architecture.json', '--configuration', 'Release', '--output', 'artifacts/architecture.xml']
+    architecture_command = [sys.executable, str(RECIPE), '--manifest', 'config/program-kit/architecture.json', '--configuration', 'Release', '--output', 'artifacts/architecture.xml']
     if args.graph_seed:
         with (evidence / 'architecture.log').open('w', encoding='utf-8') as output:
             result = subprocess.run(architecture_command, cwd=source, env=architecture_environment,

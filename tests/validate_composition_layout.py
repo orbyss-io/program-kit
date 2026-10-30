@@ -5,7 +5,7 @@ import sys
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import importlib
 sys.modules.setdefault('foundation_process', importlib.import_module('compatibility_process'))
@@ -29,16 +29,16 @@ def main():
         # repository-private helper globals substitute for installed ownership.
         script = '''import json,sys
 from pathlib import Path
-root=Path.cwd();sys.path.insert(0,str(root/'eng'))
+root=Path.cwd();sys.path.insert(0,str(root/'scripts'))
 import composition_run as run,prepare_hosted_pages
-graph=run.read(root/'eng/foundation-composition.json')
+graph=run.read(root/'config/program-kit/foundation-composition.json')
 projects=sorted(str(p.relative_to(root)).replace('\\\\','/') for p in (root/'src').rglob('*.csproj'))
 frontends=sorted(run.model.resources(graph,'frontend'))
 run.require(len(projects)==6 and len(frontends)==2,'Expected actual six-project/two-frontend layout')
 command=run.Commands(root,Path(sys.argv[1])/'native')
-command.run([sys.executable,'eng/toolchain.py','--repository','.','--evidence','artifacts/program-kit/toolchain.json'])
-command.run(['pwsh','-NoProfile','-File','eng/Restore.ps1','-Subject','Application.slnx'],timeout=600)
-command.run(['pwsh','-NoProfile','-File','eng/Restore.ps1','-Subject','Application.slnx','-LockedMode'],timeout=600)
+command.run([sys.executable,'scripts/toolchain.py','--repository','.','--evidence','artifacts/program-kit/toolchain.json'])
+command.run(['pwsh','-NoProfile','-File','scripts/Restore.ps1','-Subject','Application.slnx'],timeout=600)
+command.run(['pwsh','-NoProfile','-File','scripts/Restore.ps1','-Subject','Application.slnx','-LockedMode'],timeout=600)
 command.run(['dotnet','build','Application.slnx','-c','Release','--no-restore'],timeout=600)
 prepare_hosted_pages.build(root,graph,command,restore=True)
 for name in frontends:prepare_hosted_pages.admission(root,graph,name)

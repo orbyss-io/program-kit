@@ -1,13 +1,13 @@
 # Retained input and document ownership
 
-`eng/retained_inputs.py` reads existing supported feature-reset preservation records.
+`scripts/retained_inputs.py` reads existing supported feature-reset preservation records.
 It hashes original bytes and never executes historical code, restores retired projects
 or turns preservation into current product acceptance. An absent index is reported as
 unconfigured; it does not certify that arbitrary repository documents are mutable.
 
 Declare the exact original record hashes already retained by the reviewed preservation
 or migration input. Do not calculate a replacement expected hash to conceal a failure.
-For example, `eng/retained-inputs.json` can declare:
+For example, `config/program-kit/retained-inputs.json` can declare:
 
 ```json
 {
@@ -35,7 +35,7 @@ protected inputs; it does not freeze a whole folder or every reset-preserved fil
 The hash binding establishes preservation relative to the supplied original authority,
 not an independent signature or proof that an operator attestation is true.
 
-Inspect with `python eng/retained_inputs.py inspect --repository .`, or name one target
+Inspect with `python scripts/retained_inputs.py inspect --repository .`, or name one target
 with `--path`. `verify` checks the declared current bytes against those original records.
 Its result explicitly supplies no fresh application/provider acceptance.
 
@@ -88,7 +88,7 @@ Synchronization creates a named `retained-inputs` toolkit check with exact input
 ownership from these records. `Invoke-RepositoryVerification.ps1 -Scope Focused
 -Checks retained-inputs` runs it directly. Affected selection can combine it with
 native domain projects from the original Git baseline. Consumer `toolkitChecks`
-in `eng/verification.json` declare a unique `id`, current Python `script`, literal
+in `config/program-kit/verification.json` declare a unique `id`, current Python `script`, literal
 `arguments`, exact `inputs`, and `timeoutSeconds` (1..900). No shell or coding agent
 is dispatched by the adapter. Keep paid/provider operations outside these checks.
 Results retain separate named outcomes, input/runtime fingerprints and both

@@ -41,9 +41,10 @@ def exercise(root, restore):
             rows.append({'path': relative, 'role': role, 'projectReferences': references})
         solution = repository / 'Closure.slnx'
         solution.write_text('<Solution>' + ''.join(f'<Project Path="{p}" />' for name,p in projects.items() if name != 'Dependency') + '</Solution>')
-        (repository / 'eng').mkdir()
-        (repository / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': rows, 'bindings': []}}))
-        profile = repository / '.program-kit/dependency-profile.json'
+        (repository / 'scripts').mkdir()
+        (repository / 'config/program-kit/architecture.json').parent.mkdir(parents=True, exist_ok=True)
+        (repository / 'config/program-kit/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': rows, 'bindings': []}}))
+        profile = repository / 'config/program-kit/dependency-profile.json'
         profile.parent.mkdir()
         profile.write_text('{"profile":"retained-exact-profile","pins":{"Foundation":"0.3.2"}}')
         original_profile = profile.read_bytes()

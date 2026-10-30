@@ -550,14 +550,15 @@ class FrameworkGuidanceTests(unittest.TestCase):
                 value = phase.model(root, chosen, 'implementation', selected_tags=tags)
                 output = phase.render(value, 'implementation')
             self.assertEqual('absent', value['context']['composition']['state'])
-            for expected in ('eng/foundation-composition.json: absent', 'composition_migrate.py --proposal',
+            for expected in ('config/program-kit/foundation-composition.json: absent', 'composition_migrate.py --proposal',
                              'configuration-only', 'legacy --web-profile', 'Metadata/exporter hashes',
                              'exact pins', 'adds no approval receipt'):
                 self.assertIn(expected, output)
             self.assertNotIn('canProceed', value)
             self.assertEqual(before, snapshot(root))
-            (root / 'eng').mkdir()
-            active = root / 'eng/foundation-composition.json'
+            (root / 'scripts').mkdir()
+            active = root / 'config/program-kit/foundation-composition.json'
+            active.parent.mkdir(parents=True, exist_ok=True)
             active.write_text('{"schemaVersion":2,"resources":[]}')
             before = snapshot(root)
             with patch('subprocess.run', side_effect=AssertionError('Resume reran supplier tests')):

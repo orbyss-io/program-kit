@@ -52,7 +52,7 @@ capability's ownership. The application capability owns write-then-read orchestr
 That observation is not an atomic
 write/read snapshot and supplies no general transaction or retry guarantee.
 Declare the real
-Core project references in the native projects and `eng/architecture.json`. Register
+Core project references in the native projects and `config/program-kit/architecture.json`. Register
 `ILabelStore` to `PostgreSqlLabelStore<YourContext>` beside the existing native
 `AddFoundationPostgreSql` registration. The context derives from
 `FoundationPostgreSqlDbContext`; each operation owns a bounded public unit lease.
@@ -150,7 +150,7 @@ composition qualifier independently reads the actual committed value and restart
 the Host before observing it again. This small single-row example supplies no
 general idempotency, multi-resource transaction or uncertain-write retry contract.
 
-Initialize the actual shell's OpenAPI contract with `eng/openapi_init.py`, retaining
+Initialize the actual shell's OpenAPI contract with `scripts/openapi_init.py`, retaining
 its isolated generator package and lock. Run the emitted lock command, then the
 maintained Build/OpenAPI pipeline. It executes the actual native metadata producer,
 exporter, comparison and TypeScript generator. Preserve established baselines;

@@ -85,15 +85,26 @@ def check():
     shared_pins = blocks.effective_dependency_context(ROOT)['sharedAbi']['pins']
     directory = ROOT / 'artifacts/t' / ('typed-native-' + uuid.uuid4().hex[:8])
     directory.mkdir(parents=True)
-    eng = directory / 'eng'; eng.mkdir()
-    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props', eng / 'ProgramKit.Build.props')
+    initialized = subprocess.run([sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+        '--target', str(directory), '--profile-selected', '--foundation-host-accepted',
+        '--building-block-sources-approved', '--web-profile', 'none'], capture_output=True, text=True, timeout=90)
+    (directory / 'engineering-setup.stdout.txt').write_text(initialized.stdout)
+    (directory / 'engineering-setup.stderr.txt').write_text(initialized.stderr)
+    if initialized.returncode:
+        raise AssertionError('Native fixture engineering setup failed; inspect ' + str(directory))
+    # This fixture independently selects literal public package references below;
+    # keep its existing non-CPM project contract while retaining durable policy.
+    (directory / 'Directory.Packages.props').write_text('<Project/>', newline='\n')
+    eng = directory / 'config/program-kit/build'
+
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.props', eng / 'ProgramKit.Build.props')
     analyzer_version = catalog['packages']['nuget:Orbyss.Foundation.Analyzers']['version']
-    (directory / 'Directory.Build.props').write_text('''<Project><Import Project="eng/ProgramKit.Build.props"/><PropertyGroup>
+    (directory / 'Directory.Build.props').write_text('''<Project><Import Project="config/program-kit/build/ProgramKit.Build.props"/><PropertyGroup>
 <NuGetAudit>false</NuGetAudit>
 </PropertyGroup><ItemGroup><PackageReference Update="Orbyss.Foundation.Analyzers" Version="''' + analyzer_version + '''"/>
 </ItemGroup></Project>''', encoding='utf-8')
-    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets', eng / 'ProgramKit.Build.targets')
-    (directory / 'Directory.Build.targets').write_text('<Project><Import Project="eng/ProgramKit.Build.targets"/></Project>', encoding='utf-8')
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/config/program-kit/build/ProgramKit.Build.targets', eng / 'ProgramKit.Build.targets')
+    (directory / 'Directory.Build.targets').write_text('<Project><Import Project="config/program-kit/build/ProgramKit.Build.targets"/></Project>', encoding='utf-8')
     (directory / 'NuGet.Config').write_text('<configuration><packageSources><clear/>'
         '<add key="nuget.org" value="https://api.nuget.org/v3/index.json"/>'
         '</packageSources></configuration>', encoding='utf-8')
@@ -139,7 +150,7 @@ def check():
     fixture = test.parent / 'Labels'; fixture.mkdir()
     for source in (ROOT / 'tests/fixtures/typed-operation-runtime').glob('*.cs'):
         shutil.copyfile(source, fixture / source.name)
-    commands.append(['dotnet', 'build', str(test), '--configuration', 'Release', '--nologo', '-m:1', '--disable-build-servers'])
+    commands.append(['dotnet', 'build', '-p:ProgramKitPythonCommand=' + sys.executable, str(test), '--configuration', 'Release', '--nologo', '-m:1', '--disable-build-servers'])
     commands.append(['dotnet', 'run', '--no-build', '--project', str(test), '--configuration', 'Release'])
     for index, command in enumerate(commands):
         run = subprocess.run(command, cwd=directory, capture_output=True, text=True, encoding='utf-8', timeout=90)
@@ -157,7 +168,7 @@ def check():
     if original.count('            parameters,') != 1:
         raise ValueError('Native ORB1008 negative seam changed; preserve source for review')
     source.write_text(original.replace('            parameters,', '            [value],'), encoding='utf-8')
-    command = ['dotnet', 'build', str(directory / owners['provider']), '--configuration', 'Release', '--nologo', '-m:1', '--disable-build-servers']
+    command = ['dotnet', 'build', '-p:ProgramKitPythonCommand=' + sys.executable, str(directory / owners['provider']), '--configuration', 'Release', '--nologo', '-m:1', '--disable-build-servers']
     negative = subprocess.run(command, cwd=directory, capture_output=True, text=True, encoding='utf-8', timeout=90)
     (directory / 'native-negative.stdout.txt').write_text(negative.stdout, encoding='utf-8')
     (directory / 'native-negative.stderr.txt').write_text(negative.stderr, encoding='utf-8')
@@ -225,7 +236,7 @@ internal sealed class SourceStyleControl
     private static System.Linq.Expressions.Expression<Func<string, bool>> CreateExpression() => value => value.Length > 0;
 }
 '''
-    command = ['dotnet', 'build', str(project), '--configuration', 'Release', '--no-restore', '--nologo', '-m:1', '--disable-build-servers']
+    command = ['dotnet', 'build', '-p:ProgramKitPythonCommand=' + sys.executable, str(project), '--configuration', 'Release', '--no-restore', '--nologo', '-m:1', '--disable-build-servers']
 
     def build(label, text, diagnostic=None, extra=()):
         source.write_text(text, encoding='utf-8')

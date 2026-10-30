@@ -14,7 +14,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "extensions/program-kit-governance/scripts"))
 import repository_sync as sync
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/scripts'))
 from owned_scratch import owned_scratch, filesystem_path
 
 
@@ -42,7 +42,7 @@ class CoordinatorTests(unittest.TestCase):
             self.assertTrue(result.stdout.strip(), result.stderr)
             plan = json.loads(result.stdout)
             self.assertFalse(plan['conflicts'])
-            self.assertIn('eng/composition_model.py', {row['path'] for row in plan['actions']})
+            self.assertIn('scripts/composition_model.py', {row['path'] for row in plan['actions']})
             self.assertEqual(before, {p.relative_to(target).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                                      for p in target.rglob('*') if p.is_file()})
 
@@ -91,7 +91,7 @@ class CoordinatorTests(unittest.TestCase):
         plan = sync.describe(self.root, 'planning', 'specs/new-requests')
         self.assertTrue(plan['context']['dotnet'])
         operation = next(item for item in plan['operations'] if item['adapter'] == 'dotnet')
-        self.assertIn('eng/composition_model.py', {row['path'] for row in operation['plan']['actions']})
+        self.assertIn('scripts/composition_model.py', {row['path'] for row in operation['plan']['actions']})
         self.assertFalse(self.decisions.exists())
         self.assertEqual(before, {path.relative_to(self.root): path.read_bytes() for path in self.root.rglob('*') if path.is_file()})
 
@@ -124,7 +124,7 @@ class CoordinatorTests(unittest.TestCase):
         plan = sync.describe(self.root, "bootstrap")
         self.assertTrue(plan["context"]["javascript"])
         self.assertEqual(plan["operations"], [])
-        self.assertFalse((self.root / ".program-kit").exists())
+        self.assertFalse((self.root / "config/program-kit").exists())
 
     def test_upgrade_does_not_create_previously_unmaterialized_baseline(self):
         self.decisions.write_text(json.dumps({"selected_profiles": ["dotnet", "typescript-web"]}), encoding="utf-8")

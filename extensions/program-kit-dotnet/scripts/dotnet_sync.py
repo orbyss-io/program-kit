@@ -20,7 +20,7 @@ import persistence_selection
 import dependency_profile
 import foundation_composition
 
-_architecture_engine = Path(__file__).resolve().parents[1] / 'templates/dotnet/files/eng'
+_architecture_engine = Path(__file__).resolve().parents[1] / 'templates/dotnet/files/scripts'
 sys.path.insert(0, str(_architecture_engine))
 from repository_architecture import validate_manifest
 
@@ -89,7 +89,7 @@ def apply_structured_migrations(
         (migration, transform)
         for migration in migrations
         for transform in migration.get("jsonTransforms", [])
-        if isinstance(transform, dict) and transform.get("path") in {relative, '.program-kit/' + relative[4:] if relative.startswith('eng/') else relative}
+        if isinstance(transform, dict) and transform.get("path") in {relative, 'config/program-kit/' + relative[4:] if relative.startswith('eng/') else relative}
     ]
     if not matching:
         return content
@@ -180,7 +180,7 @@ def selected_web_profile(target: Path, requested: str) -> str:
     runtime_compositions = {'api_baseline', 'browser_bff', 'browser_spa', 'hosted_application_pages'}
     if accepted.get('status') == 'Accepted' and any(
             row.get('composition') in runtime_compositions for row in accepted.get('instances', [])):
-        raise ValueError('PKM003 populate/migrate eng/foundation-composition.json from the Accepted resource bindings before consumer synchronization')
+        raise ValueError('PKM003 populate/migrate config/program-kit/foundation-composition.json from the Accepted resource bindings before consumer synchronization')
     if requested != "auto":
         return requested
 
@@ -272,11 +272,11 @@ def desired_content(
     if web_profile != "spa-pkce" or spa_configuration is None:
         return content
     renderers = {
-        "eng/web-profile.shells.json": spa_profile.render_shell_profile,
-        "eng/web-profile.json": spa_profile.render_profile,
-        "eng/web/web-contract.json": spa_profile.render_web_contract,
-        "eng/web/spa-security.json": spa_profile.render_security_contract,
-        "eng/web/vite.security.mjs": spa_profile.render_vite_security,
+        "config/program-kit/web-profile.shells.json": spa_profile.render_shell_profile,
+        "config/program-kit/web-profile.json": spa_profile.render_profile,
+        "tools/program-kit/web/web-contract.json": spa_profile.render_web_contract,
+        "tools/program-kit/web/spa-security.json": spa_profile.render_security_contract,
+        "tools/program-kit/web/vite.security.mjs": spa_profile.render_vite_security,
     }
     renderer = renderers.get(relative)
     return renderer(content, spa_configuration) if renderer else content
@@ -323,6 +323,14 @@ def stable_plan_digest(value: dict) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def owned_text_attributes(outputs: dict) -> list[str]:
+    rules = [json.dumps('/' + name, ensure_ascii=False) + ' text eol=lf' for name, row in sorted(outputs.items())
+             if row['ownership'] == 'managed' and not name.startswith('eng/')
+             and Path(name).suffix in {'.py', '.ps1', '.psm1', '.cs', '.csproj', '.json', '.props', '.targets', '.mjs', '.ts', '.css', '.yml', '.md'}]
+    return [*rules, '"/**/packages.lock.json" -text', '"/**/package-lock.json" -text',
+            '"/config/program-kit/dependency-profiles/**" -text']
+
+
 def prune_retired_program_kit_directories(target: Path) -> list[str]:
     """Remove only empty directories from the retired eng/program-kit tree."""
     legacy_root = target / "eng" / "program-kit"
@@ -346,20 +354,15 @@ def prune_retired_program_kit_directories(target: Path) -> list[str]:
 
 
 def relocate_references(content: bytes) -> bytes:
-    # Literal path relocation only. Preserve all consumer settings and source.
-    content = content.replace(b'.program-kit/eng/', b'eng/').replace(b'.program-kit\\eng\\', b'eng\\')
-    for name in ('openapi-contracts.json','openapi-defaults.json','openapi-contract.schema.json',
-                 'application-bundle.schema.json','runtime-closure.schema.json','web-profile.shells.json',
-                 'web-profile.json','building-blocks.shells.json','building-blocks.lock.json',
-                 'spa-pkce.json','spa-pkce.schema.json'):
-        content = content.replace(('.program-kit/' + name).encode(), ('eng/' + name).encode())
+    # Legacy engineering layouts require explicit migration. New-layout native
+    # roots retain their authored references; never redirect durable inputs to eng.
     return content
 
 
 def engineering_architecture(target: Path, default: bytes) -> bytes:
     # Transfer actual roles and bindings once from old implementation inputs.
     # Subsequent edits belong to the visible engineering manifest.
-    if (target / 'eng/architecture.json').exists():
+    if (target / 'config/program-kit/architecture.json').exists():
         return default
     documents = [target / 'docs/architecture/architecture-map.json']
     documents += sorted((target / 'specs').glob('*/artifact-ownership.json'))
@@ -369,7 +372,7 @@ def engineering_architecture(target: Path, default: bytes) -> bytes:
         for item in composition.get('projects', []):
             previous = projects.get(item['path'])
             if previous is not None and previous != item:
-                raise ValueError('Conflicting historical project roles; select the application boundary in eng/architecture.json: ' + item['path'])
+                raise ValueError('Conflicting historical project roles; select the application boundary in config/program-kit/architecture.json: ' + item['path'])
             if (target / item['path']).is_file():
                 projects[item['path']] = item
         for item in composition.get('coreReferences', []):
@@ -387,11 +390,11 @@ def engineering_architecture(target: Path, default: bytes) -> bytes:
 
 def setup_verification_mappings(target: Path, entries: list[dict]) -> bytes:
     """Explicit shared setup ownership; consumer-specific narrowing stays authored."""
-    graph = load_json(target / 'eng/architecture.json', {}).get('runtimeComposition', {})
+    graph = load_json(target / 'config/program-kit/architecture.json', {}).get('runtimeComposition', {})
     tests = sorted(row['path'] for row in graph.get('projects', [])
                    if row.get('role') == 'test' and (target / row['path']).is_file())
     inputs = {entry['path'] for entry in entries if entry['path'].startswith('docs/application/') or
-              entry['path'].startswith('eng/') and entry.get('ownership') == 'managed'}
+              entry['path'].startswith(('scripts/', 'tools/', 'config/program-kit/')) and entry.get('ownership') == 'managed'}
     fixtures = target / 'docs/architecture/compatibility'
     inputs.update(path.relative_to(target).as_posix() for path in fixtures.rglob('*')
                   if path.is_file() and not {'bin', 'obj', 'node_modules', '__pycache__'} & set(path.parts))
@@ -403,9 +406,9 @@ def setup_verification_mappings(target: Path, entries: list[dict]) -> bytes:
     import retained_inputs
     retained = retained_inputs.snapshot(target)
     if retained['configured']:
-        owned = sorted({*retained['inputs'], *retained['frozen'], 'eng/retained_inputs.py',
-                        'eng/retained_archives.py', 'eng/retained_locks.py', 'eng/owned_scratch.py'})
-        value['toolkitChecks'] = [{'id': 'retained-inputs', 'script': 'eng/retained_inputs.py',
+        owned = sorted({*retained['inputs'], *retained['frozen'], 'scripts/retained_inputs.py',
+                        'scripts/retained_archives.py', 'scripts/retained_locks.py', 'scripts/owned_scratch.py'})
+        value['toolkitChecks'] = [{'id': 'retained-inputs', 'script': 'scripts/retained_inputs.py',
                                   'arguments': ['verify', '--repository', '.'], 'inputs': owned, 'timeoutSeconds': 60}]
     if tests:
         value['testGroups'].append({'id': 'program-kit-shared-setup', 'projects': tests,
@@ -459,8 +462,25 @@ def main() -> int:
     parser.add_argument('--inactive-history')
     parser.add_argument('--inactive-history-sha256')
     args = parser.parse_args()
+    # Existing consumers can own application source beneath eng. This feature
+    # changes its meaning only for new-layout consumers; migration is explicit
+    # and never inferred from an absent or ignored ownership baseline.
+    target_legacy = Path(args.target).resolve()
+    if ((target_legacy / '.program-kit/managed.json').is_file()
+            or (target_legacy / '.program-kit/dependency-profile.json').is_file()
+            or ((target_legacy / 'eng').is_dir()
+                and any((target_legacy / 'eng').iterdir())
+                and not (target_legacy / 'config/program-kit/engineering.json').is_file())):
+        print('PKE002 existing engineering layout preserved. Move authored scripts to scripts/, helper/application source to tools/, and configuration/selected dependency provenance to config/program-kit/ through an explicitly reviewed consumer migration before adopting disposable eng/. No files changed.', file=sys.stderr)
+        return 2
     if args.composition_only and (args.upgrade_existing or args.inactive_history or args.inactive_history_sha256):
         parser.error('--composition-only is a separate scope from existing-toolkit or inactive-history upgrades')
+    if args.composition_only and not (target_legacy / 'config/program-kit/engineering.json').is_file():
+        print('PKE001 composition-only requires the durable engineering baseline first; preview normal engineering setup so scripts/regenerate_eng.py survives deletion of eng/. No files changed.', file=sys.stderr)
+        return 2
+    if args.composition_only and load_json(target_legacy / 'config/program-kit/engineering.json', {}).get('toolkitVersion') != extension_version(Path(__file__).resolve().parents[1]):
+        print('PKE001 composition-only cannot cross selected toolkit versions; review a full engineering baseline refresh first. Native SDK/dependency selections and all files were preserved.', file=sys.stderr)
+        return 2
 
     if not args.profile_selected:
         print("Refusing to scaffold: the .NET technology profile was not explicitly selected.", file=sys.stderr)
@@ -519,7 +539,7 @@ def main() -> int:
     dotnet_sdk, dotnet_sdk_source = selected_dotnet_sdk(
         target, template_root / "files" / "global.json"
     )
-    web_profile = (load_json(target / '.program-kit/managed.json', {}).get('webProfile', 'none') if inactive
+    web_profile = (load_json(target / 'config/program-kit/managed.json', {}).get('webProfile', 'none') if inactive
                    else selected_web_profile(target, args.web_profile))
     foundation_configuration = None
     foundation_outputs = {}
@@ -530,7 +550,7 @@ def main() -> int:
         foundation_outputs = foundation_composition.materialize(
             target, foundation_configuration, template_root, configuration_only=args.composition_only)
     if args.composition_only and foundation_configuration is None:
-        raise ValueError('PKF001 --composition-only requires the active eng/foundation-composition.json v2 model; preview the reviewed proposal before selecting it')
+        raise ValueError('PKF001 --composition-only requires the active config/program-kit/foundation-composition.json v2 model; preview the reviewed proposal before selecting it')
     spa_configuration: dict | None = None
     if web_profile == "spa-pkce":
         configuration_source = target / spa_profile.CONFIGURATION_PATH
@@ -551,7 +571,7 @@ def main() -> int:
     if foundation_configuration is not None:
         # The resource graph has one lifecycle and generates its authority imports.
         # Retain profile test support, but never publish competing startup recipes.
-        retired = {'shells.json', 'eng/Dev.ps1', 'eng/compose_topology.py',
+        retired = {'shells.json', 'eng/Dev.ps1', 'scripts/compose_topology.py',
                    'deploy/compose.identity.yml', 'deploy/compose.application.yml'}
         entries = [entry for entry in entries if entry['path'] not in retired
                    and not entry['path'].startswith('deploy/keycloak/')]
@@ -559,12 +579,13 @@ def main() -> int:
         # These are the executable adapters bound by the composition contract.
         # Unrelated engineering repairs and authored baseline policy are outside
         # this optional native transaction and retain their existing ownership.
-        adapters = {'eng/composition_model.py', 'eng/composition_render.py', 'eng/foundation_composition.py',
-                    'eng/composition_run.py', 'eng/keycloak_composition.py',
-                    'eng/web/composition-readiness.mjs', 'eng/foundation_qualification.py',
-                    'eng/runtime_closure.py', 'eng/prepare_hosted_pages.py', 'eng/release_bundle.py'}
+        adapters = {'scripts/composition_model.py', 'scripts/composition_render.py', 'scripts/foundation_composition.py',
+                    'scripts/composition_run.py', 'scripts/keycloak_composition.py',
+                    'scripts/regenerate_eng.py', 'scripts/program_kit_version.py',
+                    'tools/program-kit/web/composition-readiness.mjs', 'scripts/foundation_qualification.py',
+                    'scripts/runtime_closure.py', 'scripts/prepare_hosted_pages.py', 'scripts/release_bundle.py'}
         central = target / 'Directory.Packages.props'
-        if central.is_file() and not any(item.get('Project') == 'eng/ProgramKit.Foundation.props'
+        if central.is_file() and not any(item.get('Project') == 'config/program-kit/build/ProgramKit.Foundation.props'
                                          for item in ElementTree.parse(central).findall('Import')):
             # Reuse the guarded additive native import below. Preserve authored
             # central pins and formatting; do not replace the root with a template.
@@ -572,13 +593,13 @@ def main() -> int:
         entries = [entry for entry in entries if entry['path'] in adapters]
         obsolete_files = []
 
-    state_path = target / ".program-kit/managed.json"
+    state_path = target / "config/program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
     engineering_default = None if args.composition_only else dependency_profile.engineering_default(target)
     persistence = ({'summary': state.get('persistenceProfile', 'none'), 'owners': state.get('persistenceOwners', []), 'installedOwners': [], 'blockers': [], 'deferredAdmissions': []} if inactive or args.composition_only
                    else persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile))
     if args.upgrade_existing:
-        if not (target / '.program-kit/managed.json').is_file():
+        if not (target / 'config/program-kit/managed.json').is_file():
             raise ValueError('PKP001 upgrade-existing requires an existing managed baseline')
         if not inactive:
             persistence = persistence_selection.upgrade_scope(
@@ -596,7 +617,7 @@ def main() -> int:
         # every dependency pin/lock, toolchain selector, runtime configuration and
         # historical ownership row. No application graph is generated or retired.
         entries = [entry for entry in entries if entry['ownership'] == 'managed'
-                   and entry['path'].startswith('eng/')
+                   and entry['path'].startswith(('scripts/', 'tools/'))
                    and Path(entry['path']).suffix in {'.py', '.ps1', '.psm1', '.sh'}
                    and entry['path'] not in inactive['retainedApplicationTooling']]
     retained_foundation_sources: set[str] = set()
@@ -626,9 +647,9 @@ def main() -> int:
             if customized or extra_source:
                 retained_foundation_sources.update(members)
                 retained_foundation_projects.add(path)
-        if (target/'eng/architecture.json').is_file():
-            prior_graph = load_json(target/'eng/architecture.json', {})
-            architecture = json.loads(foundation_outputs['eng/architecture.json'][0])
+        if (target/'config/program-kit/architecture.json').is_file():
+            prior_graph = load_json(target/'config/program-kit/architecture.json', {})
+            architecture = json.loads(foundation_outputs['config/program-kit/architecture.json'][0])
             # Source-role classification remains accepted even after runtime roots
             # and feature activations stop selecting this consumer-owned project.
             architecture['runtimeComposition']['projects'].extend(
@@ -638,7 +659,7 @@ def main() -> int:
                 and (target/project['path']).is_file()
                 and (project['path'] in retained_foundation_projects
                      or not foundation_source(project['path'], old_files.get(project['path']))))
-            foundation_outputs['eng/architecture.json'] = (
+            foundation_outputs['config/program-kit/architecture.json'] = (
                 foundation_composition.encoded(architecture), 'scaffold')
     previous_profile_paths = profile_paths(template_root, previous_profile)
     migration_catalog = load_json(
@@ -674,7 +695,7 @@ def main() -> int:
                     'sourceRoot':'../../scripts', 'source':'foundation_composition.py'}
                    for path, (_, ownership) in foundation_outputs.items() if path not in present)
     if not inactive and not args.composition_only:
-        entries.append({'path': 'eng/verification.setup.json', 'ownership': 'managed', 'contribution': 'engineering',
+        entries.append({'path': 'config/program-kit/verification.setup.json', 'ownership': 'managed', 'contribution': 'engineering',
                         'sourceRoot': '../../scripts', 'source': 'dotnet_sync.py'})
     for entry in entries:
         relative = entry["path"]
@@ -689,22 +710,22 @@ def main() -> int:
         ) or (
             web_profile == "spa-pkce"
             and relative in {
-                "eng/web-profile.shells.json",
-                "eng/web-profile.json",
-                "eng/web/web-contract.json",
+                "config/program-kit/web-profile.shells.json",
+                "config/program-kit/web-profile.json",
+                "tools/program-kit/web/web-contract.json",
             }
         )
         content = desired_content(
             source, relative, dotnet_sdk, web_profile, spa_configuration, template_root
         )
-        if relative == 'eng/verification.setup.json':
+        if relative == 'config/program-kit/verification.setup.json':
             content = setup_verification_mappings(target, entries)
             rendered = True
-        if relative == 'eng/web-profile.json' and web_profile in {'bff-cookie', 'spa-pkce'}:
+        if relative == 'config/program-kit/web-profile.json' and web_profile in {'bff-cookie', 'spa-pkce'}:
             image = identity_fixture.provider_image((template_root / 'web-profiles/common/deploy/compose.identity.yml').read_bytes())
             content = identity_fixture.render_provider_profile(content, image)
             rendered = True
-        if relative == 'eng/program_kit_version.py':
+        if relative == 'scripts/program_kit_version.py':
             content = ('# Rendered from the installed Program Kit .NET extension version.\nPROGRAM_KIT_VERSION = '
                        + repr(extension_version(extension_root)) + '\n').encode('utf-8')
             rendered = True
@@ -723,7 +744,7 @@ def main() -> int:
         if retained != content:
             rendered = True
         content = retained
-        if relative == 'eng/.config/dotnet-tools.json':
+        if relative == '.config/dotnet-tools.json':
             tools = json.loads(content)
             persistence_pins = persistence_selection.pins(effective_persistence, template_root / 'files')
             if 'Microsoft.EntityFrameworkCore.Design' in persistence_pins:
@@ -738,16 +759,53 @@ def main() -> int:
             "hash": sha256_bytes(content),
         }
 
+    if not inactive and not args.composition_only:
+        required = {'.python-version', '.gitattributes', '.gitignore', 'global.json', 'Directory.Build.props', 'Directory.Build.targets',
+                    'Directory.Packages.props', 'NuGet.config', '.config/dotnet-tools.json',
+                    '.nvmrc', '.npm-version', '.oasdiff-version'}
+        required.update(path for path in desired_by_path if path.startswith('config/program-kit/'))
+        if foundation_configuration is not None:
+            required.add('tools/program-kit/web/web-contract.json')
+        required.update(path.relative_to(target).as_posix() for path in (target / 'config/program-kit').rglob('*')
+                        if path.is_file() and path.name in {'dependency-profile.json', 'building-blocks.lock.json', 'foundation-composition.json'})
+        required.update(path.relative_to(target).as_posix() for path in target.rglob('packages.lock.json')
+                        if not {'eng', 'artifacts', 'bin', 'obj', 'node_modules', '.specify', '.agents', '.git'} & set(path.relative_to(target).parts))
+        runtime = {path: row['hash'] for path, row in desired_by_path.items()
+                   if path.startswith('scripts/') and path.endswith('.py') and row['ownership'] == 'managed'}
+        content = (json.dumps({'schemaVersion': 1, 'toolkitVersion': extension_version(extension_root),
+                             'inputs': sorted(required), 'runtime': runtime}, indent=2, sort_keys=True) + '\n').encode()
+        desired_by_path['config/program-kit/engineering.json'] = {
+            'path': 'config/program-kit/engineering.json', 'ownership': 'managed', 'contribution': 'engineering',
+            'sourceIdentity': '../../scripts/dotnet_sync.py', 'rendered': True, 'content': content,
+            'hash': sha256_bytes(content)}
+        attributes = desired_by_path['.gitattributes']
+        rules = owned_text_attributes(desired_by_path)
+        attributes['content'] += b'\n# Program Kit owned text identities\n' + ('\n'.join(rules) + '\n').encode()
+        attributes['hash'] = sha256_bytes(attributes['content'])
+        attributes['rendered'] = True
+    elif args.composition_only:
+        recipe = load_json(target / 'config/program-kit/engineering.json', {})
+        recipe['toolkitVersion'] = extension_version(extension_root)
+        recipe['runtime'].update({path: row['hash'] for path, row in desired_by_path.items()
+                                  if path.startswith('scripts/') and path.endswith('.py')})
+        recipe['inputs'] = sorted({*recipe['inputs'], foundation_composition.INPUT,
+                                  foundation_composition.CONTRACT, 'tools/program-kit/web/web-contract.json'})
+        content = (json.dumps(recipe, indent=2, sort_keys=True) + '\n').encode()
+        desired_by_path['config/program-kit/engineering.json'] = {
+            'path': 'config/program-kit/engineering.json', 'ownership': 'managed', 'contribution': 'engineering',
+            'sourceIdentity': '../../scripts/dotnet_sync.py', 'rendered': True, 'content': content,
+            'hash': sha256_bytes(content)}
+
     if foundation_configuration is not None:
         foundation_composition.validate_materialized(target, foundation_configuration,
             json.loads(foundation_outputs[foundation_composition.CONTRACT][0]),
-            desired_by_path['eng/web-profile.shells.json']['content'],
+            desired_by_path['config/program-kit/web-profile.shells.json']['content'],
             None)
         if args.composition_only:
             import composition_model
             import composition_render
             import shell_composition
-            projected = json.loads(desired_by_path['eng/web-profile.shells.json']['content'])
+            projected = json.loads(desired_by_path['config/program-kit/web-profile.shells.json']['content'])
             selected_contract = json.loads(foundation_outputs[foundation_composition.CONTRACT][0])
             for shell_id, shell in composition_model.resources(foundation_configuration, 'shell').items():
                 source = target / shell['source']
@@ -775,13 +833,13 @@ def main() -> int:
     actions: list[dict] = []
     next_files: dict[str, dict] = ({p: row for p, row in old_files.items() if p not in desired_by_path} if inactive or args.composition_only else {})
 
-    architecture_path = target / 'eng/architecture.json'
+    architecture_path = target / 'config/program-kit/architecture.json'
     if architecture_path.is_file() and not inactive and not args.composition_only:
         try:
             validate_manifest(target, load_json(architecture_path, {}))
         except (ValueError, KeyError, TypeError) as error:
-            conflicts.append('eng/architecture.json')
-            conflict_details['eng/architecture.json'] = (
+            conflicts.append('config/program-kit/architecture.json')
+            conflict_details['config/program-kit/architecture.json'] = (
                 'PKA001 incompatible retained architecture: ' + str(error)
                 + '. Preserve the ADR and configuration; explicitly separate the projects and correct bindings. '
                   'Sync does not relabel roles or grant namespace exceptions.')
@@ -803,7 +861,7 @@ def main() -> int:
                     desired_hash = sha256_bytes(desired)
         legacy = None
         if relative.startswith('eng/'):
-            for candidate in ('.program-kit/' + relative[4:], '.program-kit/' + relative,
+            for candidate in ('config/program-kit/' + relative[4:], 'config/program-kit/' + relative,
                               'eng/program-kit/' + relative[4:]):
                 if candidate in old_files and (target / candidate).is_file():
                     legacy = candidate
@@ -820,14 +878,14 @@ def main() -> int:
             else:
                 conflicts.append(legacy)
                 conflict_details[legacy] = 'Customized engineering implementation preserved; merge its code into ' + relative
-        if relative == 'eng/architecture.json' and not destination.exists():
+        if relative == 'config/program-kit/architecture.json' and not destination.exists():
             try:
                 desired = engineering_architecture(target, desired)
             except (ValueError, KeyError, TypeError) as error:
                 conflicts.append(relative)
                 conflict_details[relative] = (
                     'PKA001 incompatible historical architecture: ' + str(error)
-                    + '. Preserve the ADR and source graph; supply an explicitly corrected eng/architecture.json. '
+                    + '. Preserve the ADR and source graph; supply an explicitly corrected config/program-kit/architecture.json. '
                       'Sync does not relabel roles or grant namespace exceptions.')
             desired_hash = sha256_bytes(desired)
         previous = old_files.get(relative)
@@ -869,12 +927,24 @@ def main() -> int:
                 migrated_content = apply_structured_migrations(
                     relative, current_content, applicable_migrations
                 )
+                if relative == '.gitignore' and '/eng/' not in current_content.decode('utf-8').splitlines():
+                    migrated_content = current_content.rstrip(b'\r\n') + b'\n\n# Disposable engineering projections\n/eng/\n'
+                if relative == '.gitattributes':
+                    # Preserve authored attributes. Pin text checkout only for
+                    # toolkit-owned files whose exact bytes protect adapters;
+                    # package archives and historical packs stay binary authority.
+                    rules = [line for line in desired_entry['content'].decode('utf-8').splitlines()
+                             if line.startswith('"/') and line.endswith((' text eol=lf', ' -text'))]
+                    existing = current_content.decode('utf-8').splitlines()
+                    missing = [rule for rule in rules if rule not in existing]
+                    if missing:
+                        migrated_content = current_content.rstrip(b'\r\n') + b'\n\n# Program Kit owned text identities\n' + ('\n'.join(missing) + '\n').encode()
                 if relative in {'Directory.Build.props','Directory.Build.targets','Directory.Packages.props',
                                 '.github/workflows/application-ci.yml','.github/workflows/application-release.yml'}:
                     migrated_content = relocate_references(migrated_content)
                 if foundation_configuration is not None and relative == 'Directory.Packages.props':
                     document = ElementTree.fromstring(migrated_content)
-                    pin_file = 'eng/ProgramKit.Foundation.props'
+                    pin_file = 'config/program-kit/build/ProgramKit.Foundation.props'
                     if not any(item.get('Project') == pin_file for item in document.findall('Import')):
                         # Preserve consumer content/formatting; add only the new
                         # generated contribution to the existing native root.
@@ -912,7 +982,7 @@ def main() -> int:
                 updated.append(relative)
                 actions.append({'kind': 'update', 'path': relative, 'content': desired})
                 final_hash = final_baseline = final_written = desired_hash
-            elif (foundation_configuration is not None and relative == 'eng/architecture.json'
+            elif (foundation_configuration is not None and relative == 'config/program-kit/architecture.json'
                   and isinstance(previous,dict) and current_hash == last_written_hash == baseline_hash):
                 # An explicit composition input changes only an authenticated untouched
                 # generated graph. A consumer's edited responsibilities remain preserved.
@@ -1001,7 +1071,7 @@ def main() -> int:
             continue
         current_hash = sha256_bytes(destination.read_bytes())
         previous = candidate["previous"]
-        if (relative == 'eng/ProgramKit.BuildingBlocks.props' and foundation_configuration is not None
+        if (relative == 'config/program-kit/build/ProgramKit.BuildingBlocks.props' and foundation_configuration is not None
                 and foundation_configuration.get('schemaVersion') == 2
                 and load_json(target / 'docs/architecture/building-block-selection.json', {}).get('status') == 'Accepted'):
             # Transfer the former standalone scaffold output to its existing
@@ -1084,7 +1154,7 @@ def main() -> int:
         plan_core['advisories'] = [{
             'id': 'PKF101',
             'message': 'The BFF web profile is a compatibility scaffold; no active v2 application composition is selected. '
-                       'Review templates/dotnet/compositions or preview eng/composition_migrate.py --proposal <reviewed-v2.json>, '
+                       'Review templates/dotnet/compositions or preview scripts/composition_migrate.py --proposal <reviewed-v2.json>, '
                        'then preview dotnet_sync.py --composition-only --check --json. This advisory applies no configuration and starts no application.'}]
     if inactive:
         plan_core['inactiveHistory'] = inactive

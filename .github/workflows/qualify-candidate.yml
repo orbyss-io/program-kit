@@ -79,10 +79,14 @@ jobs:
         include:
           - platform: linux
             os: ubuntu-latest
+            timeoutMinutes: 3
           - platform: windows
             os: windows-latest
+            # Cold Python/SDK setup and the installed native rebuild need more
+            # than the former Python-only installation smoke's three minutes.
+            timeoutMinutes: 5
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 3
+    timeout-minutes: ${{ matrix.timeoutMinutes }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -94,8 +98,23 @@ jobs:
         run: python scripts/release_candidate.py import-payload
       - name: Verify original package bytes
         run: python scripts/release_candidate.py verify-payload --manifest artifacts/payload/candidate-payload.json --directory artifacts/payload
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
       - name: Install actual packages and invoke installed helpers
         run: python tests/validate_package_smoke.py --assets-dir artifacts/payload
+      - name: Rebuild native consumer with disposable engineering output
+        run: python tests/validate_disposable_eng.py --assets-dir artifacts/payload
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: disposable-eng-${{ matrix.platform }}-${{ github.run_attempt }}
+          path: |
+            artifacts/de-*/*.stdout.txt
+            artifacts/de-*/*.stderr.txt
+            artifacts/de-*/results.json
+          if-no-files-found: warn
+          retention-days: 14
   security:
     needs: build
     runs-on: ubuntu-latest

@@ -48,7 +48,7 @@ For authentication, HTTP clients, serialization and frontend effects/state, use 
 framework's actual supported lifecycle/configuration seams before inventing equivalents. This does
 not select a new frontend framework, enable every optional library feature or qualify every stack.
 
-For an accepted Foundation host, inspect `eng/foundation-composition.json` and the selected
+For an accepted Foundation host, inspect `config/program-kit/foundation-composition.json` and the selected
 [executable composition](../extensions/program-kit-dotnet/references/foundation-compositions.md)
 before implementing setup or the first endpoint. An absent graph alongside that decision calls for
 the maintained fresh template or bounded migration/configuration preview, not another host or

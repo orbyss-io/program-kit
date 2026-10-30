@@ -17,7 +17,7 @@ import upgrade_program_kit as updater
 
 class WitnessTests(unittest.TestCase):
     def attempt_inputs(self):
-        original = self.consumer / '.program-kit/installation/originals' / (witness.sha(b'original version') + '.original')
+        original = self.consumer / 'config/program-kit/installation/originals' / (witness.sha(b'original version') + '.original')
         original.parent.mkdir(parents=True, exist_ok=True); original.write_bytes(b'original version')
         current = self.consumer / 'eng/managed.py'; current.parent.mkdir(exist_ok=True)
         current.write_bytes(b'original managed source\r\n')
